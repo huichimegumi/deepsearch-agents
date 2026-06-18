@@ -19,7 +19,7 @@ load_dotenv(find_dotenv())
 
 # 使用 OpenAI 兼容接口初始化模型；温度调低，让路由和回答更稳定
 llm = init_chat_model(
-    model=os.getenv("LLM_QWEN_MAX"),
+    model=os.getenv("LLM_NAME"),
     temperature=0.1,
     model_provider="openai",
 )

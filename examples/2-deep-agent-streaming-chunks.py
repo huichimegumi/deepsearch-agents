@@ -15,10 +15,10 @@ from langchain.chat_models import init_chat_model
 from langchain.tools import tool
 from tavily import TavilyClient
 
-# 读取项目根目录中的 .env，示例依赖 LLM_QWEN_MAX 和 TAVILY_API_KEY
+# 读取项目根目录中的 .env，示例依赖 LLM_NAME 和 TAVILY_API_KEY
 load_dotenv(find_dotenv())
 
-llm_name = os.getenv("LLM_QWEN_MAX")
+llm_name = os.getenv("LLM_NAME")
 tavily_key = os.getenv("TAVILY_API_KEY")
 
 

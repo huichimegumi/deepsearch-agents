@@ -15,10 +15,10 @@ from langchain.chat_models import init_chat_model
 from langchain.tools import tool
 from tavily import TavilyClient
 
-# 读取项目根目录中的 .env，示例依赖 LLM_QWEN_MAX 和 TAVILY_API_KEY
+# 读取项目根目录中的 .env，示例依赖 LLM_NAME 和 TAVILY_API_KEY
 load_dotenv(find_dotenv())
 
-llm_name = os.getenv("LLM_QWEN_MAX")
+llm_name = os.getenv("LLM_NAME")
 tavily_key = os.getenv("TAVILY_API_KEY")
 
 
@@ -55,7 +55,7 @@ def internet_search(
 
 
 # 使用 OpenAI 兼容接口初始化千问模型
-# 模型名从 .env 的 LLM_QWEN_MAX 读取，例如 qwen-max
+# 模型名从 .env 的 LLM_NAME 读取，例如 qwen-max
 llm = init_chat_model(model=llm_name, model_provider="openai")
 
 # 创建 DeepAgent，模型负责推理和规划，tools 提供可被调用的外部能力

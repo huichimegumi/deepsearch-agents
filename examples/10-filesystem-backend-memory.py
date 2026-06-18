@@ -33,7 +33,7 @@ file_backend = FilesystemBackend(
 
 
 llm = init_chat_model(
-    model=os.getenv("LLM_QWEN_MAX"),
+    model=os.getenv("LLM_NAME"),
     model_provider="openai",
 )
 

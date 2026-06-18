@@ -16,8 +16,7 @@ from langchain.chat_models import init_chat_model
 load_dotenv(find_dotenv())
 
 
-llm = init_chat_model(model="qwen-max", model_provider="openai")
-
+llm = init_chat_model(model=os.getenv("LLM_NAME"), model_provider="openai")
 
 # Skill 文件需要通过 Backend 暴露给 Agent
 # 这里把当前示例文件所在目录作为根目录，后续 skills 路径都相对于它查找

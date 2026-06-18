@@ -58,7 +58,7 @@ def log_tool_call(request, handler):
     return result
 
 
-llm = init_chat_model(model=os.getenv("LLM_QWEN_MAX"), model_provider="openai")
+llm = init_chat_model(model=os.getenv("LLM_NAME"), model_provider="openai")
 
 
 # 自定义中间件和框架内置中间件一样，都需要放到 middleware 列表里才会生效

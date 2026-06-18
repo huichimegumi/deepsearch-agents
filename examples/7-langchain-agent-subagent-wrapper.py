@@ -23,7 +23,7 @@ from langchain_core.tools import tool
 load_dotenv(find_dotenv())
 
 llm = init_chat_model(
-    model=os.getenv("LLM_QWEN_MAX"),
+    model=os.getenv("LLM_NAME"),
     model_provider="openai",
 )
 
