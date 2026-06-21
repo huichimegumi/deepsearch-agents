@@ -35,4 +35,5 @@ main_agent_content = prompt_yaml_content["main_agent"]
 # 子智能体配置集合，包含 name、description 和 system_prompt
 sub_agents_content = prompt_yaml_content["sub_agents"]
 
-print(sub_agents_content)
+# 当前学习阶段可以临时打印，确认 YAML 是否被正确读取；生产代码中可以去掉
+# print(sub_agents_content)
