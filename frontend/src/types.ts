@@ -3,6 +3,7 @@ export type ConnectionState = "connecting" | "connected" | "reconnecting" | "clo
 export type MonitorEventName =
   | "session_created"
   | "tool_start"
+  | "search_status"
   | "assistant_call"
   | "task_result"
   | "task_cancelled"

@@ -123,6 +123,16 @@ class ToolMonitor:
             {"assistant_name": assistant_name, "args": args},
         )
 
+    def report_search(self, stage: str, data: dict[str, Any]) -> None:
+        """报告搜索调度、实际后端、结果数量和降级信息。"""
+        if stage == "start":
+            message = "开始执行多源网络搜索"
+        else:
+            backend = data.get("resolved_backend", "未知")
+            result_count = data.get("result_count", 0)
+            message = f"网络搜索完成: {backend}，获得 {result_count} 条结果"
+        self._emit("search_status", message, data)
+
     def report_task_result(self, result: str) -> None:
         """报告任务最终结果"""
         self._emit("task_result", "任务执行完成", {"result": result})

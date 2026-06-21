@@ -30,6 +30,7 @@ reportlab>=4.0.0            # 跨平台 PDF 生成，用于 word_converter.py
 
 # --- 外部工具集成 (Integrations) ---
 tavily-python==0.7.24       # 联网搜索 API
+ddgs>=9.6.1                 # 无需 API Key 的 DuckDuckGo 搜索与自动降级
 ragflow-sdk>=0.1.0          # 知识库 SDK
 requests>=2.31.0            # HTTP 请求库
 

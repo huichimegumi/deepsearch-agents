@@ -66,7 +66,7 @@
   - 主智能体负责理解任务、规划步骤、调度助手和最终汇总。
   - 网络搜索助手、数据库查询助手、RAGFlow 助手分别处理不同信息来源。
 - **多来源检索，而不是模型裸答**
-  - `Tavily` 负责互联网公开资料检索。
+  - `Tavily`、`DuckDuckGo`、`Perplexity`、`SearXNG` 负责互联网公开资料检索，并支持自动降级和聚合搜索。
   - `MySQL` 负责查询结构化业务数据。
   - `RAGFlow` 负责查询内部非结构化文档。
   - 上传附件由主智能体通过文件工具读取。
@@ -86,7 +86,7 @@
 这套课程十分适合这些场景：
 
 - 想系统学习 `DeepAgents`，但不想只停留在几个玩具示例。
-- 想把 `Tavily`、`MySQL`、`RAGFlow` 和大模型放到同一个研究助手场景里理解。
+- 想把多后端网络搜索、`MySQL`、`RAGFlow` 和大模型放到同一个研究助手场景里理解。
 - 想做一个比简单模型调用更接近真实开发的 AI Agent 项目。
 - 想把项目写进简历，并且能说清楚智能体层、工具层、服务层、文件层和前端层分别做了什么。
 
@@ -100,7 +100,7 @@
 
 | 主线             | 做什么                                                       | 涉及模块                                                                  |
 | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| 多智能体深度研搜 | 基于用户任务完成规划、分派、检索、读取附件、汇总和生成交付物 | `DeepAgents` / `LangChain` / `LangGraph` / `Tavily` / `MySQL` / `RAGFlow` |
+| 多智能体深度研搜 | 基于用户任务完成规划、分派、检索、读取附件、汇总和生成交付物 | `DeepAgents` / `LangChain` / `LangGraph` / 多后端搜索 / `MySQL` / `RAGFlow` |
 | 前后端实时闭环   | 启动后台任务、上传文件、推送执行过程、展示结果和下载生成文件 | `FastAPI` / `WebSocket` / `React` / `Vite`                                |
 
 ### 智能体与工具
@@ -108,7 +108,7 @@
 | 归属           | 能力                                     | 工具                                                          |
 | -------------- | ---------------------------------------- | ------------------------------------------------------------- |
 | 主智能体       | 任务规划、助手调度、结果汇总、文件交付   | `read_file_content`、`generate_markdown`、`convert_md_to_pdf` |
-| 网络搜索助手   | 查询互联网公开信息、新闻、政策和网页资料 | `internet_search`                                             |
+| 网络搜索助手   | 多查询检索、自动降级、来源聚合和交叉验证 | `research_search`                                             |
 | 数据库查询助手 | 发现表名、预览表结构和样例数据、执行 SQL | `list_sql_tables`、`get_table_data`、`execute_sql_query`      |
 | RAGFlow 助手   | 发现可用知识库助手，并向内部知识库提问   | `get_assistant_list`、`create_ask_delete`                     |
 
@@ -122,7 +122,7 @@
 | 图与检查点     | `LangGraph`                                      | 提供底层运行时和 `InMemorySaver` 会话检查点                                   |
 | 模型与工具抽象 | `LangChain` / `langchain-core`                   | 封装 OpenAI 兼容模型、工具声明和 Agent 调用结构                               |
 | 大模型接入     | OpenAI 兼容接口                                  | 通过 `.env` 中的 `OPENAI_BASE_URL`、`OPENAI_API_KEY`、`LLM_QWEN_MAX` 接入模型 |
-| 网络搜索       | `Tavily`                                         | 为网络搜索助手提供公开资料检索                                                |
+| 网络搜索       | `Tavily` / `DuckDuckGo` / `Perplexity` / `SearXNG` | 提供自动降级、并发聚合、去重排序和可选正文抓取                              |
 | 结构化数据     | `MySQL` / `mysql-connector-python`               | 为数据库助手提供药品、库存、销售等教学业务数据                                |
 | 私有知识库     | `RAGFlow` / `ragflow-sdk`                        | 为知识库助手提供内部文档问答能力                                              |
 | 文件处理       | `pypdf` / `python-docx` / `pandas` / `ReportLab` | 读取上传附件，生成 Markdown，转换 PDF                                         |
@@ -145,6 +145,7 @@ deepsearch-agents/
 │   │   ├── context.py              # ContextVar 保存 thread_id 和 session_dir
 │   │   ├── monitor.py              # 工具调用、助手调用、结果和异常事件推送
 │   │   └── server.py               # FastAPI 任务、上传、文件、下载、WebSocket 接口
+│   ├── search/                     # 多后端适配、自动降级、聚合、去重和正文抓取
 │   ├── prompt/
 │   │   └── prompts.yml             # 主智能体和子智能体提示词配置
 │   ├── ragflow/                    # RAGFlow 配置和基础调用示例
@@ -204,8 +205,16 @@ OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 OPENAI_API_KEY=你的大模型_API_KEY
 LLM_QWEN_MAX=qwen-max
 
-# Tavily 配置
+# 网络搜索配置：auto 自动降级，advanced 聚合全部可用后端
+SEARCH_BACKEND=auto
+SEARCH_BACKEND_ORDER=tavily,searxng,duckduckgo,perplexity
+SEARCH_TIMEOUT=15
+SEARCH_MAX_CONTENT_CHARS=8000
+
+# DuckDuckGo 无需 Key，其他后端按需配置
 TAVILY_API_KEY=你的_TAVILY_API_KEY
+PERPLEXITY_API_KEY=你的_PERPLEXITY_API_KEY
+SEARXNG_URL=http://localhost:8888
 
 # RAGFlow 配置
 RAGFLOW_API_URL=http://your-ragflow-host

@@ -29,6 +29,9 @@ function EventIcon({ event }: { event: string }) {
   if (event === "tool_start") {
     return <ToolOutlined aria-hidden />;
   }
+  if (event === "search_status") {
+    return <FileSearchOutlined aria-hidden />;
+  }
   if (event === "session_created") {
     return <FileSearchOutlined aria-hidden />;
   }
