@@ -5,6 +5,8 @@
 /tmp
 app/output
 app/updated
+app/rag_temp
+.fastembed_cache/
 /out-tsc
 # Only exists if Bazel was run
 /bazel-out

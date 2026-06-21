@@ -18,6 +18,12 @@ python-multipart>=0.0.6     # 文件上传支持
 
 # --- 数据库与存储 (Database) ---
 mysql-connector-python>=8.0.0  # MySQL 官方驱动，用于 mysql_tools
+sqlalchemy>=2.0.0              # 本地 RAG 元数据 ORM
+psycopg[binary]>=3.2.0         # PostgreSQL 驱动
+qdrant-client>=1.14.0          # 向量数据库客户端
+minio>=7.2.0                   # 原始知识文档对象存储
+celery[redis]>=5.4.0           # 后台解析与索引任务
+fastembed>=0.6.0               # 本地 ONNX Embedding 与 rerank
 
 # --- 文件处理 (File Processing - upload_file_read_tool) ---
 python-docx>=1.0.0          # Word (.docx) 读取
@@ -31,7 +37,6 @@ reportlab>=4.0.0            # 跨平台 PDF 生成，用于 word_converter.py
 # --- 外部工具集成 (Integrations) ---
 tavily-python==0.7.24       # 联网搜索 API
 ddgs>=9.6.1                 # 无需 API Key 的 DuckDuckGo 搜索与自动降级
-ragflow-sdk>=0.1.0          # 知识库 SDK
 requests>=2.31.0            # HTTP 请求库
 
 # --- 基础工具 (Utilities) ---

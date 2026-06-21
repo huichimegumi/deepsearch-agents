@@ -60,3 +60,44 @@ export interface UploadedItem {
   size: number;
   raw: File;
 }
+
+export interface KnowledgeBase {
+  id: string;
+  name: string;
+  description: string;
+  document_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface KnowledgeDocument {
+  id: string;
+  knowledge_base_id: string;
+  filename: string;
+  content_type: string;
+  size_bytes: number;
+  sha256: string;
+  status: "pending" | "indexing" | "ready" | "failed" | string;
+  chunk_count: number;
+  error_message?: string | null;
+  created_at: string;
+  indexed_at?: string | null;
+}
+
+export interface IndexJob {
+  id: string;
+  document_id?: string | null;
+  knowledge_base_id: string;
+  celery_task_id?: string | null;
+  kind: string;
+  status: string;
+  progress: number;
+  message: string;
+  error_message?: string | null;
+}
+
+export interface KnowledgeUploadResponse {
+  document: KnowledgeDocument;
+  job?: IndexJob | null;
+  deduplicated: boolean;
+}

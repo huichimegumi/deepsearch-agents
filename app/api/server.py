@@ -28,7 +28,9 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from app.agent.main_agent import run_deep_agent
+from app.api.knowledge import router as knowledge_router
 from app.api.monitor import manager
+from app.rag.database import init_schema
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -40,6 +42,7 @@ async def lifespan(_app: FastAPI):
     """
     loop = asyncio.get_running_loop()
     manager.set_loop(loop)
+    init_schema()
     print(f"[Server] WebSocket Manager bound to loop: {id(loop)}")
     yield
 
@@ -49,6 +52,7 @@ current_dir = Path(__file__).resolve().parent
 project_root = current_dir.parent
 
 app = FastAPI(title="DeepAgents API", lifespan=lifespan)
+app.include_router(knowledge_router)
 
 # 保存 thread_id -> 后台 Agent 任务，用于同一会话任务替换和主动取消
 active_tasks: dict[str, asyncio.Task] = {}

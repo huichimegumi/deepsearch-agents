@@ -7,6 +7,134 @@
 name: deepsearch-agents
 
 services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: deepsearch-api
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      RAG_DATABASE_URL: postgresql+psycopg://deepsearch:deepsearch@postgres:5432/deepsearch_rag
+      RAG_REDIS_URL: redis://redis:6379/0
+      RAG_QDRANT_URL: http://qdrant:6333
+      RAG_MINIO_ENDPOINT: minio:9000
+      FASTEMBED_CACHE_PATH: /models
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ../app/output:/workspace/app/output
+      - ../app/updated:/workspace/app/updated
+      - deepsearch_model_cache:/models
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      minio:
+        condition: service_started
+
+  rag-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: deepsearch-rag-worker
+    restart: unless-stopped
+    command:
+      - uv
+      - run
+      - celery
+      - -A
+      - app.rag.celery_app:celery_app
+      - worker
+      - --loglevel=INFO
+      - --pool=solo
+    env_file:
+      - ../.env
+    environment:
+      RAG_DATABASE_URL: postgresql+psycopg://deepsearch:deepsearch@postgres:5432/deepsearch_rag
+      RAG_REDIS_URL: redis://redis:6379/0
+      RAG_QDRANT_URL: http://qdrant:6333
+      RAG_MINIO_ENDPOINT: minio:9000
+      FASTEMBED_CACHE_PATH: /models
+    volumes:
+      - deepsearch_model_cache:/models
+    depends_on:
+      api:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      minio:
+        condition: service_started
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: deepsearch-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-deepsearch}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-deepsearch}
+      POSTGRES_DB: ${POSTGRES_DB:-deepsearch_rag}
+      TZ: Asia/Shanghai
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - deepsearch_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: deepsearch-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - deepsearch_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  qdrant:
+    image: qdrant/qdrant:v1.14.1
+    container_name: deepsearch-qdrant
+    restart: unless-stopped
+    ports:
+      - "${QDRANT_HTTP_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+    volumes:
+      - deepsearch_qdrant_data:/qdrant/storage
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: deepsearch-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-deepsearch}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-deepsearch-secret}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - deepsearch_minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   mysql:
     image: mysql:8.4
     container_name: deepsearch-mysql
@@ -42,3 +170,8 @@ services:
 
 volumes:
   deepsearch_mysql_data:
+  deepsearch_postgres_data:
+  deepsearch_redis_data:
+  deepsearch_qdrant_data:
+  deepsearch_minio_data:
+  deepsearch_model_cache:

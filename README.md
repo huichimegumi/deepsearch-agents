@@ -16,9 +16,9 @@
 
 **📢 说明**：本套实战项目已于 2026 年 5 月 17 日 更新完成，配套教程、章节分支和前后端代码均可对照学习。
 
-如果你正在找一个适合学习 `DeepAgents`、`WebSocket`、`Tavily`、`RAGFlow` 和 AI Agent 工程开发的实战项目，「深度研搜」很可能是最适合你的项目。
+如果你正在找一个适合学习 `DeepAgents`、`WebSocket`、混合检索和 AI Agent 工程开发的实战项目，「深度研搜」很可能是最适合你的项目。
 
-它不是只调用一次大模型接口，也不是套一个搜索 API 做问答演示。这个项目围绕深度研究场景，用 DeepAgents 组织主智能体和专家子智能体，让系统可以根据任务需要查公开网络、查结构化数据库、查 RAGFlow 私有知识库、读取用户上传附件，并把最终结果整理成回答、Markdown 或 PDF。换句话说，你学到的不是某一个框架 API，而是一条 AI 应用从多智能体规划、工具接入、上下文隔离、接口交付到前端联调的完整项目主线。
+它不是只调用一次大模型接口，也不是套一个搜索 API 做问答演示。这个项目围绕深度研究场景，用 DeepAgents 组织主智能体和专家子智能体，让系统可以根据任务需要查公开网络、查结构化数据库、查本地私有知识库、读取用户上传附件，并把最终结果整理成回答、Markdown 或 PDF。
 
 > 本套仓库是 [ai-agents-from-zero](https://github.com/didilili/ai-agents-from-zero) 教程体系中的 [实战项目-深度研搜](https://github.com/didilili/ai-agents-from-zero/tree/main/%E5%AE%9E%E6%88%98%E9%A1%B9%E7%9B%AE-%E6%B7%B1%E5%BA%A6%E7%A0%94%E6%90%9C) 配套源码仓库，除了可直接运行和二次开发的项目代码之外，也提供了与教程章节对应的 Git 分支演进过程，以及完整的在线图文讲义入口。
 > 如果你想系统学习「AI 智能体 大模型应用开发」，也可直接从系统教程 [AI 智能体实战速成指南-大模型入门](https://didilili.github.io/ai-agents-from-zero/#/) 开始。
@@ -40,7 +40,7 @@
 - 判断需要公开资料、内部数据、私有知识库还是本次上传文件；
 - 去互联网搜索最新新闻、政策、产品或行业资料；
 - 到 MySQL 查询企业结构化业务数据；
-- 到 RAGFlow 查询内部非结构化文档；
+- 到本地知识库查询内部非结构化文档；
 - 读取用户上传的 PDF、Word、Excel、Markdown 或文本文件；
 - 汇总多来源信息，判断资料是否足够；
 - 生成 Markdown 报告，并在需要时转换成 PDF；
@@ -53,7 +53,7 @@
   -> FastAPI 接口接收请求
   -> run_deep_agent 创建会话目录并写入上下文
   -> 主智能体分析任务
-  -> 分派给网络搜索助手 / 数据库查询助手 / RAGFlow 助手
+  -> 分派给网络搜索助手 / 数据库查询助手 / 本地知识库助手
   -> 主智能体汇总多来源信息
   -> 调用文件工具生成 Markdown / PDF
   -> monitor 通过 WebSocket 推送进度
@@ -64,11 +64,11 @@
 
 - **一主三从的多智能体架构**
   - 主智能体负责理解任务、规划步骤、调度助手和最终汇总。
-  - 网络搜索助手、数据库查询助手、RAGFlow 助手分别处理不同信息来源。
+  - 网络搜索助手、数据库查询助手、本地知识库助手分别处理不同信息来源。
 - **多来源检索，而不是模型裸答**
   - `Tavily`、`DuckDuckGo`、`Perplexity`、`SearXNG` 负责互联网公开资料检索，并支持自动降级和聚合搜索。
   - `MySQL` 负责查询结构化业务数据。
-  - `RAGFlow` 负责查询内部非结构化文档。
+  - `PostgreSQL + Qdrant + FastEmbed` 负责内部非结构化文档的混合检索和 rerank。
   - 上传附件由主智能体通过文件工具读取。
 - **从检索到交付的完整可运行链路**
   - 不停留在 Prompt 设计，而是会真实调用工具、读取数据、生成 Markdown，并在需要时转换成 PDF。
@@ -86,7 +86,7 @@
 这套课程十分适合这些场景：
 
 - 想系统学习 `DeepAgents`，但不想只停留在几个玩具示例。
-- 想把多后端网络搜索、`MySQL`、`RAGFlow` 和大模型放到同一个研究助手场景里理解。
+- 想把多后端网络搜索、`MySQL`、工程化本地 RAG 和大模型放到同一个研究助手场景里理解。
 - 想做一个比简单模型调用更接近真实开发的 AI Agent 项目。
 - 想把项目写进简历，并且能说清楚智能体层、工具层、服务层、文件层和前端层分别做了什么。
 
@@ -100,7 +100,7 @@
 
 | 主线             | 做什么                                                       | 涉及模块                                                                  |
 | ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| 多智能体深度研搜 | 基于用户任务完成规划、分派、检索、读取附件、汇总和生成交付物 | `DeepAgents` / `LangChain` / `LangGraph` / 多后端搜索 / `MySQL` / `RAGFlow` |
+| 多智能体深度研搜 | 基于用户任务完成规划、分派、检索、读取附件、汇总和生成交付物 | `DeepAgents` / `LangChain` / `LangGraph` / 多后端搜索 / `MySQL` / 本地 RAG |
 | 前后端实时闭环   | 启动后台任务、上传文件、推送执行过程、展示结果和下载生成文件 | `FastAPI` / `WebSocket` / `React` / `Vite`                                |
 
 ### 智能体与工具
@@ -110,7 +110,7 @@
 | 主智能体       | 任务规划、助手调度、结果汇总、文件交付   | `read_file_content`、`generate_markdown`、`convert_md_to_pdf` |
 | 网络搜索助手   | 多查询检索、自动降级、来源聚合和交叉验证 | `research_search`                                             |
 | 数据库查询助手 | 发现表名、预览表结构和样例数据、执行 SQL | `list_sql_tables`、`get_table_data`、`execute_sql_query`      |
-| RAGFlow 助手   | 发现可用知识库助手，并向内部知识库提问   | `get_assistant_list`、`create_ask_delete`                     |
+| 本地知识库助手 | 发现知识库，并执行混合检索、rerank 和带页码问答 | `get_assistant_list`、`create_ask_delete`                |
 
 ![深度研搜网络搜索任务执行页：WebSocket 事件流、工具调用和最终回答](docs/images/deepsearch-network-search-result.jpg)
 
@@ -124,7 +124,8 @@
 | 大模型接入     | OpenAI 兼容接口                                  | 通过 `.env` 中的 `OPENAI_BASE_URL`、`OPENAI_API_KEY`、`LLM_QWEN_MAX` 接入模型 |
 | 网络搜索       | `Tavily` / `DuckDuckGo` / `Perplexity` / `SearXNG` | 提供自动降级、并发聚合、去重排序和可选正文抓取                              |
 | 结构化数据     | `MySQL` / `mysql-connector-python`               | 为数据库助手提供药品、库存、销售等教学业务数据                                |
-| 私有知识库     | `RAGFlow` / `ragflow-sdk`                        | 为知识库助手提供内部文档问答能力                                              |
+| 私有知识库     | `PostgreSQL` / `Qdrant` / `MinIO` / `Redis` / `Celery` | 提供文档管理、后台索引、混合检索与对象存储                              |
+| 本地模型       | `FastEmbed`                                      | 提供中文向量和 CrossEncoder rerank                                            |
 | 文件处理       | `pypdf` / `python-docx` / `pandas` / `ReportLab` | 读取上传附件，生成 Markdown，转换 PDF                                         |
 | 后端接口       | `FastAPI` / `Uvicorn`                            | 提供任务、取消、上传、文件列表、下载和 WebSocket 接口                         |
 | 实时通信       | `WebSocket`                                      | 推送工具调用、助手调用、最终结果和错误事件                                    |
@@ -137,7 +138,7 @@
 deepsearch-agents/
 ├── app/
 │   ├── agent/
-│   │   ├── subagents/              # 网络搜索、数据库查询、RAGFlow 三个子智能体
+│   │   ├── subagents/              # 网络搜索、数据库查询、本地知识库三个子智能体
 │   │   ├── llm.py                  # OpenAI 兼容模型初始化
 │   │   ├── main_agent.py           # 主智能体组装与 run_deep_agent 执行入口
 │   │   └── prompts.py              # 读取 app/prompt/prompts.yml
@@ -148,15 +149,16 @@ deepsearch-agents/
 │   ├── search/                     # 多后端适配、自动降级、聚合、去重和正文抓取
 │   ├── prompt/
 │   │   └── prompts.yml             # 主智能体和子智能体提示词配置
-│   ├── ragflow/                    # RAGFlow 配置和基础调用示例
-│   ├── tools/                      # Tavily、MySQL、RAGFlow、文件读取、Markdown、PDF 工具
+│   ├── rag/                        # 本地 RAG 模型、解析、索引、检索、Celery 任务与存储适配
+│   ├── tools/                      # 网络搜索、MySQL、本地 RAG、文件、Markdown、PDF 工具
 │   ├── utils/                      # 路径解析、Markdown/PDF 底层转换等普通 Python 工具
 │   ├── output/                     # 运行时生成：每个会话的 Markdown、PDF 等产物
 │   └── updated/                    # 运行时生成：用户上传文件的会话暂存目录
 ├── docker/
-│   ├── docker-compose.yaml         # 本地 MySQL 教学环境
+│   ├── docker-compose.yaml         # API、Worker、PostgreSQL、Qdrant、Redis、MinIO、MySQL
+│   ├── Dockerfile                  # 后端与 Celery worker 镜像
 │   └── mysql/mysql.sql             # 药品、库存、销售记录模拟数据
-├── docs/knowledge_base/            # RAGFlow 知识库示例 PDF
+├── docs/knowledge_base/            # 可批量导入的本地知识库示例 PDF
 ├── examples/                       # DeepAgents 章节示例脚本
 ├── frontend/                       # React + Vite 前端项目
 ├── tests/                          # 测试目录
@@ -176,7 +178,7 @@ deepsearch-agents/
 - Node.js 与 `pnpm`
 - 可用的大模型 API Key
 - Tavily API Key
-- RAGFlow 服务与 API Key
+- Docker 与 Docker Compose（用于本地 RAG 基础设施）
 
 ### 2. 克隆项目
 
@@ -216,9 +218,13 @@ TAVILY_API_KEY=你的_TAVILY_API_KEY
 PERPLEXITY_API_KEY=你的_PERPLEXITY_API_KEY
 SEARXNG_URL=http://localhost:8888
 
-# RAGFlow 配置
-RAGFLOW_API_URL=http://your-ragflow-host
-RAGFLOW_API_KEY=ragflow-your-api-key
+# 本地 RAG 配置
+RAG_DATABASE_URL=postgresql+psycopg://deepsearch:deepsearch@localhost:5432/deepsearch_rag
+RAG_REDIS_URL=redis://localhost:6379/0
+RAG_QDRANT_URL=http://localhost:6333
+RAG_MINIO_ENDPOINT=localhost:9000
+RAG_MINIO_ACCESS_KEY=deepsearch
+RAG_MINIO_SECRET_KEY=deepsearch-secret
 
 # MySQL 配置
 MYSQL_USER=root
@@ -231,19 +237,23 @@ MYSQL_COLLATION=utf8mb4_unicode_ci
 MYSQL_SQL_MODE=TRADITIONAL
 ```
 
-### 5. 启动 MySQL 教学库
+### 5. 启动本地基础设施
 
-本仓库的 `docker/mysql/mysql.sql` 会在 MySQL 容器首次创建数据目录时自动导入药品、库存和销售记录模拟数据。
+Compose 会启动 FastAPI、Celery worker、PostgreSQL、Qdrant、Redis、MinIO 和 MySQL。MySQL 仍用于结构化数据库助手，PostgreSQL 等服务用于本地 RAG。
 
 ```bash
 docker compose -f docker/docker-compose.yaml up -d
 ```
 
-### 6. 准备 RAGFlow 知识库
+### 6. 导入示例知识库
 
-RAGFlow 不在本仓库的 Docker Compose 中启动，需要接入你已有的 RAGFlow 服务，或按配套教程部署。仓库内的 `docs/knowledge_base/` 提供了电商、金融等示例 PDF，可用于创建 RAGFlow 知识库和聊天助手。
+可以直接在前端“知识库管理”中创建知识库并上传，也可以批量导入仓库示例：
 
-如果暂时不使用私有知识库能力，也可以先跑网络搜索、数据库查询和上传文件读取链路；只有任务触发 RAGFlow 助手时才会依赖 `RAGFLOW_API_URL` 和 `RAGFLOW_API_KEY`。
+```bash
+uv run python -m app.rag.bootstrap docs/knowledge_base
+```
+
+首次索引会下载 FastEmbed 模型到本机缓存，之后解析、Embedding、rerank 和检索均在本地完成。
 
 ### 7. 启动后端
 
@@ -260,6 +270,10 @@ uv run uvicorn app.api.server:app --host 0.0.0.0 --port 8000 --reload
 | `POST /api/upload`                  | 上传一个或多个文件到当前会话           |
 | `GET /api/files`                    | 列出当前会话输出目录中的生成文件       |
 | `GET /api/download`                 | 下载输出目录中的文件                   |
+| `GET/POST /api/knowledge-bases`     | 查询或创建本地知识库                   |
+| `POST /api/knowledge-bases/{id}/documents` | 上传文档并提交 Celery 索引任务  |
+| `GET /api/knowledge-bases/{id}/documents`  | 查询文档与索引状态               |
+| `POST /api/knowledge-bases/{id}/search`    | 执行混合检索                     |
 | `WebSocket /ws/{thread_id}`         | 推送工具调用、助手调用、结果和异常事件 |
 
 ### 8. 启动前端

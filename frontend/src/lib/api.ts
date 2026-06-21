@@ -1,5 +1,14 @@
 import { API_BASE_URL } from "./config";
-import type { CancelTaskResponse, FileListResponse, TaskResponse, UploadResponse } from "../types";
+import type {
+  CancelTaskResponse,
+  FileListResponse,
+  IndexJob,
+  KnowledgeBase,
+  KnowledgeDocument,
+  KnowledgeUploadResponse,
+  TaskResponse,
+  UploadResponse
+} from "../types";
 
 function apiUrl(path: string): string {
   return `${API_BASE_URL}${path}`;
@@ -66,4 +75,61 @@ export function getDownloadUrl(path: string): string {
   const url = new URL(apiUrl("/api/download"));
   url.searchParams.set("path", path);
   return url.toString();
+}
+
+export function listKnowledgeBases(): Promise<KnowledgeBase[]> {
+  return requestJson<KnowledgeBase[]>(apiUrl("/api/knowledge-bases"));
+}
+
+export function createKnowledgeBase(name: string, description: string): Promise<KnowledgeBase> {
+  return requestJson<KnowledgeBase>(apiUrl("/api/knowledge-bases"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, description })
+  });
+}
+
+export async function deleteKnowledgeBase(knowledgeBaseId: string): Promise<void> {
+  const response = await fetch(
+    apiUrl(`/api/knowledge-bases/${encodeURIComponent(knowledgeBaseId)}`),
+    { method: "DELETE" }
+  );
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+}
+
+export function listKnowledgeDocuments(knowledgeBaseId: string): Promise<KnowledgeDocument[]> {
+  return requestJson<KnowledgeDocument[]>(
+    apiUrl(`/api/knowledge-bases/${encodeURIComponent(knowledgeBaseId)}/documents`)
+  );
+}
+
+export async function uploadKnowledgeDocument(
+  knowledgeBaseId: string,
+  file: File
+): Promise<KnowledgeUploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+  return requestJson<KnowledgeUploadResponse>(
+    apiUrl(`/api/knowledge-bases/${encodeURIComponent(knowledgeBaseId)}/documents`),
+    { method: "POST", body: formData }
+  );
+}
+
+export function reindexKnowledgeDocument(documentId: string): Promise<IndexJob> {
+  return requestJson<IndexJob>(
+    apiUrl(`/api/knowledge-bases/documents/${encodeURIComponent(documentId)}/reindex`),
+    { method: "POST" }
+  );
+}
+
+export async function deleteKnowledgeDocument(documentId: string): Promise<void> {
+  const response = await fetch(
+    apiUrl(`/api/knowledge-bases/documents/${encodeURIComponent(documentId)}`),
+    { method: "DELETE" }
+  );
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
 }

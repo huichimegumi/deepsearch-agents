@@ -1,6 +1,7 @@
 import {
   ApiOutlined,
   BranchesOutlined,
+  BookOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   CloudServerOutlined,
@@ -11,6 +12,7 @@ import {
 import { Alert, App as AntApp, Button } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { ChatComposer } from "./components/ChatComposer";
+import { KnowledgeBaseDrawer } from "./components/KnowledgeBaseDrawer";
 import { ConversationThread } from "./components/ConversationThread";
 import type { ChatTurn } from "./components/ConversationThread";
 import { API_BASE_URL, WS_BASE_URL } from "./lib/config";
@@ -44,6 +46,7 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [stagedItems, setStagedItems] = useState<UploadedItem[]>([]);
   const [turns, setTurns] = useState<ChatTurn[]>([]);
+  const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   const streamRef = useRef<HTMLElement | null>(null);
   const session = useDeepAgentSession();
 
@@ -150,6 +153,14 @@ export default function App() {
         <Button className="new-chat-button" block onClick={handleNewSession}>
           新建研搜
         </Button>
+        <Button
+          block
+          className="knowledge-button"
+          icon={<BookOutlined />}
+          onClick={() => setKnowledgeOpen(true)}
+        >
+          知识库管理
+        </Button>
 
         <div className="sidebar-section">
           <span className="sidebar-label">THREAD</span>
@@ -194,7 +205,7 @@ export default function App() {
             </li>
             <li>
               <FileSearchOutlined aria-hidden />
-              RAGFlow 助手
+              本地知识库助手
             </li>
           </ul>
         </div>
@@ -216,6 +227,13 @@ export default function App() {
             {session.isRunning ? <BranchesOutlined aria-hidden /> : <CheckCircleOutlined aria-hidden />}
             {session.isRunning ? "研搜中" : "待命"}
           </div>
+          <Button
+            className="mobile-knowledge-button"
+            icon={<BookOutlined />}
+            onClick={() => setKnowledgeOpen(true)}
+          >
+            知识库
+          </Button>
         </header>
 
         {session.lastError ? (
@@ -249,6 +267,7 @@ export default function App() {
           uploadedItems={session.uploadedItems}
         />
       </main>
+      <KnowledgeBaseDrawer open={knowledgeOpen} onClose={() => setKnowledgeOpen(false)} />
     </div>
   );
 }
