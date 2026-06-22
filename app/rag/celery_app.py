@@ -4,7 +4,6 @@ from celery import Celery
 
 from app.rag.config import get_rag_settings
 
-
 settings = get_rag_settings()
 celery_app = Celery(
     "deepsearch_rag",
@@ -22,4 +21,3 @@ celery_app.conf.update(
     result_expires=86400,
     timezone="Asia/Shanghai",
 )
-

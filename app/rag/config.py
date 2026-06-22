@@ -1,11 +1,10 @@
 """Environment-backed configuration for the local RAG stack."""
 
+import os
 from dataclasses import dataclass
 from functools import lru_cache
-import os
 
 from dotenv import find_dotenv, load_dotenv
-
 
 load_dotenv(find_dotenv())
 
@@ -61,4 +60,3 @@ def get_rag_settings() -> RagSettings:
         lexical_top_k=int(os.getenv("RAG_LEXICAL_TOP_K", "24")),
         rerank_top_k=int(os.getenv("RAG_RERANK_TOP_K", "8")),
     )
-

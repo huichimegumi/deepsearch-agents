@@ -24,9 +24,7 @@ from app.utils.word_converter import convert_md_to_pdf as convert_md_to_pdf_via_
 @tool
 def convert_md_to_pdf(
     md_filename: Annotated[str, "要转换的Markdown文档路径（包含.md后缀）"],
-    pdf_filename: Annotated[
-        Optional[str], "输出的PDF文件路径（可选，默认与源文件同名）"
-    ] = None,
+    pdf_filename: Annotated[Optional[str], "输出的PDF文件路径（可选，默认与源文件同名）"] = None,
 ) -> str:
     """
     将当前会话目录中的 Markdown 文档转换为 PDF
@@ -63,7 +61,8 @@ def convert_md_to_pdf(
 
 if __name__ == "__main__":
     # 本地调试入口：直接运行本文件可验证 Markdown 转 PDF 链路
-    get_session_context = lambda: "./examples/test_docs"
+    def get_session_context():
+        return "./examples/test_docs"
 
     test_dir = Path("./examples/test_docs/sub_dir")
     test_dir.mkdir(parents=True, exist_ok=True)

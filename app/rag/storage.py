@@ -42,4 +42,3 @@ def download_path(object_key: str, destination: Path) -> None:
 def delete_object(object_key: str) -> None:
     settings = get_rag_settings()
     get_minio_client().remove_object(settings.minio_bucket, object_key)
-

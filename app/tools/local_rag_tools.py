@@ -15,8 +15,7 @@ def _ready_knowledge_bases() -> list[tuple[KnowledgeBase, int]]:
             select(KnowledgeBase, func.count(Document.id))
             .join(
                 Document,
-                (Document.knowledge_base_id == KnowledgeBase.id)
-                & (Document.status == "ready"),
+                (Document.knowledge_base_id == KnowledgeBase.id) & (Document.status == "ready"),
                 isouter=True,
             )
             .group_by(KnowledgeBase.id)
@@ -41,8 +40,7 @@ def _resolve_knowledge_bases(chat_name: str) -> list[KnowledgeBase]:
 
 def _format_context(hits: list[RetrievedChunk]) -> str:
     return "\n\n".join(
-        f"[{index}] 来源：{hit.citation}\n{hit.content}"
-        for index, hit in enumerate(hits, start=1)
+        f"[{index}] 来源：{hit.citation}\n{hit.content}" for index, hit in enumerate(hits, start=1)
     )
 
 

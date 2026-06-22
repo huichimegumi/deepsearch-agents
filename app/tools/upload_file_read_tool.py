@@ -34,9 +34,7 @@ except ImportError:
 
 @tool
 def read_file_content(
-    filename: Annotated[
-        str, "要读取的文件名或路径（支持 .md, .docx, .pdf, .xlsx, .xls）"
-    ],
+    filename: Annotated[str, "要读取的文件名或路径（支持 .md, .docx, .pdf, .xlsx, .xls）"],
     instruction: Annotated[
         str, "对提取内容的具体指令（例如：'提取摘要', '统计数据'）"
     ] = "提取全部内容",
@@ -49,9 +47,7 @@ def read_file_content(
     :param instruction: 模型传入的读取意图，用于监控展示，不改变底层解析逻辑
     :return: 文件文本内容、表格摘要，或中文错误提示
     """
-    monitor.report_tool(
-        "文件内容读取工具", {"filename": filename, "instruction": instruction}
-    )
+    monitor.report_tool("文件内容读取工具", {"filename": filename, "instruction": instruction})
 
     # 解析路径时优先约束在当前 session_dir 内，避免模型传入绝对路径导致越界读取
     session_dir = get_session_context()
@@ -126,8 +122,6 @@ if __name__ == "__main__":
     print("===== 读取MD文件结果 =====")
     print(result)
 
-    result_pdf = read_file_content.invoke(
-        {"filename": pdf_path, "instruction": "提取PDF文字"}
-    )
+    result_pdf = read_file_content.invoke({"filename": pdf_path, "instruction": "提取PDF文字"})
     print("\n===== 读取PDF文件结果 =====")
     print(result_pdf)

@@ -77,4 +77,3 @@ class SearchHitResponse(BaseModel):
 class SearchResponse(BaseModel):
     query: str
     hits: list[SearchHitResponse]
-

@@ -1,7 +1,7 @@
 """SQLAlchemy models for knowledge bases, documents, chunks and index jobs."""
 
-from datetime import datetime, timezone
 import uuid
+from datetime import datetime, timezone
 
 from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship

@@ -17,7 +17,9 @@ class RagParsingTests(unittest.TestCase):
     def test_markdown_sections_are_preserved(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "guide.md"
-            path.write_text("# 第一章\n\n这是第一段。\n\n## 第二章\n\n这是第二段。", encoding="utf-8")
+            path.write_text(
+                "# 第一章\n\n这是第一段。\n\n## 第二章\n\n这是第二段。", encoding="utf-8"
+            )
 
             blocks = parse_document(path)
 
@@ -42,4 +44,3 @@ class RagParsingTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -1,15 +1,14 @@
 """Page-aware document parsing and structure-preserving chunking."""
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
-import re
 from typing import Iterable
 
 import docx
 import pypdf
 
 from app.rag.config import get_rag_settings
-
 
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".md", ".txt"}
 

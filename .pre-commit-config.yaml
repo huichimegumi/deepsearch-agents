@@ -10,15 +10,17 @@ repos:
   - repo: local
     hooks:
       - id: ruff-check
-        name: ruff check --fix
-        entry: uv run --frozen --cache-dir .uv-cache ruff check --fix
+        name: ruff check
+        entry: uv run --frozen --cache-dir .uv-cache ruff check
         language: system
+        files: ^(app|tests)/
         types_or: [python, pyi]
         require_serial: true
 
       - id: ruff-format
-        name: ruff format
-        entry: uv run --frozen --cache-dir .uv-cache ruff format
+        name: ruff format --check
+        entry: uv run --frozen --cache-dir .uv-cache ruff format --check
         language: system
+        files: ^(app|tests)/
         types_or: [python, pyi]
         require_serial: true

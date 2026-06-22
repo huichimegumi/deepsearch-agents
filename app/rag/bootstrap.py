@@ -1,8 +1,8 @@
 """Import an existing directory tree into the local knowledge-base stack."""
 
 import argparse
-from hashlib import sha256
 import mimetypes
+from hashlib import sha256
 from pathlib import Path
 
 from sqlalchemy import select
@@ -50,8 +50,7 @@ def import_directory(root: Path) -> tuple[int, int]:
                     knowledge_base_id=knowledge_base_id,
                     filename=path.name,
                     object_key="pending",
-                    content_type=mimetypes.guess_type(path.name)[0]
-                    or "application/octet-stream",
+                    content_type=mimetypes.guess_type(path.name)[0] or "application/octet-stream",
                     size_bytes=path.stat().st_size,
                     sha256=checksum,
                 )
@@ -90,4 +89,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

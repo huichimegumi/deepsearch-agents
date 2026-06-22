@@ -1,8 +1,8 @@
 """Celery tasks that build and repair local RAG indexes."""
 
-from pathlib import Path
 import shutil
 import tempfile
+from pathlib import Path
 
 from celery.utils.log import get_task_logger
 from redis import Redis
@@ -16,7 +16,6 @@ from app.rag.models import Chunk, Document, IndexJob, utcnow
 from app.rag.parsing import chunk_blocks, lexicalize, parse_document
 from app.rag.storage import download_path
 from app.rag.vector_store import delete_document_vectors, upsert_chunks
-
 
 logger = get_task_logger(__name__)
 

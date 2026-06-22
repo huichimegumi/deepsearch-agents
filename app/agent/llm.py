@@ -5,16 +5,16 @@
 后续主智能体和子智能体都从这里导入 model，避免在多个文件里重复加载环境变量
 """
 
-import os
+from functools import lru_cache
 
-from dotenv import find_dotenv, load_dotenv
 from langchain.chat_models import init_chat_model
 
-# find_dotenv 会从当前目录向上查找 .env，适合脚本和 Web 服务从不同入口启动的场景
-load_dotenv(find_dotenv())
+from app.config import get_settings
 
-# 使用 OpenAI 兼容协议接入模型；具体模型名由 .env 中的 LLM_NAME 控制
-model = init_chat_model(
-    model=os.getenv("LLM_NAME"),
-    model_provider="openai",
-)
+
+@lru_cache(maxsize=1)
+def get_model():
+    """Validate configuration and lazily create the shared chat model."""
+    settings = get_settings()
+    settings.validate_llm()
+    return init_chat_model(model=settings.llm_name, model_provider="openai")

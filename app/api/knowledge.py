@@ -1,8 +1,8 @@
 """Knowledge-base management, ingestion and retrieval HTTP API."""
 
+import tempfile
 from hashlib import sha256
 from pathlib import Path
-import tempfile
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
 from sqlalchemy import func, select
@@ -26,7 +26,6 @@ from app.rag.schemas import (
 from app.rag.storage import delete_object, upload_path
 from app.rag.tasks import index_document
 from app.rag.vector_store import delete_document_vectors
-
 
 router = APIRouter(prefix="/api/knowledge-bases", tags=["knowledge-bases"])
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024
@@ -129,9 +128,12 @@ def update_knowledge_base(knowledge_base_id: str, payload: KnowledgeBaseUpdate):
             item.name = payload.name.strip()
         if payload.description is not None:
             item.description = payload.description.strip()
-        count = session.scalar(
-            select(func.count(Document.id)).where(Document.knowledge_base_id == item.id)
-        ) or 0
+        count = (
+            session.scalar(
+                select(func.count(Document.id)).where(Document.knowledge_base_id == item.id)
+            )
+            or 0
+        )
         return _knowledge_response(item, count)
 
 

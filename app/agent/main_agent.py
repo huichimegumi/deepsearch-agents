@@ -8,12 +8,13 @@ session_id 创建独立工作目录，并把工具调用、子智能体调用和
 
 import asyncio
 import shutil
+from functools import lru_cache
 from pathlib import Path
 
 from deepagents import create_deep_agent
 from langgraph.checkpoint.memory import InMemorySaver
 
-from app.agent.llm import model
+from app.agent.llm import get_model
 from app.agent.prompts import main_agent_content
 from app.agent.subagents.database_query_agent import database_query_agent
 from app.agent.subagents.knowledge_base_agent import knowledge_base_agent
@@ -30,17 +31,18 @@ from app.tools.markdown_tools import generate_markdown
 from app.tools.pdf_tools import convert_md_to_pdf
 from app.tools.upload_file_read_tool import read_file_content
 
-# 主智能体是调度中心：
-# 1. tools 只放最终交付相关的文件工具
-# 2. subagents 放网络、数据库、本地知识库三类信息获取助手
-# 3. checkpointer 通过 thread_id 保存同一会话中的执行上下文
-main_agent = create_deep_agent(
-    model=model,
-    system_prompt=main_agent_content["system_prompt"],
-    tools=[generate_markdown, convert_md_to_pdf, read_file_content],
-    checkpointer=InMemorySaver(),
-    subagents=[database_query_agent, network_search_agent, knowledge_base_agent],
-)
+
+@lru_cache(maxsize=1)
+def get_main_agent():
+    """Build the agent graph on first use after configuration is validated."""
+    return create_deep_agent(
+        model=get_model(),
+        system_prompt=main_agent_content["system_prompt"],
+        tools=[generate_markdown, convert_md_to_pdf, read_file_content],
+        checkpointer=InMemorySaver(),
+        subagents=[database_query_agent, network_search_agent, knowledge_base_agent],
+    )
+
 
 # 当前文件位于 app/agent/main_agent.py，parents[1] 即 app 目录
 project_root_path = Path(__file__).parents[1].resolve()
@@ -63,9 +65,7 @@ async def run_deep_agent(task_query, session_id):
 
     # 前端和工具使用绝对路径；提示词里只给模型相对路径，降低模型误用系统绝对路径的概率
     session_dir_str = str(session_dir).replace("\\", "/")
-    relative_session_dir_str = str(session_dir.relative_to(project_root_path)).replace(
-        "\\", "/"
-    )
+    relative_session_dir_str = str(session_dir.relative_to(project_root_path)).replace("\\", "/")
 
     # 上传文件先落在 updated/session_{session_id}，执行前复制到本次 output 工作目录
     # 这样读文件工具和生成文件工具都只需要围绕同一个 session_dir 工作
@@ -109,6 +109,7 @@ async def run_deep_agent(task_query, session_id):
     """
 
     try:
+        main_agent = get_main_agent()
         # astream 会持续产出模型节点、工具节点和子智能体节点的状态片段
         async for chunk in main_agent.astream(
             {"messages": [{"role": "user", "content": task_query + path_instruction}]},
@@ -129,17 +130,11 @@ async def run_deep_agent(task_query, session_id):
                                     # 子智能体调用单独上报，前端可以展示“正在调用哪个专家助手”
                                     monitor.report_assistant(
                                         tool_call["args"]["subagent_type"],
-                                        {
-                                            "description": tool_call["args"][
-                                                "description"
-                                            ]
-                                        },
+                                        {"description": tool_call["args"]["description"]},
                                     )
                         elif last_msg.content:
                             # 模型没有继续调用工具时，最新文本内容就是本轮可反馈给前端的结果
-                            print(
-                                f"主智能体执行结果，最终结果：{last_msg.content[:100]}"
-                            )
+                            print(f"主智能体执行结果，最终结果：{last_msg.content[:100]}")
                             monitor.report_task_result(last_msg.content)
 
     except asyncio.CancelledError:
@@ -156,6 +151,4 @@ async def run_deep_agent(task_query, session_id):
 if __name__ == "__main__":
     import asyncio
 
-    asyncio.run(
-        run_deep_agent("从网络查询机器人信息，并生成Markdown文件", "test_session_001")
-    )
+    asyncio.run(run_deep_agent("从网络查询机器人信息，并生成Markdown文件", "test_session_001"))

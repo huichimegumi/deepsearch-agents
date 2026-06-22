@@ -20,9 +20,7 @@ def ensure_collection(vector_size: int) -> None:
     if not client.collection_exists(settings.qdrant_collection):
         client.create_collection(
             collection_name=settings.qdrant_collection,
-            vectors_config=models.VectorParams(
-                size=vector_size, distance=models.Distance.COSINE
-            ),
+            vectors_config=models.VectorParams(size=vector_size, distance=models.Distance.COSINE),
         )
 
 

@@ -69,9 +69,7 @@ def _lexical_search(query: str, knowledge_base_id: str, limit: int) -> list[tupl
 def hybrid_search(query: str, knowledge_base_id: str) -> list[RetrievedChunk]:
     settings = get_rag_settings()
     lexical = _lexical_search(query, knowledge_base_id, settings.lexical_top_k)
-    vector = search_vectors(
-        embed_query(query), knowledge_base_id, settings.vector_top_k
-    )
+    vector = search_vectors(embed_query(query), knowledge_base_id, settings.vector_top_k)
 
     fused: dict[str, float] = {}
     for results in (lexical, vector):
@@ -92,9 +90,9 @@ def hybrid_search(query: str, knowledge_base_id: str) -> list[RetrievedChunk]:
 
     ordered = [by_id[chunk_id] for chunk_id in candidate_ids if chunk_id in by_id]
     rerank_scores = rerank(query, [chunk.content for chunk, _document in ordered])
-    ranked = sorted(
-        zip(ordered, rerank_scores), key=lambda item: item[1], reverse=True
-    )[: settings.rerank_top_k]
+    ranked = sorted(zip(ordered, rerank_scores), key=lambda item: item[1], reverse=True)[
+        : settings.rerank_top_k
+    ]
     return [
         RetrievedChunk(
             chunk_id=chunk.id,

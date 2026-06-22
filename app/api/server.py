@@ -28,9 +28,12 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from app.agent.main_agent import run_deep_agent
+from app.api.health import router as health_router
 from app.api.knowledge import router as knowledge_router
 from app.api.monitor import manager
+from app.config import get_settings
 from app.rag.database import init_schema
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -52,6 +55,7 @@ current_dir = Path(__file__).resolve().parent
 project_root = current_dir.parent
 
 app = FastAPI(title="DeepAgents API", lifespan=lifespan)
+app.include_router(health_router)
 app.include_router(knowledge_router)
 
 # 保存 thread_id -> 后台 Agent 任务，用于同一会话任务替换和主动取消
@@ -65,10 +69,10 @@ output_dir.mkdir(exist_ok=True)
 updated_dir = project_root / "updated"
 updated_dir.mkdir(exist_ok=True)
 
-# 教学项目通常前后端分别本地启动，这里放开跨域以便 Vite 页面直接调用 API
+settings = get_settings()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=list(settings.cors_origins),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -279,9 +283,7 @@ async def websocket_endpoint(websocket: WebSocket, thread_id: str):
         while True:
             # 前端通常发送 ping 心跳；服务端回复 pong，顺便维持连接活跃
             data = await websocket.receive_text()
-            await websocket.send_json(
-                {"type": "pong", "message": f"服务端已收到: {data}"}
-            )
+            await websocket.send_json({"type": "pong", "message": f"服务端已收到: {data}"})
 
     except WebSocketDisconnect:
         # 只移除当前 WebSocket 实例，避免旧连接断开时误删同 thread_id 的新连接

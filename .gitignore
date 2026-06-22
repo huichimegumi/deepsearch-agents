@@ -22,7 +22,9 @@ frontend/.vite/
 
 # Python
 .venv/
+.venv-ci/
 .uv-cache/
+.pytest_cache/
 venv/
 env/
 .env

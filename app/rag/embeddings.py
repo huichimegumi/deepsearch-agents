@@ -32,11 +32,7 @@ def rerank(query: str, documents: Sequence[str]) -> list[float]:
     if not documents:
         return []
     try:
-        return [
-            float(score)
-            for score in _get_reranker().rerank(query, list(documents))
-        ]
+        return [float(score) for score in _get_reranker().rerank(query, list(documents))]
     except Exception:
         # Retrieval remains usable if the optional reranker model is unavailable.
         return [float(len(documents) - index) for index in range(len(documents))]
-

@@ -91,7 +91,7 @@ Copy-Item .env.example .env
 ```dotenv
 OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 OPENAI_API_KEY=your_api_key
-LLM_QWEN_MAX=qwen-max
+LLM_NAME=qwen-max
 ```
 
 搜索后端默认为自动降级模式。可按需配置：
@@ -122,6 +122,15 @@ docker compose -f docker/docker-compose.yaml up -d --build
 docker compose -f docker/docker-compose.yaml ps
 docker compose -f docker/docker-compose.yaml logs -f api rag-worker
 ```
+
+服务启动后可检查运行状态：
+
+```bash
+curl http://localhost:8000/health/live
+curl http://localhost:8000/health/ready
+```
+
+`live` 只检查 API 进程是否存活；`ready` 还会检查模型配置、PostgreSQL、Redis、Qdrant 和 MinIO。
 
 ### 3. 导入示例知识库（可选）
 
@@ -160,7 +169,7 @@ VITE_WS_BASE_URL=ws://localhost:8000
 
 ```bash
 docker compose -f docker/docker-compose.yaml up -d postgres redis qdrant minio mysql
-uv sync
+uv sync --group dev
 uv run celery -A app.rag.celery_app:celery_app worker --loglevel=INFO --pool=solo
 ```
 
@@ -170,10 +179,12 @@ uv run celery -A app.rag.celery_app:celery_app worker --loglevel=INFO --pool=sol
 uv run uvicorn app.api.server:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-运行测试：
+运行后端质量检查和测试：
 
 ```bash
-uv run python -m unittest discover -s tests -v
+uv run ruff check app tests
+uv run ruff format --check app tests
+uv run pytest
 ```
 
 构建前端：
@@ -187,6 +198,8 @@ pnpm build
 
 | 接口                                       | 用途                 |
 | ------------------------------------------ | -------------------- |
+| `GET /health/live`                         | API 存活检查         |
+| `GET /health/ready`                        | 外部依赖就绪检查     |
 | `POST /api/task`                           | 启动研究任务         |
 | `POST /api/task/{thread_id}/cancel`        | 取消指定任务         |
 | `POST /api/upload`                         | 上传会话附件         |
