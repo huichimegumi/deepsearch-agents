@@ -31,15 +31,15 @@
 
 核心技术栈：
 
-| 模块 | 技术 |
-| --- | --- |
-| 智能体 | DeepAgents、LangChain、LangGraph |
-| 后端 | FastAPI、Uvicorn、WebSocket、Celery |
-| 网络搜索 | Tavily、DuckDuckGo、Perplexity、SearXNG |
-| 结构化数据 | MySQL |
-| 本地知识库 | PostgreSQL、Qdrant、MinIO、Redis、FastEmbed |
-| 前端 | React、TypeScript、Vite、Ant Design、Tailwind CSS |
-| 依赖管理 | uv、pnpm |
+| 模块       | 技术                                              |
+| ---------- | ------------------------------------------------- |
+| 智能体     | DeepAgents、LangChain、LangGraph                  |
+| 后端       | FastAPI、Uvicorn、WebSocket、Celery               |
+| 网络搜索   | Tavily、DuckDuckGo、Perplexity、SearXNG           |
+| 结构化数据 | MySQL                                             |
+| 本地知识库 | PostgreSQL、Qdrant、MinIO、Redis、FastEmbed       |
+| 前端       | React、TypeScript、Vite、Ant Design、Tailwind CSS |
+| 依赖管理   | uv、pnpm                                          |
 
 ## 项目结构
 
@@ -75,7 +75,7 @@ deepsearch-agents/
 ### 1. 获取代码并配置环境
 
 ```bash
-git clone https://github.com/didilili/deepsearch-agents.git
+git clone https://github.com/huichimegumi/deepsearch-agents.git
 cd deepsearch-agents
 cp .env.example .env
 ```
@@ -185,19 +185,19 @@ pnpm build
 
 ## API 概览
 
-| 接口 | 用途 |
-| --- | --- |
-| `POST /api/task` | 启动研究任务 |
-| `POST /api/task/{thread_id}/cancel` | 取消指定任务 |
-| `POST /api/upload` | 上传会话附件 |
-| `GET /api/files` | 获取会话生成文件列表 |
-| `GET /api/download` | 下载生成文件 |
-| `GET /api/knowledge-bases` | 获取知识库列表 |
-| `POST /api/knowledge-bases` | 创建知识库 |
+| 接口                                       | 用途                 |
+| ------------------------------------------ | -------------------- |
+| `POST /api/task`                           | 启动研究任务         |
+| `POST /api/task/{thread_id}/cancel`        | 取消指定任务         |
+| `POST /api/upload`                         | 上传会话附件         |
+| `GET /api/files`                           | 获取会话生成文件列表 |
+| `GET /api/download`                        | 下载生成文件         |
+| `GET /api/knowledge-bases`                 | 获取知识库列表       |
+| `POST /api/knowledge-bases`                | 创建知识库           |
 | `POST /api/knowledge-bases/{id}/documents` | 上传并索引知识库文档 |
-| `GET /api/knowledge-bases/{id}/documents` | 获取文档及索引状态 |
-| `POST /api/knowledge-bases/{id}/search` | 执行知识库混合检索 |
-| `WebSocket /ws/{thread_id}` | 接收任务实时事件 |
+| `GET /api/knowledge-bases/{id}/documents`  | 获取文档及索引状态   |
+| `POST /api/knowledge-bases/{id}/search`    | 执行知识库混合检索   |
+| `WebSocket /ws/{thread_id}`                | 接收任务实时事件     |
 
 启动后可访问 `http://localhost:8000/docs` 查看完整的 OpenAPI 文档。
 
