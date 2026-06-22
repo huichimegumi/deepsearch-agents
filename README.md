@@ -1,282 +1,138 @@
-<div align='center'>
-  <h1 style="margin-top: 15px;">「深度研搜」对话式多智能体研究系统</h1>
-  <h4><b>deepsearch-agents</b></h4>
-  <p><em>可能是全网最适合用于系统学习 DeepAgents 的多智能体深度研究实战项目，配套系统性文字教程与对应章节分支，带你打通主智能体调度、专家助手分工、多来源检索、文件交付与前后端实时联动全链路</em></p>
-</div>
+# DeepSearch Agents
 
-<div align='center'>
+基于 DeepAgents 的对话式多智能体深度研究系统。系统能够根据用户任务调度网络搜索、结构化数据库和本地知识库等信息源，读取上传的附件，并将研究结果整理为回答、Markdown 或 PDF 文件。
 
-![AI](https://img.shields.io/badge/AI-Agent-00c853?style=flat)
-![DeepAgents](https://img.shields.io/badge/DeepAgents-0.5.7-1C3C3C.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-WebSocket-009688.svg?logo=fastapi&logoColor=white)
-![Stars](https://img.shields.io/github/stars/didilili/deepsearch-agents?logo=github&style=flat)
-[![Read Online](https://img.shields.io/badge/在线教程-点击访问-blue?logo=bookstack)](https://didilili.github.io/ai-agents-from-zero/#/%E5%AE%9E%E6%88%98%E9%A1%B9%E7%9B%AE-%E6%B7%B1%E5%BA%A6%E7%A0%94%E6%90%9C/0-%E5%89%8D%E8%A8%80)
+![DeepSearch Agents 首页](docs/images/deepsearch-agent-home.jpg)
 
-</div>
+## 主要功能
 
-**📢 说明**：本套实战项目已于 2026 年 5 月 17 日 更新完成，配套教程、章节分支和前后端代码均可对照学习。
+- 多智能体协作：主智能体负责规划、调度和汇总，网络搜索、数据库查询、本地知识库三个子智能体负责获取不同来源的信息。
+- 多源检索：支持 Tavily、DuckDuckGo、Perplexity、SearXNG、MySQL，以及基于 PostgreSQL、Qdrant 和 FastEmbed 的本地 RAG。
+- 文件处理：支持读取 PDF、Word、Excel、Markdown 和文本附件，并生成 Markdown、PDF 等交付文件。
+- 实时任务状态：通过 WebSocket 向前端推送工具调用、子智能体执行、结果和异常事件。
+- 会话隔离：使用 `thread_id` 和独立会话目录隔离任务上下文、上传文件与生成文件。
+- Web 界面：提供任务输入、事件流、附件上传、知识库管理和结果下载功能。
 
-如果你正在找一个适合学习 `DeepAgents`、`WebSocket`、混合检索和 AI Agent 工程开发的实战项目，「深度研搜」很可能是最适合你的项目。
+## 系统架构
 
-它不是只调用一次大模型接口，也不是套一个搜索 API 做问答演示。这个项目围绕深度研究场景，用 DeepAgents 组织主智能体和专家子智能体，让系统可以根据任务需要查公开网络、查结构化数据库、查本地私有知识库、读取用户上传附件，并把最终结果整理成回答、Markdown 或 PDF。
+![系统架构](docs/images/deepsearch-system-architecture.svg)
 
-> 本套仓库是 [ai-agents-from-zero](https://github.com/didilili/ai-agents-from-zero) 教程体系中的 [实战项目-深度研搜](https://github.com/didilili/ai-agents-from-zero/tree/main/%E5%AE%9E%E6%88%98%E9%A1%B9%E7%9B%AE-%E6%B7%B1%E5%BA%A6%E7%A0%94%E6%90%9C) 配套源码仓库，除了可直接运行和二次开发的项目代码之外，也提供了与教程章节对应的 Git 分支演进过程，以及完整的在线图文讲义入口。
-> 如果你想系统学习「AI 智能体 大模型应用开发」，也可直接从系统教程 [AI 智能体实战速成指南-大模型入门](https://didilili.github.io/ai-agents-from-zero/#/) 开始。
-
-![深度研搜前端首页：任务示例、助手状态和对话式多智能体研究台](docs/images/deepsearch-agent-home.jpg)
-
-## 📖 项目介绍
-
-在真实研究场景里，用户的问题经常不是一句普通问答可以解决的。
-
-比如：
-
-```text
-结合公开资料、数据库信息和我上传的文档，整理一份机器人行业研究报告，并生成 PDF。
-```
-
-这个任务背后可能包含多类动作：
-
-- 判断需要公开资料、内部数据、私有知识库还是本次上传文件；
-- 去互联网搜索最新新闻、政策、产品或行业资料；
-- 到 MySQL 查询企业结构化业务数据；
-- 到本地知识库查询内部非结构化文档；
-- 读取用户上传的 PDF、Word、Excel、Markdown 或文本文件；
-- 汇总多来源信息，判断资料是否足够；
-- 生成 Markdown 报告，并在需要时转换成 PDF；
-- 把执行过程、最终结果和生成文件实时展示给前端。
-
-所以「深度研搜」更像一个会分工、会查资料、会生成交付物的研究助手。用户只需要提出任务，系统会在后端组织一条可观察的多智能体执行链路。
+项目采用 Orchestrator-Workers 模式：
 
 ```text
 用户任务
-  -> FastAPI 接口接收请求
-  -> run_deep_agent 创建会话目录并写入上下文
-  -> 主智能体分析任务
-  -> 分派给网络搜索助手 / 数据库查询助手 / 本地知识库助手
-  -> 主智能体汇总多来源信息
-  -> 调用文件工具生成 Markdown / PDF
-  -> monitor 通过 WebSocket 推送进度
-  -> 前端展示事件、答案和文件列表
+  -> FastAPI 接收请求并创建会话
+  -> 主智能体分析任务并调度子智能体
+  -> 网络搜索 / MySQL / 本地知识库 / 上传文件
+  -> 主智能体汇总信息并生成回答或文件
+  -> WebSocket 实时推送执行过程
+  -> React 前端展示结果和文件
 ```
 
-## ✨ 项目亮点
+核心技术栈：
 
-- **一主三从的多智能体架构**
-  - 主智能体负责理解任务、规划步骤、调度助手和最终汇总。
-  - 网络搜索助手、数据库查询助手、本地知识库助手分别处理不同信息来源。
-- **多来源检索，而不是模型裸答**
-  - `Tavily`、`DuckDuckGo`、`Perplexity`、`SearXNG` 负责互联网公开资料检索，并支持自动降级和聚合搜索。
-  - `MySQL` 负责查询结构化业务数据。
-  - `PostgreSQL + Qdrant + FastEmbed` 负责内部非结构化文档的混合检索和 rerank。
-  - 上传附件由主智能体通过文件工具读取。
-- **从检索到交付的完整可运行链路**
-  - 不停留在 Prompt 设计，而是会真实调用工具、读取数据、生成 Markdown，并在需要时转换成 PDF。
-- **长任务执行过程可观察**
-  - 工具调用、子智能体调用、工作目录创建、任务结果、取消和异常都会通过 `monitor` 推送到前端。
-- **会话级上下文隔离**
-  - 通过 `thread_id` 和 `session_dir` 区分不同任务，`ContextVar` 让深层工具也能拿到当前会话身份和文件目录。
-- **工程化前后端结构清晰**
-  - 基于 `FastAPI + WebSocket + DeepAgents + React` 组织任务接口、异步执行、事件推送、文件上传和文件下载。
-- **不仅有实战代码，还有完整配套教程文档**
-  - 项目配有一套系统化、完全免费的教程讲义，适合按章节从 DeepAgents 基础、子智能体、Backend、中间件一直学到完整项目闭环。
-- **兼顾学习价值与可扩展性**
-  - 既可以按教程章节逐步理解，也可以在此基础上继续扩展权限控制、任务队列、事件持久化、评测体系等能力。
+| 模块 | 技术 |
+| --- | --- |
+| 智能体 | DeepAgents、LangChain、LangGraph |
+| 后端 | FastAPI、Uvicorn、WebSocket、Celery |
+| 网络搜索 | Tavily、DuckDuckGo、Perplexity、SearXNG |
+| 结构化数据 | MySQL |
+| 本地知识库 | PostgreSQL、Qdrant、MinIO、Redis、FastEmbed |
+| 前端 | React、TypeScript、Vite、Ant Design、Tailwind CSS |
+| 依赖管理 | uv、pnpm |
 
-这套课程十分适合这些场景：
-
-- 想系统学习 `DeepAgents`，但不想只停留在几个玩具示例。
-- 想把多后端网络搜索、`MySQL`、工程化本地 RAG 和大模型放到同一个研究助手场景里理解。
-- 想做一个比简单模型调用更接近真实开发的 AI Agent 项目。
-- 想把项目写进简历，并且能说清楚智能体层、工具层、服务层、文件层和前端层分别做了什么。
-
-## 🏗️ 系统架构
-
-![深度研搜系统架构图：前端、FastAPI、DeepAgents、子智能体、工具和文件产物之间的关系](docs/images/deepsearch-system-architecture.svg)
-
-项目采用 DeepAgents 中典型的 Orchestrator-Workers 模式：主智能体作为调度中心，三个专家助手负责信息获取，文件工具由主智能体直接掌握。
-
-项目围绕两条主线展开：
-
-| 主线             | 做什么                                                       | 涉及模块                                                                  |
-| ---------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| 多智能体深度研搜 | 基于用户任务完成规划、分派、检索、读取附件、汇总和生成交付物 | `DeepAgents` / `LangChain` / `LangGraph` / 多后端搜索 / `MySQL` / 本地 RAG |
-| 前后端实时闭环   | 启动后台任务、上传文件、推送执行过程、展示结果和下载生成文件 | `FastAPI` / `WebSocket` / `React` / `Vite`                                |
-
-### 智能体与工具
-
-| 归属           | 能力                                     | 工具                                                          |
-| -------------- | ---------------------------------------- | ------------------------------------------------------------- |
-| 主智能体       | 任务规划、助手调度、结果汇总、文件交付   | `read_file_content`、`generate_markdown`、`convert_md_to_pdf` |
-| 网络搜索助手   | 多查询检索、自动降级、来源聚合和交叉验证 | `research_search`                                             |
-| 数据库查询助手 | 发现表名、预览表结构和样例数据、执行 SQL | `list_sql_tables`、`get_table_data`、`execute_sql_query`      |
-| 本地知识库助手 | 发现知识库，并执行混合检索、rerank 和带页码问答 | `get_assistant_list`、`create_ask_delete`                |
-
-![深度研搜网络搜索任务执行页：WebSocket 事件流、工具调用和最终回答](docs/images/deepsearch-network-search-result.jpg)
-
-## 🛠️ 项目技术栈
-
-| 模块           | 技术                                             | 作用                                                                          |
-| -------------- | ------------------------------------------------ | ----------------------------------------------------------------------------- |
-| 智能体框架     | `DeepAgents`                                     | 创建主智能体和子智能体，承接长任务、多工具、多助手调度                        |
-| 图与检查点     | `LangGraph`                                      | 提供底层运行时和 `InMemorySaver` 会话检查点                                   |
-| 模型与工具抽象 | `LangChain` / `langchain-core`                   | 封装 OpenAI 兼容模型、工具声明和 Agent 调用结构                               |
-| 大模型接入     | OpenAI 兼容接口                                  | 通过 `.env` 中的 `OPENAI_BASE_URL`、`OPENAI_API_KEY`、`LLM_QWEN_MAX` 接入模型 |
-| 网络搜索       | `Tavily` / `DuckDuckGo` / `Perplexity` / `SearXNG` | 提供自动降级、并发聚合、去重排序和可选正文抓取                              |
-| 结构化数据     | `MySQL` / `mysql-connector-python`               | 为数据库助手提供药品、库存、销售等教学业务数据                                |
-| 私有知识库     | `PostgreSQL` / `Qdrant` / `MinIO` / `Redis` / `Celery` | 提供文档管理、后台索引、混合检索与对象存储                              |
-| 本地模型       | `FastEmbed`                                      | 提供中文向量和 CrossEncoder rerank                                            |
-| 文件处理       | `pypdf` / `python-docx` / `pandas` / `ReportLab` | 读取上传附件，生成 Markdown，转换 PDF                                         |
-| 后端接口       | `FastAPI` / `Uvicorn`                            | 提供任务、取消、上传、文件列表、下载和 WebSocket 接口                         |
-| 实时通信       | `WebSocket`                                      | 推送工具调用、助手调用、最终结果和错误事件                                    |
-| 前端           | `React` / `Vite` / `Ant Design` / `Tailwind CSS` | 提供对话式研搜界面、事件流、附件上传和文件下载                                |
-| 依赖管理       | `uv` / `pnpm`                                    | 管理 Python 后端和前端依赖                                                    |
-
-## 📁 项目结构
+## 项目结构
 
 ```text
 deepsearch-agents/
 ├── app/
-│   ├── agent/
-│   │   ├── subagents/              # 网络搜索、数据库查询、本地知识库三个子智能体
-│   │   ├── llm.py                  # OpenAI 兼容模型初始化
-│   │   ├── main_agent.py           # 主智能体组装与 run_deep_agent 执行入口
-│   │   └── prompts.py              # 读取 app/prompt/prompts.yml
-│   ├── api/
-│   │   ├── context.py              # ContextVar 保存 thread_id 和 session_dir
-│   │   ├── monitor.py              # 工具调用、助手调用、结果和异常事件推送
-│   │   └── server.py               # FastAPI 任务、上传、文件、下载、WebSocket 接口
-│   ├── search/                     # 多后端适配、自动降级、聚合、去重和正文抓取
-│   ├── prompt/
-│   │   └── prompts.yml             # 主智能体和子智能体提示词配置
-│   ├── rag/                        # 本地 RAG 模型、解析、索引、检索、Celery 任务与存储适配
-│   ├── tools/                      # 网络搜索、MySQL、本地 RAG、文件、Markdown、PDF 工具
-│   ├── utils/                      # 路径解析、Markdown/PDF 底层转换等普通 Python 工具
-│   ├── output/                     # 运行时生成：每个会话的 Markdown、PDF 等产物
-│   └── updated/                    # 运行时生成：用户上传文件的会话暂存目录
-├── docker/
-│   ├── docker-compose.yaml         # API、Worker、PostgreSQL、Qdrant、Redis、MinIO、MySQL
-│   ├── Dockerfile                  # 后端与 Celery worker 镜像
-│   └── mysql/mysql.sql             # 药品、库存、销售记录模拟数据
-├── docs/knowledge_base/            # 可批量导入的本地知识库示例 PDF
-├── examples/                       # DeepAgents 章节示例脚本
-├── frontend/                       # React + Vite 前端项目
-├── tests/                          # 测试目录
-├── .env.example                    # 环境变量示例
-├── pyproject.toml                  # Python 项目依赖声明
-├── requirements.txt                # 依赖清单
-└── uv.lock                         # uv 锁定文件
+│   ├── agent/              # 主智能体、子智能体、模型和提示词加载
+│   ├── api/                # FastAPI、WebSocket 和知识库接口
+│   ├── prompt/             # 智能体提示词配置
+│   ├── rag/                # 文档解析、索引、检索、存储和 Celery 任务
+│   ├── search/             # 多搜索后端、降级、聚合和正文抓取
+│   ├── tools/              # 搜索、数据库、RAG、附件和报告工具
+│   └── utils/              # 路径及文档转换工具
+├── docker/                 # Dockerfile、Compose 和 MySQL 初始化数据
+├── docs/knowledge_base/    # 示例知识库文档
+├── frontend/               # React 前端
+├── tests/                  # 自动化测试
+├── .env.example            # 环境变量示例
+└── pyproject.toml          # Python 项目配置
 ```
 
-## 🚀 快速开始
+## 环境要求
 
-### 1. 准备环境
+- Python 3.12
+- [uv](https://docs.astral.sh/uv/)
+- Docker 和 Docker Compose
+- Node.js 与 pnpm
+- OpenAI 兼容的大模型 API
+- 可选的搜索服务凭据：Tavily、Perplexity 或 SearXNG。DuckDuckGo 无需 API Key。
 
-- Python `3.12`
-- `uv`
-- Docker 与 Docker Compose
-- Node.js 与 `pnpm`
-- 可用的大模型 API Key
-- Tavily API Key
-- Docker 与 Docker Compose（用于本地 RAG 基础设施）
+## 快速开始
 
-### 2. 克隆项目
+### 1. 获取代码并配置环境
 
 ```bash
 git clone https://github.com/didilili/deepsearch-agents.git
 cd deepsearch-agents
-```
-
-### 3. 安装后端依赖
-
-```bash
-uv sync
-```
-
-### 4. 配置环境变量
-
-```bash
 cp .env.example .env
 ```
 
-按本机实际服务和密钥修改 `.env`：
+在 Windows PowerShell 中可使用：
 
-```bash
-# LLM 配置
+```powershell
+Copy-Item .env.example .env
+```
+
+编辑 `.env`，至少配置可用的大模型：
+
+```dotenv
 OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-OPENAI_API_KEY=你的大模型_API_KEY
+OPENAI_API_KEY=your_api_key
 LLM_QWEN_MAX=qwen-max
+```
 
-# 网络搜索配置：auto 自动降级，advanced 聚合全部可用后端
+搜索后端默认为自动降级模式。可按需配置：
+
+```dotenv
 SEARCH_BACKEND=auto
 SEARCH_BACKEND_ORDER=tavily,searxng,duckduckgo,perplexity
-SEARCH_TIMEOUT=15
-SEARCH_MAX_CONTENT_CHARS=8000
-
-# DuckDuckGo 无需 Key，其他后端按需配置
-TAVILY_API_KEY=你的_TAVILY_API_KEY
-PERPLEXITY_API_KEY=你的_PERPLEXITY_API_KEY
+TAVILY_API_KEY=your_tavily_api_key
+PERPLEXITY_API_KEY=your_perplexity_api_key
 SEARXNG_URL=http://localhost:8888
-
-# 本地 RAG 配置
-RAG_DATABASE_URL=postgresql+psycopg://deepsearch:deepsearch@localhost:5432/deepsearch_rag
-RAG_REDIS_URL=redis://localhost:6379/0
-RAG_QDRANT_URL=http://localhost:6333
-RAG_MINIO_ENDPOINT=localhost:9000
-RAG_MINIO_ACCESS_KEY=deepsearch
-RAG_MINIO_SECRET_KEY=deepsearch-secret
-
-# MySQL 配置
-MYSQL_USER=root
-MYSQL_PASSWORD=root
-MYSQL_DATABASE=deepsearch_db
-MYSQL_HOST=localhost
-MYSQL_PORT=3307
-MYSQL_CHARSET=utf8mb4
-MYSQL_COLLATION=utf8mb4_unicode_ci
-MYSQL_SQL_MODE=TRADITIONAL
 ```
 
-### 5. 启动本地基础设施
+其余 RAG、MySQL 和搜索参数可直接参考 [`.env.example`](.env.example)。不要提交包含真实密钥的 `.env`。
 
-Compose 会启动 FastAPI、Celery worker、PostgreSQL、Qdrant、Redis、MinIO 和 MySQL。MySQL 仍用于结构化数据库助手，PostgreSQL 等服务用于本地 RAG。
+### 2. 启动后端服务
+
+使用 Docker Compose 启动 API、RAG Worker 和全部基础设施：
 
 ```bash
-docker compose -f docker/docker-compose.yaml up -d
+docker compose -f docker/docker-compose.yaml up -d --build
 ```
 
-### 6. 导入示例知识库
+后端默认地址为 `http://localhost:8000`。首次索引知识库文档时会下载 FastEmbed 模型，因此可能需要等待一段时间。
 
-可以直接在前端“知识库管理”中创建知识库并上传，也可以批量导入仓库示例：
+查看服务状态或日志：
 
 ```bash
+docker compose -f docker/docker-compose.yaml ps
+docker compose -f docker/docker-compose.yaml logs -f api rag-worker
+```
+
+### 3. 导入示例知识库（可选）
+
+```bash
+uv sync
 uv run python -m app.rag.bootstrap docs/knowledge_base
 ```
 
-首次索引会下载 FastEmbed 模型到本机缓存，之后解析、Embedding、rerank 和检索均在本地完成。
+也可以在前端的知识库管理界面创建知识库并上传文档。
 
-### 7. 启动后端
-
-```bash
-uv run uvicorn app.api.server:app --host 0.0.0.0 --port 8000 --reload
-```
-
-后端默认接口：
-
-| 接口                                | 说明                                   |
-| ----------------------------------- | -------------------------------------- |
-| `POST /api/task`                    | 启动一次 DeepAgents 后台任务           |
-| `POST /api/task/{thread_id}/cancel` | 取消指定会话任务                       |
-| `POST /api/upload`                  | 上传一个或多个文件到当前会话           |
-| `GET /api/files`                    | 列出当前会话输出目录中的生成文件       |
-| `GET /api/download`                 | 下载输出目录中的文件                   |
-| `GET/POST /api/knowledge-bases`     | 查询或创建本地知识库                   |
-| `POST /api/knowledge-bases/{id}/documents` | 上传文档并提交 Celery 索引任务  |
-| `GET /api/knowledge-bases/{id}/documents`  | 查询文档与索引状态               |
-| `POST /api/knowledge-bases/{id}/search`    | 执行混合检索                     |
-| `WebSocket /ws/{thread_id}`         | 推送工具调用、助手调用、结果和异常事件 |
-
-### 8. 启动前端
+### 4. 启动前端
 
 ```bash
 cd frontend
@@ -284,77 +140,99 @@ pnpm install
 pnpm dev
 ```
 
-前端默认连接：
+浏览器访问 Vite 输出的本地地址，通常为 `http://localhost:5173`。前端默认连接：
 
 ```text
 API: http://localhost:8000
 WS:  ws://localhost:8000
 ```
 
-如需修改，可以在 `frontend/.env.local` 中配置：
+如需修改，在 `frontend/.env.local` 中配置：
 
-```bash
+```dotenv
 VITE_API_BASE_URL=http://localhost:8000
 VITE_WS_BASE_URL=ws://localhost:8000
 ```
 
-### 9. 试几个任务
+## 本地开发
+
+如需在本机运行 Python 服务并使用热重载，可只启动基础设施：
+
+```bash
+docker compose -f docker/docker-compose.yaml up -d postgres redis qdrant minio mysql
+uv sync
+uv run celery -A app.rag.celery_app:celery_app worker --loglevel=INFO --pool=solo
+```
+
+另开终端启动 API：
+
+```bash
+uv run uvicorn app.api.server:app --host 0.0.0.0 --port 8000 --reload
+```
+
+运行测试：
+
+```bash
+uv run python -m unittest discover -s tests -v
+```
+
+构建前端：
+
+```bash
+cd frontend
+pnpm build
+```
+
+## API 概览
+
+| 接口 | 用途 |
+| --- | --- |
+| `POST /api/task` | 启动研究任务 |
+| `POST /api/task/{thread_id}/cancel` | 取消指定任务 |
+| `POST /api/upload` | 上传会话附件 |
+| `GET /api/files` | 获取会话生成文件列表 |
+| `GET /api/download` | 下载生成文件 |
+| `GET /api/knowledge-bases` | 获取知识库列表 |
+| `POST /api/knowledge-bases` | 创建知识库 |
+| `POST /api/knowledge-bases/{id}/documents` | 上传并索引知识库文档 |
+| `GET /api/knowledge-bases/{id}/documents` | 获取文档及索引状态 |
+| `POST /api/knowledge-bases/{id}/search` | 执行知识库混合检索 |
+| `WebSocket /ws/{thread_id}` | 接收任务实时事件 |
+
+启动后可访问 `http://localhost:8000/docs` 查看完整的 OpenAPI 文档。
+
+## 使用示例
+
+可在前端提交类似任务：
 
 ```text
 从数据库中查询心血管药品的库存情况，并生成 Markdown 报告。
 ```
 
 ```text
-搜索 2026 年 AI 在电商行业的应用趋势，并结合知识库资料生成一份 PDF。
+搜索 AI 在电商行业的最新应用趋势，并结合知识库资料生成一份 PDF。
 ```
 
 ```text
-请先读取我上传的行业报告，再结合公开资料整理一份研究摘要。
+读取我上传的行业报告，再结合公开资料整理一份研究摘要。
 ```
 
-## 📚 配套教程目录
+## 数据与输出
 
-教程总入口：[深度研搜完整教程](https://didilili.github.io/ai-agents-from-zero/#/%E5%AE%9E%E6%88%98%E9%A1%B9%E7%9B%AE-%E6%B7%B1%E5%BA%A6%E7%A0%94%E6%90%9C/0-%E5%89%8D%E8%A8%80)
+- 用户上传文件按会话暂存在 `app/updated/`。
+- Markdown、PDF 等生成结果保存在 `app/output/`。
+- MySQL 示例数据由 `docker/mysql/mysql.sql` 在数据卷首次创建时导入。
+- 知识库原始文件存储在 MinIO，元数据存储在 PostgreSQL，向量索引存储在 Qdrant。
+- 本地运行时产生的文件、数据库卷和模型缓存不应提交到版本库。
 
-| 章节 | 标题                                                                                                                                   | 学习重点                                                      | 对应分支                              |
-| ---- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------- |
-| 0    | [前言](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/0-前言)                                                      | 项目定位、学习价值、技术栈和能力边界                          | `-`                                   |
-| 1    | [DeepAgents 基础与核心概念](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/1-DeepAgents基础与核心概念)             | 智能体演进、框架定位、核心能力和多智能体设计边界              | `-`                                   |
-| 2    | [DeepAgents 快速入门与流式解析](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/2-DeepAgents快速入门与流式解析)     | `create_deep_agent()`、`invoke`、`stream`、`chunk`            | `02-quickstart-streaming`             |
-| 3    | [子智能体进阶与异步执行](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/3-子智能体进阶与异步执行)                  | 字典式子智能体、助手调度、`astream` 和嵌套边界                | `03-deepagents-subagents-async`       |
-| 4    | [接入 LangGraph 与 LangChain](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/4-接入LangGraph与LangChain)           | `CompiledSubAgent`、LangGraph 子图、LangChain Agent 包装      | `04-deepagents-langgraph-langchain`   |
-| 5    | [人机协作与中断恢复](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/5-人机协作与中断恢复)                          | 人工审批、编辑工具参数、中断和恢复执行                        | `05-deepagents-hitl-interrupt`        |
-| 6    | [长期记忆与 Backend 存储](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/6-长期记忆与Backend存储)                  | `FilesystemBackend`、`StoreBackend`、`CompositeBackend`       | `06-deepagents-backends-memory`       |
-| 7    | [中间件机制与 Skills 配置](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/7-中间件机制与Skills配置)                | 上下文摘要、模型调用限制、工具调用限制、自定义中间件和 Skills | `07-deepagents-middleware-governance` |
-| 8    | [项目总览与工程初始化](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/8-项目总览与工程初始化)                      | 一主三从架构、9 个工具、前后端交互、工程目录                  | `09-deepsearch-core-config`           |
-| 9    | [基础模块与模型配置](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/9-基础模块与模型配置)                          | `.env`、`ContextVar`、`monitor`、路径工具、模型和提示词配置   | `09-deepsearch-core-config`           |
-| 10   | [网络搜索子智能体与 Tavily 工具](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/10-网络搜索子智能体与Tavily工具)   | `internet_search`、Tavily 配置、网络搜索助手组装和进度上报    | `10-deepsearch-network-subagent`      |
-| 11   | [数据库查询子智能体与 MySQL 工具](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/11-数据库查询子智能体与MySQL工具) | 本地 MySQL、查表、预览数据、执行 SQL、数据库助手组装          | `11-deepsearch-database-subagent`     |
-| 12   | [RAGFlow 子智能体与知识库准备](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/12-RAGFlow子智能体与知识库准备)      | RAGFlow 部署、助手列表查询、临时会话问答、知识库助手组装      | `12-deepsearch-ragflow-subagent`      |
-| 13   | [主智能体搭建与异步执行](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/13-主智能体搭建与异步执行)                 | 主智能体组装、上传文件读取、Markdown/PDF 工具、会话目录隔离   | `13-deepsearch-main-agent`            |
-| 14   | [FastAPI 接口与项目闭环](https://didilili.github.io/ai-agents-from-zero/#/实战项目-深度研搜/14-FastAPI接口与项目闭环)                  | 任务启动/取消、上传、文件列表、下载、WebSocket 和前端联调     | `14-deepsearch-api-websocket`         |
+## 能力边界
 
-可以用分支切换对照每一阶段的代码演进：
+当前项目提供完整的多智能体研究与文件交付链路，但不包含以下生产级能力：
 
-```bash
-git checkout 10-deepsearch-network-subagent
-git checkout main
-```
+- 用户登录、角色权限和多租户隔离
+- 文件安全扫描与内容审核
+- 大规模分布式任务调度和并发治理
+- 完整的历史会话恢复、事件审计和可观测性
+- 系统化评测、质量回归和生产发布流程
 
-`main` 分支保留当前完整闭环版本。
-
-## 🚧 能力边界
-
-「深度研搜」适合入门到进阶阶段学习多智能体工程主链路，但它不是一个完整企业级生产系统。当前版本重点覆盖 DeepAgents 多智能体调度、真实工具接入、文件交付、FastAPI 接口、WebSocket 实时推送和前后端联调。
-
-它没有刻意展开以下生产治理能力：
-
-- 用户登录、角色权限和多租户隔离；
-- 文件上传安全扫描和内容审核；
-- 任务队列、分布式执行和大规模并发治理；
-- 全量事件持久化、历史会话恢复和审计追踪；
-- 系统化评测集、自动化回归和 Agent 质量评估；
-- 生产监控、告警、链路追踪和灰度发布；
-- 复杂报告编辑、协同工作流和权限化文件管理。
-
-这些能力适合在主链路跑通之后继续扩展。本仓库先承担一个清晰角色：把 DeepAgents 多智能体项目最关键、最必要、最值得学习的工程骨架讲清楚、跑起来，并为后续企业级扩展打基础。
+用于公开网络或生产环境前，请补充身份认证、授权、限流、数据隔离、密钥管理、监控和安全审计。
