@@ -15,7 +15,21 @@ def _split_csv(value: str) -> tuple[str, ...]:
 
 def _is_placeholder(value: str) -> bool:
     normalized = value.strip().lower()
-    return not normalized or "你的" in normalized or normalized.startswith("your_")
+    return (
+        not normalized
+        or "你的" in normalized
+        or normalized.startswith("your_")
+        or normalized in {"openai_api_key", "dashscope_api_key"}
+    )
+
+
+def _first_secret(*names: str) -> str:
+    """Return the first real secret without treating variable names as values."""
+    for name in names:
+        value = os.getenv(name, "").strip()
+        if not _is_placeholder(value):
+            return value
+    return ""
 
 
 @dataclass(frozen=True)
@@ -44,7 +58,7 @@ class AppSettings:
 def get_settings() -> AppSettings:
     return AppSettings(
         llm_name=os.getenv("LLM_NAME", ""),
-        openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+        openai_api_key=_first_secret("OPENAI_API_KEY", "DASHSCOPE_API_KEY"),
         openai_base_url=os.getenv("OPENAI_BASE_URL") or None,
         cors_origins=_split_csv(
             os.getenv(

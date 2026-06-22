@@ -46,3 +46,26 @@ class AppSettingsTests(unittest.TestCase):
             settings.cors_origins,
             ("https://one.example", "https://two.example"),
         )
+
+    def test_settings_accept_dashscope_host_variable(self):
+        environment = {
+            "LLM_NAME": "qwen-max",
+            "DASHSCOPE_API_KEY": "sk-dashscope-test",
+        }
+        with patch.dict(os.environ, environment, clear=True):
+            get_settings.cache_clear()
+            settings = get_settings()
+
+        self.assertEqual(settings.openai_api_key, "sk-dashscope-test")
+
+    def test_settings_ignore_variable_name_placeholder(self):
+        environment = {
+            "LLM_NAME": "qwen-max",
+            "OPENAI_API_KEY": "DASHSCOPE_API_KEY",
+            "DASHSCOPE_API_KEY": "sk-dashscope-test",
+        }
+        with patch.dict(os.environ, environment, clear=True):
+            get_settings.cache_clear()
+            settings = get_settings()
+
+        self.assertEqual(settings.openai_api_key, "sk-dashscope-test")

@@ -86,25 +86,33 @@ cp .env.example .env
 Copy-Item .env.example .env
 ```
 
-编辑 `.env`，至少配置可用的大模型：
+编辑 `.env`，配置模型地址和名称。密钥既可以填写在仅供本地使用的
+`.env` 中，也可以由宿主机环境变量或 CI 密钥管理器注入：
 
 ```dotenv
 OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
-OPENAI_API_KEY=your_api_key
 LLM_NAME=qwen-max
+DASHSCOPE_API_KEY=
+OPENAI_API_KEY=
 ```
+
+使用 DashScope 时优先配置 `DASHSCOPE_API_KEY`；其他 OpenAI 兼容服务可配置
+`OPENAI_API_KEY`。宿主机同名变量优先于 `.env`，Docker Compose 会将最终值传入
+API 容器。项目的 `.gitignore` 已忽略 `.env`，真实密钥不会进入版本库。
 
 搜索后端默认为自动降级模式。可按需配置：
 
 ```dotenv
 SEARCH_BACKEND=auto
 SEARCH_BACKEND_ORDER=tavily,searxng,duckduckgo,perplexity
-TAVILY_API_KEY=your_tavily_api_key
-PERPLEXITY_API_KEY=your_perplexity_api_key
+TAVILY_API_KEY=
+PERPLEXITY_API_KEY=
 SEARXNG_URL=http://localhost:8888
 ```
 
-其余 RAG、MySQL 和搜索参数可直接参考 [`.env.example`](.env.example)。不要提交包含真实密钥的 `.env`。
+需要 Tavily 或 Perplexity 时填写对应变量；未配置的搜索后端会被自动跳过。
+
+其余 RAG、MySQL 和搜索参数可直接参考 [`.env.example`](.env.example)。
 
 ### 2. 启动后端服务
 

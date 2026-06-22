@@ -16,6 +16,12 @@ services:
     env_file:
       - ../.env
     environment:
+      # Compose prefers host values and falls back to the project-root .env.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      PERPLEXITY_API_KEY: ${PERPLEXITY_API_KEY:-}
+      RAG_QDRANT_API_KEY: ${RAG_QDRANT_API_KEY:-}
       RAG_DATABASE_URL: postgresql+psycopg://deepsearch:deepsearch@postgres:5432/deepsearch_rag
       RAG_REDIS_URL: redis://redis:6379/0
       RAG_QDRANT_URL: http://qdrant:6333
@@ -71,6 +77,7 @@ services:
     env_file:
       - ../.env
     environment:
+      RAG_QDRANT_API_KEY: ${RAG_QDRANT_API_KEY:-}
       RAG_DATABASE_URL: postgresql+psycopg://deepsearch:deepsearch@postgres:5432/deepsearch_rag
       RAG_REDIS_URL: redis://redis:6379/0
       RAG_QDRANT_URL: http://qdrant:6333

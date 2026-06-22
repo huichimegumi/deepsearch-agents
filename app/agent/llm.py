@@ -17,4 +17,9 @@ def get_model():
     """Validate configuration and lazily create the shared chat model."""
     settings = get_settings()
     settings.validate_llm()
-    return init_chat_model(model=settings.llm_name, model_provider="openai")
+    return init_chat_model(
+        model=settings.llm_name,
+        model_provider="openai",
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url,
+    )
