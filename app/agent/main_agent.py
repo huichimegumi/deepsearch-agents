@@ -19,6 +19,7 @@ from app.agent.prompts import main_agent_content
 from app.agent.subagents.database_query_agent import database_query_agent
 from app.agent.subagents.knowledge_base_agent import knowledge_base_agent
 from app.agent.subagents.network_search_agent import network_search_agent
+from app.api.audit import write_audit_event
 from app.api.context import (
     reset_session_context,
     set_session_context,
@@ -58,6 +59,13 @@ async def run_deep_agent(task_query, session_id):
     :param session_id: 当前任务 ID，同时用于 thread_id、输出目录和 WebSocket 定向推送
     """
     print(f"[MainAgent] 开始执行会话，session_id={session_id}")
+    write_audit_event(
+        "task_started",
+        {
+            "query": task_query,
+        },
+        thread_id=session_id,
+    )
 
     # 每个会话独立使用 output/session_{session_id}，避免不同用户的产物互相覆盖
     session_dir = project_root_path / "output" / f"session_{session_id}"
@@ -136,13 +144,20 @@ async def run_deep_agent(task_query, session_id):
                             # 模型没有继续调用工具时，最新文本内容就是本轮可反馈给前端的结果
                             print(f"主智能体执行结果，最终结果：{last_msg.content[:100]}")
                             monitor.report_task_result(last_msg.content)
+                            write_audit_event(
+                                "task_result",
+                                {"result": last_msg.content},
+                                thread_id=session_id,
+                            )
 
     except asyncio.CancelledError:
         monitor.report_task_cancelled()
+        write_audit_event("task_cancelled", {}, thread_id=session_id)
         raise
     except Exception as e:
         # 异步执行异常也走 monitor，保证前端能收到明确错误事件
         monitor._emit("error", f"执行主智能发生异常信息：{str(e)}")
+        write_audit_event("task_error", {"error": repr(e)}, thread_id=session_id)
     finally:
         # 任务结束后恢复 ContextVar，避免后续请求复用到本次会话目录或 thread_id
         reset_session_context(session_dir_token, session_id_token)

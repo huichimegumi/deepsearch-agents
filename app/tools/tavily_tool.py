@@ -9,6 +9,7 @@ from typing import Literal
 
 from langchain_core.tools import tool
 
+from app.api.audit import write_audit_event
 from app.api.monitor import monitor
 from app.search.models import SearchRequest
 from app.search.service import get_search_service
@@ -75,7 +76,27 @@ def research_search(
             fetch_full_page=fetch_full_page,
         )
     )
-    return response.to_dict()
+    response_dict = response.to_dict()
+    write_audit_event(
+        "search_result",
+        {
+            "queries": queries,
+            "requested_backend": requested_backend,
+            "resolved_backend": response_dict.get("backend"),
+            "result_count": len(response_dict.get("results", [])),
+            "notices": response_dict.get("notices", []),
+            "top_results": [
+                {
+                    "title": item.get("title"),
+                    "url": item.get("url"),
+                    "published_date": item.get("published_date"),
+                }
+                for item in response_dict.get("results", [])[:5]
+                if isinstance(item, dict)
+            ],
+        },
+    )
+    return response_dict
 
 
 # 保留旧名称，已有代码仍可通过 internet_search.invoke(...) 调用新工具。

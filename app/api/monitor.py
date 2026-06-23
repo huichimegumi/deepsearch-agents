@@ -12,6 +12,7 @@ from typing import Any, Optional
 
 from fastapi import WebSocket
 
+from app.api.audit import write_audit_event
 from app.api.context import get_thread_context
 
 
@@ -55,6 +56,13 @@ class ToolMonitor:
             "data": data or {},
             "timestamp": datetime.datetime.now().isoformat(),
         }
+        write_audit_event(
+            event_type,
+            {
+                "message": message,
+                "data": data or {},
+            },
+        )
 
         if self.websocket_manager:
             try:
@@ -144,6 +152,30 @@ class ToolMonitor:
     def report_session_dir(self, path: str) -> None:
         """报告当前任务工作目录"""
         self._emit("session_created", f"工作目录已创建: {path}", {"path": path})
+
+    def report_file_created(self, file_path: str) -> None:
+        """报告本轮任务生成了新的交付文件。"""
+        from pathlib import Path
+
+        path = Path(file_path)
+        try:
+            stat = path.stat()
+            payload = {
+                "name": path.name,
+                "type": "file",
+                "path": str(path),
+                "size": stat.st_size,
+                "mtime": stat.st_mtime,
+            }
+        except OSError:
+            payload = {
+                "name": path.name,
+                "type": "file",
+                "path": str(path),
+                "size": 0,
+                "mtime": datetime.datetime.now().timestamp(),
+            }
+        self._emit("file_created", f"生成文件: {path.name}", payload)
 
 
 monitor = ToolMonitor()

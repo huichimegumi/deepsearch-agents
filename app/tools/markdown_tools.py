@@ -64,6 +64,7 @@ def generate_markdown(
         file_path.write_text(content, encoding="utf-8")
 
         print(f"[MarkdownTool] 文件写入完成: {file_path}")
+        monitor.report_file_created(str(file_path))
         return f"Markdown文件 '{file_path}' 已成功生成并保存。"
     except Exception as e:
         print(f"[MarkdownTool] 文件写入失败: {e}")

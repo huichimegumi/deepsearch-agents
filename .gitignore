@@ -5,6 +5,7 @@
 /tmp
 app/output
 app/updated
+app/logs
 app/rag_temp
 .fastembed_cache/
 /out-tsc

@@ -177,10 +177,11 @@ function FileIcon({ name }: { name: string }) {
 
 function ThinkingTimeline({ events }: { events: MonitorMessage[] }) {
   const timelineRef = useRef<HTMLOListElement | null>(null);
+  const shouldStickToBottomRef = useRef(true);
 
   useEffect(() => {
     const timelineNode = timelineRef.current;
-    if (!timelineNode) {
+    if (!timelineNode || !shouldStickToBottomRef.current) {
       return;
     }
 
@@ -188,6 +189,16 @@ function ThinkingTimeline({ events }: { events: MonitorMessage[] }) {
       timelineNode.scrollTop = timelineNode.scrollHeight;
     });
   }, [events.length]);
+
+  function handleTimelineScroll() {
+    const timelineNode = timelineRef.current;
+    if (!timelineNode) {
+      return;
+    }
+    const distanceToBottom =
+      timelineNode.scrollHeight - timelineNode.scrollTop - timelineNode.clientHeight;
+    shouldStickToBottomRef.current = distanceToBottom < 48;
+  }
 
   if (events.length === 0) {
     return (
@@ -199,7 +210,7 @@ function ThinkingTimeline({ events }: { events: MonitorMessage[] }) {
   }
 
   return (
-    <ol className="thinking-timeline" ref={timelineRef}>
+    <ol className="thinking-timeline" onScroll={handleTimelineScroll} ref={timelineRef}>
       {events.map((event, index) => (
         <li
           className={`thinking-event thinking-event--${event.event}`}

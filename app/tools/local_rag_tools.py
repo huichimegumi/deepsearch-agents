@@ -3,6 +3,7 @@
 from langchain_core.tools import tool
 from sqlalchemy import func, select
 
+from app.api.audit import write_audit_event
 from app.api.monitor import monitor
 from app.rag.database import session_scope
 from app.rag.models import Document, KnowledgeBase
@@ -100,14 +101,61 @@ def create_ask_delete(chat_name: str, question: str) -> str:
     try:
         knowledge_bases = _resolve_knowledge_bases(chat_name)
         if not knowledge_bases:
+            write_audit_event(
+                "rag_search",
+                {
+                    "chat_name": chat_name,
+                    "question": question,
+                    "status": "knowledge_base_not_found",
+                },
+            )
             return f"没有找到名为“{chat_name}”的本地知识库。"
         hits: list[RetrievedChunk] = []
         for knowledge_base in knowledge_bases:
-            hits.extend(hybrid_search(question, knowledge_base.id))
+            knowledge_hits = hybrid_search(question, knowledge_base.id)
+            write_audit_event(
+                "rag_search",
+                {
+                    "chat_name": chat_name,
+                    "knowledge_base": knowledge_base.name,
+                    "knowledge_base_id": knowledge_base.id,
+                    "question": question,
+                    "hit_count": len(knowledge_hits),
+                    "hits": [
+                        {
+                            "chunk_id": hit.chunk_id,
+                            "filename": hit.filename,
+                            "page_start": hit.page_start,
+                            "page_end": hit.page_end,
+                            "section": hit.section,
+                            "score": hit.score,
+                            "citation": hit.citation,
+                        }
+                        for hit in knowledge_hits[:8]
+                    ],
+                },
+            )
+            hits.extend(knowledge_hits)
         hits.sort(key=lambda item: item.score, reverse=True)
         hits = hits[:8]
         if not hits:
+            write_audit_event(
+                "rag_search_empty",
+                {
+                    "chat_name": chat_name,
+                    "question": question,
+                    "knowledge_bases": [item.name for item in knowledge_bases],
+                },
+            )
             return "本地知识库没有检索到足以回答该问题的内容。"
         return _answer(question, hits)
     except Exception as exc:
+        write_audit_event(
+            "rag_search_error",
+            {
+                "chat_name": chat_name,
+                "question": question,
+                "error": repr(exc),
+            },
+        )
         return f"本地知识库问答失败：{exc}"

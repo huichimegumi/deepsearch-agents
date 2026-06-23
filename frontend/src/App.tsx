@@ -17,7 +17,7 @@ import { ConversationThread } from "./components/ConversationThread";
 import type { ChatTurn } from "./components/ConversationThread";
 import { API_BASE_URL, WS_BASE_URL } from "./lib/config";
 import { useDeepAgentSession } from "./hooks/useDeepAgentSession";
-import type { ConnectionState, UploadedItem } from "./types";
+import type { ConnectionState, MonitorMessage, OutputFile, UploadedItem } from "./types";
 
 function connectionLabel(state: ConnectionState): string {
   const labels: Record<ConnectionState, string> = {
@@ -41,6 +41,39 @@ function createTurn(content: string): ChatTurn {
   };
 }
 
+function toOutputFile(data: Record<string, unknown>): OutputFile | null {
+  if (
+    typeof data.name !== "string" ||
+    typeof data.path !== "string" ||
+    typeof data.size !== "number" ||
+    typeof data.mtime !== "number"
+  ) {
+    return null;
+  }
+
+  return {
+    name: data.name,
+    path: data.path,
+    size: data.size,
+    mtime: data.mtime,
+    type: typeof data.type === "string" ? data.type : "file"
+  };
+}
+
+function getTurnFiles(events: MonitorMessage[]): OutputFile[] {
+  const files = new Map<string, OutputFile>();
+  events.forEach((event) => {
+    if (event.event !== "file_created") {
+      return;
+    }
+    const file = toOutputFile(event.data);
+    if (file) {
+      files.set(file.path, file);
+    }
+  });
+  return Array.from(files.values()).sort((left, right) => right.mtime - left.mtime);
+}
+
 export default function App() {
   const { message } = AntApp.useApp();
   const [query, setQuery] = useState("");
@@ -48,6 +81,7 @@ export default function App() {
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   const streamRef = useRef<HTMLElement | null>(null);
+  const shouldStickToBottomRef = useRef(true);
   const session = useDeepAgentSession();
 
   useEffect(() => {
@@ -60,18 +94,18 @@ export default function App() {
       const nextLatestTurn = {
         ...latestTurn,
         events: session.events,
-        files: session.files,
+        files: getTurnFiles(session.events),
         isRunning: session.isRunning,
         result: session.result
       };
 
       return [...previous.slice(0, -1), nextLatestTurn];
     });
-  }, [session.events, session.files, session.isRunning, session.result]);
+  }, [session.events, session.isRunning, session.result]);
 
   useEffect(() => {
     const streamNode = streamRef.current;
-    if (!streamNode) {
+    if (!streamNode || !shouldStickToBottomRef.current) {
       return;
     }
 
@@ -83,6 +117,16 @@ export default function App() {
     });
   }, [turns]);
 
+  function handleStreamScroll() {
+    const streamNode = streamRef.current;
+    if (!streamNode) {
+      return;
+    }
+    const distanceToBottom =
+      streamNode.scrollHeight - streamNode.scrollTop - streamNode.clientHeight;
+    shouldStickToBottomRef.current = distanceToBottom < 80;
+  }
+
   async function handleSubmit() {
     const cleanQuery = query.trim();
     if (!cleanQuery) {
@@ -91,6 +135,7 @@ export default function App() {
     }
 
     const nextTurn = createTurn(cleanQuery);
+    shouldStickToBottomRef.current = true;
     setTurns((previous) => [...previous, nextTurn]);
     setQuery("");
 
@@ -245,7 +290,7 @@ export default function App() {
           />
         ) : null}
 
-        <section className="chat-stream-panel" ref={streamRef}>
+        <section className="chat-stream-panel" onScroll={handleStreamScroll} ref={streamRef}>
           <ConversationThread
             onUseExample={setQuery}
             turns={turns}

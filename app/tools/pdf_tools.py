@@ -52,7 +52,10 @@ def convert_md_to_pdf(
             pdf_abs_path = md_abs_path.with_suffix(".pdf")
 
         # PDF 版式、中文字体和 Markdown 解析细节都封装在底层转换模块中
-        return convert_md_to_pdf_via_word(md_abs_path, pdf_abs_path)
+        result = convert_md_to_pdf_via_word(md_abs_path, pdf_abs_path)
+        if pdf_abs_path.exists():
+            monitor.report_file_created(str(pdf_abs_path))
+        return result
 
     except Exception as e:
         logging.error(f"转换失败: {e}", exc_info=True)
