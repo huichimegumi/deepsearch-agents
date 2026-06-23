@@ -113,6 +113,9 @@ SEARXNG_URL=http://localhost:8888
 需要 Tavily 或 Perplexity 时填写对应变量；未配置的搜索后端会被自动跳过。
 
 其余 RAG、MySQL 和搜索参数可直接参考 [`.env.example`](.env.example)。
+其中 MySQL 的 `.env` 默认值面向“宿主机直接运行 API”的场景：
+`MYSQL_HOST=localhost`、`MYSQL_PORT=3307`。如果 API 运行在 Docker Compose
+里，Compose 会自动覆盖为容器网络地址 `MYSQL_HOST=mysql`、`MYSQL_PORT=3306`。
 
 ### 2. 启动后端服务
 
