@@ -31,13 +31,15 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from app.agent.main_agent import run_deep_agent
+from app.api.conversation_store import append_message, get_or_create_conversation
+from app.api.conversations import router as conversations_router
 from app.api.health import router as health_router
 from app.api.knowledge import router as knowledge_router
 from app.api.monitor import manager
 from app.auth.dependencies import get_current_user, get_current_user_from_token
 from app.auth.router import router as auth_router
 from app.config import get_settings
-from app.rag.database import init_schema
+from app.rag.database import init_schema, session_scope
 from app.rag.models import User
 
 
@@ -64,6 +66,7 @@ app = FastAPI(title="DeepAgents API", lifespan=lifespan)
 app.include_router(auth_router)
 app.include_router(health_router)
 app.include_router(knowledge_router)
+app.include_router(conversations_router)
 
 # 保存 thread_id -> 后台 Agent 任务，用于同一会话任务替换和主动取消
 active_tasks: dict[str, asyncio.Task] = {}
@@ -116,6 +119,28 @@ def _forget_task(thread_id: str, task: asyncio.Task) -> None:
         active_tasks.pop(thread_id, None)
 
 
+async def _run_task_and_record(
+    *,
+    query: str,
+    thread_id: str,
+    user_id: str,
+    monitor_thread_id: str,
+) -> None:
+    result = await run_deep_agent(
+        query,
+        thread_id,
+        user_id=user_id,
+        monitor_thread_id=monitor_thread_id,
+    )
+    if result:
+        append_message(
+            user_id=user_id,
+            thread_id=thread_id,
+            role="assistant",
+            content=result,
+        )
+
+
 @app.post("/api/task")
 async def run_task(request: TaskRequest, current_user: User = Depends(get_current_user)):
     """
@@ -127,6 +152,20 @@ async def run_task(request: TaskRequest, current_user: User = Depends(get_curren
     thread_id = request.thread_id or str(uuid.uuid4())
     task_key = _thread_key(current_user.id, thread_id)
 
+    with session_scope() as session:
+        get_or_create_conversation(
+            session,
+            user_id=current_user.id,
+            thread_id=thread_id,
+            title=request.query.strip()[:48] or "新聊天",
+        )
+    append_message(
+        user_id=current_user.id,
+        thread_id=thread_id,
+        role="user",
+        content=request.query,
+    )
+
     # 同一个 thread_id 只保留一个活跃任务，新任务会先取消旧任务，避免并发写同一会话目录
     old_task = active_tasks.get(task_key)
     if old_task and not old_task.done():
@@ -134,9 +173,9 @@ async def run_task(request: TaskRequest, current_user: User = Depends(get_curren
 
     # create_task 把长耗时 Agent 执行交给事件循环，接口本身不用等待最终结果
     task = asyncio.create_task(
-        run_deep_agent(
-            request.query,
-            thread_id,
+        _run_task_and_record(
+            query=request.query,
+            thread_id=thread_id,
             user_id=current_user.id,
             monitor_thread_id=task_key,
         )

@@ -115,3 +115,26 @@ export interface AuthResponse {
   token_type: "bearer" | string;
   user: AuthUser;
 }
+
+export interface ChatMessageRecord {
+  id: string;
+  role: "user" | "assistant" | string;
+  content: string;
+  events?: MonitorMessage[] | null;
+  files?: OutputFile[] | null;
+  created_at: string;
+}
+
+export interface ChatConversationRecord {
+  id: string;
+  thread_id: string;
+  title: string;
+  is_archived: boolean;
+  created_at: string;
+  updated_at: string;
+  last_message_at: string;
+}
+
+export interface ChatConversationDetail extends ChatConversationRecord {
+  messages: ChatMessageRecord[];
+}

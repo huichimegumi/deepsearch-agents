@@ -1,36 +1,21 @@
 import {
-  ApiOutlined,
   BranchesOutlined,
   BookOutlined,
   CheckCircleOutlined,
-  CloseCircleOutlined,
-  CloudServerOutlined,
-  DatabaseOutlined,
-  FileSearchOutlined,
-  LogoutOutlined,
-  ToolOutlined
+  LogoutOutlined
 } from "@ant-design/icons";
 import { Alert, App as AntApp, Button } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { AuthPanel } from "./components/AuthPanel";
 import { ChatComposer } from "./components/ChatComposer";
-import { KnowledgeBaseDrawer } from "./components/KnowledgeBaseDrawer";
+import { ConversationSidebar } from "./components/ConversationSidebar";
 import { ConversationThread } from "./components/ConversationThread";
 import type { ChatTurn } from "./components/ConversationThread";
-import { API_BASE_URL, WS_BASE_URL } from "./lib/config";
+import { KnowledgeBaseDrawer } from "./components/KnowledgeBaseDrawer";
 import { useAuth } from "./hooks/useAuth";
+import { useConversationHistory } from "./hooks/useConversationHistory";
 import { useDeepAgentSession } from "./hooks/useDeepAgentSession";
-import type { ConnectionState, MonitorMessage, OutputFile, UploadedItem } from "./types";
-
-function connectionLabel(state: ConnectionState): string {
-  const labels: Record<ConnectionState, string> = {
-    connecting: "连接中",
-    connected: "已连接",
-    reconnecting: "重连中",
-    closed: "已关闭"
-  };
-  return labels[state];
-}
+import type { MonitorMessage, OutputFile, UploadedItem } from "./types";
 
 function createTurn(content: string): ChatTurn {
   return {
@@ -85,8 +70,14 @@ export default function App() {
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   const streamRef = useRef<HTMLElement | null>(null);
   const shouldStickToBottomRef = useRef(true);
+  const wasRunningRef = useRef(false);
   const auth = useAuth();
-  const session = useDeepAgentSession(auth.token);
+  const history = useConversationHistory();
+  const session = useDeepAgentSession(
+    auth.token,
+    history.activeThreadId,
+    history.setActiveThreadId
+  );
 
   useEffect(() => {
     setTurns((previous) => {
@@ -121,6 +112,31 @@ export default function App() {
     });
   }, [turns]);
 
+  useEffect(() => {
+    if (!auth.isAuthenticated) {
+      return;
+    }
+
+    history.refreshConversations()
+      .then((items) => {
+        if (items.some((item) => item.thread_id === history.activeThreadId)) {
+          return history.loadConversationTurns(history.activeThreadId);
+        }
+        return [];
+      })
+      .then(setTurns)
+      .catch((error: unknown) => {
+        message.error(error instanceof Error ? error.message : "会话记录加载失败");
+      });
+  }, [auth.isAuthenticated]);
+
+  useEffect(() => {
+    if (wasRunningRef.current && !session.isRunning) {
+      history.refreshConversations().catch(() => undefined);
+    }
+    wasRunningRef.current = session.isRunning;
+  }, [history, session.isRunning]);
+
   function handleStreamScroll() {
     const streamNode = streamRef.current;
     if (!streamNode) {
@@ -145,6 +161,7 @@ export default function App() {
 
     try {
       await session.submitTask(cleanQuery);
+      history.refreshConversations().catch(() => undefined);
       message.success("任务已启动，执行过程会显示在对话中");
     } catch (error) {
       setTurns((previous) =>
@@ -165,7 +182,11 @@ export default function App() {
   async function handleCancel() {
     try {
       const response = await session.cancelCurrentTask();
-      message.info(response.status === "cancelling" ? "取消请求已发送，正在等待当前调用结束" : "任务已取消");
+      message.info(
+        response.status === "cancelling"
+          ? "取消请求已发送，正在等待当前调用结束"
+          : "任务已取消"
+      );
     } catch (error) {
       message.error(error instanceof Error ? error.message : "取消任务失败");
     }
@@ -181,14 +202,61 @@ export default function App() {
     }
   }
 
-  function handleNewSession() {
-    session.resetSession();
-    setTurns([]);
-    setQuery("");
-    setStagedItems([]);
+  async function handleNewSession() {
+    if (session.isRunning) {
+      message.warning("当前任务仍在运行，请先取消或等待完成");
+      return;
+    }
+
+    try {
+      await history.startNewConversation();
+      setTurns([]);
+      setQuery("");
+      setStagedItems([]);
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "新建聊天失败");
+    }
   }
 
-  const online = session.connectionState === "connected";
+  async function handleSelectConversation(threadId: string) {
+    if (threadId === history.activeThreadId) {
+      return;
+    }
+    if (session.isRunning) {
+      message.warning("当前任务仍在运行，请先取消或等待完成");
+      return;
+    }
+
+    try {
+      const nextTurns = await history.loadConversationTurns(threadId);
+      shouldStickToBottomRef.current = true;
+      setTurns(nextTurns);
+      setQuery("");
+      setStagedItems([]);
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "会话记录加载失败");
+    }
+  }
+
+  async function handleDeleteConversation(threadId: string) {
+    if (session.isRunning && threadId === history.activeThreadId) {
+      message.warning("当前任务仍在运行，请先取消或等待完成");
+      return;
+    }
+
+    try {
+      await history.removeConversation(threadId);
+      if (threadId === history.activeThreadId) {
+        await history.startNewConversation();
+        setTurns([]);
+        setQuery("");
+        setStagedItems([]);
+      }
+      message.success("聊天记录已删除");
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "删除聊天记录失败");
+    }
+  }
 
   async function handleLogin(username: string, password: string) {
     try {
@@ -235,9 +303,15 @@ export default function App() {
           <p>对话式多智能体研究台</p>
         </div>
 
-        <Button className="new-chat-button" block onClick={handleNewSession}>
-          新建研搜
-        </Button>
+        <ConversationSidebar
+          activeThreadId={history.activeThreadId}
+          conversations={history.conversations}
+          isLoading={history.isLoadingHistory}
+          onDeleteConversation={handleDeleteConversation}
+          onNewChat={handleNewSession}
+          onSelectConversation={handleSelectConversation}
+        />
+
         <Button
           block
           className="knowledge-button"
@@ -247,68 +321,14 @@ export default function App() {
           知识库管理
         </Button>
 
-        <div className="sidebar-section">
+        <div className="sidebar-section sidebar-user-section">
           <span className="sidebar-label">USER</span>
-          <strong className="thread-id" title={auth.user?.username}>
+          <strong className="sidebar-user-name" title={auth.user?.username}>
             {auth.user?.display_name || auth.user?.username}
           </strong>
           <Button block icon={<LogoutOutlined />} onClick={handleLogout}>
             退出登录
           </Button>
-        </div>
-
-        <div className="sidebar-section">
-          <span className="sidebar-label">THREAD</span>
-          <strong className="thread-id" title={session.threadId}>
-            {session.threadId.slice(0, 8)}
-          </strong>
-        </div>
-
-        <div className="sidebar-status-list">
-          <div className={`sidebar-status ${online ? "sidebar-status--online" : "sidebar-status--warn"}`}>
-            <ApiOutlined aria-hidden />
-            <span>WebSocket</span>
-            <strong>{connectionLabel(session.connectionState)}</strong>
-          </div>
-          <div className="sidebar-status">
-            <BranchesOutlined aria-hidden />
-            <span>助手调度</span>
-            <strong>{session.stats.assistantEvents}</strong>
-          </div>
-          <div className="sidebar-status">
-            <ToolOutlined aria-hidden />
-            <span>工具调用</span>
-            <strong>{session.stats.toolEvents}</strong>
-          </div>
-          <div className={session.stats.errorEvents > 0 ? "sidebar-status sidebar-status--error" : "sidebar-status"}>
-            <CloseCircleOutlined aria-hidden />
-            <span>异常</span>
-            <strong>{session.stats.errorEvents}</strong>
-          </div>
-        </div>
-
-        <div className="sidebar-section">
-          <span className="sidebar-label">AGENTS</span>
-          <ul className="agent-mini-list">
-            <li>
-              <CloudServerOutlined aria-hidden />
-              网络搜索助手
-            </li>
-            <li>
-              <DatabaseOutlined aria-hidden />
-              数据库查询助手
-            </li>
-            <li>
-              <FileSearchOutlined aria-hidden />
-              本地知识库助手
-            </li>
-          </ul>
-        </div>
-
-        <div className="sidebar-section sidebar-endpoints">
-          <span className="sidebar-label">ENDPOINTS</span>
-          <code>{API_BASE_URL}</code>
-          <code>{WS_BASE_URL}</code>
         </div>
       </aside>
 
@@ -318,17 +338,23 @@ export default function App() {
             <span className="panel-kicker">CHAT WORKSPACE</span>
             <h2>深度研搜对话</h2>
           </div>
-          <div className={`run-indicator ${session.isRunning ? "run-indicator--live" : ""}`}>
-            {session.isRunning ? <BranchesOutlined aria-hidden /> : <CheckCircleOutlined aria-hidden />}
-            {session.isRunning ? "研搜中" : "待命"}
+          <div className="topbar-actions">
+            <div className="thread-mini" title={session.threadId}>
+              <span>THREAD</span>
+              <strong>{session.threadId.slice(0, 8)}</strong>
+            </div>
+            <div className={`run-indicator ${session.isRunning ? "run-indicator--live" : ""}`}>
+              {session.isRunning ? <BranchesOutlined aria-hidden /> : <CheckCircleOutlined aria-hidden />}
+              {session.isRunning ? "研搜中" : "待命"}
+            </div>
+            <Button
+              className="mobile-knowledge-button"
+              icon={<BookOutlined />}
+              onClick={() => setKnowledgeOpen(true)}
+            >
+              知识库
+            </Button>
           </div>
-          <Button
-            className="mobile-knowledge-button"
-            icon={<BookOutlined />}
-            onClick={() => setKnowledgeOpen(true)}
-          >
-            知识库
-          </Button>
         </header>
 
         {session.lastError ? (

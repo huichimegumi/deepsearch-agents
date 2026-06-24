@@ -77,3 +77,36 @@ class SearchHitResponse(BaseModel):
 class SearchResponse(BaseModel):
     query: str
     hits: list[SearchHitResponse]
+
+
+class ChatConversationCreate(BaseModel):
+    thread_id: str | None = None
+    title: str | None = Field(default=None, max_length=180)
+
+
+class ChatConversationUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=180)
+    is_archived: bool | None = None
+
+
+class ChatMessageResponse(BaseModel):
+    id: str
+    role: str
+    content: str
+    events: list | None = None
+    files: list | None = None
+    created_at: datetime
+
+
+class ChatConversationResponse(BaseModel):
+    id: str
+    thread_id: str
+    title: str
+    is_archived: bool
+    created_at: datetime
+    updated_at: datetime
+    last_message_at: datetime
+
+
+class ChatConversationDetail(ChatConversationResponse):
+    messages: list[ChatMessageResponse]

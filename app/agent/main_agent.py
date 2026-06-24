@@ -128,6 +128,7 @@ async def run_deep_agent(
     4. 若存在上传文件，请先分析内容
     """
 
+    final_result = None
     try:
         main_agent = get_main_agent()
         # astream 会持续产出模型节点、工具节点和子智能体节点的状态片段
@@ -156,6 +157,7 @@ async def run_deep_agent(
                             # 模型没有继续调用工具时，最新文本内容就是本轮可反馈给前端的结果
                             print(f"主智能体执行结果，最终结果：{last_msg.content[:100]}")
                             monitor.report_task_result(last_msg.content)
+                            final_result = last_msg.content
                             write_audit_event(
                                 "task_result",
                                 {"result": last_msg.content},
@@ -173,6 +175,8 @@ async def run_deep_agent(
     finally:
         # 任务结束后恢复 ContextVar，避免后续请求复用到本次会话目录或 thread_id
         reset_session_context(session_dir_token, session_id_token)
+
+    return final_result
 
 
 if __name__ == "__main__":

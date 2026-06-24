@@ -17,7 +17,11 @@ function extractString(data: Record<string, unknown>, key: string): string | nul
   return typeof value === "string" ? value : null;
 }
 
-export function useDeepAgentSession(accessToken: string) {
+export function useDeepAgentSession(
+  accessToken: string,
+  activeThreadId?: string,
+  onThreadIdChange?: (threadId: string) => void
+) {
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | undefined>(undefined);
   const heartbeatTimerRef = useRef<number | undefined>(undefined);
@@ -35,6 +39,23 @@ export function useDeepAgentSession(accessToken: string) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedItems, setUploadedItems] = useState<UploadedItem[]>([]);
 
+  useEffect(() => {
+    if (!activeThreadId || activeThreadId === threadId) {
+      return;
+    }
+    storeThreadId(activeThreadId);
+    setThreadId(activeThreadId);
+    setEvents([]);
+    setFiles([]);
+    setSessionPath("");
+    setResult("");
+    setLastError("");
+    setUploadedItems([]);
+    uploadedNameSetRef.current.clear();
+    setIsRunning(false);
+    setIsCancelling(false);
+  }, [activeThreadId, threadId]);
+
   const clearSocketTimers = useCallback(() => {
     if (reconnectTimerRef.current) {
       window.clearTimeout(reconnectTimerRef.current);
@@ -50,6 +71,7 @@ export function useDeepAgentSession(accessToken: string) {
     const nextThreadId = createThreadId();
     storeThreadId(nextThreadId);
     setThreadId(nextThreadId);
+    onThreadIdChange?.(nextThreadId);
     setEvents([]);
     setFiles([]);
     setSessionPath("");
@@ -59,7 +81,8 @@ export function useDeepAgentSession(accessToken: string) {
     uploadedNameSetRef.current.clear();
     setIsRunning(false);
     setIsCancelling(false);
-  }, []);
+    return nextThreadId;
+  }, [onThreadIdChange]);
 
   const refreshFiles = useCallback(async () => {
     if (!sessionPath) {
@@ -218,6 +241,7 @@ export function useDeepAgentSession(accessToken: string) {
         if (response.thread_id && response.thread_id !== threadId) {
           storeThreadId(response.thread_id);
           setThreadId(response.thread_id);
+          onThreadIdChange?.(response.thread_id);
         }
         return response;
       } catch (error) {
@@ -226,7 +250,7 @@ export function useDeepAgentSession(accessToken: string) {
         throw error;
       }
     },
-    [threadId]
+    [onThreadIdChange, threadId]
   );
 
   const cancelCurrentTask = useCallback(async () => {

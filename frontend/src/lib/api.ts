@@ -2,6 +2,8 @@ import { API_BASE_URL } from "./config";
 import { getAuthToken } from "./auth";
 import type {
   CancelTaskResponse,
+  ChatConversationDetail,
+  ChatConversationRecord,
   FileListResponse,
   IndexJob,
   KnowledgeBase,
@@ -85,6 +87,42 @@ export function getDownloadUrl(path: string): string {
   const url = new URL(apiUrl("/api/download"));
   url.searchParams.set("path", path);
   return url.toString();
+}
+
+export function listConversations(): Promise<ChatConversationRecord[]> {
+  return requestJson<ChatConversationRecord[]>(apiUrl("/api/conversations"));
+}
+
+export function createConversation(
+  threadId?: string,
+  title?: string
+): Promise<ChatConversationRecord> {
+  return requestJson<ChatConversationRecord>(apiUrl("/api/conversations"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      thread_id: threadId,
+      title
+    })
+  });
+}
+
+export function getConversation(threadId: string): Promise<ChatConversationDetail> {
+  return requestJson<ChatConversationDetail>(
+    apiUrl(`/api/conversations/${encodeURIComponent(threadId)}`)
+  );
+}
+
+export async function deleteConversation(threadId: string): Promise<void> {
+  const response = await fetch(apiUrl(`/api/conversations/${encodeURIComponent(threadId)}`), {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${getAuthToken()}` }
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
 }
 
 export function listKnowledgeBases(): Promise<KnowledgeBase[]> {
