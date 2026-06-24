@@ -10,7 +10,9 @@ import type {
   KnowledgeDocument,
   KnowledgeUploadResponse,
   TaskResponse,
-  UploadResponse
+  UploadResponse,
+  UserMemory,
+  UserMemorySearchHit
 } from "../types";
 
 function apiUrl(path: string): string {
@@ -177,6 +179,44 @@ export async function deleteKnowledgeDocument(documentId: string): Promise<void>
     apiUrl(`/api/knowledge-bases/documents/${encodeURIComponent(documentId)}`),
     { method: "DELETE", headers: { Authorization: `Bearer ${getAuthToken()}` } }
   );
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+}
+
+export function listMemories(): Promise<UserMemory[]> {
+  return requestJson<UserMemory[]>(apiUrl("/api/memories"));
+}
+
+export function createMemory(
+  content: string,
+  memoryType: string,
+  confidence = 0.9
+): Promise<UserMemory> {
+  return requestJson<UserMemory>(apiUrl("/api/memories"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      content,
+      memory_type: memoryType,
+      confidence
+    })
+  });
+}
+
+export function searchMemories(query: string, limit = 10): Promise<UserMemorySearchHit[]> {
+  return requestJson<UserMemorySearchHit[]>(apiUrl("/api/memories/search"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, limit })
+  });
+}
+
+export async function deleteMemory(memoryId: string): Promise<void> {
+  const response = await fetch(apiUrl(`/api/memories/${encodeURIComponent(memoryId)}`), {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${getAuthToken()}` }
+  });
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }

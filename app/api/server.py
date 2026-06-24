@@ -39,6 +39,13 @@ from app.api.monitor import manager
 from app.auth.dependencies import get_current_user, get_current_user_from_token
 from app.auth.router import router as auth_router
 from app.config import get_settings
+from app.memory.conversation import (
+    format_conversation_context_for_prompt,
+    get_conversation_context,
+    update_conversation_summary,
+)
+from app.memory.extraction import extract_and_store_memories
+from app.memory.router import router as memories_router
 from app.rag.database import init_schema, session_scope
 from app.rag.models import User
 
@@ -67,6 +74,7 @@ app.include_router(auth_router)
 app.include_router(health_router)
 app.include_router(knowledge_router)
 app.include_router(conversations_router)
+app.include_router(memories_router)
 
 # 保存 thread_id -> 后台 Agent 任务，用于同一会话任务替换和主动取消
 active_tasks: dict[str, asyncio.Task] = {}
@@ -125,20 +133,37 @@ async def _run_task_and_record(
     thread_id: str,
     user_id: str,
     monitor_thread_id: str,
+    user_message_id: str | None = None,
 ) -> None:
+    conversation_memory = format_conversation_context_for_prompt(
+        get_conversation_context(
+            user_id=user_id,
+            thread_id=thread_id,
+            exclude_message_id=user_message_id,
+        )
+    )
     result = await run_deep_agent(
         query,
         thread_id,
         user_id=user_id,
         monitor_thread_id=monitor_thread_id,
+        conversation_memory=conversation_memory,
     )
     if result:
-        append_message(
+        assistant_message = append_message(
             user_id=user_id,
             thread_id=thread_id,
             role="assistant",
             content=result,
         )
+        extract_and_store_memories(
+            user_id=user_id,
+            thread_id=thread_id,
+            user_message=query,
+            assistant_message=result,
+            source_message_id=user_message_id or assistant_message.id,
+        )
+        update_conversation_summary(user_id=user_id, thread_id=thread_id)
 
 
 @app.post("/api/task")
@@ -159,7 +184,7 @@ async def run_task(request: TaskRequest, current_user: User = Depends(get_curren
             thread_id=thread_id,
             title=request.query.strip()[:48] or "新聊天",
         )
-    append_message(
+    user_message = append_message(
         user_id=current_user.id,
         thread_id=thread_id,
         role="user",
@@ -178,6 +203,7 @@ async def run_task(request: TaskRequest, current_user: User = Depends(get_curren
             thread_id=thread_id,
             user_id=current_user.id,
             monitor_thread_id=task_key,
+            user_message_id=user_message.id,
         )
     )
     active_tasks[task_key] = task

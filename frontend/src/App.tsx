@@ -2,6 +2,7 @@ import {
   BranchesOutlined,
   BookOutlined,
   CheckCircleOutlined,
+  BulbOutlined,
   LogoutOutlined
 } from "@ant-design/icons";
 import { Alert, App as AntApp, Button } from "antd";
@@ -12,6 +13,7 @@ import { ConversationSidebar } from "./components/ConversationSidebar";
 import { ConversationThread } from "./components/ConversationThread";
 import type { ChatTurn } from "./components/ConversationThread";
 import { KnowledgeBaseDrawer } from "./components/KnowledgeBaseDrawer";
+import { MemoryDrawer } from "./components/MemoryDrawer";
 import { useAuth } from "./hooks/useAuth";
 import { useConversationHistory } from "./hooks/useConversationHistory";
 import { useDeepAgentSession } from "./hooks/useDeepAgentSession";
@@ -68,6 +70,7 @@ export default function App() {
   const [stagedItems, setStagedItems] = useState<UploadedItem[]>([]);
   const [turns, setTurns] = useState<ChatTurn[]>([]);
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
+  const [memoryOpen, setMemoryOpen] = useState(false);
   const streamRef = useRef<HTMLElement | null>(null);
   const shouldStickToBottomRef = useRef(true);
   const wasRunningRef = useRef(false);
@@ -321,6 +324,15 @@ export default function App() {
           知识库管理
         </Button>
 
+        <Button
+          block
+          className="memory-button"
+          icon={<BulbOutlined />}
+          onClick={() => setMemoryOpen(true)}
+        >
+          长期记忆
+        </Button>
+
         <div className="sidebar-section sidebar-user-section">
           <span className="sidebar-label">USER</span>
           <strong className="sidebar-user-name" title={auth.user?.username}>
@@ -353,6 +365,13 @@ export default function App() {
               onClick={() => setKnowledgeOpen(true)}
             >
               知识库
+            </Button>
+            <Button
+              className="mobile-memory-button"
+              icon={<BulbOutlined />}
+              onClick={() => setMemoryOpen(true)}
+            >
+              记忆
             </Button>
           </div>
         </header>
@@ -389,6 +408,7 @@ export default function App() {
         />
       </main>
       <KnowledgeBaseDrawer open={knowledgeOpen} onClose={() => setKnowledgeOpen(false)} />
+      <MemoryDrawer open={memoryOpen} onClose={() => setMemoryOpen(false)} />
     </div>
   );
 }

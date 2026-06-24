@@ -3,7 +3,17 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Index, Integer, JSON, String, Text
+from sqlalchemy import (
+    JSON,
+    BigInteger,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -50,6 +60,11 @@ class ChatConversation(Base):
     )
     thread_id: Mapped[str] = mapped_column(String(80), index=True)
     title: Mapped[str] = mapped_column(String(180), default="新聊天")
+    summary: Mapped[str] = mapped_column(Text, default="")
+    summary_message_count: Mapped[int] = mapped_column(Integer, default=0)
+    summary_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     is_archived: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
@@ -78,6 +93,36 @@ class ChatMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     conversation: Mapped[ChatConversation] = relationship(back_populates="messages")
+
+
+class UserMemory(Base):
+    __tablename__ = "user_memories"
+    __table_args__ = (
+        Index("ix_user_memory_user_active", "user_id", "is_deleted", "updated_at"),
+        Index("ix_user_memory_user_type", "user_id", "memory_type"),
+        Index("ix_user_memory_source_message", "source_message_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    thread_id: Mapped[str | None] = mapped_column(String(80), nullable=True, index=True)
+    source_message_id: Mapped[str | None] = mapped_column(
+        ForeignKey("chat_messages.id", ondelete="SET NULL"), nullable=True
+    )
+    memory_type: Mapped[str] = mapped_column(String(32), default="fact", index=True)
+    content: Mapped[str] = mapped_column(Text)
+    summary: Mapped[str] = mapped_column(String(512), default="")
+    confidence: Mapped[float] = mapped_column(default=0.7)
+    access_count: Mapped[int] = mapped_column(Integer, default=0)
+    metadata_: Mapped[dict | None] = mapped_column("metadata", JSON, nullable=True)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utcnow, onupdate=utcnow
+    )
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class KnowledgeBase(Base):

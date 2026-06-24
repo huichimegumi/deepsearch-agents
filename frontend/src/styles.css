@@ -854,7 +854,15 @@ textarea {
   color: var(--green) !important;
 }
 
-.mobile-knowledge-button {
+.memory-button {
+  min-height: 42px;
+  border-color: rgba(32, 214, 255, 0.3) !important;
+  background: rgba(32, 214, 255, 0.08) !important;
+  color: var(--cyan) !important;
+}
+
+.mobile-knowledge-button,
+.mobile-memory-button {
   display: none;
 }
 
@@ -890,6 +898,45 @@ textarea {
 }
 
 .knowledge-error {
+  margin-top: 8px;
+  color: var(--red);
+  overflow-wrap: anywhere;
+}
+
+.memory-create-row {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr) 40px;
+  gap: 8px;
+  align-items: start;
+}
+
+.memory-search-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px 40px;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.memory-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 14px 0;
+}
+
+.memory-row {
+  align-items: flex-start !important;
+}
+
+.memory-content {
+  display: inline-block;
+  max-width: 480px;
+  color: var(--text);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.memory-error {
   margin-top: 8px;
   color: var(--red);
   overflow-wrap: anywhere;
@@ -2009,9 +2056,9 @@ textarea {
     display: none;
   }
 
-  .mobile-knowledge-button {
+  .mobile-knowledge-button,
+  .mobile-memory-button {
     display: inline-flex;
-    margin-left: auto;
   }
 
   .sidebar-status-list {
@@ -2036,7 +2083,9 @@ textarea {
 
 @media (max-width: 560px) {
   .knowledge-create-row,
-  .knowledge-toolbar {
+  .knowledge-toolbar,
+  .memory-create-row,
+  .memory-search-row {
     grid-template-columns: 1fr;
   }
   .chat-sidebar {

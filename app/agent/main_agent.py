@@ -24,11 +24,14 @@ from app.api.context import (
     reset_session_context,
     set_session_context,
     set_thread_context,
+    set_user_context,
 )
 from app.api.monitor import monitor
+from app.memory.service import format_memories_for_prompt, search_memories
 
 # 文件类工具由主智能体直接掌握，负责读取上传附件和生成最终交付文档
 from app.tools.markdown_tools import generate_markdown
+from app.tools.memory_tools import remember_user_memory, search_user_memory
 from app.tools.pdf_tools import convert_md_to_pdf
 from app.tools.upload_file_read_tool import read_file_content
 
@@ -39,7 +42,13 @@ def get_main_agent():
     return create_deep_agent(
         model=get_model(),
         system_prompt=main_agent_content["system_prompt"],
-        tools=[generate_markdown, convert_md_to_pdf, read_file_content],
+        tools=[
+            generate_markdown,
+            convert_md_to_pdf,
+            read_file_content,
+            remember_user_memory,
+            search_user_memory,
+        ],
         checkpointer=InMemorySaver(),
         subagents=[database_query_agent, network_search_agent, knowledge_base_agent],
     )
@@ -54,6 +63,7 @@ async def run_deep_agent(
     session_id,
     user_id: str | None = None,
     monitor_thread_id: str | None = None,
+    conversation_memory: str = "",
 ):
     """
     异步流式执行主智能体
@@ -108,6 +118,7 @@ async def run_deep_agent(
     # ContextVar 让深层工具无需显式传参，也能拿到当前会话目录和 WebSocket thread_id
     session_dir_token = set_session_context(session_dir_str)
     session_id_token = set_thread_context(event_thread_id)
+    user_id_token = set_user_context(user_id) if user_id else None
 
     # 前端拿到工作目录后，可以展示本次任务生成的 Markdown/PDF 等产物
     monitor.report_session_dir(session_dir_str)
@@ -128,12 +139,37 @@ async def run_deep_agent(
     4. 若存在上传文件，请先分析内容
     """
 
+    memory_instruction = ""
+    if user_id:
+        try:
+            memory_instruction = "\n\n" + format_memories_for_prompt(
+                search_memories(user_id=user_id, query=task_query)
+            )
+        except Exception as exc:
+            write_audit_event(
+                "memory_retrieval_error",
+                {"error": repr(exc)},
+                thread_id=event_thread_id,
+            )
+
     final_result = None
     try:
         main_agent = get_main_agent()
         # astream 会持续产出模型节点、工具节点和子智能体节点的状态片段
         async for chunk in main_agent.astream(
-            {"messages": [{"role": "user", "content": task_query + path_instruction}]},
+            {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": (
+                            task_query
+                            + path_instruction
+                            + memory_instruction
+                            + ("\n\n" + conversation_memory if conversation_memory else "")
+                        ),
+                    }
+                ]
+            },
             config=config,
         ):
             # chunk 形如 {"model": {"messages": [...]}}，这里主要关心模型最新消息
@@ -174,7 +210,7 @@ async def run_deep_agent(
         write_audit_event("task_error", {"error": repr(e)}, thread_id=event_thread_id)
     finally:
         # 任务结束后恢复 ContextVar，避免后续请求复用到本次会话目录或 thread_id
-        reset_session_context(session_dir_token, session_id_token)
+        reset_session_context(session_dir_token, session_id_token, user_id_token)
 
     return final_result
 

@@ -138,3 +138,24 @@ export interface ChatConversationRecord {
 export interface ChatConversationDetail extends ChatConversationRecord {
   messages: ChatMessageRecord[];
 }
+
+export interface UserMemory {
+  id: string;
+  user_id: string;
+  thread_id?: string | null;
+  source_message_id?: string | null;
+  memory_type: "fact" | "preference" | "project" | "instruction" | "summary" | string;
+  content: string;
+  summary: string;
+  confidence: number;
+  access_count: number;
+  metadata?: Record<string, unknown> | null;
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+  last_used_at?: string | null;
+}
+
+export interface UserMemorySearchHit extends UserMemory {
+  score: number;
+}

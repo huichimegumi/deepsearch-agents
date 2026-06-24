@@ -18,6 +18,10 @@ _thread_id_ctx: ContextVar[Optional[str]] = ContextVar(
     "thread_id",
     default=None,
 )
+_user_id_ctx: ContextVar[Optional[str]] = ContextVar(
+    "user_id",
+    default=None,
+)
 
 
 def set_session_context(path: str) -> Token[Optional[str]]:
@@ -58,9 +62,18 @@ def get_thread_context() -> Optional[str]:
     return _thread_id_ctx.get()
 
 
+def set_user_context(user_id: str) -> Token[Optional[str]]:
+    return _user_id_ctx.set(user_id)
+
+
+def get_user_context() -> Optional[str]:
+    return _user_id_ctx.get()
+
+
 def reset_session_context(
     session_token: Token[Optional[str]],
     thread_token: Optional[Token[Optional[str]]] = None,
+    user_token: Optional[Token[Optional[str]]] = None,
 ) -> None:
     """
     恢复请求上下文，避免本次任务信息残留到后续请求
@@ -71,3 +84,5 @@ def reset_session_context(
     _session_dir_ctx.reset(session_token)
     if thread_token is not None:
         _thread_id_ctx.reset(thread_token)
+    if user_token is not None:
+        _user_id_ctx.reset(user_token)
