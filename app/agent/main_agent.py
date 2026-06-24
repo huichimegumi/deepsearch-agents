@@ -12,7 +12,6 @@ from functools import lru_cache
 from pathlib import Path
 
 from deepagents import create_deep_agent
-from langgraph.checkpoint.memory import InMemorySaver
 
 from app.agent.llm import get_model
 from app.agent.prompts import main_agent_content
@@ -27,6 +26,7 @@ from app.api.context import (
     set_user_context,
 )
 from app.api.monitor import monitor
+from app.memory.checkpoint import get_short_term_checkpointer
 from app.memory.service import format_memories_for_prompt, search_memories
 
 # 文件类工具由主智能体直接掌握，负责读取上传附件和生成最终交付文档
@@ -49,7 +49,7 @@ def get_main_agent():
             remember_user_memory,
             search_user_memory,
         ],
-        checkpointer=InMemorySaver(),
+        checkpointer=get_short_term_checkpointer(),
         subagents=[database_query_agent, network_search_agent, knowledge_base_agent],
     )
 

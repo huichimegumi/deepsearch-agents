@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from app.config import get_settings
+from app.memory.checkpoint import get_short_term_memory_status
 from app.rag.config import get_rag_settings
 from app.rag.database import get_engine
 
@@ -23,6 +24,10 @@ def _check_llm_config() -> None:
 def _check_postgres() -> None:
     with get_engine().connect() as connection:
         connection.execute(text("SELECT 1"))
+
+
+def _check_short_term_memory() -> None:
+    get_short_term_memory_status()
 
 
 def _check_tcp_url(value: str, default_port: int) -> None:
@@ -40,6 +45,7 @@ def _readiness_checks() -> dict[str, Callable[[], None]]:
     return {
         "llm_config": _check_llm_config,
         "postgres": _check_postgres,
+        "short_term_memory": _check_short_term_memory,
         "redis": lambda: _check_tcp_url(rag.redis_url, 6379),
         "qdrant": lambda: _check_tcp_url(rag.qdrant_url, 6333),
         "minio": lambda: _check_tcp_url(rag.minio_endpoint, 9000),

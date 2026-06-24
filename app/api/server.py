@@ -39,6 +39,7 @@ from app.api.monitor import manager
 from app.auth.dependencies import get_current_user, get_current_user_from_token
 from app.auth.router import router as auth_router
 from app.config import get_settings
+from app.memory.checkpoint import aclose_short_term_checkpointer, setup_short_term_checkpointer
 from app.memory.conversation import (
     format_conversation_context_for_prompt,
     get_conversation_context,
@@ -61,8 +62,12 @@ async def lifespan(_app: FastAPI):
     loop = asyncio.get_running_loop()
     manager.set_loop(loop)
     init_schema()
+    await setup_short_term_checkpointer()
     print(f"[Server] WebSocket Manager bound to loop: {id(loop)}")
-    yield
+    try:
+        yield
+    finally:
+        await aclose_short_term_checkpointer()
 
 
 # 当前文件位于 app/api/server.py，运行时目录统一收敛到 app 目录

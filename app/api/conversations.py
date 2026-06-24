@@ -7,6 +7,7 @@ from sqlalchemy import select
 
 from app.api.conversation_store import get_or_create_conversation
 from app.auth.dependencies import get_current_user
+from app.memory.checkpoint import clear_short_term_memory_for_thread
 from app.rag.database import session_scope
 from app.rag.models import ChatConversation, ChatMessage, User
 from app.rag.schemas import (
@@ -133,3 +134,7 @@ def delete_conversation(thread_id: str, current_user: User = Depends(get_current
             raise HTTPException(status_code=404, detail="会话不存在")
         item.is_archived = True
         session.flush()
+    try:
+        clear_short_term_memory_for_thread(f"{current_user.id}__{thread_id}")
+    except Exception:
+        pass
