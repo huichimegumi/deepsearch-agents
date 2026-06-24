@@ -58,6 +58,38 @@ def get_main_agent():
 project_root_path = Path(__file__).parents[1].resolve()
 
 
+def _requires_knowledge_base_first(task_query: str) -> bool:
+    """Return True when the user is asking about content inside a local document."""
+    document_markers = (
+        "白皮书",
+        "研报",
+        "报告",
+        "pdf",
+        "PDF",
+        "文档",
+        "文件",
+        "资料",
+        "手册",
+    )
+    content_markers = (
+        "里提到",
+        "中提到",
+        "提到的",
+        "里面",
+        "其中",
+        "原文",
+        "摘取",
+        "提取",
+        "市场份额",
+        "营收",
+        "收入",
+        "市场规模",
+    )
+    return any(marker in task_query for marker in document_markers) and any(
+        marker in task_query for marker in content_markers
+    )
+
+
 async def run_deep_agent(
     task_query,
     session_id,
@@ -139,6 +171,15 @@ async def run_deep_agent(
     4. 若存在上传文件，请先分析内容
     """
 
+    source_routing_instruction = ""
+    if _requires_knowledge_base_first(task_query):
+        source_routing_instruction = """
+
+    【信息源路由指令】
+    用户正在询问具体白皮书、研报、报告、PDF 或文档中的内容。第一步必须调用“本地知识库助手”检索本地已索引文档；
+    只有当本地知识库助手明确返回没有可用知识库、没有命中或证据不足时，才可以调用“网络搜索助手”补充公开信息。
+    """
+
     memory_instruction = ""
     if user_id:
         try:
@@ -164,6 +205,7 @@ async def run_deep_agent(
                         "content": (
                             task_query
                             + path_instruction
+                            + source_routing_instruction
                             + memory_instruction
                             + ("\n\n" + conversation_memory if conversation_memory else "")
                         ),

@@ -69,7 +69,7 @@ def _answer(question: str, hits: list[RetrievedChunk]) -> str:
 
 @tool
 def get_assistant_list() -> str:
-    """查询本地可用知识库助手及其中已完成索引的文档数量。"""
+    """查询本地可用知识库助手及其中已完成索引的文档数量；回答指定白皮书、研报、PDF、报告内容前应先调用。"""
     monitor.report_tool(tool_name="本地知识库助手列表查询工具：get_assistant_list")
     try:
         rows = _ready_knowledge_bases()
@@ -90,6 +90,7 @@ def get_assistant_list() -> str:
 def ask_knowledge_base(chat_name: str, question: str) -> str:
     """
     向指定本地知识库助手提问，并返回经过混合检索和 rerank 的带页码答案。
+    适用于提取白皮书、研报、PDF、报告等本地知识库文档中提到的事实、数据、市场份额、营收、收入、市场规模等内容。
 
     :param chat_name: 来自 get_assistant_list 的助手名称，也可以使用“全部知识库”
     :param question: 需要根据内部文档回答的问题
