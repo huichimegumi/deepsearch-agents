@@ -61,9 +61,9 @@ def _answer(question: str, hits: list[RetrievedChunk]) -> str:
 检索片段：
 {context}
 """
-    from app.agent.llm import model
+    from app.agent.llm import get_model
 
-    response = model.invoke([{"role": "user", "content": prompt}])
+    response = get_model().invoke([{"role": "user", "content": prompt}])
     return getattr(response, "content", str(response))
 
 

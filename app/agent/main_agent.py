@@ -90,6 +90,25 @@ def _requires_knowledge_base_first(task_query: str) -> bool:
     )
 
 
+def _requires_local_knowledge_base_only(task_query: str) -> bool:
+    """Return True when the user explicitly restricts the task to local knowledge."""
+    local_markers = ("本地知识库", "知识库助手", "RAG", "rag")
+    exclusivity_markers = (
+        "只使用",
+        "仅使用",
+        "只能使用",
+        "不要使用网络",
+        "不要网络搜索",
+        "不要联网",
+        "不使用网络",
+        "不联网",
+        "禁止网络搜索",
+    )
+    return any(marker in task_query for marker in local_markers) and any(
+        marker in task_query for marker in exclusivity_markers
+    )
+
+
 async def run_deep_agent(
     task_query,
     session_id,
@@ -178,6 +197,13 @@ async def run_deep_agent(
     【信息源路由指令】
     用户正在询问具体白皮书、研报、报告、PDF 或文档中的内容。第一步必须调用“本地知识库助手”检索本地已索引文档；
     只有当本地知识库助手明确返回没有可用知识库、没有命中或证据不足时，才可以调用“网络搜索助手”补充公开信息。
+    """
+    if _requires_local_knowledge_base_only(task_query):
+        source_routing_instruction += """
+
+    【本地知识库限定】
+    用户明确要求只使用本地知识库助手。本轮任务禁止调用“网络搜索助手”和任何互联网搜索工具；
+    如果本地知识库助手没有找到答案或执行失败，必须直接说明本地知识库结果不足或失败原因，不得改用网络搜索补充。
     """
 
     memory_instruction = ""
