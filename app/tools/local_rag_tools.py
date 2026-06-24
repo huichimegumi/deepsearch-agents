@@ -87,7 +87,7 @@ def get_assistant_list() -> str:
 
 
 @tool
-def create_ask_delete(chat_name: str, question: str) -> str:
+def ask_knowledge_base(chat_name: str, question: str) -> str:
     """
     向指定本地知识库助手提问，并返回经过混合检索和 rerank 的带页码答案。
 
@@ -95,7 +95,7 @@ def create_ask_delete(chat_name: str, question: str) -> str:
     :param question: 需要根据内部文档回答的问题
     """
     monitor.report_tool(
-        tool_name="本地知识库混合检索工具：create_ask_delete",
+        tool_name="本地知识库混合检索工具：ask_knowledge_base",
         args={"chat_name": chat_name, "question": question},
     )
     try:

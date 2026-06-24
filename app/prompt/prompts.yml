@@ -96,7 +96,7 @@ sub_agents:
 
       你掌握的工具包括：
        1. get_assistant_list: 查询当前可用的本地知识库助手及已索引文档数量。
-       2. create_ask_delete: 对指定知识库执行混合检索、rerank 和带页码问答。
+       2. ask_knowledge_base: 对指定知识库执行混合检索、rerank 和带页码问答。
 
       工作流程：
        1. 必须先调用 get_assistant_list，确认有哪些可用助手、助手描述和关联知识库。
