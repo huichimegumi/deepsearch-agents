@@ -17,7 +17,7 @@ function extractString(data: Record<string, unknown>, key: string): string | nul
   return typeof value === "string" ? value : null;
 }
 
-export function useDeepAgentSession() {
+export function useDeepAgentSession(accessToken: string) {
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | undefined>(undefined);
   const heartbeatTimerRef = useRef<number | undefined>(undefined);
@@ -74,6 +74,13 @@ export function useDeepAgentSession() {
   }, [sessionPath]);
 
   useEffect(() => {
+    if (!accessToken) {
+      clearSocketTimers();
+      socketRef.current?.close();
+      setConnectionState("closed");
+      return;
+    }
+
     let disposed = false;
 
     function connect() {
@@ -82,7 +89,9 @@ export function useDeepAgentSession() {
       socketRef.current?.close();
       setConnectionState(hadSocket ? "reconnecting" : "connecting");
 
-      const socket = new WebSocket(`${WS_BASE_URL}/ws/${encodeURIComponent(threadId)}`);
+      const socket = new WebSocket(
+        `${WS_BASE_URL}/ws/${encodeURIComponent(threadId)}?token=${encodeURIComponent(accessToken)}`
+      );
       socketRef.current = socket;
 
       socket.onopen = () => {
@@ -172,7 +181,7 @@ export function useDeepAgentSession() {
       clearSocketTimers();
       socketRef.current?.close();
     };
-  }, [clearSocketTimers, threadId]);
+  }, [accessToken, clearSocketTimers, threadId]);
 
   useEffect(() => {
     if (!sessionPath) {

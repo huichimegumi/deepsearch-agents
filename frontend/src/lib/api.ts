@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "./config";
+import { getAuthToken } from "./auth";
 import type {
   CancelTaskResponse,
   FileListResponse,
@@ -15,7 +16,16 @@ function apiUrl(path: string): string {
 }
 
 async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
-  const response = await fetch(input, init);
+  const headers = new Headers(init?.headers);
+  const token = getAuthToken();
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const response = await fetch(input, {
+    ...init,
+    headers
+  });
   const contentType = response.headers.get("content-type") || "";
   const payload = contentType.includes("application/json")
     ? await response.json()
@@ -92,7 +102,7 @@ export function createKnowledgeBase(name: string, description: string): Promise<
 export async function deleteKnowledgeBase(knowledgeBaseId: string): Promise<void> {
   const response = await fetch(
     apiUrl(`/api/knowledge-bases/${encodeURIComponent(knowledgeBaseId)}`),
-    { method: "DELETE" }
+    { method: "DELETE", headers: { Authorization: `Bearer ${getAuthToken()}` } }
   );
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
@@ -127,7 +137,7 @@ export function reindexKnowledgeDocument(documentId: string): Promise<IndexJob> 
 export async function deleteKnowledgeDocument(documentId: string): Promise<void> {
   const response = await fetch(
     apiUrl(`/api/knowledge-bases/documents/${encodeURIComponent(documentId)}`),
-    { method: "DELETE" }
+    { method: "DELETE", headers: { Authorization: `Bearer ${getAuthToken()}` } }
   );
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);

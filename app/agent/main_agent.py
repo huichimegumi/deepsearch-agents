@@ -49,7 +49,12 @@ def get_main_agent():
 project_root_path = Path(__file__).parents[1].resolve()
 
 
-async def run_deep_agent(task_query, session_id):
+async def run_deep_agent(
+    task_query,
+    session_id,
+    user_id: str | None = None,
+    monitor_thread_id: str | None = None,
+):
     """
     异步流式执行主智能体
 
@@ -58,17 +63,21 @@ async def run_deep_agent(task_query, session_id):
     :param task_query: 前端提交的原始任务问题
     :param session_id: 当前任务 ID，同时用于 thread_id、输出目录和 WebSocket 定向推送
     """
+    event_thread_id = monitor_thread_id or session_id
     print(f"[MainAgent] 开始执行会话，session_id={session_id}")
     write_audit_event(
         "task_started",
         {
             "query": task_query,
         },
-        thread_id=session_id,
+        thread_id=event_thread_id,
     )
 
     # 每个会话独立使用 output/session_{session_id}，避免不同用户的产物互相覆盖
-    session_dir = project_root_path / "output" / f"session_{session_id}"
+    session_parent = project_root_path / "output"
+    if user_id:
+        session_parent = session_parent / f"user_{user_id}"
+    session_dir = session_parent / f"session_{session_id}"
     session_dir.mkdir(parents=True, exist_ok=True)
 
     # 前端和工具使用绝对路径；提示词里只给模型相对路径，降低模型误用系统绝对路径的概率
@@ -77,7 +86,10 @@ async def run_deep_agent(task_query, session_id):
 
     # 上传文件先落在 updated/session_{session_id}，执行前复制到本次 output 工作目录
     # 这样读文件工具和生成文件工具都只需要围绕同一个 session_dir 工作
-    updated_dir_path = project_root_path / "updated" / f"session_{session_id}"
+    updated_parent = project_root_path / "updated"
+    if user_id:
+        updated_parent = updated_parent / f"user_{user_id}"
+    updated_dir_path = updated_parent / f"session_{session_id}"
     updated_info_prompt = ""
     if updated_dir_path.exists():
         files = [f.name for f in updated_dir_path.iterdir() if f.is_file()]
@@ -95,13 +107,13 @@ async def run_deep_agent(task_query, session_id):
 
     # ContextVar 让深层工具无需显式传参，也能拿到当前会话目录和 WebSocket thread_id
     session_dir_token = set_session_context(session_dir_str)
-    session_id_token = set_thread_context(session_id)
+    session_id_token = set_thread_context(event_thread_id)
 
     # 前端拿到工作目录后，可以展示本次任务生成的 Markdown/PDF 等产物
     monitor.report_session_dir(session_dir_str)
 
     # checkpointer 依赖 thread_id 区分会话记忆；同一 session_id 会复用同一条执行上下文
-    config = {"configurable": {"thread_id": session_id}}
+    config = {"configurable": {"thread_id": event_thread_id}}
 
     # 工作环境指令是运行时动态补充的，约束模型只在当前会话目录读写文件
     path_instruction = f"""
@@ -147,17 +159,17 @@ async def run_deep_agent(task_query, session_id):
                             write_audit_event(
                                 "task_result",
                                 {"result": last_msg.content},
-                                thread_id=session_id,
+                                thread_id=event_thread_id,
                             )
 
     except asyncio.CancelledError:
         monitor.report_task_cancelled()
-        write_audit_event("task_cancelled", {}, thread_id=session_id)
+        write_audit_event("task_cancelled", {}, thread_id=event_thread_id)
         raise
     except Exception as e:
         # 异步执行异常也走 monitor，保证前端能收到明确错误事件
         monitor._emit("error", f"执行主智能发生异常信息：{str(e)}")
-        write_audit_event("task_error", {"error": repr(e)}, thread_id=session_id)
+        write_audit_event("task_error", {"error": repr(e)}, thread_id=event_thread_id)
     finally:
         # 任务结束后恢复 ContextVar，避免后续请求复用到本次会话目录或 thread_id
         reset_session_context(session_dir_token, session_id_token)

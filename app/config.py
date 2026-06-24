@@ -40,6 +40,10 @@ class AppSettings:
     openai_api_key: str
     openai_base_url: str | None
     cors_origins: tuple[str, ...]
+    jwt_secret_key: str = "dev-only-change-me"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60 * 24
+    allow_register: bool = True
 
     def validate_llm(self) -> None:
         missing = []
@@ -66,4 +70,9 @@ def get_settings() -> AppSettings:
                 "http://localhost:5173,http://127.0.0.1:5173",
             )
         ),
+        jwt_secret_key=os.getenv("JWT_SECRET_KEY", "dev-only-change-me"),
+        jwt_algorithm=os.getenv("JWT_ALGORITHM", "HS256"),
+        access_token_expire_minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")),
+        allow_register=os.getenv("ALLOW_REGISTER", "true").strip().lower()
+        not in {"0", "false", "no"},
     )

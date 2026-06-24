@@ -15,13 +15,16 @@ from typing import List
 
 import uvicorn
 from fastapi import (
+    Depends,
     FastAPI,
     File,
     Form,
     HTTPException,
+    Query,
     UploadFile,
     WebSocket,
     WebSocketDisconnect,
+    status,
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -31,8 +34,11 @@ from app.agent.main_agent import run_deep_agent
 from app.api.health import router as health_router
 from app.api.knowledge import router as knowledge_router
 from app.api.monitor import manager
+from app.auth.dependencies import get_current_user, get_current_user_from_token
+from app.auth.router import router as auth_router
 from app.config import get_settings
 from app.rag.database import init_schema
+from app.rag.models import User
 
 
 @asynccontextmanager
@@ -55,6 +61,7 @@ current_dir = Path(__file__).resolve().parent
 project_root = current_dir.parent
 
 app = FastAPI(title="DeepAgents API", lifespan=lifespan)
+app.include_router(auth_router)
 app.include_router(health_router)
 app.include_router(knowledge_router)
 
@@ -86,6 +93,18 @@ class TaskRequest(BaseModel):
     thread_id: str = None
 
 
+def _thread_key(user_id: str, thread_id: str) -> str:
+    return f"{user_id}__{thread_id}"
+
+
+def _user_output_dir(user_id: str) -> Path:
+    return output_dir / f"user_{user_id}"
+
+
+def _user_updated_dir(user_id: str) -> Path:
+    return updated_dir / f"user_{user_id}"
+
+
 def _forget_task(thread_id: str, task: asyncio.Task) -> None:
     """
     清理已结束任务的登记关系。
@@ -98,7 +117,7 @@ def _forget_task(thread_id: str, task: asyncio.Task) -> None:
 
 
 @app.post("/api/task")
-async def run_task(request: TaskRequest):
+async def run_task(request: TaskRequest, current_user: User = Depends(get_current_user)):
     """
     启动一次 DeepAgents 后台任务。
 
@@ -106,31 +125,40 @@ async def run_task(request: TaskRequest):
     答案都会由 monitor 通过 `/ws/{thread_id}` 推送给同一会话的前端。
     """
     thread_id = request.thread_id or str(uuid.uuid4())
+    task_key = _thread_key(current_user.id, thread_id)
 
     # 同一个 thread_id 只保留一个活跃任务，新任务会先取消旧任务，避免并发写同一会话目录
-    old_task = active_tasks.get(thread_id)
+    old_task = active_tasks.get(task_key)
     if old_task and not old_task.done():
         old_task.cancel()
 
     # create_task 把长耗时 Agent 执行交给事件循环，接口本身不用等待最终结果
-    task = asyncio.create_task(run_deep_agent(request.query, thread_id))
-    active_tasks[thread_id] = task
-    task.add_done_callback(lambda finished_task: _forget_task(thread_id, finished_task))
+    task = asyncio.create_task(
+        run_deep_agent(
+            request.query,
+            thread_id,
+            user_id=current_user.id,
+            monitor_thread_id=task_key,
+        )
+    )
+    active_tasks[task_key] = task
+    task.add_done_callback(lambda finished_task: _forget_task(task_key, finished_task))
 
     return {"status": "started", "thread_id": thread_id}
 
 
 @app.post("/api/task/{thread_id}/cancel")
-async def cancel_task(thread_id: str):
+async def cancel_task(thread_id: str, current_user: User = Depends(get_current_user)):
     """
     取消指定 thread_id 对应的后台 Agent 任务。
 
     注意：取消会向 asyncio.Task 注入 CancelledError。若底层第三方工具正在执行不可中断
     的同步阻塞调用，任务可能需要等该调用返回后才会真正结束。
     """
-    task = active_tasks.get(thread_id)
+    task_key = _thread_key(current_user.id, thread_id)
+    task = active_tasks.get(task_key)
     if not task or task.done():
-        active_tasks.pop(thread_id, None)
+        active_tasks.pop(task_key, None)
         raise HTTPException(status_code=404, detail="任务不存在或已结束")
 
     # 先发出取消信号，再短暂等待协程响应；若底层阻塞中，则返回 cancelling 给前端继续展示状态
@@ -138,20 +166,24 @@ async def cancel_task(thread_id: str):
     try:
         await asyncio.wait_for(task, timeout=1.0)
     except asyncio.CancelledError:
-        _forget_task(thread_id, task)
+        _forget_task(task_key, task)
         return {"status": "cancelled", "thread_id": thread_id}
     except asyncio.TimeoutError:
         return {"status": "cancelling", "thread_id": thread_id}
     except Exception as e:
-        _forget_task(thread_id, task)
+        _forget_task(task_key, task)
         return {"status": "cancelled", "thread_id": thread_id, "message": str(e)}
 
-    _forget_task(thread_id, task)
+    _forget_task(task_key, task)
     return {"status": "cancelled", "thread_id": thread_id}
 
 
 @app.post("/api/upload")
-async def upload_files(files: List[UploadFile] = File(...), thread_id: str = Form(...)):
+async def upload_files(
+    files: List[UploadFile] = File(...),
+    thread_id: str = Form(...),
+    current_user: User = Depends(get_current_user),
+):
     """
     文件上传接口 (File Upload)。
 
@@ -165,7 +197,7 @@ async def upload_files(files: List[UploadFile] = File(...), thread_id: str = For
         thread_id (str): 关联的任务会话 ID。
     """
     # 上传文件先按会话隔离保存，避免不同任务读取到彼此的附件
-    target_dir = updated_dir / f"session_{thread_id}"
+    target_dir = _user_updated_dir(current_user.id) / f"session_{thread_id}"
     target_dir.mkdir(parents=True, exist_ok=True)
 
     saved_files = []
@@ -180,7 +212,7 @@ async def upload_files(files: List[UploadFile] = File(...), thread_id: str = For
 
 
 @app.get("/api/download")
-async def download_file(path: str):
+async def download_file(path: str, current_user: User = Depends(get_current_user)):
     """
     文件下载接口 (File Download)。
 
@@ -194,10 +226,10 @@ async def download_file(path: str):
     try:
         # resolve 后再做 is_relative_to，防止 `../` 之类的路径穿越到 output 之外
         abs_path = Path(path).resolve()
-        output_abs = output_dir.resolve()
+        output_abs = _user_output_dir(current_user.id).resolve()
 
         if not abs_path.is_relative_to(output_abs):
-            return {"error": "拒绝访问: 只能下载输出目录下的文件"}
+            return {"error": "拒绝访问: 只能下载当前用户输出目录下的文件"}
     except Exception:
         return {"error": "无效的路径参数"}
 
@@ -209,7 +241,7 @@ async def download_file(path: str):
 
 
 @app.get("/api/files")
-async def list_files(path: str):
+async def list_files(path: str, current_user: User = Depends(get_current_user)):
     """
     文件列表查询接口 (File Explorer)。
 
@@ -226,11 +258,11 @@ async def list_files(path: str):
     try:
         # 和下载接口保持同一条安全边界：前端只能查看 output 目录内部内容
         abs_path = Path(path).resolve()
-        output_abs = output_dir.resolve()
+        output_abs = _user_output_dir(current_user.id).resolve()
 
         if not abs_path.is_relative_to(output_abs):
             print(f"[ERROR] 拒绝访问: {abs_path} 不在 {output_abs} 目录下")
-            return {"error": "拒绝访问: 只能访问输出目录下的文件"}
+            return {"error": "拒绝访问: 只能访问当前用户输出目录下的文件"}
 
     except Exception as e:
         print(f"[ERROR] 路径解析失败: {e}")
@@ -266,7 +298,11 @@ async def list_files(path: str):
 
 
 @app.websocket("/ws/{thread_id}")
-async def websocket_endpoint(websocket: WebSocket, thread_id: str):
+async def websocket_endpoint(
+    websocket: WebSocket,
+    thread_id: str,
+    token: str | None = Query(default=None),
+):
     """
     WebSocket 实时通讯核心接口 (Real-time Communication)。
 
@@ -274,10 +310,17 @@ async def websocket_endpoint(websocket: WebSocket, thread_id: str):
     发送事件时只需要按 thread_id 查找连接，就能把进度推给对应页面。循环中的
     receive_text 用于接收前端心跳，避免连接空闲断开。
     """
+    try:
+        current_user = get_current_user_from_token(token)
+    except HTTPException:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    connection_key = _thread_key(current_user.id, thread_id)
     print(f"会话向我们发起了请求，要求建立连接：{thread_id} 对应：{websocket}")
 
     # 连接建立后立即按 thread_id 注册，monitor 后续才能把事件定向推给当前页面
-    await manager.connect(websocket, thread_id)
+    await manager.connect(websocket, connection_key)
 
     try:
         while True:
@@ -287,12 +330,12 @@ async def websocket_endpoint(websocket: WebSocket, thread_id: str):
 
     except WebSocketDisconnect:
         # 只移除当前 WebSocket 实例，避免旧连接断开时误删同 thread_id 的新连接
-        manager.disconnect(websocket, thread_id)
+        manager.disconnect(websocket, connection_key)
         print(f"[WebSocket] 客户端已断开: {thread_id}")
 
     except Exception as e:
         print(f"[WebSocket] 连接异常: {e}")
-        manager.disconnect(websocket, thread_id)
+        manager.disconnect(websocket, connection_key)
 
 
 if __name__ == "__main__":

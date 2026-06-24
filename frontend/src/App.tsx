@@ -7,15 +7,18 @@ import {
   CloudServerOutlined,
   DatabaseOutlined,
   FileSearchOutlined,
+  LogoutOutlined,
   ToolOutlined
 } from "@ant-design/icons";
 import { Alert, App as AntApp, Button } from "antd";
 import { useEffect, useRef, useState } from "react";
+import { AuthPanel } from "./components/AuthPanel";
 import { ChatComposer } from "./components/ChatComposer";
 import { KnowledgeBaseDrawer } from "./components/KnowledgeBaseDrawer";
 import { ConversationThread } from "./components/ConversationThread";
 import type { ChatTurn } from "./components/ConversationThread";
 import { API_BASE_URL, WS_BASE_URL } from "./lib/config";
+import { useAuth } from "./hooks/useAuth";
 import { useDeepAgentSession } from "./hooks/useDeepAgentSession";
 import type { ConnectionState, MonitorMessage, OutputFile, UploadedItem } from "./types";
 
@@ -82,7 +85,8 @@ export default function App() {
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   const streamRef = useRef<HTMLElement | null>(null);
   const shouldStickToBottomRef = useRef(true);
-  const session = useDeepAgentSession();
+  const auth = useAuth();
+  const session = useDeepAgentSession(auth.token);
 
   useEffect(() => {
     setTurns((previous) => {
@@ -186,6 +190,42 @@ export default function App() {
 
   const online = session.connectionState === "connected";
 
+  async function handleLogin(username: string, password: string) {
+    try {
+      await auth.signIn(username, password);
+      message.success("登录成功");
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "登录失败");
+    }
+  }
+
+  async function handleRegister(username: string, password: string, displayName: string) {
+    try {
+      await auth.signUp(username, password, displayName);
+      message.success("账号已创建");
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : "注册失败");
+    }
+  }
+
+  function handleLogout() {
+    auth.signOut();
+    setTurns([]);
+    setQuery("");
+    setStagedItems([]);
+    message.success("已退出登录");
+  }
+
+  if (!auth.isAuthenticated) {
+    return (
+      <AuthPanel
+        isLoading={auth.isChecking}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+      />
+    );
+  }
+
   return (
     <div className="chat-app-shell min-h-dvh">
       <aside className="chat-sidebar" aria-label="会话信息">
@@ -206,6 +246,16 @@ export default function App() {
         >
           知识库管理
         </Button>
+
+        <div className="sidebar-section">
+          <span className="sidebar-label">USER</span>
+          <strong className="thread-id" title={auth.user?.username}>
+            {auth.user?.display_name || auth.user?.username}
+          </strong>
+          <Button block icon={<LogoutOutlined />} onClick={handleLogout}>
+            退出登录
+          </Button>
+        </div>
 
         <div className="sidebar-section">
           <span className="sidebar-label">THREAD</span>

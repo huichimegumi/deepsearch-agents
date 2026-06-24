@@ -101,3 +101,17 @@ export interface KnowledgeUploadResponse {
   job?: IndexJob | null;
   deduplicated: boolean;
 }
+
+export interface AuthUser {
+  id: string;
+  username: string;
+  display_name: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: "bearer" | string;
+  user: AuthUser;
+}

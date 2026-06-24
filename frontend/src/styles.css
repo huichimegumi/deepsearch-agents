@@ -1776,6 +1776,66 @@ textarea {
   color: var(--amber) !important;
 }
 
+.auth-shell {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(135deg, rgba(93, 255, 159, 0.12), transparent 36%),
+    linear-gradient(315deg, rgba(255, 200, 87, 0.12), transparent 32%),
+    var(--bg);
+}
+
+.auth-panel {
+  width: min(420px, 100%);
+  border: 1px solid rgba(220, 238, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(13, 18, 32, 0.92);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.34);
+  padding: 28px;
+}
+
+.auth-brand {
+  margin-bottom: 24px;
+}
+
+.auth-brand h1 {
+  margin: 8px 0;
+  color: var(--text);
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.auth-brand p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.auth-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.auth-panel .ant-form-item-label > label,
+.auth-panel .ant-form-item-explain-error {
+  color: var(--muted) !important;
+}
+
+.auth-panel .ant-input-affix-wrapper,
+.auth-panel .ant-input {
+  border-color: rgba(220, 238, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+
+.auth-panel .ant-input::placeholder {
+  color: rgba(220, 238, 255, 0.42);
+}
+
 @media (max-width: 980px) {
   .chat-app-shell {
     grid-template-columns: 1fr;
