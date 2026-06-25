@@ -31,6 +31,7 @@ class RagSettings:
     rerank_top_k: int
     memory_top_k: int
     memory_min_confidence: float
+    fastembed_cache_path: str | None
     short_term_memory_backend: str
     short_term_memory_database_url: str | None
     short_term_memory_pool_size: int
@@ -69,6 +70,7 @@ def get_rag_settings() -> RagSettings:
         rerank_top_k=int(os.getenv("RAG_RERANK_TOP_K", "8")),
         memory_top_k=int(os.getenv("MEMORY_TOP_K", "6")),
         memory_min_confidence=float(os.getenv("MEMORY_MIN_CONFIDENCE", "0.55")),
+        fastembed_cache_path=os.getenv("FASTEMBED_CACHE_PATH") or ".fastembed_cache",
         short_term_memory_backend=os.getenv("SHORT_TERM_MEMORY_BACKEND", "postgres"),
         short_term_memory_database_url=os.getenv("SHORT_TERM_MEMORY_DATABASE_URL") or None,
         short_term_memory_pool_size=int(os.getenv("SHORT_TERM_MEMORY_POOL_SIZE", "8")),

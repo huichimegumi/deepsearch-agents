@@ -28,6 +28,15 @@ from evals.runners.common import DATASET_DIR, RESULTS_DIR, load_jsonl, now_utc, 
 
 DEFAULT_DATASET = DATASET_DIR / "end_to_end_report_zh.jsonl"
 
+ROUTE_TOOL_HINTS = {
+    "network_search": "网络搜索助手 / research_search",
+    "database_query": "数据库查询助手 / list_sql_tables / get_table_data / execute_sql_query",
+    "knowledge_base": "本地知识库助手 / get_assistant_list / ask_knowledge_base",
+    "file_read": "附件读取工具 / read_file_content",
+    "memory": "记忆工具",
+    "report_generation": "报告生成工具 / generate_markdown / convert_md_to_pdf",
+}
+
 
 def _llm_available() -> tuple[bool, str]:
     try:
@@ -77,9 +86,10 @@ def _score_report_row(row: dict[str, Any]) -> dict[str, Any]:
 
 async def _execute_report_sample(sample: dict[str, Any], timeout_seconds: int) -> dict[str, Any]:
     session_id = f"eval_{sample['id']}"
+    constrained_task = _task_with_eval_constraints(sample)
     result = await asyncio.wait_for(
         run_deep_agent(
-            sample["task"],
+            constrained_task,
             session_id=session_id,
             user_id="evals",
             monitor_thread_id=session_id,
@@ -100,6 +110,43 @@ async def _execute_report_sample(sample: dict[str, Any], timeout_seconds: int) -
         "artifact_count": len(artifacts),
         "artifacts": artifacts,
     }
+
+
+def _task_with_eval_constraints(sample: dict[str, Any]) -> str:
+    expected = sample.get("expected_route", [])
+    disallowed = sample.get("disallowed_routes", [])
+    required_sections = sample.get("required_sections", [])
+    artifact = sample.get("artifact_expectation", "")
+
+    expected_text = "、".join(ROUTE_TOOL_HINTS.get(route, route) for route in expected)
+    disallowed_text = "、".join(ROUTE_TOOL_HINTS.get(route, route) for route in disallowed)
+    section_text = "、".join(required_sections)
+
+    lines = [
+        sample["task"],
+        "",
+        "【评测执行约束】",
+        f"本样本期望使用的路线：{expected_text or '无'}。",
+    ]
+    if disallowed_text:
+        lines.append(f"本样本严禁使用以下路线或工具：{disallowed_text}。")
+    if "knowledge_base" in disallowed:
+        lines.append(
+            "不要调用本地知识库助手，不要调用 get_assistant_list，也不要调用 ask_knowledge_base；"
+            "如果公开资料或数据库已足够，请直接基于允许的信息源完成。"
+        )
+    if "network_search" in disallowed:
+        lines.append("不要调用网络搜索助手或 research_search。")
+    if "database_query" in disallowed:
+        lines.append("不要调用数据库查询助手或任何 SQL 工具。")
+    if section_text:
+        lines.append(f"最终报告必须包含这些章节：{section_text}。")
+    if artifact == "pdf_via_markdown":
+        lines.append("最终产物要求：先生成 Markdown，再转换为 PDF。")
+    elif artifact == "markdown":
+        lines.append("最终产物要求：只生成 Markdown，不要转换 PDF。")
+    lines.append("如果因为约束导致无法完成，请明确说明缺失的信息源，不要改用被禁止的工具。")
+    return "\n".join(lines)
 
 
 def run(
