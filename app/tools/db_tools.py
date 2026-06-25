@@ -13,6 +13,7 @@ from langchain_core.tools import tool
 from mysql.connector import Error, connect
 
 from app.api.monitor import monitor
+from app.config import get_settings
 
 load_dotenv()
 
@@ -25,6 +26,7 @@ def get_db_config():
     所有数据库工具都通过此函数拿到同一份连接参数，避免每个工具重复读取环境变量
     :return: mysql.connector.connect 可直接使用的连接参数
     """
+    timeout_seconds = get_settings().db_timeout_seconds
     config = {
         "host": os.getenv("MYSQL_HOST", "localhost"),
         "port": int(os.getenv("MYSQL_PORT", "3306")),
@@ -35,6 +37,9 @@ def get_db_config():
         "collation": os.getenv("MYSQL_COLLATION", "utf8mb4_unicode_ci"),
         "autocommit": True,
         "sql_mode": os.getenv("MYSQL_SQL_MODE", "TRADITIONAL"),
+        "connection_timeout": timeout_seconds,
+        "read_timeout": timeout_seconds,
+        "write_timeout": timeout_seconds,
     }
 
     # 去掉未配置的可选项，避免把 None 传给 mysql.connector 造成连接参数异常
@@ -47,6 +52,15 @@ def get_db_config():
         raise ValueError(f"缺失数据库核心配置：{', '.join(missing_keys)}")
 
     return config
+
+
+def _apply_query_timeout(cursor) -> None:
+    timeout_ms = max(1, int(get_settings().db_timeout_seconds * 1000))
+    try:
+        cursor.execute(f"SET SESSION MAX_EXECUTION_TIME={timeout_ms}")
+    except Error:
+        # Some MySQL-compatible engines do not support this session variable.
+        pass
 
 
 @tool
@@ -77,6 +91,7 @@ def list_sql_tables() -> str:
         # 使用 with 管理连接和游标，查询结束后自动释放数据库资源
         with connect(**config) as conn:
             with conn.cursor() as cursor:
+                _apply_query_timeout(cursor)
                 sql = "SHOW TABLES"
                 cursor.execute(sql)
 
@@ -127,6 +142,7 @@ def get_table_data(table_name) -> str:
         with connect(**config) as conn:
             with conn.cursor() as cursor:
                 # 教程代码直接拼接表名，重点演示 Agent 查询链路；生产环境应改为白名单校验
+                _apply_query_timeout(cursor)
                 sql = f"SELECT * FROM {table_name} LIMIT 100"
                 cursor.execute(sql)
 
@@ -189,6 +205,7 @@ def execute_sql_query(query) -> str:
         with connect(**config) as conn:
             with conn.cursor() as cursor:
                 # 当前章节依赖提示词约束模型生成只读查询；生产环境建议在工具层限制 SELECT/SHOW
+                _apply_query_timeout(cursor)
                 cursor.execute(query)
 
                 # 非查询类 SQL 没有结果集描述，这里统一返回提示，避免工具调用直接抛错给模型

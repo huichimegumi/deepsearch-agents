@@ -1,6 +1,7 @@
 """统一搜索服务的单元测试。"""
 
 import os
+import time
 import unittest
 from unittest.mock import patch
 
@@ -50,6 +51,17 @@ class FakeProvider(SearchProvider):
 
 def make_result(url: str, *, score: float = 0.8, content: str = "摘要") -> SearchResult:
     return SearchResult(title=url, url=url, content=content, score=score)
+
+
+class SlowProvider(FakeProvider):
+    def __init__(self, name: str, delay: float) -> None:
+        super().__init__(name)
+        self.delay = delay
+
+    def search(self, query, *, topic, max_results):
+        self.calls.append(query)
+        time.sleep(self.delay)
+        return [], None
 
 
 class SearchServiceTests(unittest.TestCase):
@@ -149,6 +161,19 @@ class SearchServiceTests(unittest.TestCase):
 
         self.assertEqual(len(response.results), 3)
         self.assertNotIn("https://example.com/c", [item.url for item in response.results])
+
+
+    @patch("app.search.service.monitor.report_search")
+    def test_provider_timeout_stops_waiting_for_slow_backend(self, _report_search):
+        slow = SlowProvider("slow", delay=0.2)
+        service = SearchService({"slow": slow}, provider_timeout=0.01)
+
+        started_at = time.monotonic()
+        response = service.search(SearchRequest(queries=["slow query"], backend="advanced"))
+
+        self.assertLess(time.monotonic() - started_at, 0.15)
+        self.assertEqual(response.results, [])
+        self.assertTrue(any("exceeded" in notice for notice in response.notices))
 
 
 if __name__ == "__main__":

@@ -3,7 +3,7 @@
 import ipaddress
 import os
 import socket
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from html.parser import HTMLParser
 from threading import Lock
 from time import monotonic
@@ -57,15 +57,22 @@ class SearchService:
         providers: dict[str, SearchProvider] | None = None,
         *,
         timeout: float | None = None,
+        provider_timeout: float | None = None,
         max_content_chars: int | None = None,
     ) -> None:
+        self.timeout = timeout or float(os.getenv("SEARCH_TIMEOUT", "15"))
+        self.provider_timeout = provider_timeout or float(
+            os.getenv(
+                "SEARCH_PROVIDER_TIMEOUT",
+                os.getenv("TOOL_TIMEOUT_SECONDS", str(self.timeout)),
+            )
+        )
         self.providers = providers or {
             "tavily": TavilyProvider(),
             "duckduckgo": DuckDuckGoProvider(),
             "perplexity": PerplexityProvider(),
             "searxng": SearxNGProvider(),
         }
-        self.timeout = timeout or float(os.getenv("SEARCH_TIMEOUT", "15"))
         self.max_content_chars = max_content_chars or int(
             os.getenv("SEARCH_MAX_CONTENT_CHARS", "8000")
         )
@@ -107,7 +114,8 @@ class SearchService:
         else:
             jobs = [(query, provider_name) for query in queries for provider_name in provider_names]
         workers = min(8, max(1, len(jobs)))
-        with ThreadPoolExecutor(max_workers=workers) as executor:
+        executor = ThreadPoolExecutor(max_workers=workers)
+        try:
             future_map = {}
             for query, provider_name in jobs:
                 if provider_name is None:
@@ -127,7 +135,7 @@ class SearchService:
                     )
                 future_map[future] = (query, provider_name)
 
-            for future in as_completed(future_map):
+            for future in self._completed_futures(future_map, notices):
                 query, provider_name = future_map[future]
                 try:
                     if provider_name is None:
@@ -142,6 +150,9 @@ class SearchService:
                         answers.append(answer)
                 except Exception as exc:
                     notices.append(f"{provider_name or 'auto'} 查询“{query}”失败: {exc}")
+
+        finally:
+            executor.shutdown(wait=False, cancel_futures=True)
 
         merged = self._merge_results(results, max_results)
         if request.fetch_full_page and merged:
@@ -165,6 +176,26 @@ class SearchService:
             answer="\n\n".join(answers) or None,
             notices=notices,
         )
+
+    def _completed_futures(self, future_map, notices: list[str]):
+        pending = set(future_map)
+        deadline = monotonic() + self.provider_timeout
+        while pending:
+            remaining = deadline - monotonic()
+            if remaining <= 0:
+                break
+            done, pending = wait(pending, timeout=remaining, return_when=FIRST_COMPLETED)
+            if not done:
+                break
+            yield from done
+
+        for future in pending:
+            query, provider_name = future_map[future]
+            future.cancel()
+            notices.append(
+                f"{provider_name or 'auto'} query '{query}' exceeded "
+                f"{self.provider_timeout} seconds and stopped waiting"
+            )
 
     def _resolve_providers(self, backend: str) -> list[str]:
         available = [name for name, provider in self.providers.items() if provider.is_available()]

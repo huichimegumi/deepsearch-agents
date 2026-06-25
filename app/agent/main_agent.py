@@ -26,6 +26,7 @@ from app.api.context import (
     set_user_context,
 )
 from app.api.monitor import monitor
+from app.config import get_settings
 from app.memory.checkpoint import get_short_term_checkpointer
 from app.memory.service import format_memories_for_prompt, search_memories
 
@@ -56,6 +57,17 @@ def get_main_agent():
 
 # 当前文件位于 app/agent/main_agent.py，parents[1] 即 app 目录
 project_root_path = Path(__file__).parents[1].resolve()
+
+
+async def _astream_with_runtime_limit(agent, payload, config, timeout_seconds: float):
+    if timeout_seconds <= 0:
+        async for chunk in agent.astream(payload, config=config):
+            yield chunk
+        return
+
+    async with asyncio.timeout(timeout_seconds):
+        async for chunk in agent.astream(payload, config=config):
+            yield chunk
 
 
 def _requires_knowledge_base_first(task_query: str) -> bool:
@@ -175,7 +187,11 @@ async def run_deep_agent(
     monitor.report_session_dir(session_dir_str)
 
     # checkpointer 依赖 thread_id 区分会话记忆；同一 session_id 会复用同一条执行上下文
-    config = {"configurable": {"thread_id": event_thread_id}}
+    settings = get_settings()
+    config = {
+        "configurable": {"thread_id": event_thread_id},
+        "recursion_limit": settings.agent_recursion_limit,
+    }
 
     # 工作环境指令是运行时动态补充的，约束模型只在当前会话目录读写文件
     path_instruction = f"""
@@ -223,7 +239,8 @@ async def run_deep_agent(
     try:
         main_agent = get_main_agent()
         # astream 会持续产出模型节点、工具节点和子智能体节点的状态片段
-        async for chunk in main_agent.astream(
+        async for chunk in _astream_with_runtime_limit(
+            main_agent,
             {
                 "messages": [
                     {
@@ -238,7 +255,8 @@ async def run_deep_agent(
                     }
                 ]
             },
-            config=config,
+            config,
+            settings.agent_max_runtime_seconds,
         ):
             # chunk 形如 {"model": {"messages": [...]}}，这里主要关心模型最新消息
             for node_name, state in chunk.items():
@@ -272,7 +290,30 @@ async def run_deep_agent(
         monitor.report_task_cancelled()
         write_audit_event("task_cancelled", {}, thread_id=event_thread_id)
         raise
+    except TimeoutError:
+        message = f"Agent execution exceeded {settings.agent_max_runtime_seconds} seconds and was stopped"
+        monitor._emit("error", message)
+        write_audit_event(
+            "task_timeout",
+            {
+                "timeout_seconds": settings.agent_max_runtime_seconds,
+                "recursion_limit": settings.agent_recursion_limit,
+            },
+            thread_id=event_thread_id,
+        )
     except Exception as e:
+        if e.__class__.__name__ == "GraphRecursionError":
+            message = (
+                f"Agent reached recursion limit {settings.agent_recursion_limit} "
+                "and was stopped"
+            )
+            monitor._emit("error", message)
+            write_audit_event(
+                "task_recursion_limit",
+                {"recursion_limit": settings.agent_recursion_limit, "error": repr(e)},
+                thread_id=event_thread_id,
+            )
+            return final_result
         # 异步执行异常也走 monitor，保证前端能收到明确错误事件
         monitor._emit("error", f"执行主智能发生异常信息：{str(e)}")
         write_audit_event("task_error", {"error": repr(e)}, thread_id=event_thread_id)

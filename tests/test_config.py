@@ -69,3 +69,21 @@ class AppSettingsTests(unittest.TestCase):
             settings = get_settings()
 
         self.assertEqual(settings.openai_api_key, "sk-dashscope-test")
+
+    def test_settings_parse_reliability_limits(self):
+        environment = {
+            "LLM_NAME": "qwen-max",
+            "OPENAI_API_KEY": "test-key",
+            "AGENT_RECURSION_LIMIT": "12",
+            "AGENT_MAX_RUNTIME_SECONDS": "45.5",
+            "TOOL_TIMEOUT_SECONDS": "9.5",
+            "DB_TIMEOUT_SECONDS": "7",
+        }
+        with patch.dict(os.environ, environment, clear=True):
+            get_settings.cache_clear()
+            settings = get_settings()
+
+        self.assertEqual(settings.agent_recursion_limit, 12)
+        self.assertEqual(settings.agent_max_runtime_seconds, 45.5)
+        self.assertEqual(settings.tool_timeout_seconds, 9.5)
+        self.assertEqual(settings.db_timeout_seconds, 7)

@@ -40,6 +40,10 @@ class AppSettings:
     openai_api_key: str
     openai_base_url: str | None
     cors_origins: tuple[str, ...]
+    agent_recursion_limit: int = 30
+    agent_max_runtime_seconds: float = 300.0
+    tool_timeout_seconds: float = 60.0
+    db_timeout_seconds: int = 20
     jwt_secret_key: str = "dev-only-change-me"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24
@@ -70,6 +74,10 @@ def get_settings() -> AppSettings:
                 "http://localhost:5173,http://127.0.0.1:5173",
             )
         ),
+        agent_recursion_limit=int(os.getenv("AGENT_RECURSION_LIMIT", "30")),
+        agent_max_runtime_seconds=float(os.getenv("AGENT_MAX_RUNTIME_SECONDS", "300")),
+        tool_timeout_seconds=float(os.getenv("TOOL_TIMEOUT_SECONDS", "60")),
+        db_timeout_seconds=int(os.getenv("DB_TIMEOUT_SECONDS", "20")),
         jwt_secret_key=os.getenv("JWT_SECRET_KEY", "dev-only-change-me"),
         jwt_algorithm=os.getenv("JWT_ALGORITHM", "HS256"),
         access_token_expire_minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")),
