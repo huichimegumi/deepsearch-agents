@@ -23,8 +23,10 @@ frontend/.vite/
 
 # Python
 .venv/
+.venv-broken/
 .venv-ci/
 .uv-cache/
+.uv-python/
 .pytest_cache/
 venv/
 env/
@@ -56,6 +58,7 @@ speed-measure-plugin*.json
 .history/*
 
 # misc
+evals/results/
 /.angular/cache
 /.sass-cache
 /connect.lock
