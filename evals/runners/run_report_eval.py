@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import json
+import shutil
 import sys
 from pathlib import Path
 from typing import Any
@@ -38,6 +40,64 @@ ROUTE_TOOL_HINTS = {
 }
 
 
+class DbErrorCircuitOpen(RuntimeError):
+    """Raised when a report eval sample keeps failing database tool calls."""
+
+
+def _collect_artifacts(session_id: str) -> list[str]:
+    output_dir = project_root_path / "output" / "user_evals" / f"session_{session_id}"
+    if not output_dir.exists():
+        return []
+
+    return [
+        str(path.relative_to(project_root_path)).replace("\\", "/")
+        for path in sorted(output_dir.rglob("*"))
+        if path.is_file() and path.suffix.lower() in {".md", ".pdf"}
+    ]
+
+
+def _artifact_matches_expectation(artifacts: list[str], expectation: str | None) -> bool:
+    suffixes = {Path(path).suffix.lower() for path in artifacts}
+    if expectation == "pdf_via_markdown":
+        return ".pdf" in suffixes
+    if expectation == "markdown":
+        return ".md" in suffixes and ".pdf" not in suffixes
+    return bool(artifacts)
+
+
+def _reset_eval_session(session_id: str) -> None:
+    """Remove stale eval logs and artifacts for a deterministic rerun."""
+    log_path = project_root_path / "logs" / f"session_{session_id}.jsonl"
+    if log_path.exists():
+        log_path.unlink()
+
+    output_dir = project_root_path / "output" / "user_evals" / f"session_{session_id}"
+    expected_parent = project_root_path / "output" / "user_evals"
+    if output_dir.exists() and output_dir.parent == expected_parent:
+        shutil.rmtree(output_dir)
+
+
+def _db_tool_error_count(session_id: str) -> int:
+    log_path = project_root_path / "logs" / f"session_{session_id}.jsonl"
+    if not log_path.exists():
+        return 0
+
+    count = 0
+    for line in log_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        data = event.get("data") or {}
+        if event.get("event") != "tool_error":
+            continue
+        message = str(data.get("message") or "")
+        tool_name = str((data.get("data") or {}).get("tool_name") or "")
+        if "execute_sql_query" in message or "execute_sql_query" in tool_name:
+            count += 1
+    return count
+
+
 def _llm_available() -> tuple[bool, str]:
     try:
         settings = get_settings()
@@ -63,6 +123,7 @@ def _score_report_row(row: dict[str, Any]) -> dict[str, Any]:
     required_sections = row.get("required_sections", [])
     artifact_expectation = row.get("artifact_expectation")
     artifacts = row.get("artifacts", [])
+    artifact_ok = _artifact_matches_expectation(artifacts, artifact_expectation)
 
     components = {
         "dependency_readiness": 15 if not row.get("blockers") else 0,
@@ -72,7 +133,7 @@ def _score_report_row(row: dict[str, Any]) -> dict[str, Any]:
         else 0,
         "required_section_spec": 15 if len(required_sections) >= 4 else 0,
         "execution_completed": 25 if row.get("final_result_present") else 0,
-        "artifact_created": 25 if artifacts else 0,
+        "artifact_created": 25 if artifact_ok else 0,
     }
     total = sum(components.values())
     scored_status = "passed" if total >= 80 else "partial" if total >= 50 else "failed"
@@ -81,34 +142,59 @@ def _score_report_row(row: dict[str, Any]) -> dict[str, Any]:
         "score_components": components,
         "scored_status": scored_status,
         "artifact_expectation_present": bool(artifact_expectation),
+        "artifact_expectation_met": artifact_ok,
     }
 
 
-async def _execute_report_sample(sample: dict[str, Any], timeout_seconds: int) -> dict[str, Any]:
+async def _execute_report_sample(
+    sample: dict[str, Any],
+    timeout_seconds: int,
+    max_db_errors: int,
+) -> dict[str, Any]:
     session_id = f"eval_{sample['id']}"
+    _reset_eval_session(session_id)
     constrained_task = _task_with_eval_constraints(sample)
-    result = await asyncio.wait_for(
+    task = asyncio.create_task(
         run_deep_agent(
             constrained_task,
             session_id=session_id,
             user_id="evals",
             monitor_thread_id=session_id,
         ),
-        timeout=timeout_seconds,
     )
-    output_dir = project_root_path / "output" / "user_evals" / f"session_{session_id}"
-    artifacts = []
-    if output_dir.exists():
-        artifacts = [
-            str(path.relative_to(project_root_path)).replace("\\", "/")
-            for path in output_dir.iterdir()
-            if path.is_file()
-        ]
+    result = None
+    try:
+        for _ in range(max(1, timeout_seconds)):
+            done, _ = await asyncio.wait({task}, timeout=1)
+            if done:
+                result = task.result()
+                break
+            if "database_query" in sample.get("expected_route", []):
+                db_error_count = _db_tool_error_count(session_id)
+                if db_error_count >= max_db_errors:
+                    task.cancel()
+                    with contextlib.suppress(asyncio.CancelledError):
+                        await task
+                    raise DbErrorCircuitOpen(
+                        f"DB tool error circuit opened after {db_error_count} execute_sql_query failures"
+                    )
+        else:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+            raise TimeoutError()
+    except Exception:
+        if not task.done():
+            task.cancel()
+        raise
+
+    artifacts = _collect_artifacts(session_id)
     return {
         "final_result_present": bool(result),
         "final_result_preview": str(result)[:500] if result else "",
         "artifact_count": len(artifacts),
         "artifacts": artifacts,
+        "db_error_count": _db_tool_error_count(session_id),
     }
 
 
@@ -139,6 +225,15 @@ def _task_with_eval_constraints(sample: dict[str, Any]) -> str:
         lines.append("不要调用网络搜索助手或 research_search。")
     if "database_query" in disallowed:
         lines.append("不要调用数据库查询助手或任何 SQL 工具。")
+    if "network_search" in expected:
+        lines.append("网络检索请控制在 2 轮以内，每轮最多 5 个查询；优先官方文档、监管机构、云厂商或项目官网来源。")
+    if "database_query" in expected:
+        lines.append(
+            "数据库查询请先确认表结构，再使用不超过 4 条聚合 SQL；涉及日期字段时使用 "
+            "NULLIF(CAST(date_col AS CHAR), '0000-00-00') 或 "
+            "STR_TO_DATE(NULLIF(CAST(date_col AS CHAR), '0000-00-00'), '%Y-%m-%d') "
+            "规避无效日期；不要直接写 date_col != '0000-00-00'。"
+        )
     if section_text:
         lines.append(f"最终报告必须包含这些章节：{section_text}。")
     if artifact == "pdf_via_markdown":
@@ -154,6 +249,7 @@ def run(
     *,
     execute_ready: bool = False,
     timeout_seconds: int = 300,
+    max_db_errors: int = 2,
 ) -> dict[str, Any]:
     samples = load_jsonl(dataset)
     llm_ok, llm_reason = _llm_available()
@@ -178,12 +274,33 @@ def run(
         }
         if execute_ready and not blockers:
             try:
-                execution = asyncio.run(_execute_report_sample(sample, timeout_seconds))
+                execution = asyncio.run(
+                    _execute_report_sample(sample, timeout_seconds, max_db_errors)
+                )
                 row.update(execution)
-                row["status"] = "passed" if execution["final_result_present"] else "failed"
+                row["status"] = (
+                    "passed"
+                    if execution["final_result_present"]
+                    and _artifact_matches_expectation(
+                        execution["artifacts"],
+                        sample.get("artifact_expectation"),
+                    )
+                    else "failed"
+                )
             except Exception as exc:  # noqa: BLE001 - report eval should record failures
                 row["status"] = "failed"
                 row["reason"] = repr(exc)
+                db_error_count = _db_tool_error_count(f"eval_{sample['id']}")
+                artifacts = _collect_artifacts(f"eval_{sample['id']}")
+                row.update(
+                    {
+                        "final_result_present": False,
+                        "final_result_preview": "",
+                        "artifact_count": len(artifacts),
+                        "artifacts": artifacts,
+                        "db_error_count": db_error_count,
+                    }
+                )
         row.update(_score_report_row(row))
         results.append(row)
 
@@ -216,6 +333,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=RESULTS_DIR / "report_eval.json")
     parser.add_argument("--execute-ready", action="store_true")
     parser.add_argument("--timeout-seconds", type=int, default=300)
+    parser.add_argument("--max-db-errors", type=int, default=2)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
@@ -223,6 +341,7 @@ def main() -> int:
         args.dataset,
         execute_ready=args.execute_ready,
         timeout_seconds=args.timeout_seconds,
+        max_db_errors=args.max_db_errors,
     )
     write_json(args.output, report)
     if args.json:

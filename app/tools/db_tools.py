@@ -120,6 +120,54 @@ def _preview_sql_query(query: str, row_limit: int) -> tuple[str, bool]:
     return f"SELECT * FROM ({cleaned}) AS _deepsearch_preview LIMIT {row_limit + 1}", True
 
 
+def _sql_error_guidance(exc: Error) -> list[str]:
+    """Return repair hints that help the agent recover from common MySQL errors."""
+    message = str(exc)
+    errno = getattr(exc, "errno", None)
+    guidance: list[str] = []
+
+    if errno == 1525 or "Incorrect DATE value" in message or "0000-00-00" in message:
+        guidance.append(
+            "日期字段可能包含 '0000-00-00' 等无效值；比较日期前请使用 "
+            "NULLIF(CAST(date_col AS CHAR), '0000-00-00')，必要时再包一层 "
+            "STR_TO_DATE(NULLIF(CAST(date_col AS CHAR), '0000-00-00'), '%Y-%m-%d')。"
+            "不要直接写 date_col != '0000-00-00'，严格 SQL 模式下这个比较本身也会报错。"
+        )
+    if errno == 1054 or "Unknown column" in message:
+        guidance.append("字段名不存在；请先调用 get_table_data 预览真实列名，再重写 SQL。")
+    if errno == 1146 or "doesn't exist" in message:
+        guidance.append("表名不存在；请先调用 list_sql_tables 确认可用表名。")
+    if errno == 1064 or "syntax" in message.lower():
+        guidance.append("SQL 语法不符合 MySQL 方言；请检查函数、别名、引号和子查询写法。")
+    if errno in {1052, 1060} or "ambiguous" in message.lower():
+        guidance.append("多表查询中的字段或别名可能冲突；请为字段加表别名，并为输出列使用唯一别名。")
+
+    if not guidance:
+        guidance.append("请基于错误信息缩小 SQL 范围，优先用简单 SELECT 验证表名、字段名和样例值。")
+    return guidance
+
+
+def _format_sql_error(exc: Error, query: str) -> str:
+    """Format SQL failures as actionable text for the database agent."""
+    errno = getattr(exc, "errno", None)
+    sqlstate = getattr(exc, "sqlstate", None)
+    parts = [
+        "SQL执行失败。",
+        f"错误码：{errno if errno is not None else '未知'}",
+        f"SQLSTATE：{sqlstate if sqlstate else '未知'}",
+        f"错误信息：{exc}",
+        "修复建议：",
+    ]
+    parts.extend(f"- {item}" for item in _sql_error_guidance(exc))
+    parts.extend(
+        [
+            "重试限制：如果修正后仍失败，请停止继续尝试，返回已获得的数据、失败原因和建议人工复核的 SQL。",
+            f"原始SQL：{query}",
+        ]
+    )
+    return "\n".join(parts)
+
+
 @tool
 def list_sql_tables() -> str:
     """List available tables in the configured MySQL database."""
@@ -284,7 +332,7 @@ def execute_sql_query(query) -> str:
                 "query": query,
             },
         )
-        return f"查询出现异常：{exc}"
+        return _format_sql_error(exc, query)
 
 
 if __name__ == "__main__":

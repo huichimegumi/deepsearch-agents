@@ -175,6 +175,15 @@ class SearchServiceTests(unittest.TestCase):
         self.assertEqual(response.results, [])
         self.assertTrue(any("exceeded" in notice for notice in response.notices))
 
+    def test_fetch_full_pages_populates_raw_content(self):
+        service = SearchService({}, timeout=0.01)
+        result = make_result("https://example.com/page")
+
+        with patch.object(service, "_fetch_page", return_value="full page"):
+            service._fetch_full_pages([result])
+
+        self.assertEqual(result.raw_content, "full page")
+
 
 if __name__ == "__main__":
     unittest.main()

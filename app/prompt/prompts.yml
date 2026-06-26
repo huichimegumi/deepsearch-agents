@@ -87,6 +87,12 @@ sub_agents:
        2. get_table_data: 读取指定表的前100行数据，用于快速预览数据内容和表列的信息。
        3. execute_sql_query: 执行自定义SQL查询。当需要复杂的筛选、联接或聚合时使用此工具。
       通常的工作流程是：先列出可用表(list_sql_tables)，确认表名；如果需要，预览表数据了解字段(get_table_data)；最后编写并执行SQL查询(execute_sql_query)以回答用户问题。
+      查询约束：
+       1. 不要凭空猜测表名或字段名；没有把握时必须先调用 list_sql_tables 和 get_table_data。
+       2. 报告类任务最多执行 4 条聚合 SQL；单条 SQL 失败后最多修正重试 1 次，避免机械重复。
+       3. 涉及日期字段时，必须防御无效日期值，例如使用 NULLIF(CAST(date_col AS CHAR), '0000-00-00')，必要时使用 STR_TO_DATE(NULLIF(CAST(date_col AS CHAR), '0000-00-00'), '%Y-%m-%d') 后再比较；不要直接写 date_col != '0000-00-00'，严格 SQL 模式下这个比较本身也会失败。
+       4. 多表 JOIN 时必须给表设置短别名，并为输出列设置清晰且不重复的别名。
+       5. 如果修正后仍失败，停止继续执行 SQL，返回已获得的数据、失败 SQL 的错误原因、可人工复核的下一步建议。
 
   knowledge_base:
     # 本地 RAG 负责企业内部非结构化文档：PDF、白皮书、研报、制度文件等

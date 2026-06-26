@@ -1,6 +1,8 @@
 """Tests for database tool result budgeting."""
 
-from app.tools.db_tools import _format_query_result, _preview_sql_query
+from mysql.connector import Error
+
+from app.tools.db_tools import _format_query_result, _format_sql_error, _preview_sql_query
 
 
 def test_format_query_result_marks_row_truncation():
@@ -52,3 +54,18 @@ def test_preview_sql_query_leaves_non_select_query_unchanged():
 
     assert limited is False
     assert query == "SHOW TABLES"
+
+
+def test_format_sql_error_adds_date_repair_guidance():
+    error = Error(
+        msg="Incorrect DATE value: '0000-00-00'",
+        errno=1525,
+        sqlstate="HY000",
+    )
+
+    result = _format_sql_error(error, "SELECT * FROM inventory WHERE expiry_date < '2027-06-30'")
+
+    assert "错误码：1525" in result
+    assert "SQLSTATE：HY000" in result
+    assert "NULLIF(CAST(date_col AS CHAR), '0000-00-00')" in result
+    assert "原始SQL：SELECT * FROM inventory" in result

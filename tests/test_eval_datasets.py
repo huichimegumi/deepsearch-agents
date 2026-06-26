@@ -3,6 +3,8 @@
 import json
 from pathlib import Path
 
+from evals.runners.common import load_jsonl
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET_DIR = ROOT / "evals" / "datasets"
@@ -60,3 +62,10 @@ def test_first_phase_eval_counts_and_schema():
 
 def test_local_knowledge_base_qa_dataset_exists():
     assert (DATASET_DIR / "rag_local_zh.jsonl").exists()
+
+
+def test_runner_jsonl_loader_accepts_utf8_bom(tmp_path):
+    path = tmp_path / "bom.jsonl"
+    path.write_text('\ufeff{"id": "sample_1", "task": "测试"}\n', encoding="utf-8")
+
+    assert load_jsonl(path) == [{"id": "sample_1", "task": "测试"}]
