@@ -72,8 +72,18 @@ const TASK_EXAMPLES = [
   },
 ];
 
+function normalizeTimestamp(value: string): string {
+  const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value);
+  const looksIsoLike = /^\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}/.test(value);
+  return looksIsoLike && !hasTimezone ? `${value}Z` : value;
+}
+
+function parseDate(value: string): Date {
+  return new Date(normalizeTimestamp(value));
+}
+
 function formatTime(value: string): string {
-  const date = new Date(value);
+  const date = parseDate(value);
   if (Number.isNaN(date.getTime())) {
     return "--:--";
   }
@@ -95,7 +105,7 @@ function formatBytes(value: number): string {
 }
 
 function parseTime(value: string): number | null {
-  const time = new Date(value).getTime();
+  const time = parseDate(value).getTime();
   return Number.isNaN(time) ? null : time;
 }
 

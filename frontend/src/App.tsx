@@ -89,6 +89,10 @@ export default function App() {
       }
 
       const latestTurn = previous[previous.length - 1];
+      if (!latestTurn.isRunning && !session.isRunning) {
+        return previous;
+      }
+
       const nextLatestTurn = {
         ...latestTurn,
         events: session.events,
