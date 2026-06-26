@@ -9,16 +9,16 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ConfigProvider
       theme={{
-        algorithm: theme.darkAlgorithm,
+        algorithm: theme.defaultAlgorithm,
         token: {
-          colorPrimary: "#20d6ff",
-          colorSuccess: "#5dff9f",
-          colorWarning: "#ffc857",
-          colorError: "#ff5c7a",
-          colorInfo: "#7c8cff",
-          colorBgBase: "#05070b",
-          colorBgContainer: "rgba(12, 18, 28, 0.86)",
-          colorBorder: "rgba(113, 247, 255, 0.18)",
+          colorPrimary: "#0f7fb3",
+          colorSuccess: "#16834a",
+          colorWarning: "#b7791f",
+          colorError: "#d9365d",
+          colorInfo: "#4662d6",
+          colorBgBase: "#f6f9fc",
+          colorBgContainer: "#ffffff",
+          colorBorder: "rgba(15, 82, 112, 0.18)",
           borderRadius: 8,
           fontFamily:
             "'IBM Plex Sans', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif",
@@ -28,11 +28,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         components: {
           Button: {
             controlHeightLG: 46,
-            primaryShadow: "0 0 24px rgba(32, 214, 255, 0.26)"
+            primaryShadow: "0 10px 28px rgba(15, 127, 179, 0.18)"
           },
           Input: {
-            activeBorderColor: "#20d6ff",
-            hoverBorderColor: "#5dff9f"
+            activeBorderColor: "#0f7fb3",
+            hoverBorderColor: "#16834a"
           }
         }
       }}

@@ -2156,3 +2156,284 @@ textarea {
     display: none;
   }
 }
+
+/* Light theme */
+:root {
+  color-scheme: light;
+  --bg: #f6f9fc;
+  --surface: rgba(255, 255, 255, 0.88);
+  --surface-strong: rgba(255, 255, 255, 0.96);
+  --line: rgba(15, 82, 112, 0.16);
+  --line-strong: rgba(15, 127, 179, 0.28);
+  --text: #172033;
+  --muted: #617086;
+  --cyan: #0f7fb3;
+  --green: #16834a;
+  --amber: #b7791f;
+  --red: #d9365d;
+  --violet: #4662d6;
+  --shadow: 0 18px 48px rgba(42, 58, 76, 0.12);
+}
+
+html {
+  background: var(--bg);
+}
+
+body,
+.chat-app-shell,
+.auth-shell {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(246, 249, 252, 0.98)),
+    repeating-linear-gradient(90deg, rgba(15, 127, 179, 0.045) 0 1px, transparent 1px 80px),
+    repeating-linear-gradient(180deg, rgba(22, 131, 74, 0.035) 0 1px, transparent 1px 80px),
+    var(--bg);
+  color: var(--text);
+}
+
+.app-shell::before,
+.chat-app-shell::before {
+  background:
+    linear-gradient(116deg, transparent 0 24%, rgba(15, 127, 179, 0.08) 24.2% 24.45%, transparent 24.7% 100%),
+    repeating-linear-gradient(0deg, transparent 0 8px, rgba(15, 82, 112, 0.028) 8px 9px);
+  opacity: 0.72;
+}
+
+.chat-sidebar,
+.console-panel,
+.thread-chip,
+.auth-panel,
+.composer-shell {
+  border-color: var(--line);
+  background: var(--surface-strong);
+  box-shadow: var(--shadow);
+}
+
+.chat-sidebar {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.console-panel {
+  background:
+    linear-gradient(180deg, rgba(15, 127, 179, 0.04), transparent 34%),
+    var(--surface);
+}
+
+.chat-main {
+  background: transparent;
+}
+
+.metric-tile,
+.agent-node,
+.event-row,
+.uploaded-list li,
+.file-item,
+.endpoint-list div,
+.recent-conversation-item,
+.sidebar-section,
+.sidebar-status-card,
+.example-card,
+.message-bubble,
+.thinking-block,
+.thinking-event,
+.artifact-card {
+  border-color: rgba(15, 82, 112, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8px 26px rgba(42, 58, 76, 0.07);
+}
+
+.recent-conversation-item:hover,
+.recent-conversation-item:focus-visible,
+.example-card:hover,
+.example-card:focus-visible {
+  border-color: rgba(15, 127, 179, 0.34);
+  background: rgba(232, 247, 255, 0.86);
+}
+
+.recent-conversation-item--active {
+  border-color: rgba(22, 131, 74, 0.32);
+  background: rgba(231, 248, 239, 0.88);
+}
+
+.main-agent-node,
+.chat-message--user .message-bubble,
+.assistant-answer--pending,
+.thinking-block {
+  border-color: rgba(15, 127, 179, 0.2);
+  background:
+    linear-gradient(135deg, rgba(15, 127, 179, 0.08), rgba(22, 131, 74, 0.04)),
+    rgba(255, 255, 255, 0.78);
+}
+
+.metric-tile > .anticon,
+.event-icon,
+.thinking-event-icon,
+.example-icon,
+.icon-button,
+.memory-button,
+.artifact-download,
+.new-chat-button {
+  border-color: rgba(15, 127, 179, 0.24) !important;
+  background: rgba(15, 127, 179, 0.08) !important;
+  color: var(--cyan) !important;
+}
+
+.metric-tile--online > .anticon,
+.metric-tile--live > .anticon,
+.agent-node-icon,
+.knowledge-button,
+.secondary-action {
+  border-color: rgba(22, 131, 74, 0.24) !important;
+  background: rgba(22, 131, 74, 0.08) !important;
+  color: var(--green) !important;
+}
+
+.metric-tile--warn > .anticon,
+.file-icon,
+.artifact-icon,
+.mini-action {
+  border-color: rgba(183, 121, 31, 0.26) !important;
+  background: rgba(183, 121, 31, 0.08) !important;
+  color: var(--amber) !important;
+}
+
+.metric-tile--error > .anticon,
+.event-row--error .event-icon,
+.thinking-event--error .thinking-event-icon,
+.send-button--cancel {
+  border-color: rgba(217, 54, 93, 0.28) !important;
+  background: rgba(217, 54, 93, 0.09) !important;
+  color: var(--red) !important;
+}
+
+.mission-textarea,
+.composer-shell textarea,
+.auth-panel .ant-input-affix-wrapper,
+.auth-panel .ant-input {
+  border-color: var(--line) !important;
+  background: #ffffff !important;
+  color: var(--text) !important;
+}
+
+.composer-shell textarea {
+  background: transparent !important;
+}
+
+.composer-shell textarea::placeholder,
+.auth-panel .ant-input::placeholder {
+  color: #8a97a8;
+}
+
+.chat-composer {
+  background: linear-gradient(180deg, rgba(246, 249, 252, 0), rgba(246, 249, 252, 0.88) 42%, rgba(246, 249, 252, 0.98));
+}
+
+.event-body pre,
+.result-console,
+.markdown-body pre,
+.markdown-body code {
+  border-color: rgba(15, 82, 112, 0.14);
+  background: rgba(241, 246, 251, 0.92);
+  color: #18435c;
+}
+
+.markdown-body pre code {
+  background: transparent;
+  color: #18435c;
+}
+
+.empty-console,
+.compact-empty {
+  border-color: rgba(15, 82, 112, 0.16);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.panel-heading h2,
+.sidebar-brand h1,
+.chat-topbar h2,
+.empty-examples-copy h3,
+.file-copy strong,
+.message-bubble p,
+.markdown-body,
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body strong,
+.memory-content,
+.thread-id,
+.sidebar-user-name,
+.example-copy strong {
+  color: var(--text);
+}
+
+.brand-block p,
+.main-agent-node span,
+.agent-node p,
+.endpoint-list dt,
+.event-meta,
+.file-copy span,
+.recent-conversation-item time,
+.sidebar-brand p,
+.sidebar-label,
+.empty-examples-copy p,
+.example-copy small,
+.message-meta,
+.thinking-event-meta,
+.thinking-empty,
+.artifact-empty,
+.loader-duration,
+.loader-steps li {
+  color: var(--muted);
+}
+
+.preset-chip {
+  border-color: rgba(70, 98, 214, 0.18);
+  background: rgba(70, 98, 214, 0.07);
+  color: #293a8c;
+}
+
+.uploaded-list li,
+.endpoint-list dd,
+.recent-conversation-item,
+.sidebar-status-value,
+.loader-status,
+.attachment-pill {
+  color: var(--text);
+}
+
+.attachment-pill {
+  border-color: rgba(22, 131, 74, 0.22);
+  background: rgba(22, 131, 74, 0.08);
+}
+
+.attachment-pill--pending {
+  border-color: rgba(183, 121, 31, 0.24);
+  background: rgba(183, 121, 31, 0.08);
+  color: #7b5013;
+}
+
+.markdown-body em,
+.thinking-event code {
+  color: #286d90;
+}
+
+.markdown-body blockquote {
+  border-left-color: rgba(15, 127, 179, 0.48);
+  background: rgba(232, 247, 255, 0.82);
+  color: #2f4b5c;
+}
+
+.markdown-body th {
+  background: rgba(15, 127, 179, 0.08);
+  color: var(--text);
+}
+
+.markdown-body td {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.event-stream,
+.recent-conversation-list,
+.chat-stream-panel {
+  scrollbar-color: rgba(15, 127, 179, 0.32) transparent;
+}
