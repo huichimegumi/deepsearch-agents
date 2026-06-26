@@ -131,6 +131,37 @@ class ToolMonitor:
             {"tool_name": tool_name, "args": args},
         )
 
+    def report_tool_end(
+        self,
+        tool_name: str,
+        data: Optional[dict[str, Any]] = None,
+    ) -> None:
+        """Report that a tool finished, including timing and payload budget data."""
+        payload = {"tool_name": tool_name}
+        if data:
+            payload.update(data)
+        self._emit(
+            "tool_end",
+            f"工具执行完成: {tool_name}",
+            payload,
+        )
+
+    def report_tool_error(
+        self,
+        tool_name: str,
+        error: str,
+        data: Optional[dict[str, Any]] = None,
+    ) -> None:
+        """Report that a tool failed with structured diagnostic data."""
+        payload = {"tool_name": tool_name, "error": error}
+        if data:
+            payload.update(data)
+        self._emit(
+            "tool_error",
+            f"工具执行失败: {tool_name}",
+            payload,
+        )
+
     def report_assistant(
         self,
         assistant_name: str,

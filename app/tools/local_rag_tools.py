@@ -1,13 +1,20 @@
 """DeepAgents tools for the PostgreSQL/Qdrant local knowledge-base service."""
 
+from dataclasses import replace
+from time import monotonic
+
 from langchain_core.tools import tool
 from sqlalchemy import func, select
 
 from app.api.audit import write_audit_event
 from app.api.monitor import monitor
+from app.config import get_settings
 from app.rag.database import session_scope
 from app.rag.models import Document, KnowledgeBase
-from app.rag.retrieval import RetrievedChunk, hybrid_search
+from app.rag.retrieval import RetrievedChunk, hybrid_search, hybrid_search_many
+
+ASSISTANT_LIST_TOOL = "本地知识库助手列表查询工具：get_assistant_list"
+ASK_KNOWLEDGE_BASE_TOOL = "本地知识库混合检索工具：ask_knowledge_base"
 
 
 def _ready_knowledge_bases() -> list[tuple[KnowledgeBase, int]]:
@@ -45,11 +52,56 @@ def _format_context(hits: list[RetrievedChunk]) -> str:
     )
 
 
+def _limit_hits_for_answer(hits: list[RetrievedChunk]) -> tuple[list[RetrievedChunk], dict]:
+    settings = get_settings()
+    max_hits = max(1, settings.rag_answer_max_hits)
+    max_context_chars = max(1, settings.rag_answer_max_context_chars)
+    limited_hits: list[RetrievedChunk] = []
+    truncated_by_chars = False
+
+    for hit in hits[:max_hits]:
+        prefix_chars = len(f"[{len(limited_hits) + 1}] 来源：{hit.citation}\n")
+        remaining = max_context_chars - len(_format_context(limited_hits)) - prefix_chars
+        if remaining <= 0:
+            truncated_by_chars = True
+            break
+        content = hit.content
+        if len(content) > remaining:
+            content = content[:remaining].rstrip() + "\n[片段内容已按上下文预算截断]"
+            truncated_by_chars = True
+        limited_hits.append(replace(hit, content=content))
+        if len(_format_context(limited_hits)) >= max_context_chars:
+            truncated_by_chars = True
+            break
+
+    return limited_hits, {
+        "candidate_hits": len(hits),
+        "answer_hits": len(limited_hits),
+        "max_answer_hits": max_hits,
+        "context_chars": len(_format_context(limited_hits)),
+        "max_context_chars": max_context_chars,
+        "truncated": len(hits) > len(limited_hits) or truncated_by_chars,
+        "truncated_by_hits": len(hits) > max_hits,
+        "truncated_by_chars": truncated_by_chars,
+    }
+
+
+def _hit_metadata(hit: RetrievedChunk) -> dict:
+    return {
+        "chunk_id": hit.chunk_id,
+        "filename": hit.filename,
+        "page_start": hit.page_start,
+        "page_end": hit.page_end,
+        "section": hit.section,
+        "score": hit.score,
+        "citation": hit.citation,
+    }
+
+
 def _answer(question: str, hits: list[RetrievedChunk]) -> str:
     context = _format_context(hits)
     prompt = f"""
 你是企业内部知识库问答助手。只能根据检索片段回答，不得补充片段之外的事实。
-
 回答要求：
 1. 先给出直接结论，再列出关键依据。
 2. 每项事实后使用 [1]、[2] 这样的编号引用，编号必须来自检索片段。
@@ -69,94 +121,127 @@ def _answer(question: str, hits: list[RetrievedChunk]) -> str:
 
 @tool
 def get_assistant_list() -> str:
-    """查询本地可用知识库助手及其中已完成索引的文档数量；回答指定白皮书、研报、PDF、报告内容前应先调用。"""
-    monitor.report_tool(tool_name="本地知识库助手列表查询工具：get_assistant_list")
+    """List ready local knowledge bases and document counts."""
+    started_at = monotonic()
+    monitor.report_tool(tool_name=ASSISTANT_LIST_TOOL)
     try:
         rows = _ready_knowledge_bases()
         if not rows:
-            return "当前没有可用的本地知识库，请先通过知识库管理页面上传并完成索引。"
-        lines = [
-            f"助手名称:{item.name}; 功能介绍:{item.description or '本地企业文档检索'}; "
-            f"关联知识库:{item.name}; 已索引文档:{count}"
-            for item, count in rows
-        ]
-        lines.append("助手名称:全部知识库; 功能介绍:跨全部本地知识库混合检索")
-        return "\n".join(lines)
+            result = "当前没有可用的本地知识库，请先通过知识库管理页面上传并完成索引。"
+        else:
+            lines = [
+                f"助手名称:{item.name}; 功能介绍:{item.description or '本地企业文档检索'}; "
+                f"关联知识库:{item.name}; 已索引文档:{count}"
+                for item, count in rows
+            ]
+            lines.append("助手名称:全部知识库; 功能介绍:跨全部本地知识库混合检索")
+            result = "\n".join(lines)
+        monitor.report_tool_end(
+            ASSISTANT_LIST_TOOL,
+            {
+                "elapsed_ms": round((monotonic() - started_at) * 1000),
+                "knowledge_base_count": len(rows),
+                "returned_chars": len(result),
+            },
+        )
+        return result
     except Exception as exc:
+        monitor.report_tool_error(
+            ASSISTANT_LIST_TOOL,
+            repr(exc),
+            {"elapsed_ms": round((monotonic() - started_at) * 1000)},
+        )
         return f"查询本地知识库失败：{exc}"
 
 
 @tool
 def ask_knowledge_base(chat_name: str, question: str) -> str:
     """
-    向指定本地知识库助手提问，并返回经过混合检索和 rerank 的带页码答案。
-    适用于提取白皮书、研报、PDF、报告等本地知识库文档中提到的事实、数据、市场份额、营收、收入、市场规模等内容。
+    Ask one local knowledge base, or all local knowledge bases, using hybrid retrieval and rerank.
 
-    :param chat_name: 来自 get_assistant_list 的助手名称，也可以使用“全部知识库”
-    :param question: 需要根据内部文档回答的问题
+    :param chat_name: Assistant name from get_assistant_list, or "全部知识库".
+    :param question: Question that must be answered from indexed local documents.
     """
+    tool_started_at = monotonic()
     monitor.report_tool(
-        tool_name="本地知识库混合检索工具：ask_knowledge_base",
+        tool_name=ASK_KNOWLEDGE_BASE_TOOL,
         args={"chat_name": chat_name, "question": question},
     )
     try:
         knowledge_bases = _resolve_knowledge_bases(chat_name)
         if not knowledge_bases:
-            write_audit_event(
-                "rag_search",
-                {
-                    "chat_name": chat_name,
-                    "question": question,
-                    "status": "knowledge_base_not_found",
-                },
-            )
-            return f"没有找到名为“{chat_name}”的本地知识库。"
-        hits: list[RetrievedChunk] = []
-        for knowledge_base in knowledge_bases:
-            knowledge_hits = hybrid_search(question, knowledge_base.id)
-            write_audit_event(
-                "rag_search",
-                {
-                    "chat_name": chat_name,
-                    "knowledge_base": knowledge_base.name,
-                    "knowledge_base_id": knowledge_base.id,
-                    "question": question,
-                    "hit_count": len(knowledge_hits),
-                    "hits": [
-                        {
-                            "chunk_id": hit.chunk_id,
-                            "filename": hit.filename,
-                            "page_start": hit.page_start,
-                            "page_end": hit.page_end,
-                            "section": hit.section,
-                            "score": hit.score,
-                            "citation": hit.citation,
-                        }
-                        for hit in knowledge_hits[:8]
-                    ],
-                },
-            )
-            hits.extend(knowledge_hits)
-        hits.sort(key=lambda item: item.score, reverse=True)
-        hits = hits[:8]
-        if not hits:
-            write_audit_event(
-                "rag_search_empty",
-                {
-                    "chat_name": chat_name,
-                    "question": question,
-                    "knowledge_bases": [item.name for item in knowledge_bases],
-                },
-            )
-            return "本地知识库没有检索到足以回答该问题的内容。"
-        return _answer(question, hits)
-    except Exception as exc:
-        write_audit_event(
-            "rag_search_error",
-            {
+            payload = {
                 "chat_name": chat_name,
                 "question": question,
-                "error": repr(exc),
+                "status": "knowledge_base_not_found",
+                "elapsed_ms": round((monotonic() - tool_started_at) * 1000),
+            }
+            write_audit_event("rag_search", payload)
+            monitor.report_tool_end(ASK_KNOWLEDGE_BASE_TOOL, payload)
+            return f"没有找到名为“{chat_name}”的本地知识库。"
+
+        retrieval_started_at = monotonic()
+        if len(knowledge_bases) == 1:
+            hits = hybrid_search(question, knowledge_bases[0].id)
+        else:
+            hits = hybrid_search_many(question, [knowledge_base.id for knowledge_base in knowledge_bases])
+        retrieval_elapsed_ms = round((monotonic() - retrieval_started_at) * 1000)
+
+        hits.sort(key=lambda item: item.score, reverse=True)
+        write_audit_event(
+            "rag_search",
+            {
+                "chat_name": chat_name,
+                "knowledge_bases": [item.name for item in knowledge_bases],
+                "knowledge_base_ids": [item.id for item in knowledge_bases],
+                "question": question,
+                "hit_count": len(hits),
+                "elapsed_ms": retrieval_elapsed_ms,
+                "hits": [_hit_metadata(hit) for hit in hits[:8]],
             },
         )
+
+        limited_hits, budget_metadata = _limit_hits_for_answer(hits)
+        if not limited_hits:
+            result = "本地知识库没有检索到足以回答该问题的内容。"
+            payload = {
+                "chat_name": chat_name,
+                "question": question,
+                "knowledge_bases": [item.name for item in knowledge_bases],
+                "retrieval_elapsed_ms": retrieval_elapsed_ms,
+                "answer_elapsed_ms": 0,
+                "elapsed_ms": round((monotonic() - tool_started_at) * 1000),
+                "returned_chars": len(result),
+                **budget_metadata,
+            }
+            write_audit_event("rag_search_empty", payload)
+            monitor.report_tool_end(ASK_KNOWLEDGE_BASE_TOOL, payload)
+            return result
+
+        answer_started_at = monotonic()
+        result = _answer(question, limited_hits)
+        answer_elapsed_ms = round((monotonic() - answer_started_at) * 1000)
+        payload = {
+            "chat_name": chat_name,
+            "question": question,
+            "knowledge_bases": [item.name for item in knowledge_bases],
+            "knowledge_base_ids": [item.id for item in knowledge_bases],
+            "retrieval_elapsed_ms": retrieval_elapsed_ms,
+            "answer_elapsed_ms": answer_elapsed_ms,
+            "elapsed_ms": round((monotonic() - tool_started_at) * 1000),
+            "returned_chars": len(result),
+            **budget_metadata,
+        }
+        write_audit_event("rag_answer", payload)
+        monitor.report_tool_end(ASK_KNOWLEDGE_BASE_TOOL, payload)
+        return result
+    except Exception as exc:
+        payload = {
+            "chat_name": chat_name,
+            "question": question,
+            "error": repr(exc),
+            "elapsed_ms": round((monotonic() - tool_started_at) * 1000),
+        }
+        write_audit_event("rag_search_error", payload)
+        monitor.report_tool_error(ASK_KNOWLEDGE_BASE_TOOL, repr(exc), payload)
         return f"本地知识库问答失败：{exc}"

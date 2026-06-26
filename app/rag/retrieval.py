@@ -74,19 +74,11 @@ def _filter_ranked_candidates(
     return [item for item in ranked if item[1] >= min_relevance_score][:limit]
 
 
-def hybrid_search(query: str, knowledge_base_id: str) -> list[RetrievedChunk]:
-    settings = get_rag_settings()
-    lexical = _lexical_search(query, knowledge_base_id, settings.lexical_top_k)
-    vector = search_vectors(embed_query(query), knowledge_base_id, settings.vector_top_k)
-
-    fused: dict[str, float] = {}
-    for results in (lexical, vector):
-        for rank, (chunk_id, _raw_score) in enumerate(results, start=1):
-            fused[chunk_id] = fused.get(chunk_id, 0.0) + 1.0 / (60 + rank)
-    if not fused:
+def _load_candidate_chunks(
+    candidate_ids: list[str],
+) -> list[tuple[Chunk, Document]]:
+    if not candidate_ids:
         return []
-
-    candidate_ids = [item[0] for item in sorted(fused.items(), key=lambda x: x[1], reverse=True)]
     with session_scope() as session:
         rows = (
             session.query(Chunk, Document)
@@ -95,13 +87,23 @@ def hybrid_search(query: str, knowledge_base_id: str) -> list[RetrievedChunk]:
             .all()
         )
         by_id = {chunk.id: (chunk, document) for chunk, document in rows}
+    return [by_id[chunk_id] for chunk_id in candidate_ids if chunk_id in by_id]
 
-    ordered = [by_id[chunk_id] for chunk_id in candidate_ids if chunk_id in by_id]
-    rerank_scores = rerank(query, [chunk.content for chunk, _document in ordered])
+
+def _rank_candidates(
+    query: str,
+    candidates: list[tuple[Chunk, Document]],
+    limit: int | None = None,
+) -> list[RetrievedChunk]:
+    settings = get_rag_settings()
+    if not candidates:
+        return []
+
+    rerank_scores = rerank(query, [chunk.content for chunk, _document in candidates])
     ranked = _filter_ranked_candidates(
-        sorted(zip(ordered, rerank_scores), key=lambda item: item[1], reverse=True),
+        sorted(zip(candidates, rerank_scores), key=lambda item: item[1], reverse=True),
         settings.min_relevance_score,
-        settings.rerank_top_k,
+        limit or settings.rerank_top_k,
     )
     return [
         RetrievedChunk(
@@ -115,3 +117,55 @@ def hybrid_search(query: str, knowledge_base_id: str) -> list[RetrievedChunk]:
         )
         for ((chunk, document), score) in ranked
     ]
+
+
+def _fused_candidate_ids(
+    lexical: list[tuple[str, float]], vector: list[tuple[str, float]]
+) -> list[str]:
+    fused: dict[str, float] = {}
+    for results in (lexical, vector):
+        for rank, (chunk_id, _raw_score) in enumerate(results, start=1):
+            fused[chunk_id] = fused.get(chunk_id, 0.0) + 1.0 / (60 + rank)
+    return [item[0] for item in sorted(fused.items(), key=lambda x: x[1], reverse=True)]
+
+
+def hybrid_search(
+    query: str,
+    knowledge_base_id: str,
+    query_vector: list[float] | None = None,
+) -> list[RetrievedChunk]:
+    settings = get_rag_settings()
+    vector_query = query_vector if query_vector is not None else embed_query(query)
+    lexical = _lexical_search(query, knowledge_base_id, settings.lexical_top_k)
+    vector = search_vectors(vector_query, knowledge_base_id, settings.vector_top_k)
+
+    candidate_ids = _fused_candidate_ids(lexical, vector)
+    if not candidate_ids:
+        return []
+
+    return _rank_candidates(query, _load_candidate_chunks(candidate_ids))
+
+
+def hybrid_search_many(query: str, knowledge_base_ids: list[str]) -> list[RetrievedChunk]:
+    settings = get_rag_settings()
+    if not knowledge_base_ids:
+        return []
+
+    query_vector = embed_query(query)
+    candidate_ids: list[str] = []
+    seen: set[str] = set()
+    per_base_limit = max(settings.rerank_top_k, settings.vector_top_k, settings.lexical_top_k)
+
+    for knowledge_base_id in knowledge_base_ids:
+        lexical = _lexical_search(query, knowledge_base_id, settings.lexical_top_k)
+        vector = search_vectors(query_vector, knowledge_base_id, settings.vector_top_k)
+        for chunk_id in _fused_candidate_ids(lexical, vector)[:per_base_limit]:
+            if chunk_id not in seen:
+                seen.add(chunk_id)
+                candidate_ids.append(chunk_id)
+
+    return _rank_candidates(
+        query,
+        _load_candidate_chunks(candidate_ids),
+        limit=settings.rerank_top_k,
+    )

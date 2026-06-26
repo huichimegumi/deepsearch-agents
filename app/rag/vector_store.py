@@ -11,7 +11,11 @@ from app.rag.config import get_rag_settings
 @lru_cache(maxsize=1)
 def get_qdrant_client() -> QdrantClient:
     settings = get_rag_settings()
-    return QdrantClient(url=settings.qdrant_url, api_key=settings.qdrant_api_key)
+    return QdrantClient(
+        url=settings.qdrant_url,
+        api_key=settings.qdrant_api_key,
+        timeout=settings.qdrant_timeout_seconds,
+    )
 
 
 def ensure_collection(vector_size: int) -> None:

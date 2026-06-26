@@ -78,6 +78,11 @@ class AppSettingsTests(unittest.TestCase):
             "AGENT_MAX_RUNTIME_SECONDS": "45.5",
             "TOOL_TIMEOUT_SECONDS": "9.5",
             "DB_TIMEOUT_SECONDS": "7",
+            "DB_TABLE_PREVIEW_ROWS": "11",
+            "DB_QUERY_PREVIEW_ROWS": "22",
+            "DB_MAX_RESULT_CHARS": "3333",
+            "RAG_ANSWER_MAX_HITS": "4",
+            "RAG_ANSWER_MAX_CONTEXT_CHARS": "5555",
         }
         with patch.dict(os.environ, environment, clear=True):
             get_settings.cache_clear()
@@ -87,3 +92,8 @@ class AppSettingsTests(unittest.TestCase):
         self.assertEqual(settings.agent_max_runtime_seconds, 45.5)
         self.assertEqual(settings.tool_timeout_seconds, 9.5)
         self.assertEqual(settings.db_timeout_seconds, 7)
+        self.assertEqual(settings.db_table_preview_rows, 11)
+        self.assertEqual(settings.db_query_preview_rows, 22)
+        self.assertEqual(settings.db_max_result_chars, 3333)
+        self.assertEqual(settings.rag_answer_max_hits, 4)
+        self.assertEqual(settings.rag_answer_max_context_chars, 5555)

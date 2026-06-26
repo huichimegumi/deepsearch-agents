@@ -21,6 +21,7 @@ class RagSettings:
     qdrant_url: str
     qdrant_api_key: str | None
     qdrant_collection: str
+    qdrant_timeout_seconds: float
     memory_qdrant_collection: str
     embedding_model: str
     rerank_model: str
@@ -61,6 +62,7 @@ def get_rag_settings() -> RagSettings:
         qdrant_url=os.getenv("RAG_QDRANT_URL", "http://localhost:6333"),
         qdrant_api_key=os.getenv("RAG_QDRANT_API_KEY") or None,
         qdrant_collection=os.getenv("RAG_QDRANT_COLLECTION", "knowledge_chunks"),
+        qdrant_timeout_seconds=float(os.getenv("RAG_QDRANT_TIMEOUT_SECONDS", "10")),
         memory_qdrant_collection=os.getenv("MEMORY_QDRANT_COLLECTION", "user_memories"),
         embedding_model=os.getenv("RAG_EMBEDDING_MODEL", "BAAI/bge-small-zh-v1.5"),
         rerank_model=os.getenv("RAG_RERANK_MODEL", "BAAI/bge-reranker-base"),

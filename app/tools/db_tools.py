@@ -1,12 +1,9 @@
-"""
-MySQL 数据库查询工具模块
+"""MySQL query tools used by the database sub-agent."""
 
-封装数据库查询助手使用的三个 LangChain 工具：
-list_sql_tables 用于发现真实表名，get_table_data 用于预览字段和样例数据，
-execute_sql_query 用于在确认结构后执行自定义查询。
-"""
-
+import csv
+import io
 import os
+from time import monotonic
 
 from dotenv import load_dotenv
 from langchain_core.tools import tool
@@ -18,14 +15,13 @@ from app.config import get_settings
 load_dotenv()
 
 
-# 集中读取数据库配置，后续三个工具都复用这份连接参数
-def get_db_config():
-    """
-    从环境变量读取 MySQL 连接配置
+LIST_TABLES_TOOL = "数据库表名查询工具：list_sql_tables"
+TABLE_PREVIEW_TOOL = "数据库表数据查询工具：get_table_data"
+SQL_QUERY_TOOL = "数据库表数据查询工具：execute_sql_query"
 
-    所有数据库工具都通过此函数拿到同一份连接参数，避免每个工具重复读取环境变量
-    :return: mysql.connector.connect 可直接使用的连接参数
-    """
+
+def get_db_config():
+    """Read MySQL connection settings from environment variables."""
     timeout_seconds = get_settings().db_timeout_seconds
     config = {
         "host": os.getenv("MYSQL_HOST", "localhost"),
@@ -41,15 +37,12 @@ def get_db_config():
         "read_timeout": timeout_seconds,
         "write_timeout": timeout_seconds,
     }
+    config = {key: value for key, value in config.items() if value is not None}
 
-    # 去掉未配置的可选项，避免把 None 传给 mysql.connector 造成连接参数异常
-    config = {k: v for k, v in config.items() if v is not None}
-
-    # user/password/database 是本教程工具能正常查询业务库的最小必要配置
     required_keys = ["user", "password", "database"]
-    missing_keys = [k for k in required_keys if k not in config]
+    missing_keys = [key for key in required_keys if key not in config]
     if missing_keys:
-        raise ValueError(f"缺失数据库核心配置：{', '.join(missing_keys)}")
+        raise ValueError(f"缺少数据库核心配置：{', '.join(missing_keys)}")
 
     return config
 
@@ -63,174 +56,238 @@ def _apply_query_timeout(cursor) -> None:
         pass
 
 
+def _rows_to_csv(columns: list[str], rows: list[tuple]) -> str:
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(columns)
+    writer.writerows(rows)
+    return buffer.getvalue().strip()
+
+
+def _format_query_result(
+    columns: list[str],
+    rows: list[tuple],
+    *,
+    row_limit: int,
+    char_limit: int,
+    has_more_rows: bool,
+) -> tuple[str, dict]:
+    """Format a bounded CSV preview plus structured budget metadata."""
+    output_rows: list[tuple] = []
+    truncated_by_chars = False
+
+    for row in rows[:row_limit]:
+        candidate = _rows_to_csv(columns, [*output_rows, row])
+        if len(candidate) > char_limit and output_rows:
+            truncated_by_chars = True
+            break
+        if len(candidate) > char_limit:
+            output_rows.append(row)
+            truncated_by_chars = True
+            break
+        output_rows.append(row)
+
+    csv_text = _rows_to_csv(columns, output_rows)
+    truncated = has_more_rows or truncated_by_chars or len(rows) > len(output_rows)
+    metadata = {
+        "column_count": len(columns),
+        "fetched_rows": len(rows),
+        "returned_rows": len(output_rows),
+        "returned_chars": len(csv_text),
+        "row_limit": row_limit,
+        "char_limit": char_limit,
+        "truncated": truncated,
+        "truncated_by_rows": has_more_rows or len(rows) > row_limit,
+        "truncated_by_chars": truncated_by_chars or len(rows) > len(output_rows),
+    }
+    if not truncated:
+        return csv_text, metadata
+
+    notice = (
+        "结果已按工具预算截断，下面只返回可供模型分析的预览数据；"
+        f"返回 {len(output_rows)} 行，最多 {row_limit} 行，最多 {char_limit} 字符。"
+        "如需完整明细，请缩小筛选条件，或改用专门的导出流程。"
+    )
+    return f"{notice}\n\n{csv_text}", metadata
+
+
+def _preview_sql_query(query: str, row_limit: int) -> tuple[str, bool]:
+    """Constrain read-only SELECT/CTE queries at the SQL layer."""
+    cleaned = query.strip().rstrip(";").strip()
+    first_token = cleaned.split(maxsplit=1)[0].lower() if cleaned else ""
+    if first_token not in {"select", "with"}:
+        return query, False
+    return f"SELECT * FROM ({cleaned}) AS _deepsearch_preview LIMIT {row_limit + 1}", True
+
+
 @tool
 def list_sql_tables() -> str:
-    """
-    查询当前数据库中所有可用表
+    """List available tables in the configured MySQL database."""
+    started_at = monotonic()
+    monitor.report_tool(tool_name=LIST_TABLES_TOOL, args={})
 
-    作用：让模型先识别真实可用的表名，方便后续预览表结构和编写自定义 SQL。
-    :return: 有表：可用的表有：表1,表2,表3...
-             没有表：没有可用的表
-             出现异常：查询出现异常：异常信息
-    """
-
-    # 埋点：工具一被调用，前端可以展示当前正在查询数据库表名
-    monitor.report_tool(tool_name="数据库表名查询工具：list_sql_tables", args={})
-
-    # 加载数据库连接信息
-    config = get_db_config()
-
-    # MySQL 查询的固定步骤：
-    # 1. 创建连接
-    # 2. 创建 cursor
-    # 3. 执行 SQL
-    # 4. 获取返回结果
-    # 5. 释放连接和 cursor 资源
-    # 这里捕获异常并返回中文提示，避免工具报错直接中断 Agent 执行链路
     try:
-        # 使用 with 管理连接和游标，查询结束后自动释放数据库资源
-        with connect(**config) as conn:
+        with connect(**get_db_config()) as conn:
             with conn.cursor() as cursor:
                 _apply_query_timeout(cursor)
-                sql = "SHOW TABLES"
-                cursor.execute(sql)
-
-                # SHOW TABLES 返回形如：[("drugs",), ("inventory",), ("sales_records",)]
+                cursor.execute("SHOW TABLES")
                 tables = cursor.fetchall()
                 if not tables:
-                    return "没有可用的表"
+                    result = "没有可用的表"
+                    monitor.report_tool_end(
+                        LIST_TABLES_TOOL,
+                        {
+                            "elapsed_ms": round((monotonic() - started_at) * 1000),
+                            "table_count": 0,
+                            "returned_chars": len(result),
+                        },
+                    )
+                    return result
 
-                # 取每个元组的第一个元素，拼成模型容易阅读的表名列表
                 table_names = [table[0] for table in tables]
-                return f"可用的表有：{', '.join(table_names)}"
-    except Error as e:
-        return f"查询出现异常：{str(e)}"
+                result = f"可用的表有：{', '.join(table_names)}"
+                monitor.report_tool_end(
+                    LIST_TABLES_TOOL,
+                    {
+                        "elapsed_ms": round((monotonic() - started_at) * 1000),
+                        "table_count": len(table_names),
+                        "returned_chars": len(result),
+                    },
+                )
+                return result
+    except Error as exc:
+        monitor.report_tool_error(
+            LIST_TABLES_TOOL,
+            str(exc),
+            {"elapsed_ms": round((monotonic() - started_at) * 1000)},
+        )
+        return f"查询出现异常：{exc}"
 
 
 @tool
 def get_table_data(table_name) -> str:
-    """
-    查询指定表的前 100 行数据
-
-    当前工具调用之前，应先调用 list_sql_tables 完成表名校验。
-    此工具的作用：
-    1. 完成单表样例数据查询
-    2. 为多表查询提供表结构信息和数据格式参考
-    :param table_name: 表名
-    :return: CSV 格式数据
-             1. 第一行是列信息，列之间使用英文逗号分隔
-             2. 第二行开始是表数据，值之间也使用英文逗号分隔
-             3. 行和行之间使用 \n 分隔
-             4. 至多查询 100 条表数据
-             例如：
-                id,name,age\n -> 列头
-                1,张三,18\n
-                1,张三,18\n
-                1,张三,18\n -> 至多查询 100 条
-    """
-    # 埋点：工具二被调用，前端可以展示当前正在预览哪张表
+    """Return a bounded CSV preview for a table."""
+    started_at = monotonic()
+    settings = get_settings()
+    row_limit = settings.db_table_preview_rows
+    char_limit = settings.db_max_result_chars
     monitor.report_tool(
-        tool_name="数据库表数据查询工具：get_table_data",
+        tool_name=TABLE_PREVIEW_TOOL,
         args={"table_name": table_name},
     )
 
-    # 获取数据库参数
-    config = get_db_config()
-
-    # 查询流程同样是：连接 -> cursor -> 执行 SQL -> 获取列信息和数据 -> 自动释放资源
     try:
-        with connect(**config) as conn:
+        with connect(**get_db_config()) as conn:
             with conn.cursor() as cursor:
-                # 教程代码直接拼接表名，重点演示 Agent 查询链路；生产环境应改为白名单校验
                 _apply_query_timeout(cursor)
-                sql = f"SELECT * FROM {table_name} LIMIT 100"
-                cursor.execute(sql)
+                cursor.execute(f"SELECT * FROM {table_name} LIMIT {row_limit + 1}")
 
-                # cursor.description 保存查询结果的列元信息
-                # 例如：[("id", ...), ("name", ...), ("age", ...)]
-                # 如果 SQL 没有结果集，description 可能为 None
                 description = cursor.description
                 if not description:
-                    return f"数据表 {table_name} 暂无数据。"
+                    result = f"数据表 {table_name} 暂无数据。"
+                    monitor.report_tool_end(
+                        TABLE_PREVIEW_TOOL,
+                        {
+                            "elapsed_ms": round((monotonic() - started_at) * 1000),
+                            "table_name": table_name,
+                            "returned_chars": len(result),
+                        },
+                    )
+                    return result
 
-                # 只取每个列信息元组的第一个元素，也就是列名
-                # 例如：["id", "name", "age"]
                 columns = [desc[0] for desc in description]
-
-                # fetchall 返回表数据，形如：[(1, "张三", 18), (2, "李四", 20)]
-                rows = cursor.fetchall()
-
-                # 把每一行数据从元组转成 CSV 行文本
-                # 例如：(1, "张三", 18) -> "1,张三,18"
-                results = [",".join(map(str, row)) for row in rows]
-
-                # columns 组成 CSV 头部，rows 组成 CSV 数据体
-                # 最终返回：
-                # id,name,age
-                # 1,张三,18
-                header_str = ",".join(columns)
-                data_str = "\n".join(results)
-                return f"{header_str}\n{data_str}"
-    except Error as e:
-        return f"查询出现异常：{str(e)}"
+                rows = cursor.fetchmany(row_limit + 1)
+                result, metadata = _format_query_result(
+                    columns,
+                    rows[:row_limit],
+                    row_limit=row_limit,
+                    char_limit=char_limit,
+                    has_more_rows=len(rows) > row_limit,
+                )
+                monitor.report_tool_end(
+                    TABLE_PREVIEW_TOOL,
+                    {
+                        **metadata,
+                        "elapsed_ms": round((monotonic() - started_at) * 1000),
+                        "table_name": table_name,
+                    },
+                )
+                return result
+    except Error as exc:
+        monitor.report_tool_error(
+            TABLE_PREVIEW_TOOL,
+            str(exc),
+            {
+                "elapsed_ms": round((monotonic() - started_at) * 1000),
+                "table_name": table_name,
+            },
+        )
+        return f"查询出现异常：{exc}"
 
 
 @tool
 def execute_sql_query(query) -> str:
-    """
-    执行自定义 SQL 查询
+    """Execute a custom SQL query and return a bounded CSV preview."""
+    started_at = monotonic()
+    settings = get_settings()
+    row_limit = settings.db_query_preview_rows
+    char_limit = settings.db_max_result_chars
+    monitor.report_tool(tool_name=SQL_QUERY_TOOL, args={"query": query})
 
-    切记：执行之前，需要通过 list_sql_tables 明确真实表名，
-    再通过 get_table_data 明确表结构和数据格式。
-    适合多表关联、筛选、聚合、排序等复杂查询。
-    :param query: 要执行的自定义 SQL 语句
-    :return: CSV 格式数据
-             1. 第一行是列信息，列之间使用英文逗号分隔
-             2. 第二行开始是表数据，值之间也使用英文逗号分隔
-             3. 行和行之间使用 \n 分隔
-             例如：
-                id,name,age\n -> 列头
-                1,张三,18\n
-                1,张三,18\n
-    """
-    # 埋点：记录模型最终生成的 SQL，便于教学时观察是否真的落到了正确表字段上
-    monitor.report_tool(tool_name="数据库表数据查询工具：execute_sql_query", args={"query": query})
-
-    # 获取数据库参数
-    config = get_db_config()
-
-    # 自定义查询和 get_table_data 的结果处理逻辑一致：
-    # 执行 SQL -> 读取 description 得到列名 -> fetchall 得到数据 -> 拼成 CSV 返回
     try:
-        with connect(**config) as conn:
+        with connect(**get_db_config()) as conn:
             with conn.cursor() as cursor:
-                # 当前章节依赖提示词约束模型生成只读查询；生产环境建议在工具层限制 SELECT/SHOW
                 _apply_query_timeout(cursor)
-                cursor.execute(query)
+                preview_query, is_preview_limited = _preview_sql_query(query, row_limit)
+                cursor.execute(preview_query)
 
-                # 非查询类 SQL 没有结果集描述，这里统一返回提示，避免工具调用直接抛错给模型
                 description = cursor.description
                 if not description:
-                    return f"执行自定义 SQL 语句没有查询结果，SQL 为：{query}"
-                # description => [("列1", ...), ("列2", ...)]
+                    result = f"执行自定义 SQL 语句没有查询结果，SQL 为：{query}"
+                    monitor.report_tool_end(
+                        SQL_QUERY_TOOL,
+                        {
+                            "elapsed_ms": round((monotonic() - started_at) * 1000),
+                            "query": query,
+                            "returned_chars": len(result),
+                        },
+                    )
+                    return result
+
                 columns = [desc[0] for desc in description]
-
-                # rows => [(值1, 值2), (值1, 值2)]
-                rows = cursor.fetchall()
-
-                # 每行元组统一转为逗号分隔文本，便于模型读取和后续整理
-                results = [",".join(map(str, row)) for row in rows]
-
-                # 第一行是列名，后续是查询数据
-                header_str = ",".join(columns)
-                data_str = "\n".join(results)
-                return f"{header_str}\n{data_str}"
-    except Error as e:
-        return f"查询出现异常：{str(e)}"
+                rows = cursor.fetchmany(row_limit + 1)
+                if not is_preview_limited:
+                    cursor.fetchall()
+                result, metadata = _format_query_result(
+                    columns,
+                    rows[:row_limit],
+                    row_limit=row_limit,
+                    char_limit=char_limit,
+                    has_more_rows=len(rows) > row_limit,
+                )
+                monitor.report_tool_end(
+                    SQL_QUERY_TOOL,
+                    {
+                        **metadata,
+                        "elapsed_ms": round((monotonic() - started_at) * 1000),
+                        "query": query,
+                        "preview_limited": is_preview_limited,
+                    },
+                )
+                return result
+    except Error as exc:
+        monitor.report_tool_error(
+            SQL_QUERY_TOOL,
+            str(exc),
+            {
+                "elapsed_ms": round((monotonic() - started_at) * 1000),
+                "query": query,
+            },
+        )
+        return f"查询出现异常：{exc}"
 
 
 if __name__ == "__main__":
-    # 本地调试入口：直接运行本文件可验证 .env 中的 MySQL 连接配置是否可用
     print(
         execute_sql_query.invoke(
             {

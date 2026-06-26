@@ -22,4 +22,6 @@ def get_model():
         model_provider="openai",
         api_key=settings.openai_api_key,
         base_url=settings.openai_base_url,
+        timeout=settings.tool_timeout_seconds,
+        max_retries=1,
     )

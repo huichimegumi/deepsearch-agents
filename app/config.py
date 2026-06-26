@@ -44,6 +44,11 @@ class AppSettings:
     agent_max_runtime_seconds: float = 300.0
     tool_timeout_seconds: float = 60.0
     db_timeout_seconds: int = 20
+    db_table_preview_rows: int = 30
+    db_query_preview_rows: int = 80
+    db_max_result_chars: int = 12000
+    rag_answer_max_hits: int = 6
+    rag_answer_max_context_chars: int = 10000
     jwt_secret_key: str = "dev-only-change-me"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24
@@ -78,6 +83,11 @@ def get_settings() -> AppSettings:
         agent_max_runtime_seconds=float(os.getenv("AGENT_MAX_RUNTIME_SECONDS", "300")),
         tool_timeout_seconds=float(os.getenv("TOOL_TIMEOUT_SECONDS", "60")),
         db_timeout_seconds=int(os.getenv("DB_TIMEOUT_SECONDS", "20")),
+        db_table_preview_rows=int(os.getenv("DB_TABLE_PREVIEW_ROWS", "30")),
+        db_query_preview_rows=int(os.getenv("DB_QUERY_PREVIEW_ROWS", "80")),
+        db_max_result_chars=int(os.getenv("DB_MAX_RESULT_CHARS", "12000")),
+        rag_answer_max_hits=int(os.getenv("RAG_ANSWER_MAX_HITS", "6")),
+        rag_answer_max_context_chars=int(os.getenv("RAG_ANSWER_MAX_CONTEXT_CHARS", "10000")),
         jwt_secret_key=os.getenv("JWT_SECRET_KEY", "dev-only-change-me"),
         jwt_algorithm=os.getenv("JWT_ALGORITHM", "HS256"),
         access_token_expire_minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440")),
