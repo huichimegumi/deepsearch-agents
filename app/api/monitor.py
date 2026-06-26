@@ -12,7 +12,7 @@ from typing import Any, Optional
 
 from fastapi import WebSocket
 
-from app.api.audit import write_audit_event
+from app.api.audit import _safe_value, write_audit_event
 from app.api.context import get_thread_context
 
 
@@ -37,13 +37,22 @@ class ToolMonitor:
         """绑定 FastAPI WebSocket 连接管理器"""
         self.websocket_manager = manager
 
-    def begin_trace(self, thread_id: str) -> None:
-        self._trace_events[thread_id] = []
+    def begin_trace(self, thread_id: str) -> list[dict[str, Any]]:
+        trace_events: list[dict[str, Any]] = []
+        self._trace_events[thread_id] = trace_events
+        return trace_events
 
     def get_trace(self, thread_id: str) -> list[dict[str, Any]]:
         return list(self._trace_events.get(thread_id, []))
 
-    def end_trace(self, thread_id: str) -> list[dict[str, Any]]:
+    def end_trace(
+        self,
+        thread_id: str,
+        trace_events: list[dict[str, Any]] | None = None,
+    ) -> list[dict[str, Any]]:
+        current_events = self._trace_events.get(thread_id)
+        if trace_events is not None and current_events is not trace_events:
+            return list(trace_events)
         return self._trace_events.pop(thread_id, [])
 
     def _emit(
@@ -59,12 +68,13 @@ class ToolMonitor:
         :param message: 面向前端展示的事件说明
         :param data: 附加结构化数据
         """
+        safe_data = _safe_value(data or {})
         payload = {
             "type": "monitor_event",
             "event": event_type,
             "message": message,
-            "data": data or {},
-            "timestamp": datetime.datetime.now().isoformat(),
+            "data": safe_data,
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         }
         thread_id = get_thread_context()
         if thread_id and thread_id in self._trace_events:
@@ -73,7 +83,7 @@ class ToolMonitor:
             event_type,
             {
                 "message": message,
-                "data": data or {},
+                "data": safe_data,
             },
         )
 

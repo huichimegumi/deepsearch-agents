@@ -35,6 +35,17 @@ def _format_messages(messages: list[tuple[str, str]]) -> str:
     return "\n".join(lines)
 
 
+def _is_failed_trace_message(message: ChatMessage) -> bool:
+    if message.role != "assistant" or not message.events:
+        return False
+    event_types = {
+        event.get("event")
+        for event in message.events
+        if isinstance(event, dict) and isinstance(event.get("event"), str)
+    }
+    return bool(event_types & {"error", "task_cancelled"}) and "task_result" not in event_types
+
+
 def get_conversation_context(
     *,
     user_id: str,
@@ -59,7 +70,11 @@ def get_conversation_context(
             statement.order_by(ChatMessage.created_at.desc()).limit(recent_limit)
         ).all()
 
-        recent = [(message.role, message.content) for message in reversed(rows)]
+        recent = [
+            (message.role, message.content)
+            for message in reversed(rows)
+            if not _is_failed_trace_message(message)
+        ]
         return ConversationContext(summary=conversation.summary or "", recent_messages=recent)
 
 

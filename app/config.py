@@ -42,6 +42,7 @@ class AppSettings:
     cors_origins: tuple[str, ...]
     agent_recursion_limit: int = 30
     agent_max_runtime_seconds: float = 300.0
+    llm_timeout_seconds: float = 180.0
     tool_timeout_seconds: float = 60.0
     db_timeout_seconds: int = 20
     jwt_secret_key: str = "dev-only-change-me"
@@ -76,6 +77,7 @@ def get_settings() -> AppSettings:
         ),
         agent_recursion_limit=int(os.getenv("AGENT_RECURSION_LIMIT", "30")),
         agent_max_runtime_seconds=float(os.getenv("AGENT_MAX_RUNTIME_SECONDS", "300")),
+        llm_timeout_seconds=float(os.getenv("LLM_TIMEOUT_SECONDS", "180")),
         tool_timeout_seconds=float(os.getenv("TOOL_TIMEOUT_SECONDS", "60")),
         db_timeout_seconds=int(os.getenv("DB_TIMEOUT_SECONDS", "20")),
         jwt_secret_key=os.getenv("JWT_SECRET_KEY", "dev-only-change-me"),

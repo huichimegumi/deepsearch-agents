@@ -31,11 +31,13 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from app.agent.main_agent import run_deep_agent
+from app.api.audit import write_audit_event
 from app.api.conversation_store import append_message, get_or_create_conversation
 from app.api.conversations import router as conversations_router
 from app.api.health import router as health_router
 from app.api.knowledge import router as knowledge_router
 from app.api.monitor import manager, monitor
+from app.api.trace_utils import trace_files, trace_result, trace_terminal_message
 from app.auth.dependencies import get_current_user, get_current_user_from_token
 from app.auth.router import router as auth_router
 from app.config import get_settings
@@ -83,6 +85,7 @@ app.include_router(memories_router)
 
 # 保存 thread_id -> 后台 Agent 任务，用于同一会话任务替换和主动取消
 active_tasks: dict[str, asyncio.Task] = {}
+postprocess_tasks: set[asyncio.Task] = set()
 
 # output 保存每个会话最终工作区，前端只允许从这里浏览和下载生成文件
 output_dir = project_root / "output"
@@ -121,35 +124,6 @@ def _user_updated_dir(user_id: str) -> Path:
     return updated_dir / f"user_{user_id}"
 
 
-def _trace_files(events: list[dict]) -> list[dict]:
-    files: dict[str, dict] = {}
-    for event in events:
-        if event.get("event") != "file_created":
-            continue
-        data = event.get("data")
-        if not isinstance(data, dict):
-            continue
-        path = data.get("path")
-        name = data.get("name")
-        size = data.get("size")
-        mtime = data.get("mtime")
-        if not (
-            isinstance(path, str)
-            and isinstance(name, str)
-            and isinstance(size, (int, float))
-            and isinstance(mtime, (int, float))
-        ):
-            continue
-        files[path] = {
-            "name": name,
-            "type": data.get("type") if isinstance(data.get("type"), str) else "file",
-            "path": path,
-            "size": size,
-            "mtime": mtime,
-        }
-    return sorted(files.values(), key=lambda item: item.get("mtime", 0), reverse=True)
-
-
 def _forget_task(thread_id: str, task: asyncio.Task) -> None:
     """
     清理已结束任务的登记关系。
@@ -159,6 +133,103 @@ def _forget_task(thread_id: str, task: asyncio.Task) -> None:
     """
     if active_tasks.get(thread_id) is task:
         active_tasks.pop(thread_id, None)
+    if task.cancelled():
+        return
+    try:
+        exception = task.exception()
+    except asyncio.CancelledError:
+        return
+    if exception is not None:
+        write_audit_event(
+            "task_background_error",
+            {"error": repr(exception)},
+            thread_id=thread_id,
+        )
+
+
+def _forget_postprocess_task(thread_id: str, task: asyncio.Task) -> None:
+    postprocess_tasks.discard(task)
+    if task.cancelled():
+        return
+    try:
+        exception = task.exception()
+    except asyncio.CancelledError:
+        return
+    if exception is not None:
+        write_audit_event(
+            "conversation_postprocess_error",
+            {"error": repr(exception)},
+            thread_id=thread_id,
+        )
+
+
+def _run_conversation_postprocess_sync(
+    *,
+    query: str,
+    thread_id: str,
+    user_id: str,
+    monitor_thread_id: str,
+    successful_result: str,
+    source_message_id: str,
+) -> None:
+    extract_and_store_memories(
+        user_id=user_id,
+        thread_id=thread_id,
+        user_message=query,
+        assistant_message=successful_result,
+        source_message_id=source_message_id,
+    )
+    update_conversation_summary(user_id=user_id, thread_id=thread_id)
+    write_audit_event(
+        "conversation_postprocess_completed",
+        {},
+        thread_id=monitor_thread_id,
+    )
+
+
+async def _run_conversation_postprocess(
+    *,
+    query: str,
+    thread_id: str,
+    user_id: str,
+    monitor_thread_id: str,
+    successful_result: str,
+    source_message_id: str,
+) -> None:
+    await asyncio.to_thread(
+        _run_conversation_postprocess_sync,
+        query=query,
+        thread_id=thread_id,
+        user_id=user_id,
+        monitor_thread_id=monitor_thread_id,
+        successful_result=successful_result,
+        source_message_id=source_message_id,
+    )
+
+
+def _schedule_conversation_postprocess(
+    *,
+    query: str,
+    thread_id: str,
+    user_id: str,
+    monitor_thread_id: str,
+    successful_result: str,
+    source_message_id: str,
+) -> None:
+    task = asyncio.create_task(
+        _run_conversation_postprocess(
+            query=query,
+            thread_id=thread_id,
+            user_id=user_id,
+            monitor_thread_id=monitor_thread_id,
+            successful_result=successful_result,
+            source_message_id=source_message_id,
+        )
+    )
+    postprocess_tasks.add(task)
+    task.add_done_callback(
+        lambda finished_task: _forget_postprocess_task(monitor_thread_id, finished_task)
+    )
 
 
 async def _run_task_and_record(
@@ -176,7 +247,7 @@ async def _run_task_and_record(
             exclude_message_id=user_message_id,
         )
     )
-    monitor.begin_trace(monitor_thread_id)
+    trace_buffer = monitor.begin_trace(monitor_thread_id)
     try:
         result = await run_deep_agent(
             query,
@@ -186,24 +257,27 @@ async def _run_task_and_record(
             conversation_memory=conversation_memory,
         )
     finally:
-        trace_events = monitor.end_trace(monitor_thread_id)
-    if result:
+        trace_events = monitor.end_trace(monitor_thread_id, trace_buffer)
+    successful_result = result or trace_result(trace_events)
+    persisted_result = successful_result or trace_terminal_message(trace_events)
+    if persisted_result or trace_events:
         assistant_message = append_message(
             user_id=user_id,
             thread_id=thread_id,
             role="assistant",
-            content=result,
+            content=persisted_result,
             events=trace_events,
-            files=_trace_files(trace_events),
+            files=trace_files(trace_events),
         )
-        extract_and_store_memories(
-            user_id=user_id,
-            thread_id=thread_id,
-            user_message=query,
-            assistant_message=result,
-            source_message_id=user_message_id or assistant_message.id,
-        )
-        update_conversation_summary(user_id=user_id, thread_id=thread_id)
+        if successful_result:
+            _schedule_conversation_postprocess(
+                query=query,
+                user_id=user_id,
+                thread_id=thread_id,
+                monitor_thread_id=monitor_thread_id,
+                successful_result=successful_result,
+                source_message_id=user_message_id or assistant_message.id,
+            )
 
 
 @app.post("/api/task")

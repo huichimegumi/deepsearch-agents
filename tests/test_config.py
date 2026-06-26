@@ -76,6 +76,7 @@ class AppSettingsTests(unittest.TestCase):
             "OPENAI_API_KEY": "test-key",
             "AGENT_RECURSION_LIMIT": "12",
             "AGENT_MAX_RUNTIME_SECONDS": "45.5",
+            "LLM_TIMEOUT_SECONDS": "30.5",
             "TOOL_TIMEOUT_SECONDS": "9.5",
             "DB_TIMEOUT_SECONDS": "7",
         }
@@ -85,5 +86,6 @@ class AppSettingsTests(unittest.TestCase):
 
         self.assertEqual(settings.agent_recursion_limit, 12)
         self.assertEqual(settings.agent_max_runtime_seconds, 45.5)
+        self.assertEqual(settings.llm_timeout_seconds, 30.5)
         self.assertEqual(settings.tool_timeout_seconds, 9.5)
         self.assertEqual(settings.db_timeout_seconds, 7)

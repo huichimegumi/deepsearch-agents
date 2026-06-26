@@ -6,10 +6,26 @@ import asyncio
 import atexit
 import inspect
 import os
+import sys
 from dataclasses import dataclass
 from typing import Any
 
 from app.rag.config import get_rag_settings
+
+
+def _ensure_windows_selector_event_loop_policy() -> bool:
+    if sys.platform != "win32":
+        return False
+    policy_factory = getattr(asyncio, "WindowsSelectorEventLoopPolicy", None)
+    if policy_factory is None:
+        return False
+    if isinstance(asyncio.get_event_loop_policy(), policy_factory):
+        return False
+    asyncio.set_event_loop_policy(policy_factory())
+    return True
+
+
+_WINDOWS_SELECTOR_EVENT_LOOP_POLICY_SET = _ensure_windows_selector_event_loop_policy()
 
 
 @dataclass(frozen=True)
