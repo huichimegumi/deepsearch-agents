@@ -2160,19 +2160,19 @@ textarea {
 /* Light theme */
 :root {
   color-scheme: light;
-  --bg: #f6f9fc;
-  --surface: rgba(255, 255, 255, 0.88);
-  --surface-strong: rgba(255, 255, 255, 0.96);
-  --line: rgba(15, 82, 112, 0.16);
-  --line-strong: rgba(15, 127, 179, 0.28);
+  --bg: #e9eef4;
+  --surface: rgba(244, 247, 250, 0.9);
+  --surface-strong: rgba(239, 244, 248, 0.96);
+  --line: rgba(36, 72, 96, 0.18);
+  --line-strong: rgba(11, 98, 141, 0.32);
   --text: #172033;
-  --muted: #617086;
-  --cyan: #0f7fb3;
+  --muted: #536275;
+  --cyan: #0b628d;
   --green: #16834a;
   --amber: #b7791f;
   --red: #d9365d;
-  --violet: #4662d6;
-  --shadow: 0 18px 48px rgba(42, 58, 76, 0.12);
+  --violet: #3850b8;
+  --shadow: 0 18px 48px rgba(42, 58, 76, 0.14);
 }
 
 html {
@@ -2183,8 +2183,8 @@ body,
 .chat-app-shell,
 .auth-shell {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(246, 249, 252, 0.98)),
-    repeating-linear-gradient(90deg, rgba(15, 127, 179, 0.045) 0 1px, transparent 1px 80px),
+    linear-gradient(180deg, rgba(244, 247, 250, 0.72), rgba(227, 234, 241, 0.98)),
+    repeating-linear-gradient(90deg, rgba(11, 98, 141, 0.05) 0 1px, transparent 1px 80px),
     repeating-linear-gradient(180deg, rgba(22, 131, 74, 0.035) 0 1px, transparent 1px 80px),
     var(--bg);
   color: var(--text);
@@ -2193,7 +2193,7 @@ body,
 .app-shell::before,
 .chat-app-shell::before {
   background:
-    linear-gradient(116deg, transparent 0 24%, rgba(15, 127, 179, 0.08) 24.2% 24.45%, transparent 24.7% 100%),
+    linear-gradient(116deg, transparent 0 24%, rgba(11, 98, 141, 0.07) 24.2% 24.45%, transparent 24.7% 100%),
     repeating-linear-gradient(0deg, transparent 0 8px, rgba(15, 82, 112, 0.028) 8px 9px);
   opacity: 0.72;
 }
@@ -2209,7 +2209,7 @@ body,
 }
 
 .chat-sidebar {
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(239, 244, 248, 0.92);
 }
 
 .console-panel {
@@ -2237,7 +2237,7 @@ body,
 .thinking-event,
 .artifact-card {
   border-color: rgba(15, 82, 112, 0.12);
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(242, 246, 249, 0.78);
   box-shadow: 0 8px 26px rgba(42, 58, 76, 0.07);
 }
 
@@ -2246,7 +2246,7 @@ body,
 .example-card:hover,
 .example-card:focus-visible {
   border-color: rgba(15, 127, 179, 0.34);
-  background: rgba(232, 247, 255, 0.86);
+  background: rgba(223, 238, 246, 0.9);
 }
 
 .recent-conversation-item--active {
@@ -2261,7 +2261,7 @@ body,
   border-color: rgba(15, 127, 179, 0.2);
   background:
     linear-gradient(135deg, rgba(15, 127, 179, 0.08), rgba(22, 131, 74, 0.04)),
-    rgba(255, 255, 255, 0.78);
+    rgba(238, 244, 248, 0.82);
 }
 
 .metric-tile > .anticon,
@@ -2310,7 +2310,7 @@ body,
 .auth-panel .ant-input-affix-wrapper,
 .auth-panel .ant-input {
   border-color: var(--line) !important;
-  background: #ffffff !important;
+  background: #f7f9fb !important;
   color: var(--text) !important;
 }
 
@@ -2324,7 +2324,7 @@ body,
 }
 
 .chat-composer {
-  background: linear-gradient(180deg, rgba(246, 249, 252, 0), rgba(246, 249, 252, 0.88) 42%, rgba(246, 249, 252, 0.98));
+  background: linear-gradient(180deg, rgba(233, 238, 244, 0), rgba(233, 238, 244, 0.9) 42%, rgba(233, 238, 244, 0.98));
 }
 
 .event-body pre,
@@ -2332,7 +2332,7 @@ body,
 .markdown-body pre,
 .markdown-body code {
   border-color: rgba(15, 82, 112, 0.14);
-  background: rgba(241, 246, 251, 0.92);
+  background: rgba(225, 233, 241, 0.92);
   color: #18435c;
 }
 
@@ -2344,7 +2344,7 @@ body,
 .empty-console,
 .compact-empty {
   border-color: rgba(15, 82, 112, 0.16);
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(239, 244, 248, 0.58);
 }
 
 .panel-heading h2,
@@ -2419,7 +2419,7 @@ body,
 
 .markdown-body blockquote {
   border-left-color: rgba(15, 127, 179, 0.48);
-  background: rgba(232, 247, 255, 0.82);
+  background: rgba(223, 238, 246, 0.84);
   color: #2f4b5c;
 }
 
@@ -2429,7 +2429,7 @@ body,
 }
 
 .markdown-body td {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(242, 246, 249, 0.72);
 }
 
 .event-stream,
