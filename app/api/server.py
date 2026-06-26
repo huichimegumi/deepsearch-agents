@@ -35,7 +35,7 @@ from app.api.conversation_store import append_message, get_or_create_conversatio
 from app.api.conversations import router as conversations_router
 from app.api.health import router as health_router
 from app.api.knowledge import router as knowledge_router
-from app.api.monitor import manager
+from app.api.monitor import manager, monitor
 from app.auth.dependencies import get_current_user, get_current_user_from_token
 from app.auth.router import router as auth_router
 from app.config import get_settings
@@ -121,6 +121,35 @@ def _user_updated_dir(user_id: str) -> Path:
     return updated_dir / f"user_{user_id}"
 
 
+def _trace_files(events: list[dict]) -> list[dict]:
+    files: dict[str, dict] = {}
+    for event in events:
+        if event.get("event") != "file_created":
+            continue
+        data = event.get("data")
+        if not isinstance(data, dict):
+            continue
+        path = data.get("path")
+        name = data.get("name")
+        size = data.get("size")
+        mtime = data.get("mtime")
+        if not (
+            isinstance(path, str)
+            and isinstance(name, str)
+            and isinstance(size, (int, float))
+            and isinstance(mtime, (int, float))
+        ):
+            continue
+        files[path] = {
+            "name": name,
+            "type": data.get("type") if isinstance(data.get("type"), str) else "file",
+            "path": path,
+            "size": size,
+            "mtime": mtime,
+        }
+    return sorted(files.values(), key=lambda item: item.get("mtime", 0), reverse=True)
+
+
 def _forget_task(thread_id: str, task: asyncio.Task) -> None:
     """
     清理已结束任务的登记关系。
@@ -147,19 +176,25 @@ async def _run_task_and_record(
             exclude_message_id=user_message_id,
         )
     )
-    result = await run_deep_agent(
-        query,
-        thread_id,
-        user_id=user_id,
-        monitor_thread_id=monitor_thread_id,
-        conversation_memory=conversation_memory,
-    )
+    monitor.begin_trace(monitor_thread_id)
+    try:
+        result = await run_deep_agent(
+            query,
+            thread_id,
+            user_id=user_id,
+            monitor_thread_id=monitor_thread_id,
+            conversation_memory=conversation_memory,
+        )
+    finally:
+        trace_events = monitor.end_trace(monitor_thread_id)
     if result:
         assistant_message = append_message(
             user_id=user_id,
             thread_id=thread_id,
             role="assistant",
             content=result,
+            events=trace_events,
+            files=_trace_files(trace_events),
         )
         extract_and_store_memories(
             user_id=user_id,

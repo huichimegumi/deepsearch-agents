@@ -30,11 +30,21 @@ class ToolMonitor:
         if cls._instance is None:
             cls._instance = super(ToolMonitor, cls).__new__(cls)
             cls._instance.websocket_manager = None
+            cls._instance._trace_events = {}
         return cls._instance
 
     def set_websocket_manager(self, manager: "ConnectionManager") -> None:
         """绑定 FastAPI WebSocket 连接管理器"""
         self.websocket_manager = manager
+
+    def begin_trace(self, thread_id: str) -> None:
+        self._trace_events[thread_id] = []
+
+    def get_trace(self, thread_id: str) -> list[dict[str, Any]]:
+        return list(self._trace_events.get(thread_id, []))
+
+    def end_trace(self, thread_id: str) -> list[dict[str, Any]]:
+        return self._trace_events.pop(thread_id, [])
 
     def _emit(
         self,
@@ -56,6 +66,9 @@ class ToolMonitor:
             "data": data or {},
             "timestamp": datetime.datetime.now().isoformat(),
         }
+        thread_id = get_thread_context()
+        if thread_id and thread_id in self._trace_events:
+            self._trace_events[thread_id].append(payload)
         write_audit_event(
             event_type,
             {
@@ -66,7 +79,6 @@ class ToolMonitor:
 
         if self.websocket_manager:
             try:
-                thread_id = get_thread_context()
                 manager_loop = self.websocket_manager.loop
 
                 if manager_loop and thread_id:

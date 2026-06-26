@@ -29,6 +29,7 @@ class RagSettings:
     vector_top_k: int
     lexical_top_k: int
     rerank_top_k: int
+    min_relevance_score: float
     memory_top_k: int
     memory_min_confidence: float
     fastembed_cache_path: str | None
@@ -68,6 +69,7 @@ def get_rag_settings() -> RagSettings:
         vector_top_k=int(os.getenv("RAG_VECTOR_TOP_K", "24")),
         lexical_top_k=int(os.getenv("RAG_LEXICAL_TOP_K", "24")),
         rerank_top_k=int(os.getenv("RAG_RERANK_TOP_K", "8")),
+        min_relevance_score=float(os.getenv("RAG_MIN_RELEVANCE_SCORE", "1.0")),
         memory_top_k=int(os.getenv("MEMORY_TOP_K", "6")),
         memory_min_confidence=float(os.getenv("MEMORY_MIN_CONFIDENCE", "0.55")),
         fastembed_cache_path=os.getenv("FASTEMBED_CACHE_PATH") or ".fastembed_cache",

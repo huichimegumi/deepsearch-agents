@@ -66,6 +66,14 @@ def _lexical_search(query: str, knowledge_base_id: str, limit: int) -> list[tupl
     return [(str(row.id), float(row.score)) for row in rows]
 
 
+def _filter_ranked_candidates(
+    ranked: list[tuple[tuple[Chunk, Document], float]],
+    min_relevance_score: float,
+    limit: int,
+) -> list[tuple[tuple[Chunk, Document], float]]:
+    return [item for item in ranked if item[1] >= min_relevance_score][:limit]
+
+
 def hybrid_search(query: str, knowledge_base_id: str) -> list[RetrievedChunk]:
     settings = get_rag_settings()
     lexical = _lexical_search(query, knowledge_base_id, settings.lexical_top_k)
@@ -90,9 +98,11 @@ def hybrid_search(query: str, knowledge_base_id: str) -> list[RetrievedChunk]:
 
     ordered = [by_id[chunk_id] for chunk_id in candidate_ids if chunk_id in by_id]
     rerank_scores = rerank(query, [chunk.content for chunk, _document in ordered])
-    ranked = sorted(zip(ordered, rerank_scores), key=lambda item: item[1], reverse=True)[
-        : settings.rerank_top_k
-    ]
+    ranked = _filter_ranked_candidates(
+        sorted(zip(ordered, rerank_scores), key=lambda item: item[1], reverse=True),
+        settings.min_relevance_score,
+        settings.rerank_top_k,
+    )
     return [
         RetrievedChunk(
             chunk_id=chunk.id,
