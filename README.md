@@ -1,6 +1,6 @@
 # DeepSearch Agents
 
-基于 DeepAgents 的对话式多智能体深度研究系统。项目现在已经不只是“提交任务、调用搜索、生成报告”的演示，而是具备了用户登录、历史会话、短期执行记忆、长期用户记忆、知识库管理、附件读取和多源检索的完整研究工作台。
+基于 DeepAgents 的对话式多智能体深度研究系统，具备用户登录、历史会话、短期执行记忆、用户记忆、知识库管理、附件读取和多源检索功能
 
 ![DeepSearch Agents 首页](docs/images/deepsearch-agent-home.jpg)
 
@@ -33,17 +33,17 @@
 
 核心技术栈：
 
-| 模块 | 技术 |
-| --- | --- |
-| 智能体 | DeepAgents、LangChain、LangGraph |
-| 后端 | FastAPI、Uvicorn、WebSocket、Celery |
-| 认证与会话 | JWT、passlib/bcrypt、SQLAlchemy |
-| 网络搜索 | Tavily、DuckDuckGo、Perplexity、SearXNG |
-| 结构化数据 | MySQL |
-| 本地知识库 | PostgreSQL、Qdrant、MinIO、Redis、FastEmbed |
-| 记忆 | PostgreSQL、Qdrant、LangGraph checkpointer |
-| 前端 | React、TypeScript、Vite、Ant Design、Tailwind CSS |
-| 依赖管理 | uv、pnpm |
+| 模块       | 技术                                              |
+| ---------- | ------------------------------------------------- |
+| 智能体     | DeepAgents、LangChain、LangGraph                  |
+| 后端       | FastAPI、Uvicorn、WebSocket、Celery               |
+| 认证与会话 | JWT、passlib/bcrypt、SQLAlchemy                   |
+| 网络搜索   | Tavily、DuckDuckGo、Perplexity、SearXNG           |
+| 结构化数据 | MySQL                                             |
+| 本地知识库 | PostgreSQL、Qdrant、MinIO、Redis、FastEmbed       |
+| 记忆       | PostgreSQL、Qdrant、LangGraph checkpointer        |
+| 前端       | React、TypeScript、Vite、Ant Design、Tailwind CSS |
+| 依赖管理   | uv、pnpm                                          |
 
 ## 记忆与会话机制
 
@@ -235,38 +235,38 @@ pnpm build
 
 会话、任务、文件和记忆接口需要 `Authorization: Bearer <token>`。WebSocket 连接通过查询参数传入 token，例如 `/ws/{thread_id}?token=<token>`。知识库接口当前是全局资源接口，尚未按用户隔离。
 
-| 接口 | 用途 |
-| --- | --- |
-| `POST /api/auth/register` | 注册用户并返回 token |
-| `POST /api/auth/login` | 登录并返回 token |
-| `GET /api/auth/me` | 获取当前用户 |
-| `GET /health/live` | API 存活检查 |
-| `GET /health/ready` | 外部依赖就绪检查 |
-| `POST /api/task` | 启动研究任务 |
-| `POST /api/task/{thread_id}/cancel` | 取消指定任务 |
-| `POST /api/upload` | 上传会话附件 |
-| `GET /api/files` | 获取当前用户生成文件列表 |
-| `GET /api/download` | 下载当前用户生成文件 |
-| `GET /api/conversations` | 获取当前用户会话列表 |
-| `POST /api/conversations` | 创建会话 |
-| `GET /api/conversations/{thread_id}` | 获取会话详情和历史消息 |
-| `PATCH /api/conversations/{thread_id}` | 更新标题或归档状态 |
-| `DELETE /api/conversations/{thread_id}` | 归档会话并清理短期 checkpoint |
-| `GET /api/memories` | 获取长期记忆 |
-| `POST /api/memories` | 手动创建长期记忆 |
-| `POST /api/memories/search` | 检索长期记忆 |
-| `PATCH /api/memories/{memory_id}` | 更新长期记忆 |
-| `DELETE /api/memories/{memory_id}` | 删除长期记忆 |
-| `GET /api/knowledge-bases` | 获取知识库列表 |
-| `POST /api/knowledge-bases` | 创建知识库 |
-| `DELETE /api/knowledge-bases/{id}` | 删除知识库 |
-| `POST /api/knowledge-bases/{id}/documents` | 上传并索引知识库文档 |
-| `GET /api/knowledge-bases/{id}/documents` | 获取文档及索引状态 |
-| `POST /api/knowledge-bases/documents/{document_id}/reindex` | 重新索引文档 |
-| `DELETE /api/knowledge-bases/documents/{document_id}` | 删除文档 |
-| `GET /api/knowledge-bases/index-jobs/{job_id}` | 查询索引任务状态 |
-| `POST /api/knowledge-bases/{id}/search` | 执行知识库混合检索 |
-| `WebSocket /ws/{thread_id}` | 接收任务实时事件 |
+| 接口                                                        | 用途                          |
+| ----------------------------------------------------------- | ----------------------------- |
+| `POST /api/auth/register`                                   | 注册用户并返回 token          |
+| `POST /api/auth/login`                                      | 登录并返回 token              |
+| `GET /api/auth/me`                                          | 获取当前用户                  |
+| `GET /health/live`                                          | API 存活检查                  |
+| `GET /health/ready`                                         | 外部依赖就绪检查              |
+| `POST /api/task`                                            | 启动研究任务                  |
+| `POST /api/task/{thread_id}/cancel`                         | 取消指定任务                  |
+| `POST /api/upload`                                          | 上传会话附件                  |
+| `GET /api/files`                                            | 获取当前用户生成文件列表      |
+| `GET /api/download`                                         | 下载当前用户生成文件          |
+| `GET /api/conversations`                                    | 获取当前用户会话列表          |
+| `POST /api/conversations`                                   | 创建会话                      |
+| `GET /api/conversations/{thread_id}`                        | 获取会话详情和历史消息        |
+| `PATCH /api/conversations/{thread_id}`                      | 更新标题或归档状态            |
+| `DELETE /api/conversations/{thread_id}`                     | 归档会话并清理短期 checkpoint |
+| `GET /api/memories`                                         | 获取长期记忆                  |
+| `POST /api/memories`                                        | 手动创建长期记忆              |
+| `POST /api/memories/search`                                 | 检索长期记忆                  |
+| `PATCH /api/memories/{memory_id}`                           | 更新长期记忆                  |
+| `DELETE /api/memories/{memory_id}`                          | 删除长期记忆                  |
+| `GET /api/knowledge-bases`                                  | 获取知识库列表                |
+| `POST /api/knowledge-bases`                                 | 创建知识库                    |
+| `DELETE /api/knowledge-bases/{id}`                          | 删除知识库                    |
+| `POST /api/knowledge-bases/{id}/documents`                  | 上传并索引知识库文档          |
+| `GET /api/knowledge-bases/{id}/documents`                   | 获取文档及索引状态            |
+| `POST /api/knowledge-bases/documents/{document_id}/reindex` | 重新索引文档                  |
+| `DELETE /api/knowledge-bases/documents/{document_id}`       | 删除文档                      |
+| `GET /api/knowledge-bases/index-jobs/{job_id}`              | 查询索引任务状态              |
+| `POST /api/knowledge-bases/{id}/search`                     | 执行知识库混合检索            |
+| `WebSocket /ws/{thread_id}`                                 | 接收任务实时事件              |
 
 启动后可访问 `http://localhost:8000/docs` 查看完整 OpenAPI 文档。
 
