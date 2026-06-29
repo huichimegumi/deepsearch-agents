@@ -1,10 +1,16 @@
 # DeepSearch Agents
 
-基于 DeepAgents 的对话式多智能体深度研究系统，具备用户登录、历史会话、短期执行记忆、用户记忆、知识库管理、附件读取和多源检索功能
+<p align="center">
+  <a href="#中文">中文</a> | <a href="#english">English</a>
+</p>
 
-![DeepSearch Agents 首页](docs/images/deepsearch-agent-home.jpg)
+![DeepSearch Agents Home](docs/images/deepsearch-agent-home.jpg)
 
-## 主要功能
+## 中文
+
+DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研究系统，支持用户登录、历史会话、短期执行记忆、用户长期记忆、知识库管理、附件读取和多源检索。
+
+### 主要功能
 
 - 多智能体研究：主智能体负责规划、调度和汇总，网络搜索、数据库查询、本地知识库三个子智能体分别处理不同信息源。
 - 多源检索：支持 Tavily、DuckDuckGo、Perplexity、SearXNG、MySQL，以及基于 PostgreSQL、Qdrant、MinIO、Redis 和 FastEmbed 的本地 RAG。
@@ -15,7 +21,7 @@
 - Web 工作台：前端提供聊天、任务事件流、附件上传、知识库管理、长期记忆抽屉、历史会话侧栏和结果下载。
 - 审计日志：任务开始、结果、取消、异常等事件会按会话写入 `app/logs/session_*.jsonl`，便于排查执行过程。
 
-## 系统架构
+### 系统架构
 
 项目采用 Orchestrator-Workers 模式，并把会话、记忆和检索状态持久化到本地基础设施中：
 
@@ -33,19 +39,19 @@
 
 核心技术栈：
 
-| 模块       | 技术                                              |
-| ---------- | ------------------------------------------------- |
-| 智能体     | DeepAgents、LangChain、LangGraph                  |
-| 后端       | FastAPI、Uvicorn、WebSocket、Celery               |
-| 认证与会话 | JWT、passlib/bcrypt、SQLAlchemy                   |
-| 网络搜索   | Tavily、DuckDuckGo、Perplexity、SearXNG           |
-| 结构化数据 | MySQL                                             |
-| 本地知识库 | PostgreSQL、Qdrant、MinIO、Redis、FastEmbed       |
-| 记忆       | PostgreSQL、Qdrant、LangGraph checkpointer        |
-| 前端       | React、TypeScript、Vite、Ant Design、Tailwind CSS |
-| 依赖管理   | uv、pnpm                                          |
+| 模块 | 技术 |
+| --- | --- |
+| 智能体 | DeepAgents、LangChain、LangGraph |
+| 后端 | FastAPI、Uvicorn、WebSocket、Celery |
+| 认证与会话 | JWT、passlib/bcrypt、SQLAlchemy |
+| 网络搜索 | Tavily、DuckDuckGo、Perplexity、SearXNG |
+| 结构化数据 | MySQL |
+| 本地知识库 | PostgreSQL、Qdrant、MinIO、Redis、FastEmbed |
+| 记忆 | PostgreSQL、Qdrant、LangGraph checkpointer |
+| 前端 | React、TypeScript、Vite、Ant Design、Tailwind CSS |
+| 依赖管理 | uv、pnpm |
 
-## 记忆与会话机制
+### 记忆与会话机制
 
 项目里有几类“记忆”，用途不同：
 
@@ -71,7 +77,7 @@ SHORT_TERM_MEMORY_FALLBACK_ENABLED=true
 
 `SHORT_TERM_MEMORY_DATABASE_URL` 为空时复用 `RAG_DATABASE_URL`。如果希望调试时完全不持久化短期 checkpoint，可设置 `SHORT_TERM_MEMORY_BACKEND=memory`。
 
-## 项目结构
+### 项目结构
 
 ```text
 deepsearch-agents/
@@ -93,7 +99,7 @@ deepsearch-agents/
 └── pyproject.toml          # Python 项目配置
 ```
 
-## 环境要求
+### 环境要求
 
 - Python 3.12
 - [uv](https://docs.astral.sh/uv/)
@@ -102,9 +108,9 @@ deepsearch-agents/
 - OpenAI 兼容的大模型 API
 - 可选搜索服务凭据：Tavily、Perplexity 或 SearXNG。DuckDuckGo 无需 API Key。
 
-## 快速开始
+### 快速开始
 
-### 1. 获取代码并配置环境
+#### 1. 获取代码并配置环境
 
 ```bash
 git clone https://github.com/huichimegumi/deepsearch-agents.git
@@ -141,7 +147,7 @@ SEARXNG_URL=http://localhost:8888
 
 未配置的搜索后端会被自动跳过。其余 RAG、记忆、MySQL 和搜索参数可参考 [`.env.example`](.env.example)。
 
-### 2. 启动后端服务
+#### 2. 启动后端服务
 
 使用 Docker Compose 启动 API、RAG Worker 和全部基础设施：
 
@@ -167,7 +173,7 @@ curl http://localhost:8000/health/ready
 
 `live` 只检查 API 进程是否存活；`ready` 会检查模型配置、PostgreSQL、短期记忆、Redis、Qdrant 和 MinIO。
 
-### 3. 导入示例知识库（可选）
+#### 3. 导入示例知识库（可选）
 
 ```bash
 uv sync
@@ -176,7 +182,7 @@ uv run python -m app.rag.bootstrap docs/knowledge_base
 
 也可以在前端的知识库管理界面创建知识库并上传文档。
 
-### 4. 启动前端
+#### 4. 启动前端
 
 ```bash
 cd frontend
@@ -200,7 +206,7 @@ VITE_WS_BASE_URL=ws://localhost:8000
 
 首次进入前端需要注册或登录。注册开关由 `ALLOW_REGISTER` 控制，默认允许；公开部署前应改为关闭或接入正式用户体系。`JWT_SECRET_KEY` 默认值仅适合本地开发，部署时必须替换。
 
-## 本地开发
+### 本地开发
 
 如需在本机运行 Python 服务并使用热重载，可只启动基础设施：
 
@@ -231,46 +237,46 @@ cd frontend
 pnpm build
 ```
 
-## API 概览
+### API 概览
 
 会话、任务、文件和记忆接口需要 `Authorization: Bearer <token>`。WebSocket 连接通过查询参数传入 token，例如 `/ws/{thread_id}?token=<token>`。知识库接口当前是全局资源接口，尚未按用户隔离。
 
-| 接口                                                        | 用途                          |
-| ----------------------------------------------------------- | ----------------------------- |
-| `POST /api/auth/register`                                   | 注册用户并返回 token          |
-| `POST /api/auth/login`                                      | 登录并返回 token              |
-| `GET /api/auth/me`                                          | 获取当前用户                  |
-| `GET /health/live`                                          | API 存活检查                  |
-| `GET /health/ready`                                         | 外部依赖就绪检查              |
-| `POST /api/task`                                            | 启动研究任务                  |
-| `POST /api/task/{thread_id}/cancel`                         | 取消指定任务                  |
-| `POST /api/upload`                                          | 上传会话附件                  |
-| `GET /api/files`                                            | 获取当前用户生成文件列表      |
-| `GET /api/download`                                         | 下载当前用户生成文件          |
-| `GET /api/conversations`                                    | 获取当前用户会话列表          |
-| `POST /api/conversations`                                   | 创建会话                      |
-| `GET /api/conversations/{thread_id}`                        | 获取会话详情和历史消息        |
-| `PATCH /api/conversations/{thread_id}`                      | 更新标题或归档状态            |
-| `DELETE /api/conversations/{thread_id}`                     | 归档会话并清理短期 checkpoint |
-| `GET /api/memories`                                         | 获取长期记忆                  |
-| `POST /api/memories`                                        | 手动创建长期记忆              |
-| `POST /api/memories/search`                                 | 检索长期记忆                  |
-| `PATCH /api/memories/{memory_id}`                           | 更新长期记忆                  |
-| `DELETE /api/memories/{memory_id}`                          | 删除长期记忆                  |
-| `GET /api/knowledge-bases`                                  | 获取知识库列表                |
-| `POST /api/knowledge-bases`                                 | 创建知识库                    |
-| `DELETE /api/knowledge-bases/{id}`                          | 删除知识库                    |
-| `POST /api/knowledge-bases/{id}/documents`                  | 上传并索引知识库文档          |
-| `GET /api/knowledge-bases/{id}/documents`                   | 获取文档及索引状态            |
-| `POST /api/knowledge-bases/documents/{document_id}/reindex` | 重新索引文档                  |
-| `DELETE /api/knowledge-bases/documents/{document_id}`       | 删除文档                      |
-| `GET /api/knowledge-bases/index-jobs/{job_id}`              | 查询索引任务状态              |
-| `POST /api/knowledge-bases/{id}/search`                     | 执行知识库混合检索            |
-| `WebSocket /ws/{thread_id}`                                 | 接收任务实时事件              |
+| 接口 | 用途 |
+| --- | --- |
+| `POST /api/auth/register` | 注册用户并返回 token |
+| `POST /api/auth/login` | 登录并返回 token |
+| `GET /api/auth/me` | 获取当前用户 |
+| `GET /health/live` | API 存活检查 |
+| `GET /health/ready` | 外部依赖就绪检查 |
+| `POST /api/task` | 启动研究任务 |
+| `POST /api/task/{thread_id}/cancel` | 取消指定任务 |
+| `POST /api/upload` | 上传会话附件 |
+| `GET /api/files` | 获取当前用户生成文件列表 |
+| `GET /api/download` | 下载当前用户生成文件 |
+| `GET /api/conversations` | 获取当前用户会话列表 |
+| `POST /api/conversations` | 创建会话 |
+| `GET /api/conversations/{thread_id}` | 获取会话详情和历史消息 |
+| `PATCH /api/conversations/{thread_id}` | 更新标题或归档状态 |
+| `DELETE /api/conversations/{thread_id}` | 归档会话并清理短期 checkpoint |
+| `GET /api/memories` | 获取长期记忆 |
+| `POST /api/memories` | 手动创建长期记忆 |
+| `POST /api/memories/search` | 检索长期记忆 |
+| `PATCH /api/memories/{memory_id}` | 更新长期记忆 |
+| `DELETE /api/memories/{memory_id}` | 删除长期记忆 |
+| `GET /api/knowledge-bases` | 获取知识库列表 |
+| `POST /api/knowledge-bases` | 创建知识库 |
+| `DELETE /api/knowledge-bases/{id}` | 删除知识库 |
+| `POST /api/knowledge-bases/{id}/documents` | 上传并索引知识库文档 |
+| `GET /api/knowledge-bases/{id}/documents` | 获取文档及索引状态 |
+| `POST /api/knowledge-bases/documents/{document_id}/reindex` | 重新索引文档 |
+| `DELETE /api/knowledge-bases/documents/{document_id}` | 删除文档 |
+| `GET /api/knowledge-bases/index-jobs/{job_id}` | 查询索引任务状态 |
+| `POST /api/knowledge-bases/{id}/search` | 执行知识库混合检索 |
+| `WebSocket /ws/{thread_id}` | 接收任务实时事件 |
 
 启动后可访问 `http://localhost:8000/docs` 查看完整 OpenAPI 文档。
 
-## 使用示例
+### 使用示例
 
 可在前端提交类似任务：
 
@@ -290,7 +296,7 @@ pnpm build
 结合我之前关于电商直播项目的长期记忆，搜索最新公开资料并生成一份竞品分析。
 ```
 
-## 数据与输出
+### 数据与输出
 
 - 用户上传文件按用户和会话暂存在 `app/updated/user_{user_id}/session_{thread_id}/`。
 - Markdown、PDF 等生成结果保存在 `app/output/user_{user_id}/session_{thread_id}/`。
@@ -302,7 +308,7 @@ pnpm build
 - MySQL 示例数据由 `docker/mysql/mysql.sql` 在数据卷首次创建时导入。
 - 本地运行时产生的输出文件、数据库卷、日志和模型缓存不应提交到版本库。
 
-## 能力边界
+### 能力边界
 
 当前项目已经具备基本用户体系、会话隔离和可管理记忆，但仍不是开箱即用的生产系统：
 
@@ -313,3 +319,319 @@ pnpm build
 - 记忆抽取依赖模型判断，重要生产场景应增加人工确认、评测和回滚机制。
 
 用于公开网络或生产环境前，请补充正式身份认证、授权策略、限流、数据隔离、密钥管理、监控告警、安全审计和质量回归流程。
+
+---
+
+## English
+
+DeepSearch Agents is a conversational multi-agent deep research system built on DeepAgents. It supports user authentication, conversation history, short-term execution memory, long-term user memory, knowledge-base management, attachment reading, and multi-source retrieval.
+
+### Features
+
+- Multi-agent research: the main agent plans, dispatches, and synthesizes work, while dedicated sub-agents handle web search, database queries, and local knowledge-base retrieval.
+- Multi-source retrieval: supports Tavily, DuckDuckGo, Perplexity, SearXNG, MySQL, and local RAG based on PostgreSQL, Qdrant, MinIO, Redis, and FastEmbed.
+- Users and conversations: includes registration, login, JWT authentication, conversation lists, historical message recovery, conversation archiving, and user-isolated data directories.
+- Memory system: combines current conversation summaries, recent message context, LangGraph short-term checkpoints, and user-managed long-term memories.
+- File handling: reads PDF, Word, Excel, Markdown, and text attachments, and can generate Markdown or PDF deliverables.
+- Real-time task status: streams tool calls, sub-agent execution, final results, errors, and cancellation events through WebSocket.
+- Web workspace: the frontend provides chat, a task event stream, attachment uploads, knowledge-base management, a long-term memory drawer, a history sidebar, and result downloads.
+- Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
+
+### Architecture
+
+The project uses an Orchestrator-Workers pattern and persists conversation, memory, and retrieval state in local infrastructure:
+
+```text
+User login / frontend conversation
+  -> FastAPI authenticates and creates thread_id
+  -> Injects historical conversation summary, recent messages, and long-term memory
+  -> DeepAgents main agent plans the task
+  -> Dispatches web search / MySQL / local knowledge base / uploaded files / memory tools
+  -> LangGraph checkpoint stores short-term execution context for the same thread
+  -> Main agent synthesizes the answer and generates Markdown or PDF
+  -> WebSocket streams progress and results in real time
+  -> Writes historical messages, updates conversation summary, extracts long-term memory
+```
+
+Core stack:
+
+| Module | Technology |
+| --- | --- |
+| Agents | DeepAgents, LangChain, LangGraph |
+| Backend | FastAPI, Uvicorn, WebSocket, Celery |
+| Auth and sessions | JWT, passlib/bcrypt, SQLAlchemy |
+| Web search | Tavily, DuckDuckGo, Perplexity, SearXNG |
+| Structured data | MySQL |
+| Local knowledge base | PostgreSQL, Qdrant, MinIO, Redis, FastEmbed |
+| Memory | PostgreSQL, Qdrant, LangGraph checkpointer |
+| Frontend | React, TypeScript, Vite, Ant Design, Tailwind CSS |
+| Dependency management | uv, pnpm |
+
+### Memory And Conversations
+
+The project uses several kinds of memory for different purposes:
+
+- Conversation history: `chat_conversations` and `chat_messages` store each user's conversations, messages, titles, and archive status so the frontend can restore previous chats.
+- Conversation summary: after a task finishes, the system maintains a rolling summary for the current thread and injects it into the next turn of the same conversation. This is useful for retaining goals, conclusions, constraints, and follow-ups.
+- Recent messages: every run includes several recent messages from the current conversation so the model does not only see the latest question.
+- Short-term checkpoint: the LangGraph checkpointer stores agent graph state under `user_id__thread_id`. PostgreSQL is used by default, with an optional in-memory fallback.
+- Long-term memory: `user_memories` stores stable preferences, facts, project context, instructions, and summaries. Memories are synchronized to Qdrant for semantic recall, and the frontend memory drawer can add, search, and delete them.
+
+Before long-term memories are saved, obvious sensitive content such as API keys, passwords, and tokens is filtered. The agent can call the `remember_user_memory` tool when the user explicitly asks it to remember something. At the start of each task, relevant long-term memories are retrieved and injected into context. After a task finishes, the system also attempts to extract up to 5 stable memories from the conversation.
+
+Related environment variables:
+
+```dotenv
+MEMORY_QDRANT_COLLECTION=user_memories
+MEMORY_TOP_K=6
+MEMORY_MIN_CONFIDENCE=0.55
+SHORT_TERM_MEMORY_BACKEND=postgres
+SHORT_TERM_MEMORY_DATABASE_URL=
+SHORT_TERM_MEMORY_POOL_SIZE=8
+SHORT_TERM_MEMORY_FALLBACK_ENABLED=true
+```
+
+When `SHORT_TERM_MEMORY_DATABASE_URL` is empty, `RAG_DATABASE_URL` is reused. To avoid persisting short-term checkpoints during debugging, set `SHORT_TERM_MEMORY_BACKEND=memory`.
+
+### Project Structure
+
+```text
+deepsearch-agents/
+├── app/
+│   ├── agent/              # Main agent, sub-agents, models, and prompt loading
+│   ├── api/                # FastAPI, WebSocket, conversations, knowledge bases, health checks, audit
+│   ├── auth/               # Registration, login, JWT, and current-user dependencies
+│   ├── memory/             # Long-term memory, conversation summaries, and LangGraph checkpoints
+│   ├── prompt/             # Agent prompt configuration
+│   ├── rag/                # Document parsing, indexing, retrieval, storage, models, and Celery tasks
+│   ├── search/             # Search backends, fallback, aggregation, and page-content extraction
+│   ├── tools/              # Search, database, RAG, attachment, memory, and report tools
+│   └── utils/              # Path and document conversion utilities
+├── docker/                 # Dockerfiles, Compose, and MySQL seed data
+├── docs/knowledge_base/    # Example knowledge-base documents
+├── frontend/               # React frontend
+├── tests/                  # Automated tests
+├── .env.example            # Example environment variables
+└── pyproject.toml          # Python project configuration
+```
+
+### Requirements
+
+- Python 3.12
+- [uv](https://docs.astral.sh/uv/)
+- Docker and Docker Compose
+- Node.js and pnpm
+- An OpenAI-compatible LLM API
+- Optional search credentials: Tavily, Perplexity, or SearXNG. DuckDuckGo does not require an API key.
+
+### Quick Start
+
+#### 1. Clone And Configure
+
+```bash
+git clone https://github.com/huichimegumi/deepsearch-agents.git
+cd deepsearch-agents
+cp .env.example .env
+```
+
+On Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Edit `.env` and configure at least the model base URL, model name, and credentials:
+
+```dotenv
+OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+LLM_NAME=qwen-max
+DASHSCOPE_API_KEY=
+OPENAI_API_KEY=
+```
+
+When using DashScope, prefer `DASHSCOPE_API_KEY`. Other OpenAI-compatible services can use `OPENAI_API_KEY`. Host environment variables with the same names take precedence over `.env`, and Docker Compose passes the final values into the API container.
+
+The default search backend mode is automatic fallback:
+
+```dotenv
+SEARCH_BACKEND=auto
+SEARCH_BACKEND_ORDER=tavily,searxng,duckduckgo,perplexity
+TAVILY_API_KEY=
+PERPLEXITY_API_KEY=
+SEARXNG_URL=http://localhost:8888
+```
+
+Unconfigured search backends are skipped automatically. See [`.env.example`](.env.example) for the remaining RAG, memory, MySQL, and search settings.
+
+#### 2. Start Backend Services
+
+Use Docker Compose to start the API, RAG worker, and all required infrastructure:
+
+```bash
+docker compose -f docker/docker-compose.yaml up -d --build
+```
+
+The backend defaults to `http://localhost:8000`. The first knowledge-base indexing run or first semantic memory retrieval may download FastEmbed models, so startup-related work can take a little while.
+
+Check service status or logs:
+
+```bash
+docker compose -f docker/docker-compose.yaml ps
+docker compose -f docker/docker-compose.yaml logs -f api rag-worker
+```
+
+After startup, check runtime health:
+
+```bash
+curl http://localhost:8000/health/live
+curl http://localhost:8000/health/ready
+```
+
+`live` only checks whether the API process is alive. `ready` checks model configuration, PostgreSQL, short-term memory, Redis, Qdrant, and MinIO.
+
+#### 3. Import The Example Knowledge Base (Optional)
+
+```bash
+uv sync
+uv run python -m app.rag.bootstrap docs/knowledge_base
+```
+
+You can also create a knowledge base and upload documents from the frontend knowledge-base management page.
+
+#### 4. Start The Frontend
+
+```bash
+cd frontend
+pnpm install
+pnpm dev
+```
+
+Open the local URL printed by Vite, usually `http://localhost:5173`. The frontend connects to these defaults:
+
+```text
+API: http://localhost:8000
+WS:  ws://localhost:8000
+```
+
+To override them, configure `frontend/.env.local`:
+
+```dotenv
+VITE_API_BASE_URL=http://localhost:8000
+VITE_WS_BASE_URL=ws://localhost:8000
+```
+
+The first frontend visit requires registration or login. Registration is controlled by `ALLOW_REGISTER` and is enabled by default. Before public deployment, disable it or connect a production user system. The default `JWT_SECRET_KEY` is only suitable for local development and must be replaced for deployment.
+
+### Local Development
+
+To run the Python service locally with hot reload, start only the infrastructure:
+
+```bash
+docker compose -f docker/docker-compose.yaml up -d postgres redis qdrant minio mysql
+uv sync --group dev
+uv run celery -A app.rag.celery_app:celery_app worker --loglevel=INFO --pool=solo
+```
+
+Start the API in another terminal:
+
+```bash
+uv run uvicorn app.api.server:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Run backend quality checks and tests:
+
+```bash
+uv run ruff check app tests
+uv run ruff format --check app tests
+uv run pytest
+```
+
+Build the frontend:
+
+```bash
+cd frontend
+pnpm build
+```
+
+### API Overview
+
+Conversation, task, file, and memory APIs require `Authorization: Bearer <token>`. WebSocket connections pass the token as a query parameter, for example `/ws/{thread_id}?token=<token>`. Knowledge-base APIs are currently global resources and are not yet isolated by user.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /api/auth/register` | Register a user and return a token |
+| `POST /api/auth/login` | Log in and return a token |
+| `GET /api/auth/me` | Get the current user |
+| `GET /health/live` | API liveness check |
+| `GET /health/ready` | External dependency readiness check |
+| `POST /api/task` | Start a research task |
+| `POST /api/task/{thread_id}/cancel` | Cancel a specific task |
+| `POST /api/upload` | Upload a conversation attachment |
+| `GET /api/files` | List generated files for the current user |
+| `GET /api/download` | Download a generated file for the current user |
+| `GET /api/conversations` | List conversations for the current user |
+| `POST /api/conversations` | Create a conversation |
+| `GET /api/conversations/{thread_id}` | Get conversation details and historical messages |
+| `PATCH /api/conversations/{thread_id}` | Update title or archive status |
+| `DELETE /api/conversations/{thread_id}` | Archive a conversation and clean short-term checkpoints |
+| `GET /api/memories` | Get long-term memories |
+| `POST /api/memories` | Manually create a long-term memory |
+| `POST /api/memories/search` | Search long-term memories |
+| `PATCH /api/memories/{memory_id}` | Update a long-term memory |
+| `DELETE /api/memories/{memory_id}` | Delete a long-term memory |
+| `GET /api/knowledge-bases` | List knowledge bases |
+| `POST /api/knowledge-bases` | Create a knowledge base |
+| `DELETE /api/knowledge-bases/{id}` | Delete a knowledge base |
+| `POST /api/knowledge-bases/{id}/documents` | Upload and index knowledge-base documents |
+| `GET /api/knowledge-bases/{id}/documents` | Get documents and indexing status |
+| `POST /api/knowledge-bases/documents/{document_id}/reindex` | Reindex a document |
+| `DELETE /api/knowledge-bases/documents/{document_id}` | Delete a document |
+| `GET /api/knowledge-bases/index-jobs/{job_id}` | Query indexing job status |
+| `POST /api/knowledge-bases/{id}/search` | Run hybrid knowledge-base retrieval |
+| `WebSocket /ws/{thread_id}` | Receive real-time task events |
+
+After startup, visit `http://localhost:8000/docs` for the complete OpenAPI documentation.
+
+### Usage Examples
+
+Example tasks you can submit from the frontend:
+
+```text
+Query the database for cardiovascular drug inventory and generate a Markdown report.
+```
+
+```text
+Search for the latest AI application trends in e-commerce and combine them with knowledge-base materials to generate a PDF.
+```
+
+```text
+Remember: I prefer conclusions first, followed by evidence. Then read my uploaded industry report and prepare a research summary.
+```
+
+```text
+Use my long-term memory about the e-commerce livestreaming project, search the latest public information, and generate a competitive analysis.
+```
+
+### Data And Outputs
+
+- User uploads are temporarily stored by user and conversation under `app/updated/user_{user_id}/session_{thread_id}/`.
+- Generated Markdown, PDF, and related results are stored under `app/output/user_{user_id}/session_{thread_id}/`.
+- Conversation audit logs are stored at `app/logs/session_{user_id}__{thread_id}.jsonl`.
+- Users, conversations, messages, long-term memories, knowledge-base metadata, and document chunks are stored in PostgreSQL.
+- Vector indexes for long-term memories and knowledge-base chunks are stored in Qdrant.
+- Original knowledge-base files are stored in MinIO.
+- RAG indexing jobs run through Redis and Celery Worker.
+- Example MySQL data is imported from `docker/mysql/mysql.sql` when the data volume is first created.
+- Runtime outputs, database volumes, logs, and model caches should not be committed to the repository.
+
+### Limitations
+
+The project already includes a basic user system, conversation isolation, and manageable memory, but it is not yet a production-ready system out of the box:
+
+- Default registration, JWT secrets, and local service credentials are primarily intended for development.
+- Role-based permissions, organization or tenant management, fine-grained authorization, and rate limiting are not yet provided.
+- File security scanning, content moderation, and sensitive-data governance still need external support.
+- Long-task concurrency, queue governance, observability, and alerting are still oriented toward local development.
+- Memory extraction depends on model judgment. Important production scenarios should add human confirmation, evaluation, and rollback mechanisms.
+
+Before exposing the system publicly or using it in production, add formal authentication, authorization policies, rate limiting, data isolation, secret management, monitoring and alerts, security auditing, and quality regression workflows.
