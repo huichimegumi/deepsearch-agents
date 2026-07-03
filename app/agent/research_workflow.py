@@ -115,6 +115,67 @@ def format_previous_phase_outputs(phase_outputs: dict[str, str]) -> str:
     return "\n".join(blocks)
 
 
+def build_degraded_phase_output(
+    *,
+    task_query: str,
+    phase: ResearchPhase,
+    phase_outputs: dict[str, str],
+    reason: str,
+) -> str:
+    """Build a deterministic fallback artifact when a phase exhausts its budget."""
+    previous_keys = ", ".join(phase_outputs.keys()) or "none"
+    if phase.key == "clarify_and_brief":
+        return "\n".join(
+            [
+                "## Degraded Research Brief",
+                f"- Original task: {task_query}",
+                f"- Degradation reason: {reason}",
+                "- Working assumption: continue with the user's original request as stated.",
+                "- Source plan: use local files, knowledge base, database, and web search only "
+                "when relevant to the original task.",
+                "- Required next step: gather evidence and explicitly record gaps because the "
+                "normal clarification brief did not complete.",
+            ]
+        )
+    if phase.key == "supervisor_research":
+        return "\n".join(
+            [
+                "## Degraded Evidence Ledger",
+                f"- Original task: {task_query}",
+                f"- Degradation reason: {reason}",
+                f"- Prior phase artifacts available: {previous_keys}",
+                "- Evidence status: no complete supervisor evidence ledger was produced before "
+                "the phase budget was exhausted.",
+                "- Gap: final synthesis must clearly mark unsupported claims and avoid inventing "
+                "citations.",
+            ]
+        )
+    if phase.key == "evidence_compression":
+        return "\n".join(
+            [
+                "## Degraded Evidence Package",
+                f"- Original task: {task_query}",
+                f"- Degradation reason: {reason}",
+                f"- Prior phase artifacts available: {previous_keys}",
+                "- Compression status: the normal evidence compression phase did not complete.",
+                "- Final report constraint: rely only on explicit prior artifacts and label all "
+                "missing or uncertain evidence.",
+            ]
+        )
+    return "\n".join(
+        [
+            "## Budget-Limited Final Answer",
+            f"The final report phase could not complete normally: {reason}.",
+            "",
+            "Available phase artifacts:",
+            format_previous_phase_outputs(phase_outputs) or "No completed phase artifacts were captured.",
+            "",
+            "Because the workflow did not finish, treat this as a partial result and verify any "
+            "high-stakes conclusions before using them.",
+        ]
+    )
+
+
 def build_phase_prompt(
     *,
     task_query: str,
@@ -124,12 +185,20 @@ def build_phase_prompt(
 ) -> str:
     """Build the user message for one enforced workflow phase."""
     previous = format_previous_phase_outputs(phase_outputs)
+    final_report_guard = ""
+    if phase.key == "final_report":
+        final_report_guard = (
+            "FINAL REPORT TOOL BOUNDARY: Do not call researcher subagents, web search, "
+            "knowledge-base search, or database query tools in this phase. Write only from "
+            "the completed phase artifacts above. If evidence is missing, say so explicitly."
+        )
     return "\n\n".join(
         part
         for part in (
             f"【用户原始问题】\n{task_query}",
             previous,
             runtime_instructions,
+            final_report_guard,
             phase.instruction,
         )
         if part

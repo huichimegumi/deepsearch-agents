@@ -475,6 +475,24 @@ SEARXNG_URL=http://localhost:8888
 
 Unconfigured search backends are skipped automatically. See [`.env.example`](.env.example) for the remaining RAG, memory, MySQL, and search settings.
 
+Agent execution budgets are phase-aware. The legacy `AGENT_RECURSION_LIMIT` and
+`AGENT_MAX_RUNTIME_SECONDS` values remain as fallbacks, while
+`AGENT_PHASE_*_RECURSION_LIMIT` and `AGENT_PHASE_*_TIMEOUT_SECONDS` let
+clarification, research, evidence compression, and final report generation use
+different limits. Larger report-style tasks are automatically given a larger
+research/final-report budget, bounded by `AGENT_HARD_MAX_RECURSION_LIMIT` and
+`AGENT_HARD_MAX_RUNTIME_SECONDS`.
+
+Each research phase now uses an isolated LangGraph checkpoint key derived from
+the conversation thread, a per-run workflow id, and the phase name. This prevents
+unfinished tool loops or large intermediate message histories from one phase or
+previous run from leaking into the next phase. If a phase exhausts its timeout or
+recursion budget before producing a usable artifact, the backend inserts a
+deterministic degraded artifact so later phases can continue with explicit
+caveats instead of receiving an empty context. The final report phase runs
+through a writer-only agent and is not given researcher subagents, web search,
+knowledge-base search, or database query tools.
+
 #### 2. Start Backend Services
 
 Use Docker Compose to start the API, RAG worker, and all required infrastructure:

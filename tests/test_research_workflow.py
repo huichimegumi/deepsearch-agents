@@ -2,6 +2,7 @@
 
 from app.agent.research_workflow import (
     RESEARCH_PHASES,
+    build_degraded_phase_output,
     build_phase_prompt,
     format_previous_phase_outputs,
 )
@@ -47,3 +48,28 @@ def test_previous_outputs_are_ordered_by_workflow():
     )
 
     assert formatted.index("brief") < formatted.index("compressed evidence")
+
+
+def test_final_phase_prompt_blocks_research_tools():
+    prompt = build_phase_prompt(
+        task_query="write final report",
+        phase=RESEARCH_PHASES[-1],
+        phase_outputs={"evidence_compression": "compressed evidence"},
+        runtime_instructions="runtime rules",
+    )
+
+    assert "FINAL REPORT TOOL BOUNDARY" in prompt
+    assert "Do not call researcher subagents" in prompt
+
+
+def test_degraded_phase_output_preserves_next_phase_context():
+    degraded = build_degraded_phase_output(
+        task_query="research topic",
+        phase=RESEARCH_PHASES[1],
+        phase_outputs={"clarify_and_brief": "brief"},
+        reason="recursion_limit",
+    )
+
+    assert "Degraded Evidence Ledger" in degraded
+    assert "recursion_limit" in degraded
+    assert "clarify_and_brief" in degraded

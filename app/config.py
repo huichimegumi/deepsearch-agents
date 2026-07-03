@@ -33,6 +33,14 @@ def _first_secret(*names: str) -> str:
 
 
 @dataclass(frozen=True)
+class AgentExecutionBudget:
+    """Execution budget for one agent phase."""
+
+    recursion_limit: int
+    timeout_seconds: float
+
+
+@dataclass(frozen=True)
 class AppSettings:
     """Settings shared by the API and agent runtime."""
 
@@ -42,6 +50,16 @@ class AppSettings:
     cors_origins: tuple[str, ...]
     agent_recursion_limit: int = 30
     agent_max_runtime_seconds: float = 300.0
+    agent_hard_max_recursion_limit: int = 160
+    agent_hard_max_runtime_seconds: float = 1800.0
+    agent_phase_clarify_recursion_limit: int = 20
+    agent_phase_clarify_timeout_seconds: float = 120.0
+    agent_phase_research_recursion_limit: int = 90
+    agent_phase_research_timeout_seconds: float = 900.0
+    agent_phase_compression_recursion_limit: int = 40
+    agent_phase_compression_timeout_seconds: float = 240.0
+    agent_phase_final_report_recursion_limit: int = 60
+    agent_phase_final_report_timeout_seconds: float = 420.0
     tool_timeout_seconds: float = 60.0
     db_timeout_seconds: int = 20
     db_table_preview_rows: int = 30
@@ -67,6 +85,69 @@ class AppSettings:
             )
 
 
+    def agent_phase_budget(
+        self,
+        phase_key: str,
+        budget_profile: str = "standard",
+    ) -> AgentExecutionBudget:
+        """Return a bounded execution budget for a research phase."""
+        configured = {
+            "clarify_and_brief": AgentExecutionBudget(
+                self.agent_phase_clarify_recursion_limit,
+                self.agent_phase_clarify_timeout_seconds,
+            ),
+            "supervisor_research": AgentExecutionBudget(
+                self.agent_phase_research_recursion_limit,
+                self.agent_phase_research_timeout_seconds,
+            ),
+            "evidence_compression": AgentExecutionBudget(
+                self.agent_phase_compression_recursion_limit,
+                self.agent_phase_compression_timeout_seconds,
+            ),
+            "final_report": AgentExecutionBudget(
+                self.agent_phase_final_report_recursion_limit,
+                self.agent_phase_final_report_timeout_seconds,
+            ),
+        }
+        budget = configured.get(
+            phase_key,
+            AgentExecutionBudget(self.agent_recursion_limit, self.agent_max_runtime_seconds),
+        )
+
+        recursion_multiplier = 1.0
+        timeout_multiplier = 1.0
+        if budget_profile == "quick":
+            recursion_multiplier = 0.75
+            timeout_multiplier = 0.75
+        elif budget_profile == "deep_report":
+            if phase_key == "supervisor_research":
+                recursion_multiplier = 1.5
+                timeout_multiplier = 1.5
+            elif phase_key == "evidence_compression":
+                recursion_multiplier = 1.2
+                timeout_multiplier = 1.2
+            elif phase_key == "final_report":
+                recursion_multiplier = 1.3
+                timeout_multiplier = 1.3
+
+        return AgentExecutionBudget(
+            recursion_limit=max(
+                1,
+                min(
+                    self.agent_hard_max_recursion_limit,
+                    int(round(budget.recursion_limit * recursion_multiplier)),
+                ),
+            ),
+            timeout_seconds=max(
+                0.0,
+                min(
+                    self.agent_hard_max_runtime_seconds,
+                    budget.timeout_seconds * timeout_multiplier,
+                ),
+            ),
+        )
+
+
 @lru_cache(maxsize=1)
 def get_settings() -> AppSettings:
     return AppSettings(
@@ -81,6 +162,34 @@ def get_settings() -> AppSettings:
         ),
         agent_recursion_limit=int(os.getenv("AGENT_RECURSION_LIMIT", "30")),
         agent_max_runtime_seconds=float(os.getenv("AGENT_MAX_RUNTIME_SECONDS", "300")),
+        agent_hard_max_recursion_limit=int(os.getenv("AGENT_HARD_MAX_RECURSION_LIMIT", "160")),
+        agent_hard_max_runtime_seconds=float(
+            os.getenv("AGENT_HARD_MAX_RUNTIME_SECONDS", "1800")
+        ),
+        agent_phase_clarify_recursion_limit=int(
+            os.getenv("AGENT_PHASE_CLARIFY_RECURSION_LIMIT", "20")
+        ),
+        agent_phase_clarify_timeout_seconds=float(
+            os.getenv("AGENT_PHASE_CLARIFY_TIMEOUT_SECONDS", "120")
+        ),
+        agent_phase_research_recursion_limit=int(
+            os.getenv("AGENT_PHASE_RESEARCH_RECURSION_LIMIT", "90")
+        ),
+        agent_phase_research_timeout_seconds=float(
+            os.getenv("AGENT_PHASE_RESEARCH_TIMEOUT_SECONDS", "900")
+        ),
+        agent_phase_compression_recursion_limit=int(
+            os.getenv("AGENT_PHASE_COMPRESSION_RECURSION_LIMIT", "40")
+        ),
+        agent_phase_compression_timeout_seconds=float(
+            os.getenv("AGENT_PHASE_COMPRESSION_TIMEOUT_SECONDS", "240")
+        ),
+        agent_phase_final_report_recursion_limit=int(
+            os.getenv("AGENT_PHASE_FINAL_REPORT_RECURSION_LIMIT", "60")
+        ),
+        agent_phase_final_report_timeout_seconds=float(
+            os.getenv("AGENT_PHASE_FINAL_REPORT_TIMEOUT_SECONDS", "420")
+        ),
         tool_timeout_seconds=float(os.getenv("TOOL_TIMEOUT_SECONDS", "60")),
         db_timeout_seconds=int(os.getenv("DB_TIMEOUT_SECONDS", "20")),
         db_table_preview_rows=int(os.getenv("DB_TABLE_PREVIEW_ROWS", "30")),

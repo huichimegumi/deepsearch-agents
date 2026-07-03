@@ -1,6 +1,7 @@
 """Tests for deterministic source-routing hints."""
 
 from app.agent.main_agent import (
+    _phase_config,
     _requires_knowledge_base_first,
     _requires_local_knowledge_base_only,
 )
@@ -18,3 +19,13 @@ def test_explicit_local_only_query_blocks_network_fallback():
     assert _requires_local_knowledge_base_only(
         "请你只使用本地知识库助手，看一下2026数字人电商直播白皮书里提到的营收情况如何"
     )
+
+
+def test_phase_config_isolates_checkpoint_by_phase():
+    class Budget:
+        recursion_limit = 12
+
+    config = _phase_config("thread-1", "final_report", Budget(), "run-1")
+
+    assert config["configurable"]["thread_id"] == "thread-1__run__run-1__phase__final_report"
+    assert config["recursion_limit"] == 12
