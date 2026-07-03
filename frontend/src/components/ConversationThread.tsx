@@ -13,9 +13,9 @@ import {
   StopOutlined,
   ToolOutlined,
 } from "@ant-design/icons";
-import { Button, Tooltip } from "antd";
+import { Button, Tooltip, message } from "antd";
 import { useEffect, useRef, useState } from "react";
-import { getDownloadUrl } from "../lib/api";
+import { downloadOutputFile } from "../lib/api";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 import type { MonitorMessage, OutputFile } from "../types";
 
@@ -249,6 +249,15 @@ function ThinkingTimeline({ events }: { events: MonitorMessage[] }) {
 }
 
 function ArtifactShelf({ files }: { files: OutputFile[] }) {
+  async function handleDownload(file: OutputFile) {
+    try {
+      await downloadOutputFile(file.path, file.name);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "下载失败";
+      message.error(detail);
+    }
+  }
+
   if (files.length === 0) {
     return (
       <div className="artifact-empty">
@@ -273,8 +282,8 @@ function ArtifactShelf({ files }: { files: OutputFile[] }) {
             <Button
               aria-label={`下载 ${file.name}`}
               className="artifact-download"
-              href={getDownloadUrl(file.path)}
               icon={<DownloadOutlined />}
+              onClick={() => void handleDownload(file)}
               shape="circle"
             />
           </Tooltip>

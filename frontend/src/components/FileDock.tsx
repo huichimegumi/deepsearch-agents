@@ -5,8 +5,8 @@ import {
   FileTextOutlined,
   ReloadOutlined
 } from "@ant-design/icons";
-import { Button, Empty, Tooltip } from "antd";
-import { getDownloadUrl } from "../lib/api";
+import { Button, Empty, Tooltip, message } from "antd";
+import { downloadOutputFile } from "../lib/api";
 import type { OutputFile } from "../types";
 
 function formatBytes(value: number): string {
@@ -50,6 +50,15 @@ interface FileDockProps {
 }
 
 export function FileDock({ files, onRefresh, sessionPath }: FileDockProps) {
+  async function handleDownload(file: OutputFile) {
+    try {
+      await downloadOutputFile(file.path, file.name);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "下载失败";
+      message.error(detail);
+    }
+  }
+
   return (
     <section className="console-panel file-panel" aria-labelledby="file-title">
       <div className="panel-heading">
@@ -91,8 +100,8 @@ export function FileDock({ files, onRefresh, sessionPath }: FileDockProps) {
                 <Button
                   aria-label={`下载 ${file.name}`}
                   className="icon-button"
-                  href={getDownloadUrl(file.path)}
                   icon={<DownloadOutlined />}
+                  onClick={() => void handleDownload(file)}
                   shape="circle"
                 />
               </Tooltip>

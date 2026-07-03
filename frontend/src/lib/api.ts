@@ -91,6 +91,53 @@ export function getDownloadUrl(path: string): string {
   return url.toString();
 }
 
+function getFilenameFromContentDisposition(header: string | null): string | null {
+  if (!header) {
+    return null;
+  }
+
+  const encodedMatch = header.match(/filename\*=UTF-8''([^;]+)/i);
+  if (encodedMatch?.[1]) {
+    try {
+      return decodeURIComponent(encodedMatch[1]);
+    } catch {
+      return encodedMatch[1];
+    }
+  }
+
+  const plainMatch = header.match(/filename="?([^";]+)"?/i);
+  return plainMatch?.[1] || null;
+}
+
+export async function downloadOutputFile(path: string, fallbackName: string): Promise<void> {
+  const response = await fetch(getDownloadUrl(path), {
+    headers: { Authorization: `Bearer ${getAuthToken()}` }
+  });
+
+  if (!response.ok) {
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const payload = await response.json();
+      const detail = typeof payload?.detail === "string" ? payload.detail : `HTTP ${response.status}`;
+      throw new Error(detail);
+    }
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  const filename =
+    getFilenameFromContentDisposition(response.headers.get("content-disposition")) ||
+    fallbackName;
+  const objectUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(objectUrl);
+}
+
 export function listConversations(): Promise<ChatConversationRecord[]> {
   return requestJson<ChatConversationRecord[]>(apiUrl("/api/conversations"));
 }
