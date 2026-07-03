@@ -15,10 +15,12 @@ except ImportError:
 
 from langchain_core.tools import tool
 
-from app.api.context import get_session_context
+from app.api.context import get_research_phase_context, get_session_context
 from app.api.monitor import monitor
 from app.utils.path_utils import resolve_path
 from app.utils.word_converter import convert_md_to_pdf as convert_md_to_pdf_via_word
+
+FINAL_REPORT_PHASE = "final_report"
 
 
 @tool
@@ -33,6 +35,9 @@ def convert_md_to_pdf(
     :param pdf_filename: 可选 PDF 输出文件名；不传时与 Markdown 同名
     :return: 转换结果说明
     """
+    if get_research_phase_context() not in (None, FINAL_REPORT_PHASE):
+        return "当前仍处于研究流程的中间阶段，禁止生成PDF文件；请先完成证据压缩并进入最终报告阶段。"
+
     monitor.report_tool("Markdown转PDF工具")
 
     try:

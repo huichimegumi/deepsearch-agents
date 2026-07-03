@@ -184,6 +184,28 @@ class ToolMonitor:
             message = f"网络搜索完成: {backend}，获得 {result_count} 条结果"
         self._emit("search_status", message, data)
 
+    def report_research_phase(
+        self,
+        phase_key: str,
+        phase_title: str,
+        status: str,
+        data: Optional[dict[str, Any]] = None,
+    ) -> None:
+        """报告深度研究工作流阶段进度。"""
+        status_label = {
+            "start": "开始",
+            "end": "完成",
+            "skipped": "跳过",
+        }.get(status, status)
+        payload = {"phase_key": phase_key, "phase_title": phase_title, "status": status}
+        if data:
+            payload.update(data)
+        self._emit(
+            "research_phase",
+            f"{status_label}研究阶段: {phase_title}",
+            payload,
+        )
+
     def report_task_result(self, result: str) -> None:
         """报告任务最终结果"""
         self._emit("task_result", "任务执行完成", {"result": result})

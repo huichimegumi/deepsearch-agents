@@ -22,6 +22,10 @@ _user_id_ctx: ContextVar[Optional[str]] = ContextVar(
     "user_id",
     default=None,
 )
+_research_phase_ctx: ContextVar[Optional[str]] = ContextVar(
+    "research_phase",
+    default=None,
+)
 
 
 def set_session_context(path: str) -> Token[Optional[str]]:
@@ -68,6 +72,18 @@ def set_user_context(user_id: str) -> Token[Optional[str]]:
 
 def get_user_context() -> Optional[str]:
     return _user_id_ctx.get()
+
+
+def set_research_phase_context(phase_key: str) -> Token[Optional[str]]:
+    return _research_phase_ctx.set(phase_key)
+
+
+def get_research_phase_context() -> Optional[str]:
+    return _research_phase_ctx.get()
+
+
+def reset_research_phase_context(phase_token: Token[Optional[str]]) -> None:
+    _research_phase_ctx.reset(phase_token)
 
 
 def reset_session_context(

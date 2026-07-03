@@ -15,12 +15,15 @@ from deepagents import create_deep_agent
 
 from app.agent.llm import get_model
 from app.agent.prompts import main_agent_content
+from app.agent.research_workflow import RESEARCH_PHASES, ResearchPhase, build_phase_prompt
 from app.agent.subagents.database_query_agent import database_query_agent
 from app.agent.subagents.knowledge_base_agent import knowledge_base_agent
 from app.agent.subagents.network_search_agent import network_search_agent
 from app.api.audit import write_audit_event
 from app.api.context import (
+    reset_research_phase_context,
     reset_session_context,
+    set_research_phase_context,
     set_session_context,
     set_thread_context,
     set_user_context,
@@ -68,6 +71,82 @@ async def _astream_with_runtime_limit(agent, payload, config, timeout_seconds: f
     async with asyncio.timeout(timeout_seconds):
         async for chunk in agent.astream(payload, config=config):
             yield chunk
+
+
+async def _run_agent_phase(
+    *,
+    agent,
+    phase: ResearchPhase,
+    prompt: str,
+    config: dict,
+    timeout_seconds: float,
+    emit_final_result: bool = False,
+) -> str | None:
+    """Run one enforced research phase and return the latest model text."""
+    monitor.report_research_phase(phase.key, phase.title, "start")
+    write_audit_event(
+        "research_phase_started",
+        {"phase_key": phase.key, "phase_title": phase.title},
+    )
+
+    phase_result = None
+    phase_token = set_research_phase_context(phase.key)
+    try:
+        async for chunk in _astream_with_runtime_limit(
+            agent,
+            {"messages": [{"role": "user", "content": prompt}]},
+            config,
+            timeout_seconds,
+        ):
+            # chunk 形如 {"model": {"messages": [...]}}，这里主要关心模型最新消息
+            for node_name, state in chunk.items():
+                if not state or "messages" not in state:
+                    continue
+                messages = state["messages"]
+                if not (messages and isinstance(messages, list)):
+                    continue
+                last_msg = messages[-1]
+                if node_name != "model":
+                    continue
+
+                tool_calls = getattr(last_msg, "tool_calls", None)
+                if tool_calls:
+                    # DeepAgents 调用子智能体时，本质上会产生名为 task 的工具调用
+                    for tool_call in tool_calls:
+                        if tool_call["name"] == "task":
+                            # 子智能体调用单独上报，前端可以展示“正在调用哪个专家助手”
+                            monitor.report_assistant(
+                                tool_call["args"]["subagent_type"],
+                                {"description": tool_call["args"]["description"]},
+                            )
+                elif last_msg.content:
+                    phase_result = last_msg.content
+                    if emit_final_result:
+                        # 只有最终报告阶段才反馈给前端和会话历史，避免把 brief 当成最终答案
+                        print(f"主智能体执行结果，最终结果：{last_msg.content[:100]}")
+                        monitor.report_task_result(last_msg.content)
+                        write_audit_event(
+                            "task_result",
+                            {"result": last_msg.content},
+                        )
+    finally:
+        reset_research_phase_context(phase_token)
+
+    monitor.report_research_phase(
+        phase.key,
+        phase.title,
+        "end",
+        {"result_preview": (phase_result or "")[:500]},
+    )
+    write_audit_event(
+        "research_phase_finished",
+        {
+            "phase_key": phase.key,
+            "phase_title": phase.title,
+            "result_preview": (phase_result or "")[:500],
+        },
+    )
+    return phase_result
 
 
 def _requires_knowledge_base_first(task_query: str) -> bool:
@@ -238,53 +317,33 @@ async def run_deep_agent(
     final_result = None
     try:
         main_agent = get_main_agent()
-        # astream 会持续产出模型节点、工具节点和子智能体节点的状态片段
-        async for chunk in _astream_with_runtime_limit(
-            main_agent,
-            {
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": (
-                            task_query
-                            + path_instruction
-                            + source_routing_instruction
-                            + memory_instruction
-                            + ("\n\n" + conversation_memory if conversation_memory else "")
-                        ),
-                    }
-                ]
-            },
-            config,
-            settings.agent_max_runtime_seconds,
-        ):
-            # chunk 形如 {"model": {"messages": [...]}}，这里主要关心模型最新消息
-            for node_name, state in chunk.items():
-                if not state or "messages" not in state:
-                    continue
-                messages = state["messages"]
-                if messages and isinstance(messages, list):
-                    last_msg = messages[-1]
-                    if node_name == "model":
-                        if last_msg.tool_calls:
-                            # DeepAgents 调用子智能体时，本质上会产生名为 task 的工具调用
-                            for tool_call in last_msg.tool_calls:
-                                if tool_call["name"] == "task":
-                                    # 子智能体调用单独上报，前端可以展示“正在调用哪个专家助手”
-                                    monitor.report_assistant(
-                                        tool_call["args"]["subagent_type"],
-                                        {"description": tool_call["args"]["description"]},
-                                    )
-                        elif last_msg.content:
-                            # 模型没有继续调用工具时，最新文本内容就是本轮可反馈给前端的结果
-                            print(f"主智能体执行结果，最终结果：{last_msg.content[:100]}")
-                            monitor.report_task_result(last_msg.content)
-                            final_result = last_msg.content
-                            write_audit_event(
-                                "task_result",
-                                {"result": last_msg.content},
-                                thread_id=event_thread_id,
-                            )
+        runtime_instructions = (
+            path_instruction
+            + source_routing_instruction
+            + memory_instruction
+            + ("\n\n" + conversation_memory if conversation_memory else "")
+        )
+        phase_outputs: dict[str, str] = {}
+
+        for phase in RESEARCH_PHASES:
+            prompt = build_phase_prompt(
+                task_query=task_query,
+                phase=phase,
+                phase_outputs=phase_outputs,
+                runtime_instructions=runtime_instructions,
+            )
+            phase_result = await _run_agent_phase(
+                agent=main_agent,
+                phase=phase,
+                prompt=prompt,
+                config=config,
+                timeout_seconds=settings.agent_max_runtime_seconds,
+                emit_final_result=phase.key == "final_report",
+            )
+            if phase_result:
+                phase_outputs[phase.key] = phase_result
+                if phase.key == "final_report":
+                    final_result = phase_result
 
     except asyncio.CancelledError:
         monitor.report_task_cancelled()

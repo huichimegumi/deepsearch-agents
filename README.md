@@ -12,12 +12,14 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### 主要功能
 
-- 多智能体研究：主智能体负责规划、调度和汇总，网络搜索、数据库查询、本地知识库三个子智能体分别处理不同信息源。
+- 阶段式深度研究：后端显式执行“澄清问题与研究简报 -> Supervisor 分派与 researcher 循环 -> 证据压缩 -> 最终报告”，避免只靠 prompt 约束导致的跳步、少搜和引用丢失。
+- 多智能体研究：主智能体负责分派、反思和汇总，网络搜索、数据库查询、本地知识库三个子智能体分别处理不同信息源。
 - 多源检索：支持 Tavily、DuckDuckGo、Perplexity、SearXNG、MySQL，以及基于 PostgreSQL、Qdrant、MinIO、Redis 和 FastEmbed 的本地 RAG。
 - 用户与会话：提供注册、登录、JWT 鉴权、会话列表、历史消息恢复、会话归档和按用户隔离的数据目录。
 - 记忆系统：包含当前会话摘要、最近消息上下文、LangGraph 短期 checkpoint，以及可由用户管理的长期记忆。
 - 文件处理：支持读取 PDF、Word、Excel、Markdown 和文本附件，并生成 Markdown、PDF 等交付文件。
 - 实时任务状态：通过 WebSocket 推送工具调用、子智能体执行、最终结果、异常和取消事件。
+- 研究阶段追踪：每个阶段的开始、完成和摘要会写入 WebSocket trace 与审计日志，便于复盘 brief、证据账本、压缩证据和最终报告之间的关系。
 - Web 工作台：前端提供聊天、任务事件流、附件上传、知识库管理、长期记忆抽屉、历史会话侧栏和结果下载。
 - 审计日志：任务开始、结果、取消、异常等事件会按会话写入 `app/logs/session_*.jsonl`，便于排查执行过程。
 
@@ -29,10 +31,12 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 用户登录 / 前端会话
   -> FastAPI 鉴权并创建 thread_id
   -> 注入历史会话摘要、最近消息和长期记忆
-  -> DeepAgents 主智能体规划任务
-  -> 调度网络搜索 / MySQL / 本地知识库 / 上传附件 / 记忆工具
+  -> 阶段 1：澄清问题并生成 research brief
+  -> 阶段 2：Supervisor 分派网络搜索 / MySQL / 本地知识库 / 上传附件 / 记忆工具
+  -> 阶段 2：Researcher 根据证据缺口进行定向补检索和反思
+  -> 阶段 3：压缩证据，保留来源、冲突和不确定性
   -> LangGraph checkpoint 保存同一 thread 的短期执行上下文
-  -> 主智能体汇总答案并生成 Markdown 或 PDF
+  -> 阶段 4：主智能体生成最终答案，必要时生成 Markdown 或 PDF
   -> WebSocket 实时推送过程和结果
   -> 写入历史消息、更新会话摘要、抽取长期记忆
 ```
@@ -328,12 +332,14 @@ DeepSearch Agents is a conversational multi-agent deep research system built on 
 
 ### Features
 
-- Multi-agent research: the main agent plans, dispatches, and synthesizes work, while dedicated sub-agents handle web search, database queries, and local knowledge-base retrieval.
+- Staged deep research: the backend explicitly runs clarification and research brief, supervisor dispatch and researcher reflection, evidence compression, and final report phases, reducing skipped searches, missing gap checks, and lost citations.
+- Multi-agent research: the main agent dispatches, reflects, and synthesizes work, while dedicated sub-agents handle web search, database queries, and local knowledge-base retrieval.
 - Multi-source retrieval: supports Tavily, DuckDuckGo, Perplexity, SearXNG, MySQL, and local RAG based on PostgreSQL, Qdrant, MinIO, Redis, and FastEmbed.
 - Users and conversations: includes registration, login, JWT authentication, conversation lists, historical message recovery, conversation archiving, and user-isolated data directories.
 - Memory system: combines current conversation summaries, recent message context, LangGraph short-term checkpoints, and user-managed long-term memories.
 - File handling: reads PDF, Word, Excel, Markdown, and text attachments, and can generate Markdown or PDF deliverables.
 - Real-time task status: streams tool calls, sub-agent execution, final results, errors, and cancellation events through WebSocket.
+- Research phase tracing: each phase start, completion, and summary is written to the WebSocket trace and audit log so the brief, evidence ledger, compressed evidence, and final report can be reviewed together.
 - Web workspace: the frontend provides chat, a task event stream, attachment uploads, knowledge-base management, a long-term memory drawer, a history sidebar, and result downloads.
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
@@ -345,10 +351,12 @@ The project uses an Orchestrator-Workers pattern and persists conversation, memo
 User login / frontend conversation
   -> FastAPI authenticates and creates thread_id
   -> Injects historical conversation summary, recent messages, and long-term memory
-  -> DeepAgents main agent plans the task
-  -> Dispatches web search / MySQL / local knowledge base / uploaded files / memory tools
+  -> Phase 1: clarifies the task and writes a research brief
+  -> Phase 2: supervisor dispatches web search / MySQL / local knowledge base / uploaded files / memory tools
+  -> Phase 2: researchers run targeted follow-up retrieval and reflection when evidence gaps remain
+  -> Phase 3: compresses evidence while preserving sources, conflicts, and uncertainty
   -> LangGraph checkpoint stores short-term execution context for the same thread
-  -> Main agent synthesizes the answer and generates Markdown or PDF
+  -> Phase 4: main agent produces the final answer and generates Markdown or PDF when requested
   -> WebSocket streams progress and results in real time
   -> Writes historical messages, updates conversation summary, extracts long-term memory
 ```

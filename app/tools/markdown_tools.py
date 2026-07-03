@@ -13,9 +13,11 @@ except ImportError:
     from typing_extensions import Annotated
 from langchain_core.tools import tool
 
-from app.api.context import get_session_context
+from app.api.context import get_research_phase_context, get_session_context
 from app.api.monitor import monitor
 from app.utils.path_utils import resolve_path
+
+FINAL_REPORT_PHASE = "final_report"
 
 
 @tool
@@ -32,6 +34,9 @@ def generate_markdown(
     :param path: 可选保存路径；通常由运行时工作目录指令约束为相对路径
     :return: 文件生成结果说明
     """
+    if get_research_phase_context() not in (None, FINAL_REPORT_PHASE):
+        return "当前仍处于研究流程的中间阶段，禁止生成Markdown文件；请先完成证据压缩并进入最终报告阶段。"
+
     print(f"[MarkdownTool] 输入保存路径: {path or '当前会话目录'}")
     monitor.report_tool("Markdown文档生成工具", {"写入的文本内容": content})
     if not filename.endswith(".md"):
