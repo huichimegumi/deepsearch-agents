@@ -13,6 +13,20 @@ from app.rag.database import session_scope
 from app.rag.models import UserMemory, utcnow
 
 ALLOWED_MEMORY_TYPES = {"fact", "preference", "project", "instruction", "summary"}
+MEMORY_TYPE_PRIORITY = {
+    "instruction": 1,
+    "project": 2,
+    "preference": 3,
+    "fact": 4,
+    "summary": 5,
+}
+MEMORY_TYPE_LABELS = {
+    "instruction": "持续指令 / Standing instruction",
+    "project": "项目背景 / Project context",
+    "preference": "用户偏好 / User preference",
+    "fact": "稳定事实 / Stable fact",
+    "summary": "摘要 / Summary",
+}
 SENSITIVE_PATTERNS = [
     re.compile(pattern, re.IGNORECASE)
     for pattern in (
@@ -40,6 +54,13 @@ def normalize_memory_type(memory_type: str | None) -> str:
 def summarize_content(content: str) -> str:
     clean = " ".join(content.strip().split())
     return clean[:180]
+
+
+def _clip_memory_content(content: str, limit: int = 240) -> str:
+    clean = " ".join(content.strip().split())
+    if len(clean) <= limit:
+        return clean
+    return clean[: limit - 3] + "..."
 
 
 def is_safe_to_store(content: str) -> bool:
@@ -296,14 +317,27 @@ def search_memories(*, user_id: str, query: str, limit: int | None = None) -> li
 def format_memories_for_prompt(hits: list[MemoryHit]) -> str:
     if not hits:
         return ""
+    sorted_hits = sorted(
+        hits,
+        key=lambda hit: (
+            MEMORY_TYPE_PRIORITY.get(hit.memory.memory_type, 9),
+            -hit.memory.confidence,
+            -hit.score,
+        ),
+    )
     lines = [
-        "【用户长期记忆】",
-        "以下信息来自用户可管理的长期记忆。若与用户本轮明确要求冲突，以本轮要求为准。",
+        "【长期记忆 / Long-term memory】",
+        "Use these user-managed memories only when relevant. "
+        "The current user request always has higher priority.",
+        "Priority: P1 standing instructions, P2 project context, "
+        "P3 preferences, P4 stable facts, P5 summaries.",
     ]
-    for index, hit in enumerate(hits, start=1):
+    for hit in sorted_hits:
         memory = hit.memory
+        priority = MEMORY_TYPE_PRIORITY.get(memory.memory_type, 9)
+        label = MEMORY_TYPE_LABELS.get(memory.memory_type, memory.memory_type)
         lines.append(
-            f"{index}. 类型: {memory.memory_type}; 置信度: {memory.confidence:.2f}; "
-            f"内容: {memory.content}"
+            f"- P{priority} | {label} | confidence {memory.confidence:.2f} | "
+            f"{_clip_memory_content(memory.content)}"
         )
     return "\n".join(lines)

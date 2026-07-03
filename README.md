@@ -65,7 +65,9 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 - 短期 checkpoint：LangGraph checkpointer 按 `user_id__thread_id` 保存智能体图状态，默认使用 PostgreSQL；不可用时可按配置退回进程内存。
 - 长期记忆：`user_memories` 存储稳定偏好、事实、项目背景、指令和摘要，并同步到 Qdrant 做语义召回；前端“长期记忆”抽屉可新增、搜索和删除。
 
-长期记忆保存前会过滤明显的 API key、密码、token 等敏感内容。Agent 可以在用户明确要求“记住”时调用 `remember_user_memory` 工具保存记忆；每次任务开始时会按当前问题检索相关长期记忆并注入上下文。任务完成后，系统也会尝试从本轮对话中自动抽取最多 5 条稳定记忆。
+长期记忆保存前会过滤明显的 API key、密码、token 等敏感内容。Agent 可以在用户明确要求“记住”时调用 `remember_user_memory` 工具保存记忆；每次任务开始时会按当前问题检索相关长期记忆，并按优先级注入简短记忆块：持续指令、项目背景、用户偏好、稳定事实、摘要。若长期记忆与本轮明确要求冲突，以本轮要求为准。
+
+任务完成后，系统会用更保守的中英双语记忆抽取提示词尝试提取长期记忆。默认只自动抽取三类内容：用户明确偏好、长期项目背景、持续性指令；普通事实、网页/数据库/RAG 证据、一次性任务细节和仅由助手推断出的结论不会自动写入。自动抽取最多保留 3 条，且候选置信度必须不低于 0.72。
 
 相关环境变量：
 
@@ -385,7 +387,9 @@ The project uses several kinds of memory for different purposes:
 - Short-term checkpoint: the LangGraph checkpointer stores agent graph state under `user_id__thread_id`. PostgreSQL is used by default, with an optional in-memory fallback.
 - Long-term memory: `user_memories` stores stable preferences, facts, project context, instructions, and summaries. Memories are synchronized to Qdrant for semantic recall, and the frontend memory drawer can add, search, and delete them.
 
-Before long-term memories are saved, obvious sensitive content such as API keys, passwords, and tokens is filtered. The agent can call the `remember_user_memory` tool when the user explicitly asks it to remember something. At the start of each task, relevant long-term memories are retrieved and injected into context. After a task finishes, the system also attempts to extract up to 5 stable memories from the conversation.
+Before long-term memories are saved, obvious sensitive content such as API keys, passwords, and tokens is filtered. The agent can call the `remember_user_memory` tool when the user explicitly asks it to remember something. At the start of each task, relevant long-term memories are retrieved and injected as a short prioritized memory block: standing instructions, project context, user preferences, stable facts, and summaries. The current user request always has higher priority than recalled memory.
+
+After a task finishes, the system uses a stricter bilingual extraction prompt to look for durable memories. By default, automatic extraction only accepts three categories: explicit user preferences, long-term project context, and standing instructions. Ordinary facts, web/database/RAG evidence, one-off task details, and conclusions inferred only by the assistant are not stored automatically. Automatic extraction keeps at most 3 items, and each candidate must have confidence of at least 0.72.
 
 Related environment variables:
 
