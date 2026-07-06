@@ -36,38 +36,38 @@ interface ConversationThreadProps {
 
 const TASK_EXAMPLES = [
   {
-    tool: "网络搜索工具",
-    title: "联网趋势研判",
+    tool: "联网研究",
+    title: "企业级 Agent 平台对比",
     prompt:
-      "请使用网络搜索工具，检索 2026 年跨境电商 AI 客服趋势，列出 5 条关键变化，并附上来源链接。",
+      "基于公开资料生成一份 Markdown 简报：2026 年企业级 AI Agent 平台格局，比较 AWS、Google Cloud、Microsoft Azure 至少三家云厂商，包含功能侧重点、机会、风险和参考来源。",
     icon: <CloudServerOutlined aria-hidden />,
   },
   {
-    tool: "数据库查询工具",
-    title: "药品库存排查",
+    tool: "业务数据库",
+    title: "药品销售复盘",
     prompt:
-      "请请使用数据库查询工具，查询库存大于 100 的药品，按库存量升序列出药品名称、批次号、仓库位置和过期日期。",
+      "只根据业务数据库生成 2025 年药品销售复盘 Markdown，包含区域表现、销售额 TOP 药品、库存风险和行动建议。不要使用网络搜索。",
     icon: <DatabaseOutlined aria-hidden />,
   },
   {
     tool: "本地知识库",
-    title: "内部文档问答",
+    title: "数字人直播白皮书问答",
     prompt:
-      "请使用本地知识库助手，查询已上传的项目文档，回答“数字人市场情况",
+      "只使用本地知识库回答：《2026数字人电商直播白皮书》主要讨论了哪些数字人直播应用场景？请给出要点，并标注文档来源或章节线索。",
     icon: <FileSearchOutlined aria-hidden />,
   },
   {
-    tool: "文件读取工具",
-    title: "上传文件分析",
+    tool: "附件读取",
+    title: "上传报告摘要",
     prompt:
-      "请使用文件读取工具，读取我上传的文件，提炼核心观点、风险点和待补充信息，并给出下一步分析计划。",
+      "请读取我刚上传的行业报告文件，提炼核心观点、关键数据、风险点和待补充信息，并输出一份研究摘要。若没有检测到附件，请直接说明。",
     icon: <FileTextOutlined aria-hidden />,
   },
   {
-    tool: "Markdown/PDF 工具",
-    title: "生成交付报告",
+    tool: "报告生成",
+    title: "直播电商合规清单",
     prompt:
-      "请使用 Markdown 文档生成工具和 Markdown 转 PDF 工具，基于本次调研结果生成一份 Markdown 报告，并转换成 PDF 保存到当前工作目录。",
+      "搜索 2025-2026 年直播电商监管变化，生成一份给商家的合规检查清单 Markdown，包含政策变化、平台/商家义务、风险清单、检查清单和来源。",
     icon: <FileMarkdownOutlined aria-hidden />,
   },
 ];

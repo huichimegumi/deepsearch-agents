@@ -4,9 +4,9 @@ import { Button, Input } from "antd";
 const { TextArea } = Input;
 
 const presets = [
-  "从网络搜索助手中查询机器人信息，然后生成 Markdown 和 PDF 文件。",
-  "结合内部知识库和公开资料，整理 2026 年金融电商 AI 应用分析报告，并生成 Markdown。",
-  "查询数据库中的商品销售与库存信息，分析重点商品机会，并输出研究结论。"
+  "基于公开资料生成一份 Markdown 简报：2026 年企业级 AI Agent 平台格局，比较 AWS、Google Cloud、Microsoft Azure 至少三家云厂商，包含功能侧重点、机会、风险和参考来源。",
+  "只根据业务数据库生成 2025 年药品销售复盘 Markdown，包含区域表现、销售额 TOP 药品、库存风险和行动建议。不要使用网络搜索。",
+  "只使用本地知识库回答：《2026数字人电商直播白皮书》主要讨论了哪些数字人直播应用场景？请给出要点，并标注文档来源或章节线索。"
 ];
 
 interface MissionComposerProps {
@@ -37,7 +37,7 @@ export function MissionComposer({
         className="mission-textarea"
         value={query}
         onChange={(event) => onQueryChange(event.target.value)}
-        placeholder="输入要交给 DeepAgents 的任务，例如：查询机器人信息，并生成 Markdown 和 PDF 文件。"
+        placeholder="输入要交给 DeepSearch Agents 的任务，例如：根据业务数据库生成 2025 年药品销售复盘 Markdown。"
         autoSize={{ minRows: 7, maxRows: 12 }}
         disabled={isRunning}
       />
