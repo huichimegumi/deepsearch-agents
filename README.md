@@ -98,7 +98,7 @@ deepsearch-agents/
 │   ├── tools/              # 搜索、数据库、RAG、附件、记忆和报告工具
 │   └── utils/              # 路径及文档转换工具
 ├── docker/                 # Dockerfile、Compose 和 MySQL 初始化数据
-├── docs/knowledge_base/    # 示例知识库文档
+├── data/knowledge_base/    # 本地 RAG 语料目录（不提交到 git）
 ├── frontend/               # React 前端
 ├── tests/                  # 自动化测试
 ├── .env.example            # 环境变量示例
@@ -183,7 +183,7 @@ curl http://localhost:8000/health/ready
 
 ```bash
 uv sync
-uv run python -m app.rag.bootstrap docs/knowledge_base
+uv run python -m app.rag.bootstrap data/knowledge_base
 ```
 
 也可以在前端的知识库管理界面创建知识库并上传文档。
@@ -420,7 +420,7 @@ deepsearch-agents/
 │   ├── tools/              # Search, database, RAG, attachment, memory, and report tools
 │   └── utils/              # Path and document conversion utilities
 ├── docker/                 # Dockerfiles, Compose, and MySQL seed data
-├── docs/knowledge_base/    # Example knowledge-base documents
+├── data/knowledge_base/    # Local RAG corpus directory (not committed to git)
 ├── frontend/               # React frontend
 ├── tests/                  # Automated tests
 ├── .env.example            # Example environment variables
@@ -523,7 +523,7 @@ curl http://localhost:8000/health/ready
 
 ```bash
 uv sync
-uv run python -m app.rag.bootstrap docs/knowledge_base
+uv run python -m app.rag.bootstrap data/knowledge_base
 ```
 
 You can also create a knowledge base and upload documents from the frontend knowledge-base management page.

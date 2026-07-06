@@ -8,6 +8,7 @@ app/updated
 app/logs
 app/rag_temp
 .fastembed_cache/
+/data/knowledge_base/
 /out-tsc
 # Only exists if Bazel was run
 /bazel-out

@@ -79,7 +79,7 @@ def import_directory(root: Path) -> tuple[int, int]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="批量导入本地知识库文档")
-    parser.add_argument("root", type=Path, nargs="?", default=Path("docs/knowledge_base"))
+    parser.add_argument("root", type=Path, nargs="?", default=Path("data/knowledge_base"))
     args = parser.parse_args()
     if not args.root.is_dir():
         raise SystemExit(f"知识库目录不存在: {args.root}")
