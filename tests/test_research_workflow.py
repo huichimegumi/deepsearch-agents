@@ -62,6 +62,30 @@ def test_final_phase_prompt_blocks_research_tools():
     assert "Do not call researcher subagents" in prompt
 
 
+def test_non_research_phase_prompt_declares_no_tool_boundary():
+    prompt = build_phase_prompt(
+        task_query="compress evidence",
+        phase=RESEARCH_PHASES[2],
+        phase_outputs={"supervisor_research": "ledger"},
+        runtime_instructions="runtime rules",
+    )
+
+    assert "NO-TOOL PHASE BOUNDARY" in prompt
+    assert "record it as a gap" in prompt
+
+
+def test_supervisor_phase_prompt_declares_research_boundary():
+    prompt = build_phase_prompt(
+        task_query="research market",
+        phase=RESEARCH_PHASES[1],
+        phase_outputs={"clarify_and_brief": "brief"},
+        runtime_instructions="runtime rules",
+    )
+
+    assert "RESEARCH PHASE BOUNDARY" in prompt
+    assert "only phase where researcher subagents" in prompt
+
+
 def test_degraded_phase_output_preserves_next_phase_context():
     degraded = build_degraded_phase_output(
         task_query="research topic",

@@ -185,12 +185,25 @@ def build_phase_prompt(
 ) -> str:
     """Build the user message for one enforced workflow phase."""
     previous = format_previous_phase_outputs(phase_outputs)
-    final_report_guard = ""
+    tool_boundary = ""
     if phase.key == "final_report":
-        final_report_guard = (
+        tool_boundary = (
             "FINAL REPORT TOOL BOUNDARY: Do not call researcher subagents, web search, "
             "knowledge-base search, or database query tools in this phase. Write only from "
             "the completed phase artifacts above. If evidence is missing, say so explicitly."
+        )
+    elif not phase.requires_tools:
+        tool_boundary = (
+            "NO-TOOL PHASE BOUNDARY: The backend has not provided researcher subagents, "
+            "web search, knowledge-base search, database query, or file tools in this phase. "
+            "Use only the user request and completed phase artifacts. If evidence is missing, "
+            "record it as a gap for the supervisor research phase instead of trying to fetch it."
+        )
+    else:
+        tool_boundary = (
+            "RESEARCH PHASE BOUNDARY: This is the only phase where researcher subagents and "
+            "evidence-gathering tools are available. Gather enough evidence for the ledger, "
+            "then stop and return the ledger plus reflection instead of expanding indefinitely."
         )
     return "\n\n".join(
         part
@@ -198,7 +211,7 @@ def build_phase_prompt(
             f"【用户原始问题】\n{task_query}",
             previous,
             runtime_instructions,
-            final_report_guard,
+            tool_boundary,
             phase.instruction,
         )
         if part

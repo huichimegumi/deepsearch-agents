@@ -8,6 +8,7 @@ session_id 创建独立工作目录，并把工具调用、子智能体调用和
 
 import asyncio
 import shutil
+import time
 import uuid
 from functools import lru_cache
 from pathlib import Path
@@ -47,14 +48,24 @@ from app.tools.upload_file_read_tool import read_file_content
 
 
 @lru_cache(maxsize=1)
-def get_main_agent():
-    """Build the agent graph on first use after configuration is validated."""
+def get_planner_agent():
+    """Build a tool-free agent for planning and evidence compression phases."""
+    return create_deep_agent(
+        model=get_model(),
+        system_prompt=main_agent_content["system_prompt"],
+        tools=[],
+        checkpointer=get_short_term_checkpointer(),
+        subagents=[],
+    )
+
+
+@lru_cache(maxsize=1)
+def get_research_agent():
+    """Build the only phase agent that can call researcher subagents."""
     return create_deep_agent(
         model=get_model(),
         system_prompt=main_agent_content["system_prompt"],
         tools=[
-            generate_markdown,
-            convert_md_to_pdf,
             read_file_content,
             remember_user_memory,
             search_user_memory,
@@ -79,8 +90,21 @@ def get_writer_agent():
     )
 
 
+def get_main_agent():
+    """Backward-compatible accessor for the research-capable agent."""
+    return get_research_agent()
+
+
 # 当前文件位于 app/agent/main_agent.py，parents[1] 即 app 目录
 project_root_path = Path(__file__).parents[1].resolve()
+
+
+class PhaseBudgetExceeded(RuntimeError):
+    """Raised when an in-process phase guard decides the phase must stop."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
 
 
 async def _astream_with_runtime_limit(agent, payload, config, timeout_seconds: float):
@@ -154,12 +178,40 @@ def _budget_payload(
     *,
     budget: AgentExecutionBudget,
     budget_profile: str,
+    remaining_workflow_seconds: float | None = None,
 ) -> dict:
-    return {
+    payload = {
         "budget_profile": budget_profile,
         "recursion_limit": budget.recursion_limit,
         "timeout_seconds": budget.timeout_seconds,
     }
+    if remaining_workflow_seconds is not None:
+        payload["remaining_workflow_seconds"] = max(0.0, remaining_workflow_seconds)
+    return payload
+
+
+def _phase_agent_for(
+    *,
+    phase: ResearchPhase,
+    planner_agent,
+    research_agent,
+    writer_agent,
+):
+    """Select the backend-enforced capability set for a workflow phase."""
+    if phase.key == "final_report":
+        return writer_agent
+    if phase.requires_tools:
+        return research_agent
+    return planner_agent
+
+
+def _max_subagent_calls_for_profile(budget_profile: str) -> int:
+    """Keep supervisor research from expanding into an unbounded task fan-out."""
+    if budget_profile == "quick":
+        return 2
+    if budget_profile == "deep_report":
+        return 8
+    return 4
 
 
 async def _run_agent_phase(
@@ -170,10 +222,16 @@ async def _run_agent_phase(
     config: dict,
     budget: AgentExecutionBudget,
     budget_profile: str,
+    remaining_workflow_seconds: float | None = None,
+    max_subagent_calls: int | None = None,
     emit_final_result: bool = False,
 ) -> str | None:
     """Run one enforced research phase and return the latest model text."""
-    budget_data = _budget_payload(budget=budget, budget_profile=budget_profile)
+    budget_data = _budget_payload(
+        budget=budget,
+        budget_profile=budget_profile,
+        remaining_workflow_seconds=remaining_workflow_seconds,
+    )
     monitor.report_research_phase(phase.key, phase.title, "start", budget_data)
     write_audit_event(
         "research_phase_started",
@@ -183,6 +241,8 @@ async def _run_agent_phase(
     phase_result = None
     phase_status = "end"
     phase_error = None
+    budget_reason = None
+    subagent_call_count = 0
     phase_token = set_research_phase_context(phase.key)
     try:
         async for chunk in _astream_with_runtime_limit(
@@ -207,6 +267,12 @@ async def _run_agent_phase(
                     # DeepAgents 调用子智能体时，本质上会产生名为 task 的工具调用
                     for tool_call in tool_calls:
                         if tool_call["name"] == "task":
+                            subagent_call_count += 1
+                            if (
+                                max_subagent_calls is not None
+                                and subagent_call_count > max_subagent_calls
+                            ):
+                                raise PhaseBudgetExceeded("subagent_call_limit")
                             # 子智能体调用单独上报，前端可以展示“正在调用哪个专家助手”
                             monitor.report_assistant(
                                 tool_call["args"]["subagent_type"],
@@ -225,6 +291,7 @@ async def _run_agent_phase(
     except TimeoutError as exc:
         phase_status = "budget_exceeded"
         phase_error = repr(exc)
+        budget_reason = "timeout"
         message = (
             f"Research phase {phase.key} exceeded its execution budget; "
             "continuing with available evidence"
@@ -235,7 +302,26 @@ async def _run_agent_phase(
             {
                 "phase_key": phase.key,
                 "phase_title": phase.title,
-                "reason": "timeout",
+                "reason": budget_reason,
+                "error": phase_error,
+                **budget_data,
+            },
+        )
+    except PhaseBudgetExceeded as exc:
+        phase_status = "budget_exceeded"
+        phase_error = repr(exc)
+        budget_reason = exc.reason
+        message = (
+            f"Research phase {phase.key} reached its {exc.reason}; "
+            "continuing with available evidence"
+        )
+        monitor._emit("phase_budget_exceeded", message, {"phase_key": phase.key, **budget_data})
+        write_audit_event(
+            "research_phase_budget_exceeded",
+            {
+                "phase_key": phase.key,
+                "phase_title": phase.title,
+                "reason": budget_reason,
                 "error": phase_error,
                 **budget_data,
             },
@@ -245,6 +331,7 @@ async def _run_agent_phase(
             raise
         phase_status = "budget_exceeded"
         phase_error = repr(exc)
+        budget_reason = "recursion_limit"
         message = (
             f"Research phase {phase.key} reached its recursion budget; "
             "continuing with available evidence"
@@ -255,7 +342,7 @@ async def _run_agent_phase(
             {
                 "phase_key": phase.key,
                 "phase_title": phase.title,
-                "reason": "recursion_limit",
+                "reason": budget_reason,
                 "error": phase_error,
                 **budget_data,
             },
@@ -263,9 +350,15 @@ async def _run_agent_phase(
     finally:
         reset_research_phase_context(phase_token)
 
-    phase_end_data = {"result_preview": (phase_result or "")[:500], **budget_data}
+    phase_end_data = {
+        "result_preview": (phase_result or "")[:500],
+        "subagent_call_count": subagent_call_count,
+        **budget_data,
+    }
     if phase_error:
         phase_end_data["error"] = phase_error
+    if budget_reason:
+        phase_end_data["reason"] = budget_reason
     monitor.report_research_phase(
         phase.key,
         phase.title,
@@ -279,6 +372,7 @@ async def _run_agent_phase(
             "phase_title": phase.title,
             "status": phase_status,
             "result_preview": (phase_result or "")[:500],
+            "subagent_call_count": subagent_call_count,
             **budget_data,
         },
     )
@@ -449,7 +543,8 @@ async def run_deep_agent(
 
     final_result = None
     try:
-        main_agent = get_main_agent()
+        planner_agent = get_planner_agent()
+        research_agent = get_research_agent()
         writer_agent = get_writer_agent()
         runtime_instructions = (
             path_instruction
@@ -459,9 +554,66 @@ async def run_deep_agent(
         )
         phase_outputs: dict[str, str] = {}
         workflow_run_id = uuid.uuid4().hex
+        workflow_started_at = time.monotonic()
+        max_subagent_calls = _max_subagent_calls_for_profile(budget_profile)
 
         for phase in RESEARCH_PHASES:
+            remaining_workflow_seconds = (
+                settings.agent_hard_max_runtime_seconds
+                - (time.monotonic() - workflow_started_at)
+            )
             phase_budget = settings.agent_phase_budget(phase.key, budget_profile)
+            if remaining_workflow_seconds <= 0:
+                reason = "workflow hard runtime budget was exhausted before this phase started"
+                monitor._emit(
+                    "workflow_budget_exceeded",
+                    reason,
+                    {
+                        "phase_key": phase.key,
+                        "phase_title": phase.title,
+                        "budget_profile": budget_profile,
+                        "hard_timeout_seconds": settings.agent_hard_max_runtime_seconds,
+                    },
+                )
+                write_audit_event(
+                    "workflow_budget_exceeded",
+                    {
+                        "phase_key": phase.key,
+                        "phase_title": phase.title,
+                        "budget_profile": budget_profile,
+                        "hard_timeout_seconds": settings.agent_hard_max_runtime_seconds,
+                    },
+                    thread_id=event_thread_id,
+                )
+                phase_result = build_degraded_phase_output(
+                    task_query=task_query,
+                    phase=phase,
+                    phase_outputs=phase_outputs,
+                    reason=reason,
+                )
+                if phase.key == "final_report":
+                    monitor.report_task_result(phase_result)
+                    write_audit_event(
+                        "task_result",
+                        {
+                            "result": phase_result,
+                            "degraded": True,
+                            "budget_profile": budget_profile,
+                        },
+                        thread_id=event_thread_id,
+                    )
+                phase_outputs[phase.key] = phase_result
+                if phase.key == "final_report":
+                    final_result = phase_result
+                continue
+
+            phase_budget = AgentExecutionBudget(
+                recursion_limit=phase_budget.recursion_limit,
+                timeout_seconds=min(
+                    phase_budget.timeout_seconds,
+                    remaining_workflow_seconds,
+                ),
+            )
             config = _phase_config(
                 event_thread_id,
                 phase.key,
@@ -474,7 +626,12 @@ async def run_deep_agent(
                 phase_outputs=phase_outputs,
                 runtime_instructions=runtime_instructions,
             )
-            phase_agent = writer_agent if phase.key == "final_report" else main_agent
+            phase_agent = _phase_agent_for(
+                phase=phase,
+                planner_agent=planner_agent,
+                research_agent=research_agent,
+                writer_agent=writer_agent,
+            )
             phase_result = await _run_agent_phase(
                 agent=phase_agent,
                 phase=phase,
@@ -482,6 +639,8 @@ async def run_deep_agent(
                 config=config,
                 budget=phase_budget,
                 budget_profile=budget_profile,
+                remaining_workflow_seconds=remaining_workflow_seconds,
+                max_subagent_calls=max_subagent_calls if phase.requires_tools else None,
                 emit_final_result=phase.key == "final_report",
             )
             if not phase_result:
