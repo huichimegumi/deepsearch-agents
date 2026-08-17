@@ -8,7 +8,6 @@ session_id 创建独立工作目录，并把工具调用、子智能体调用和
 
 import asyncio
 import shutil
-import time
 import uuid
 from functools import lru_cache
 from pathlib import Path
@@ -22,6 +21,12 @@ from app.agent.research_workflow import (
     ResearchPhase,
     build_degraded_phase_output,
     build_phase_prompt,
+)
+from app.agent.runtime import (
+    ResearchBudget,
+    ResearchRunTrace,
+    reset_research_runtime,
+    set_research_runtime,
 )
 from app.agent.subagents.database_query_agent import database_query_agent
 from app.agent.subagents.knowledge_base_agent import knowledge_base_agent
@@ -167,9 +172,7 @@ def _phase_config(
 ) -> dict:
     """Build the LangGraph config for one phase using its own budget."""
     return {
-        "configurable": {
-            "thread_id": _phase_thread_id(thread_id, phase_key, workflow_run_id)
-        },
+        "configurable": {"thread_id": _phase_thread_id(thread_id, phase_key, workflow_run_id)},
         "recursion_limit": budget.recursion_limit,
     }
 
@@ -222,6 +225,8 @@ async def _run_agent_phase(
     config: dict,
     budget: AgentExecutionBudget,
     budget_profile: str,
+    research_budget: ResearchBudget,
+    run_trace: ResearchRunTrace,
     remaining_workflow_seconds: float | None = None,
     max_subagent_calls: int | None = None,
     emit_final_result: bool = False,
@@ -232,6 +237,10 @@ async def _run_agent_phase(
         budget_profile=budget_profile,
         remaining_workflow_seconds=remaining_workflow_seconds,
     )
+    run_trace.start_phase(phase.key, phase.title)
+    if phase.requires_tools and not research_budget.take_research_round():
+        run_trace.finish_phase(phase.key, "budget_exceeded", "research_round_limit")
+        return None
     monitor.report_research_phase(phase.key, phase.title, "start", budget_data)
     write_audit_event(
         "research_phase_started",
@@ -262,10 +271,15 @@ async def _run_agent_phase(
                 if node_name != "model":
                     continue
 
+                run_trace.record_llm_call(phase.key, last_msg)
+                if not research_budget.take_llm_call(phase.key):
+                    raise PhaseBudgetExceeded("llm_call_limit")
+
                 tool_calls = getattr(last_msg, "tool_calls", None)
                 if tool_calls:
                     # DeepAgents 调用子智能体时，本质上会产生名为 task 的工具调用
                     for tool_call in tool_calls:
+                        run_trace.record_tool_call(phase.key, tool_call["name"])
                         if tool_call["name"] == "task":
                             subagent_call_count += 1
                             if (
@@ -288,6 +302,10 @@ async def _run_agent_phase(
                             "task_result",
                             {"result": last_msg.content},
                         )
+    except asyncio.CancelledError:
+        phase_status = "cancelled"
+        budget_reason = "cancelled"
+        raise
     except TimeoutError as exc:
         phase_status = "budget_exceeded"
         phase_error = repr(exc)
@@ -328,6 +346,9 @@ async def _run_agent_phase(
         )
     except Exception as exc:
         if exc.__class__.__name__ != "GraphRecursionError":
+            phase_status = "error"
+            phase_error = repr(exc)
+            budget_reason = exc.__class__.__name__
             raise
         phase_status = "budget_exceeded"
         phase_error = repr(exc)
@@ -349,6 +370,7 @@ async def _run_agent_phase(
         )
     finally:
         reset_research_phase_context(phase_token)
+        run_trace.finish_phase(phase.key, phase_status, budget_reason)
 
     phase_end_data = {
         "result_preview": (phase_result or "")[:500],
@@ -436,6 +458,7 @@ async def run_deep_agent(
     user_id: str | None = None,
     monitor_thread_id: str | None = None,
     conversation_memory: str = "",
+    budget_profile_override: str | None = None,
 ):
     """
     异步流式执行主智能体
@@ -446,6 +469,21 @@ async def run_deep_agent(
     :param session_id: 当前任务 ID，同时用于 thread_id、输出目录和 WebSocket 定向推送
     """
     event_thread_id = monitor_thread_id or session_id
+    settings = get_settings()
+    allowed_profiles = {"quick", "standard", "deep_report", "thorough"}
+    budget_profile = (
+        budget_profile_override
+        if budget_profile_override in allowed_profiles
+        else _classify_budget_profile(task_query)
+    )
+    workflow_run_id = uuid.uuid4().hex
+    research_budget = ResearchBudget(settings.research_budget_limits(budget_profile))
+    run_trace = ResearchRunTrace(
+        run_id=workflow_run_id,
+        thread_id=event_thread_id,
+        budget_profile=budget_profile,
+        budget=research_budget,
+    )
     print(f"[MainAgent] 开始执行会话，session_id={session_id}")
     write_audit_event(
         "task_started",
@@ -492,13 +530,20 @@ async def run_deep_agent(
     session_id_token = set_thread_context(event_thread_id)
     user_id_token = set_user_context(user_id) if user_id else None
 
+    monitor._emit(
+        "research_run_started",
+        f"研究任务使用 {budget_profile} 预算",
+        {
+            "run_id": workflow_run_id,
+            "budget_profile": budget_profile,
+            "budget": research_budget.snapshot(),
+        },
+    )
+
     # 前端拿到工作目录后，可以展示本次任务生成的 Markdown/PDF 等产物
     monitor.report_session_dir(session_dir_str)
 
     # checkpointer 依赖 thread_id 区分会话记忆；同一 session_id 会复用同一条执行上下文
-    settings = get_settings()
-    budget_profile = _classify_budget_profile(task_query)
-
     # 工作环境指令是运行时动态补充的，约束模型只在当前会话目录读写文件
     path_instruction = f"""
     【工作环境指令】
@@ -542,6 +587,9 @@ async def run_deep_agent(
             )
 
     final_result = None
+    run_status = "completed"
+    run_failure_reason = None
+    runtime_tokens = set_research_runtime(research_budget, run_trace)
     try:
         planner_agent = get_planner_agent()
         research_agent = get_research_agent()
@@ -553,18 +601,15 @@ async def run_deep_agent(
             + ("\n\n" + conversation_memory if conversation_memory else "")
         )
         phase_outputs: dict[str, str] = {}
-        workflow_run_id = uuid.uuid4().hex
-        workflow_started_at = time.monotonic()
         max_subagent_calls = _max_subagent_calls_for_profile(budget_profile)
 
         for phase in RESEARCH_PHASES:
-            remaining_workflow_seconds = (
-                settings.agent_hard_max_runtime_seconds
-                - (time.monotonic() - workflow_started_at)
-            )
+            remaining_workflow_seconds = research_budget.remaining_seconds
             phase_budget = settings.agent_phase_budget(phase.key, budget_profile)
             if remaining_workflow_seconds <= 0:
-                reason = "workflow hard runtime budget was exhausted before this phase started"
+                reason = "run-level research budget was exhausted before this phase started"
+                run_trace.start_phase(phase.key, phase.title)
+                run_trace.finish_phase(phase.key, "budget_exceeded", "run_timeout")
                 monitor._emit(
                     "workflow_budget_exceeded",
                     reason,
@@ -572,7 +617,7 @@ async def run_deep_agent(
                         "phase_key": phase.key,
                         "phase_title": phase.title,
                         "budget_profile": budget_profile,
-                        "hard_timeout_seconds": settings.agent_hard_max_runtime_seconds,
+                        "hard_timeout_seconds": research_budget.limits.total_seconds,
                     },
                 )
                 write_audit_event(
@@ -581,7 +626,7 @@ async def run_deep_agent(
                         "phase_key": phase.key,
                         "phase_title": phase.title,
                         "budget_profile": budget_profile,
-                        "hard_timeout_seconds": settings.agent_hard_max_runtime_seconds,
+                        "hard_timeout_seconds": research_budget.limits.total_seconds,
                     },
                     thread_id=event_thread_id,
                 )
@@ -609,9 +654,9 @@ async def run_deep_agent(
 
             phase_budget = AgentExecutionBudget(
                 recursion_limit=phase_budget.recursion_limit,
-                timeout_seconds=min(
+                timeout_seconds=research_budget.phase_timeout(
+                    phase.key,
                     phase_budget.timeout_seconds,
-                    remaining_workflow_seconds,
                 ),
             )
             config = _phase_config(
@@ -639,11 +684,14 @@ async def run_deep_agent(
                 config=config,
                 budget=phase_budget,
                 budget_profile=budget_profile,
+                research_budget=research_budget,
+                run_trace=run_trace,
                 remaining_workflow_seconds=remaining_workflow_seconds,
                 max_subagent_calls=max_subagent_calls if phase.requires_tools else None,
                 emit_final_result=phase.key == "final_report",
             )
             if not phase_result:
+                run_trace.degraded = True
                 phase_result = build_degraded_phase_output(
                     task_query=task_query,
                     phase=phase,
@@ -707,10 +755,14 @@ async def run_deep_agent(
                 )
 
     except asyncio.CancelledError:
+        run_status = "cancelled"
+        run_failure_reason = "cancelled_by_user_or_eval"
         monitor.report_task_cancelled()
         write_audit_event("task_cancelled", {}, thread_id=event_thread_id)
         raise
     except TimeoutError:
+        run_status = "timeout"
+        run_failure_reason = "run_timeout"
         message = (
             "Agent execution exceeded the configured runtime budget. "
             "Increase the phase or hard runtime budget for larger research tasks."
@@ -719,13 +771,15 @@ async def run_deep_agent(
         write_audit_event(
             "task_timeout",
             {
-                "hard_timeout_seconds": settings.agent_hard_max_runtime_seconds,
+                "hard_timeout_seconds": research_budget.limits.total_seconds,
                 "budget_profile": budget_profile,
             },
             thread_id=event_thread_id,
         )
     except Exception as e:
         if e.__class__.__name__ == "GraphRecursionError":
+            run_status = "recursion_limit"
+            run_failure_reason = "graph_recursion_limit"
             message = (
                 "Agent execution reached the configured recursion budget before a "
                 "phase handler could degrade gracefully."
@@ -741,10 +795,43 @@ async def run_deep_agent(
                 thread_id=event_thread_id,
             )
             return final_result
+        run_status = "error"
+        run_failure_reason = e.__class__.__name__
         # 异步执行异常也走 monitor，保证前端能收到明确错误事件
         monitor._emit("error", f"执行主智能发生异常信息：{str(e)}")
         write_audit_event("task_error", {"error": repr(e)}, thread_id=event_thread_id)
     finally:
+        trace_payload = run_trace.finalize(
+            status=run_status,
+            final_result=final_result,
+            failure_reason=run_failure_reason,
+        )
+        trace_path = session_dir / "research_trace.json"
+        try:
+            ResearchRunTrace.write(trace_path, trace_payload)
+            monitor._emit(
+                "research_trace_complete",
+                "研究运行 Trace 已生成",
+                {
+                    "path": str(trace_path),
+                    "status": trace_payload["status"],
+                    "elapsed_ms": trace_payload["elapsed_ms"],
+                    "metrics": trace_payload["metrics"],
+                    "waste": trace_payload["waste"],
+                },
+            )
+            write_audit_event(
+                "research_trace_complete",
+                trace_payload,
+                thread_id=event_thread_id,
+            )
+        except Exception as trace_error:
+            write_audit_event(
+                "research_trace_error",
+                {"error": repr(trace_error)},
+                thread_id=event_thread_id,
+            )
+        reset_research_runtime(runtime_tokens)
         # 任务结束后恢复 ContextVar，避免后续请求复用到本次会话目录或 thread_id
         reset_session_context(session_dir_token, session_id_token, user_id_token)
 

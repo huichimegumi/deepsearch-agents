@@ -52,6 +52,10 @@ class AppSettings:
     agent_max_runtime_seconds: float = 300.0
     agent_hard_max_recursion_limit: int = 160
     agent_hard_max_runtime_seconds: float = 1800.0
+    agent_quick_slo_seconds: float = 60.0
+    agent_standard_slo_seconds: float = 180.0
+    agent_deep_slo_seconds: float = 300.0
+    agent_thorough_slo_seconds: float = 900.0
     agent_phase_clarify_recursion_limit: int = 20
     agent_phase_clarify_timeout_seconds: float = 120.0
     agent_phase_research_recursion_limit: int = 90
@@ -83,7 +87,6 @@ class AppSettings:
             raise RuntimeError(
                 f"大模型配置无效或缺失: {names}。请复制 .env.example 为 .env 后填写真实配置。"
             )
-
 
     def agent_phase_budget(
         self,
@@ -147,6 +150,36 @@ class AppSettings:
             ),
         )
 
+    def research_budget_limits(self, budget_profile: str):
+        """Return run-level time and work limits for a research profile."""
+        from app.agent.runtime import ResearchBudgetLimits
+
+        profiles = {
+            "quick": ResearchBudgetLimits("quick", self.agent_quick_slo_seconds, 3, 4, 1, 8, 15),
+            "standard": ResearchBudgetLimits(
+                "standard", self.agent_standard_slo_seconds, 8, 8, 1, 16, 45
+            ),
+            "deep_report": ResearchBudgetLimits(
+                "deep_report", self.agent_deep_slo_seconds, 12, 12, 2, 20, 75
+            ),
+            "thorough": ResearchBudgetLimits(
+                "thorough", self.agent_thorough_slo_seconds, 30, 24, 3, 40, 180
+            ),
+        }
+        limits = profiles.get(budget_profile, profiles["standard"])
+        if self.agent_hard_max_runtime_seconds < limits.total_seconds:
+            return ResearchBudgetLimits(
+                **{
+                    **limits.__dict__,
+                    "total_seconds": self.agent_hard_max_runtime_seconds,
+                    "writer_reserved_seconds": min(
+                        limits.writer_reserved_seconds,
+                        self.agent_hard_max_runtime_seconds * 0.25,
+                    ),
+                }
+            )
+        return limits
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> AppSettings:
@@ -163,9 +196,11 @@ def get_settings() -> AppSettings:
         agent_recursion_limit=int(os.getenv("AGENT_RECURSION_LIMIT", "30")),
         agent_max_runtime_seconds=float(os.getenv("AGENT_MAX_RUNTIME_SECONDS", "300")),
         agent_hard_max_recursion_limit=int(os.getenv("AGENT_HARD_MAX_RECURSION_LIMIT", "160")),
-        agent_hard_max_runtime_seconds=float(
-            os.getenv("AGENT_HARD_MAX_RUNTIME_SECONDS", "1800")
-        ),
+        agent_hard_max_runtime_seconds=float(os.getenv("AGENT_HARD_MAX_RUNTIME_SECONDS", "1800")),
+        agent_quick_slo_seconds=float(os.getenv("AGENT_QUICK_SLO_SECONDS", "60")),
+        agent_standard_slo_seconds=float(os.getenv("AGENT_STANDARD_SLO_SECONDS", "180")),
+        agent_deep_slo_seconds=float(os.getenv("AGENT_DEEP_SLO_SECONDS", "300")),
+        agent_thorough_slo_seconds=float(os.getenv("AGENT_THOROUGH_SLO_SECONDS", "900")),
         agent_phase_clarify_recursion_limit=int(
             os.getenv("AGENT_PHASE_CLARIFY_RECURSION_LIMIT", "20")
         ),

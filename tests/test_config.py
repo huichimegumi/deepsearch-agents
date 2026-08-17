@@ -149,3 +149,32 @@ class AppSettingsTests(unittest.TestCase):
 
         self.assertEqual(budget.recursion_limit, 12)
         self.assertEqual(budget.timeout_seconds, 45.5)
+
+    def test_run_budget_profiles_define_interactive_slos(self):
+        settings = AppSettings(
+            llm_name="qwen-max",
+            openai_api_key="test-key",
+            openai_base_url=None,
+            cors_origins=(),
+        )
+
+        self.assertEqual(settings.research_budget_limits("quick").total_seconds, 60)
+        self.assertEqual(settings.research_budget_limits("standard").total_seconds, 180)
+        deep = settings.research_budget_limits("deep_report")
+        self.assertEqual(deep.total_seconds, 300)
+        self.assertEqual(deep.max_search_queries, 12)
+        self.assertEqual(deep.writer_reserved_seconds, 75)
+
+    def test_run_budget_respects_hard_runtime_cap(self):
+        settings = AppSettings(
+            llm_name="qwen-max",
+            openai_api_key="test-key",
+            openai_base_url=None,
+            cors_origins=(),
+            agent_hard_max_runtime_seconds=120,
+        )
+
+        limits = settings.research_budget_limits("deep_report")
+
+        self.assertEqual(limits.total_seconds, 120)
+        self.assertEqual(limits.writer_reserved_seconds, 30)

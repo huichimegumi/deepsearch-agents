@@ -9,6 +9,7 @@ from typing import Literal
 
 from langchain_core.tools import tool
 
+from app.agent.runtime import get_research_budget, get_research_trace
 from app.api.audit import write_audit_event
 from app.api.monitor import monitor
 from app.search.models import SearchRequest
@@ -44,6 +45,19 @@ def research_search(
     :return: 包含 results、answer、backend 和 notices 的统一结构
     """
     requested_backend = backend
+    budget = get_research_budget()
+    trace = get_research_trace()
+    if budget is not None:
+        accepted_query_count = budget.take_search_queries(len(queries))
+        queries = queries[:accepted_query_count]
+        if not queries:
+            return {
+                "queries": [],
+                "backend": backend,
+                "results": [],
+                "answer": None,
+                "notices": ["本次研究已达到搜索查询预算，停止继续搜索"],
+            }
     configured_backend = os.getenv("SEARCH_BACKEND", "auto").strip().lower()
     if backend == "auto" and configured_backend in {
         "auto",
@@ -56,6 +70,11 @@ def research_search(
         backend = configured_backend
 
     resolved_max_results = max_results or int(os.getenv("SEARCH_MAX_RESULTS", "8"))
+    if fetch_full_page and budget is not None:
+        remaining_pages = budget.limits.max_fetched_pages - budget.fetched_pages_used
+        resolved_max_results = min(resolved_max_results, max(0, remaining_pages))
+        if resolved_max_results <= 0:
+            fetch_full_page = False
     monitor.report_tool(
         tool_name="多源网络搜索工具",
         args={
@@ -77,6 +96,11 @@ def research_search(
         )
     )
     response_dict = response.to_dict()
+    fetched_pages = sum(1 for item in response_dict.get("results", []) if item.get("raw_content"))
+    if budget is not None:
+        budget.take_fetched_pages(fetched_pages)
+    if trace is not None:
+        trace.record_search(queries, response_dict.get("results", []))
     write_audit_event(
         "search_result",
         {

@@ -12,7 +12,7 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### 主要功能
 
-- 阶段式深度研究：后端显式执行“澄清问题与研究简报 -> Supervisor 分派与 researcher 循环 -> 证据压缩 -> 最终报告”，避免只靠 prompt 约束导致的跳步、少搜和引用丢失。
+- 阶段式深度研究：后端按固定顺序执行“澄清问题与研究简报 -> Supervisor 分派与 researcher 循环 -> 证据压缩 -> 最终报告”。M0 baseline 已确认阶段顺序生效，但严格的工具和子智能体隔离仍在 M0.1 中处理。
 - 多智能体研究：主智能体负责分派、反思和汇总，网络搜索、数据库查询、本地知识库三个子智能体分别处理不同信息源。
 - 多源检索：支持 Tavily、DuckDuckGo、Perplexity、SearXNG、MySQL，以及基于 PostgreSQL、Qdrant、MinIO、Redis 和 FastEmbed 的本地 RAG。
 - 用户与会话：提供注册、登录、JWT 鉴权、会话列表、历史消息恢复、会话归档和按用户隔离的数据目录。
@@ -22,6 +22,14 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 - 研究阶段追踪：每个阶段的开始、完成和摘要会写入 WebSocket trace 与审计日志，便于复盘 brief、证据账本、压缩证据和最终报告之间的关系。
 - Web 工作台：前端提供聊天、任务事件流、附件上传、知识库管理、长期记忆抽屉、历史会话侧栏和结果下载。
 - 审计日志：任务开始、结果、取消、异常等事件会按会话写入 `app/logs/session_*.jsonl`，便于排查执行过程。
+
+### Research Core 开发状态
+
+M0 已完成运行级 Budget、结构化 Trace 和端到端 baseline 支持。每次执行都会在会话目录写入 `research_trace.json`，记录阶段耗时、LLM/工具调用、Token、搜索使用量、Waste 和失败原因。
+
+2026-08-17 的首轮 M0 baseline 执行了 5 个纯 Web 报告样本，另外 5 个 MySQL 样本因本地数据库未启动而阻塞。5 个实际执行的样本全部降级，且没有生成要求的 Markdown 文件。Trace 定位到三个直接原因：Clarify 阶段仍可调用 DeepAgents 内建工具并全部超时，Supervisor 声称生成了实际不存在的文件，以及全局 LLM 调用预算在 Compression/Writer 完成前耗尽。
+
+因此，当前 Research Core 仍处于重构期。下一步 M0.1 会把 Clarify 和 Compression 改为直接模型调用，限制 Research 阶段的子智能体类型，并由后端确定性写入和校验最终文件。完整的实现、数据和验收目标见 [M0 development log](docs/development/m0-baseline-budget-trace.md)。
 
 ### 系统架构
 
@@ -334,7 +342,7 @@ DeepSearch Agents is a conversational multi-agent deep research system built on 
 
 ### Features
 
-- Staged deep research: the backend explicitly runs clarification and research brief, supervisor dispatch and researcher reflection, evidence compression, and final report phases, reducing skipped searches, missing gap checks, and lost citations.
+- Staged deep research: the backend runs clarification and research brief, supervisor dispatch and researcher reflection, evidence compression, and final report in a fixed order. The M0 baseline confirmed phase ordering, but strict tool and subagent isolation remains M0.1 work.
 - Multi-agent research: the main agent dispatches, reflects, and synthesizes work, while dedicated sub-agents handle web search, database queries, and local knowledge-base retrieval.
 - Multi-source retrieval: supports Tavily, DuckDuckGo, Perplexity, SearXNG, MySQL, and local RAG based on PostgreSQL, Qdrant, MinIO, Redis, and FastEmbed.
 - Users and conversations: includes registration, login, JWT authentication, conversation lists, historical message recovery, conversation archiving, and user-isolated data directories.
@@ -344,6 +352,14 @@ DeepSearch Agents is a conversational multi-agent deep research system built on 
 - Research phase tracing: each phase start, completion, and summary is written to the WebSocket trace and audit log so the brief, evidence ledger, compressed evidence, and final report can be reviewed together.
 - Web workspace: the frontend provides chat, a task event stream, attachment uploads, knowledge-base management, a long-term memory drawer, a history sidebar, and result downloads.
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
+
+### Research Core status
+
+M0 adds run-level budgets, structured traces, and baseline aggregation. Every executed task writes `research_trace.json` with phase timing, LLM and tool usage, token counts, search activity, waste counters, and failure reasons.
+
+The first M0 baseline on 2026-08-17 executed five web-report samples. Five MySQL samples were blocked because the local database was unavailable. All five executed samples degraded, and none created the required Markdown artifact. The trace identified three immediate causes: the clarification phase could still call DeepAgents built-in tools and timed out in every run, supervisors claimed files that did not exist, and the global LLM-call budget was exhausted before compression or writing completed.
+
+The Research Core is still under active reconstruction. M0.1 will replace clarification and compression with direct model calls, restrict research subagent types, and move artifact creation and verification into deterministic backend code. See the [M0 development log](docs/development/m0-baseline-budget-trace.md) for the implementation notes, baseline data, and acceptance targets.
 
 ### Architecture
 
@@ -475,13 +491,20 @@ SEARXNG_URL=http://localhost:8888
 
 Unconfigured search backends are skipped automatically. See [`.env.example`](.env.example) for the remaining RAG, memory, MySQL, and search settings.
 
-Agent execution budgets are phase-aware. The legacy `AGENT_RECURSION_LIMIT` and
-`AGENT_MAX_RUNTIME_SECONDS` values remain as fallbacks, while
-`AGENT_PHASE_*_RECURSION_LIMIT` and `AGENT_PHASE_*_TIMEOUT_SECONDS` let
-clarification, research, evidence compression, and final report generation use
-different limits. Larger report-style tasks are automatically given a larger
-research/final-report budget, bounded by `AGENT_HARD_MAX_RECURSION_LIMIT` and
-`AGENT_HARD_MAX_RUNTIME_SECONDS`.
+Agent execution uses a run-level, multi-dimensional `ResearchBudget`. Quick,
+standard, interactive deep-report, and opt-in thorough profiles default to 60,
+180, 300, and 900 seconds. Each profile also limits search queries, fetched
+pages, research rounds, and LLM calls. The four current workflow phases receive
+10%/50%/15%/25% of the run SLO, which prevents planning or research from using
+the writer's reserved time. `AGENT_PHASE_*` values remain phase safety caps and
+`AGENT_HARD_MAX_*` values remain absolute deployment caps.
+
+Every run writes `research_trace.json` into its session output directory. The
+trace records phase timing/status, LLM and tool calls, token metadata when the
+provider supplies it, search/page usage, budget consumption, failure category,
+and initial waste indicators such as duplicate queries, duplicate sources,
+zero-new-source queries, and fetched-but-unused pages. Evidence-level waste is
+intentionally left unavailable until the structured evidence milestone.
 
 Each research phase now uses an isolated LangGraph checkpoint key derived from
 the conversation thread, a per-run workflow id, and the phase name. This prevents
@@ -489,9 +512,11 @@ unfinished tool loops or large intermediate message histories from one phase or
 previous run from leaking into the next phase. If a phase exhausts its timeout or
 recursion budget before producing a usable artifact, the backend inserts a
 deterministic degraded artifact so later phases can continue with explicit
-caveats instead of receiving an empty context. The final report phase runs
-through a writer-only agent and is not given researcher subagents, web search,
-knowledge-base search, or database query tools.
+caveats instead of receiving an empty context. The final report phase does not
+receive the configured web, knowledge-base, or database tools. The first M0
+baseline showed that DeepAgents built-in tools are still available, so this is
+not yet a strict runtime capability boundary. M0.1 will replace this prompt-level
+restriction with deterministic orchestration.
 
 #### 2. Start Backend Services
 

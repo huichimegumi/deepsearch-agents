@@ -5,12 +5,16 @@ search or MySQL. This runner records which samples are executable in the
 current environment and which are blocked by dependencies.
 """
 
+# The runner bootstraps the repository root before importing application modules.
+# ruff: noqa: E402
+
 from __future__ import annotations
 
 import argparse
 import asyncio
 import contextlib
 import json
+import math
 import shutil
 import sys
 from pathlib import Path
@@ -22,11 +26,17 @@ ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from app.agent.main_agent import _classify_budget_profile, project_root_path, run_deep_agent
 from app.config import get_settings
-from app.agent.main_agent import project_root_path, run_deep_agent
 from app.tools.db_tools import get_db_config
-from evals.runners.common import DATASET_DIR, RESULTS_DIR, load_jsonl, now_utc, status_counts, write_json
-
+from evals.runners.common import (
+    DATASET_DIR,
+    RESULTS_DIR,
+    load_jsonl,
+    now_utc,
+    status_counts,
+    write_json,
+)
 
 DEFAULT_DATASET = DATASET_DIR / "end_to_end_report_zh.jsonl"
 
@@ -54,6 +64,22 @@ def _collect_artifacts(session_id: str) -> list[str]:
         for path in sorted(output_dir.rglob("*"))
         if path.is_file() and path.suffix.lower() in {".md", ".pdf"}
     ]
+
+
+def _load_research_trace(session_id: str) -> dict[str, Any] | None:
+    path = (
+        project_root_path
+        / "output"
+        / "user_evals"
+        / f"session_{session_id}"
+        / "research_trace.json"
+    )
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
 
 
 def _artifact_matches_expectation(artifacts: list[str], expectation: str | None) -> bool:
@@ -125,14 +151,17 @@ def _score_report_row(row: dict[str, Any]) -> dict[str, Any]:
     artifacts = row.get("artifacts", [])
     artifact_ok = _artifact_matches_expectation(artifacts, artifact_expectation)
 
+    execution_completed = bool(row.get("final_result_present")) and row.get("status") != "degraded"
     components = {
         "dependency_readiness": 15 if not row.get("blockers") else 0,
         "route_and_source_plan": 20
         if "report_generation" in expected_routes
-        and bool(expected_routes & {"network_search", "database_query", "knowledge_base", "file_read"})
+        and bool(
+            expected_routes & {"network_search", "database_query", "knowledge_base", "file_read"}
+        )
         else 0,
         "required_section_spec": 15 if len(required_sections) >= 4 else 0,
-        "execution_completed": 25 if row.get("final_result_present") else 0,
+        "execution_completed": 25 if execution_completed else 0,
         "artifact_created": 25 if artifact_ok else 0,
     }
     total = sum(components.values())
@@ -148,12 +177,16 @@ def _score_report_row(row: dict[str, Any]) -> dict[str, Any]:
 
 async def _execute_report_sample(
     sample: dict[str, Any],
-    timeout_seconds: int,
+    timeout_seconds: int | None,
     max_db_errors: int,
 ) -> dict[str, Any]:
     session_id = f"eval_{sample['id']}"
     _reset_eval_session(session_id)
     constrained_task = _task_with_eval_constraints(sample)
+    if timeout_seconds is None:
+        profile = _classify_budget_profile(constrained_task)
+        run_slo = get_settings().research_budget_limits(profile).total_seconds
+        timeout_seconds = math.ceil(run_slo + 15)
     task = asyncio.create_task(
         run_deep_agent(
             constrained_task,
@@ -189,12 +222,15 @@ async def _execute_report_sample(
         raise
 
     artifacts = _collect_artifacts(session_id)
+    trace = _load_research_trace(session_id)
     return {
         "final_result_present": bool(result),
         "final_result_preview": str(result)[:500] if result else "",
         "artifact_count": len(artifacts),
         "artifacts": artifacts,
         "db_error_count": _db_tool_error_count(session_id),
+        "execution_timeout_seconds": timeout_seconds,
+        "research_trace": trace,
     }
 
 
@@ -226,7 +262,9 @@ def _task_with_eval_constraints(sample: dict[str, Any]) -> str:
     if "database_query" in disallowed:
         lines.append("不要调用数据库查询助手或任何 SQL 工具。")
     if "network_search" in expected:
-        lines.append("网络检索请控制在 2 轮以内，每轮最多 5 个查询；优先官方文档、监管机构、云厂商或项目官网来源。")
+        lines.append(
+            "网络检索请控制在 2 轮以内，每轮最多 5 个查询；优先官方文档、监管机构、云厂商或项目官网来源。"
+        )
     if "database_query" in expected:
         lines.append(
             "数据库查询请先确认表结构，再使用不超过 4 条聚合 SQL；涉及日期字段时使用 "
@@ -248,7 +286,7 @@ def run(
     dataset: Path = DEFAULT_DATASET,
     *,
     execute_ready: bool = False,
-    timeout_seconds: int = 300,
+    timeout_seconds: int | None = None,
     max_db_errors: int = 2,
 ) -> dict[str, Any]:
     samples = load_jsonl(dataset)
@@ -278,15 +316,19 @@ def run(
                     _execute_report_sample(sample, timeout_seconds, max_db_errors)
                 )
                 row.update(execution)
-                row["status"] = (
-                    "passed"
-                    if execution["final_result_present"]
-                    and _artifact_matches_expectation(
-                        execution["artifacts"],
-                        sample.get("artifact_expectation"),
+                trace_status = (execution.get("research_trace") or {}).get("status")
+                if trace_status == "degraded":
+                    row["status"] = "degraded"
+                else:
+                    row["status"] = (
+                        "passed"
+                        if execution["final_result_present"]
+                        and _artifact_matches_expectation(
+                            execution["artifacts"],
+                            sample.get("artifact_expectation"),
+                        )
+                        else "failed"
                     )
-                    else "failed"
-                )
             except Exception as exc:  # noqa: BLE001 - report eval should record failures
                 row["status"] = "failed"
                 row["reason"] = repr(exc)
@@ -299,6 +341,8 @@ def run(
                         "artifact_count": len(artifacts),
                         "artifacts": artifacts,
                         "db_error_count": db_error_count,
+                        "execution_timeout_seconds": timeout_seconds,
+                        "research_trace": _load_research_trace(f"eval_{sample['id']}"),
                     }
                 )
         row.update(_score_report_row(row))
@@ -306,9 +350,26 @@ def run(
 
     counts = status_counts(results)
     score_values = [row["score"] for row in results]
-    scored_counts = status_counts(
-        [{"status": row["scored_status"]} for row in results]
-    )
+    scored_counts = status_counts([{"status": row["scored_status"]} for row in results])
+    traces = [row["research_trace"] for row in results if row.get("research_trace")]
+    elapsed_values = sorted(float(trace.get("elapsed_ms", 0)) for trace in traces)
+
+    def percentile(values: list[float], ratio: float) -> float | None:
+        if not values:
+            return None
+        index = min(len(values) - 1, math.ceil(len(values) * ratio) - 1)
+        return values[index]
+
+    failure_reasons: dict[str, int] = {}
+    for row in results:
+        trace = row.get("research_trace") or {}
+        reason = trace.get("failure_reason")
+        if not reason and row.get("status") == "failed":
+            reason = row.get("reason", "unknown_failure")
+        if reason:
+            key = str(reason)
+            failure_reasons[key] = failure_reasons.get(key, 0) + 1
+
     return {
         "name": "end_to_end_report_zh",
         "dataset": str(dataset),
@@ -319,6 +380,39 @@ def run(
         "average_score": sum(score_values) / len(score_values) if score_values else 0.0,
         "ready_rate": counts.get("ready", 0) / len(samples) if samples else 0.0,
         "pass_rate": counts.get("passed", 0) / len(samples) if samples else 0.0,
+        "baseline": {
+            "trace_coverage": len(traces) / len(samples) if samples else 0.0,
+            "p50_elapsed_ms": percentile(elapsed_values, 0.50),
+            "p95_elapsed_ms": percentile(elapsed_values, 0.95),
+            "total_llm_calls": sum(
+                int((trace.get("metrics") or {}).get("llm_calls", 0)) for trace in traces
+            ),
+            "total_tool_calls": sum(
+                int((trace.get("metrics") or {}).get("tool_calls", 0)) for trace in traces
+            ),
+            "total_input_tokens": sum(
+                int((trace.get("metrics") or {}).get("input_tokens", 0)) for trace in traces
+            ),
+            "total_output_tokens": sum(
+                int((trace.get("metrics") or {}).get("output_tokens", 0)) for trace in traces
+            ),
+            "total_search_queries": sum(
+                int((trace.get("metrics") or {}).get("search_queries", 0)) for trace in traces
+            ),
+            "total_fetched_pages": sum(
+                int((trace.get("metrics") or {}).get("fetched_pages", 0)) for trace in traces
+            ),
+            "waste": {
+                key: sum(int((trace.get("waste") or {}).get(key, 0)) for trace in traces)
+                for key in (
+                    "duplicate_queries",
+                    "duplicate_sources",
+                    "queries_with_zero_new_sources",
+                    "fetched_but_unused_sources",
+                )
+            },
+            "failure_reasons": dict(sorted(failure_reasons.items())),
+        },
         "results": results,
         "note": (
             "Without --execute-ready this runner records execution readiness. "
@@ -332,7 +426,12 @@ def main() -> int:
     parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
     parser.add_argument("--output", type=Path, default=RESULTS_DIR / "report_eval.json")
     parser.add_argument("--execute-ready", action="store_true")
-    parser.add_argument("--timeout-seconds", type=int, default=300)
+    parser.add_argument(
+        "--timeout-seconds",
+        type=int,
+        default=0,
+        help="0 uses the task's configured run SLO plus a 15-second cleanup grace period.",
+    )
     parser.add_argument("--max-db-errors", type=int, default=2)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
@@ -340,7 +439,7 @@ def main() -> int:
     report = run(
         args.dataset,
         execute_ready=args.execute_ready,
-        timeout_seconds=args.timeout_seconds,
+        timeout_seconds=args.timeout_seconds or None,
         max_db_errors=args.max_db_errors,
     )
     write_json(args.output, report)
@@ -351,6 +450,9 @@ def main() -> int:
         print(f"Total: {report['total']}")
         print(f"Status counts: {report['status_counts']}")
         print(f"Ready rate: {report['ready_rate']:.1%}")
+        print(f"Trace coverage: {report['baseline']['trace_coverage']:.1%}")
+        print(f"P50 elapsed: {report['baseline']['p50_elapsed_ms']} ms")
+        print(f"P95 elapsed: {report['baseline']['p95_elapsed_ms']} ms")
         print(f"Wrote: {args.output}")
     return 0
 
