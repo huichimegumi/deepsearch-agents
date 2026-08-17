@@ -155,15 +155,15 @@ class AppSettings:
         from app.agent.runtime import ResearchBudgetLimits
 
         profiles = {
-            "quick": ResearchBudgetLimits("quick", self.agent_quick_slo_seconds, 3, 4, 1, 8, 15),
+            "quick": ResearchBudgetLimits("quick", self.agent_quick_slo_seconds, 3, 4, 1, 6, 15),
             "standard": ResearchBudgetLimits(
-                "standard", self.agent_standard_slo_seconds, 8, 8, 1, 16, 45
+                "standard", self.agent_standard_slo_seconds, 8, 8, 1, 10, 45
             ),
             "deep_report": ResearchBudgetLimits(
-                "deep_report", self.agent_deep_slo_seconds, 12, 12, 2, 20, 75
+                "deep_report", self.agent_deep_slo_seconds, 12, 12, 2, 12, 75
             ),
             "thorough": ResearchBudgetLimits(
-                "thorough", self.agent_thorough_slo_seconds, 30, 24, 3, 40, 180
+                "thorough", self.agent_thorough_slo_seconds, 30, 24, 3, 20, 180
             ),
         }
         limits = profiles.get(budget_profile, profiles["standard"])

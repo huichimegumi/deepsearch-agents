@@ -7,12 +7,14 @@ session_id 创建独立工作目录，并把工具调用、子智能体调用和
 """
 
 import asyncio
+import re
 import shutil
 import uuid
 from functools import lru_cache
 from pathlib import Path
 
 from deepagents import create_deep_agent
+from pydantic import BaseModel, Field
 
 from app.agent.llm import get_model
 from app.agent.prompts import main_agent_content
@@ -46,7 +48,7 @@ from app.memory.checkpoint import get_short_term_checkpointer
 from app.memory.service import format_memories_for_prompt, search_memories
 
 # 文件类工具由主智能体直接掌握，负责读取上传附件和生成最终交付文档
-from app.tools.markdown_tools import generate_markdown
+from app.tools.markdown_tools import write_markdown_artifact
 from app.tools.memory_tools import remember_user_memory, search_user_memory
 from app.tools.pdf_tools import convert_md_to_pdf
 from app.tools.upload_file_read_tool import read_file_content
@@ -54,14 +56,8 @@ from app.tools.upload_file_read_tool import read_file_content
 
 @lru_cache(maxsize=1)
 def get_planner_agent():
-    """Build a tool-free agent for planning and evidence compression phases."""
-    return create_deep_agent(
-        model=get_model(),
-        system_prompt=main_agent_content["system_prompt"],
-        tools=[],
-        checkpointer=get_short_term_checkpointer(),
-        subagents=[],
-    )
+    """Return the direct model used by single-call planning phases."""
+    return get_model()
 
 
 @lru_cache(maxsize=1)
@@ -82,17 +78,8 @@ def get_research_agent():
 
 @lru_cache(maxsize=1)
 def get_writer_agent():
-    """Build a write-only agent for synthesis phases that must not call researchers."""
-    return create_deep_agent(
-        model=get_model(),
-        system_prompt=main_agent_content["system_prompt"],
-        tools=[
-            generate_markdown,
-            convert_md_to_pdf,
-        ],
-        checkpointer=get_short_term_checkpointer(),
-        subagents=[],
-    )
+    """Return the direct model used for one-call report synthesis."""
+    return get_model()
 
 
 def get_main_agent():
@@ -112,6 +99,52 @@ class PhaseBudgetExceeded(RuntimeError):
         self.reason = reason
 
 
+class ResearchBrief(BaseModel):
+    """Bounded, machine-readable output for the clarification phase."""
+
+    research_question: str
+    constraints: list[str] = Field(default_factory=list)
+    assumptions: list[str] = Field(default_factory=list)
+    source_plan: list[str] = Field(default_factory=list)
+    subquestions: list[str] = Field(default_factory=list)
+
+    def to_markdown(self) -> str:
+        sections = [
+            ("Research question", [self.research_question]),
+            ("Constraints", self.constraints),
+            ("Working assumptions", self.assumptions),
+            ("Source plan", self.source_plan),
+            ("Research subquestions", self.subquestions),
+        ]
+        return "# Research Brief\n\n" + "\n\n".join(
+            f"## {title}\n" + "\n".join(f"- {item}" for item in items if item)
+            for title, items in sections
+        )
+
+
+class CompressedEvidence(BaseModel):
+    """Bounded, machine-readable output for the compression phase."""
+
+    core_findings: list[str] = Field(default_factory=list)
+    citations: list[str] = Field(default_factory=list)
+    conflicts: list[str] = Field(default_factory=list)
+    uncertainties: list[str] = Field(default_factory=list)
+    report_outline: list[str] = Field(default_factory=list)
+
+    def to_markdown(self) -> str:
+        sections = [
+            ("Core findings", self.core_findings),
+            ("Citation ledger", self.citations),
+            ("Conflicts", self.conflicts),
+            ("Uncertainties and boundaries", self.uncertainties),
+            ("Recommended report outline", self.report_outline),
+        ]
+        return "# Compressed Evidence Package\n\n" + "\n\n".join(
+            f"## {title}\n" + ("\n".join(f"- {item}" for item in items if item) or "- None recorded")
+            for title, items in sections
+        )
+
+
 async def _astream_with_runtime_limit(agent, payload, config, timeout_seconds: float):
     if timeout_seconds <= 0:
         async for chunk in agent.astream(payload, config=config):
@@ -121,6 +154,162 @@ async def _astream_with_runtime_limit(agent, payload, config, timeout_seconds: f
     async with asyncio.timeout(timeout_seconds):
         async for chunk in agent.astream(payload, config=config):
             yield chunk
+
+
+def _message_text(message) -> str:
+    """Normalize provider-specific message content into plain text."""
+    content = getattr(message, "content", message)
+    if isinstance(content, str):
+        return content.strip()
+    if isinstance(content, list):
+        parts = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict) and item.get("text"):
+                parts.append(str(item["text"]))
+        return "\n".join(parts).strip()
+    return str(content or "").strip()
+
+
+async def _run_direct_phase(
+    *,
+    model,
+    phase: ResearchPhase,
+    prompt: str,
+    budget: AgentExecutionBudget,
+    budget_profile: str,
+    research_budget: ResearchBudget,
+    run_trace: ResearchRunTrace,
+    schema: type[ResearchBrief] | type[CompressedEvidence] | None = None,
+    emit_final_result: bool = False,
+) -> str | None:
+    """Run a phase as exactly one model call with no DeepAgents built-ins."""
+    budget_data = _budget_payload(budget=budget, budget_profile=budget_profile)
+    run_trace.start_phase(phase.key, phase.title)
+    monitor.report_research_phase(phase.key, phase.title, "start", budget_data)
+    write_audit_event(
+        "research_phase_started",
+        {"phase_key": phase.key, "phase_title": phase.title, **budget_data},
+    )
+    status = "end"
+    reason = None
+    error = None
+    result_text = None
+    llm_recorded = False
+    phase_token = set_research_phase_context(phase.key)
+    try:
+        if not research_budget.take_llm_call(phase.key):
+            raise PhaseBudgetExceeded("llm_call_limit")
+        messages = [
+            {"role": "system", "content": main_agent_content["system_prompt"]},
+            {"role": "user", "content": prompt},
+        ]
+        if schema:
+            structured_model = model.with_structured_output(schema, include_raw=True)
+            response = await asyncio.wait_for(
+                structured_model.ainvoke(messages), timeout=budget.timeout_seconds
+            )
+            raw = response.get("raw") if isinstance(response, dict) else None
+            parsed = response.get("parsed") if isinstance(response, dict) else response
+            parsing_error = response.get("parsing_error") if isinstance(response, dict) else None
+            if raw is not None:
+                run_trace.record_llm_call(phase.key, raw)
+                llm_recorded = True
+            if parsing_error or parsed is None:
+                raise ValueError(f"structured_output_error: {parsing_error!r}")
+            result_text = parsed.to_markdown()
+        else:
+            response = await asyncio.wait_for(model.ainvoke(messages), timeout=budget.timeout_seconds)
+            run_trace.record_llm_call(phase.key, response)
+            llm_recorded = True
+            result_text = _message_text(response)
+            result_text = re.sub(r"^```(?:markdown|md)?\s*|\s*```$", "", result_text).strip()
+
+        if not result_text:
+            raise ValueError("empty_phase_artifact")
+        if emit_final_result:
+            monitor.report_task_result(result_text)
+            write_audit_event("task_result", {"result": result_text})
+    except asyncio.CancelledError:
+        status = "cancelled"
+        reason = "cancelled"
+        raise
+    except (TimeoutError, asyncio.TimeoutError) as exc:
+        status = "budget_exceeded"
+        reason = "timeout"
+        error = repr(exc)
+    except PhaseBudgetExceeded as exc:
+        status = "budget_exceeded"
+        reason = exc.reason
+        error = repr(exc)
+    except ValueError as exc:
+        status = "error"
+        reason = str(exc).split(":", 1)[0] or "ValueError"
+        error = repr(exc)
+    except Exception as exc:  # noqa: BLE001 - degrade this phase and preserve later stages
+        status = "error"
+        reason = exc.__class__.__name__
+        error = repr(exc)
+    finally:
+        if not llm_recorded:
+            run_trace.record_llm_call(phase.key, None)
+        reset_research_phase_context(phase_token)
+        run_trace.finish_phase(
+            phase.key,
+            status,
+            reason,
+            artifact_status="usable" if result_text else "missing",
+        )
+
+    end_data = {"result_preview": (result_text or "")[:500], **budget_data}
+    if reason:
+        end_data["reason"] = reason
+    if error:
+        end_data["error"] = error
+    monitor.report_research_phase(phase.key, phase.title, status, end_data)
+    write_audit_event(
+        "research_phase_finished",
+        {"phase_key": phase.key, "phase_title": phase.title, "status": status, **end_data},
+    )
+    return result_text
+
+
+def _requested_artifact_formats(task_query: str) -> set[str]:
+    normalized = task_query.casefold()
+    formats: set[str] = set()
+    if "markdown" in normalized or re.search(r"\bmd\b", normalized):
+        formats.add("markdown")
+    if "pdf" in normalized:
+        formats.update({"markdown", "pdf"})
+    return formats
+
+
+def _persist_requested_artifacts(
+    *, task_query: str, report_markdown: str, run_trace: ResearchRunTrace
+) -> list[str]:
+    """Persist requested deliverables in backend code and verify they exist."""
+    formats = _requested_artifact_formats(task_query)
+    created: list[str] = []
+    if "markdown" not in formats:
+        return created
+
+    run_trace.record_tool_call("final_report", "write_markdown_artifact")
+    md_path = write_markdown_artifact(report_markdown, "report.md")
+    if not md_path.is_file() or md_path.stat().st_size == 0:
+        raise RuntimeError("markdown_artifact_missing_after_write")
+    created.append(str(md_path))
+
+    if "pdf" in formats:
+        run_trace.record_tool_call("final_report", "convert_md_to_pdf")
+        conversion = convert_md_to_pdf.invoke(
+            {"md_filename": md_path.name, "pdf_filename": "report.pdf"}
+        )
+        pdf_path = md_path.with_suffix(".pdf")
+        if not pdf_path.is_file() or pdf_path.stat().st_size == 0:
+            raise RuntimeError(f"pdf_artifact_missing_after_conversion: {conversion}")
+        created.append(str(pdf_path))
+    return created
 
 
 def _classify_budget_profile(task_query: str) -> str:
@@ -217,6 +406,14 @@ def _max_subagent_calls_for_profile(budget_profile: str) -> int:
     return 4
 
 
+def _configured_research_subagent_names() -> frozenset[str]:
+    """Return the only subagent types the research supervisor may dispatch."""
+    return frozenset(
+        agent["name"]
+        for agent in (database_query_agent, network_search_agent, knowledge_base_agent)
+    )
+
+
 async def _run_agent_phase(
     *,
     agent,
@@ -229,6 +426,7 @@ async def _run_agent_phase(
     run_trace: ResearchRunTrace,
     remaining_workflow_seconds: float | None = None,
     max_subagent_calls: int | None = None,
+    allowed_subagent_names: frozenset[str] | None = None,
     emit_final_result: bool = False,
 ) -> str | None:
     """Run one enforced research phase and return the latest model text."""
@@ -279,8 +477,17 @@ async def _run_agent_phase(
                 if tool_calls:
                     # DeepAgents 调用子智能体时，本质上会产生名为 task 的工具调用
                     for tool_call in tool_calls:
-                        run_trace.record_tool_call(phase.key, tool_call["name"])
                         if tool_call["name"] == "task":
+                            args = tool_call.get("args") or {}
+                            subagent_type = str(args.get("subagent_type") or "")
+                            if (
+                                allowed_subagent_names is not None
+                                and subagent_type not in allowed_subagent_names
+                            ):
+                                raise PhaseBudgetExceeded(
+                                    f"subagent_not_allowed:{subagent_type or 'missing'}"
+                                )
+                            run_trace.record_tool_call(phase.key, tool_call["name"])
                             subagent_call_count += 1
                             if (
                                 max_subagent_calls is not None
@@ -289,9 +496,11 @@ async def _run_agent_phase(
                                 raise PhaseBudgetExceeded("subagent_call_limit")
                             # 子智能体调用单独上报，前端可以展示“正在调用哪个专家助手”
                             monitor.report_assistant(
-                                tool_call["args"]["subagent_type"],
-                                {"description": tool_call["args"]["description"]},
+                                subagent_type,
+                                {"description": str(args.get("description") or "")},
                             )
+                        else:
+                            run_trace.record_tool_call(phase.key, tool_call["name"])
                 elif last_msg.content:
                     phase_result = last_msg.content
                     if emit_final_result:
@@ -370,7 +579,12 @@ async def _run_agent_phase(
         )
     finally:
         reset_research_phase_context(phase_token)
-        run_trace.finish_phase(phase.key, phase_status, budget_reason)
+        run_trace.finish_phase(
+            phase.key,
+            phase_status,
+            budget_reason,
+            artifact_status="usable" if phase_result else "missing",
+        )
 
     phase_end_data = {
         "result_preview": (phase_result or "")[:500],
@@ -609,7 +823,9 @@ async def run_deep_agent(
             if remaining_workflow_seconds <= 0:
                 reason = "run-level research budget was exhausted before this phase started"
                 run_trace.start_phase(phase.key, phase.title)
-                run_trace.finish_phase(phase.key, "budget_exceeded", "run_timeout")
+                run_trace.finish_phase(
+                    phase.key, "budget_exceeded", "run_timeout", artifact_status="fallback"
+                )
                 monitor._emit(
                     "workflow_budget_exceeded",
                     reason,
@@ -650,6 +866,16 @@ async def run_deep_agent(
                 phase_outputs[phase.key] = phase_result
                 if phase.key == "final_report":
                     final_result = phase_result
+                    try:
+                        _persist_requested_artifacts(
+                            task_query=task_query,
+                            report_markdown=phase_result,
+                            run_trace=run_trace,
+                        )
+                        run_trace.mark_phase_artifact(phase.key, "fallback_persisted")
+                    except Exception as exc:  # noqa: BLE001
+                        run_trace.record_failure(exc.__class__.__name__)
+                        run_trace.mark_phase_artifact(phase.key, "persistence_failed")
                 continue
 
             phase_budget = AgentExecutionBudget(
@@ -658,12 +884,6 @@ async def run_deep_agent(
                     phase.key,
                     phase_budget.timeout_seconds,
                 ),
-            )
-            config = _phase_config(
-                event_thread_id,
-                phase.key,
-                phase_budget,
-                workflow_run_id,
             )
             prompt = build_phase_prompt(
                 task_query=task_query,
@@ -677,19 +897,43 @@ async def run_deep_agent(
                 research_agent=research_agent,
                 writer_agent=writer_agent,
             )
-            phase_result = await _run_agent_phase(
-                agent=phase_agent,
-                phase=phase,
-                prompt=prompt,
-                config=config,
-                budget=phase_budget,
-                budget_profile=budget_profile,
-                research_budget=research_budget,
-                run_trace=run_trace,
-                remaining_workflow_seconds=remaining_workflow_seconds,
-                max_subagent_calls=max_subagent_calls if phase.requires_tools else None,
-                emit_final_result=phase.key == "final_report",
-            )
+            if phase.requires_tools:
+                config = _phase_config(
+                    event_thread_id,
+                    phase.key,
+                    phase_budget,
+                    workflow_run_id,
+                )
+                phase_result = await _run_agent_phase(
+                    agent=phase_agent,
+                    phase=phase,
+                    prompt=prompt,
+                    config=config,
+                    budget=phase_budget,
+                    budget_profile=budget_profile,
+                    research_budget=research_budget,
+                    run_trace=run_trace,
+                    remaining_workflow_seconds=remaining_workflow_seconds,
+                    max_subagent_calls=max_subagent_calls,
+                    allowed_subagent_names=_configured_research_subagent_names(),
+                )
+            else:
+                schema = None
+                if phase.key == "clarify_and_brief":
+                    schema = ResearchBrief
+                elif phase.key == "evidence_compression":
+                    schema = CompressedEvidence
+                phase_result = await _run_direct_phase(
+                    model=phase_agent,
+                    phase=phase,
+                    prompt=prompt,
+                    budget=phase_budget,
+                    budget_profile=budget_profile,
+                    research_budget=research_budget,
+                    run_trace=run_trace,
+                    schema=schema,
+                    emit_final_result=phase.key == "final_report",
+                )
             if not phase_result:
                 run_trace.degraded = True
                 phase_result = build_degraded_phase_output(
@@ -698,6 +942,7 @@ async def run_deep_agent(
                     phase_outputs=phase_outputs,
                     reason="phase budget was exhausted before a usable artifact was captured",
                 )
+                run_trace.mark_phase_artifact(phase.key, "fallback")
                 monitor._emit(
                     "phase_degraded",
                     f"Using degraded artifact for phase: {phase.key}",
@@ -728,6 +973,29 @@ async def run_deep_agent(
                             "budget_profile": budget_profile,
                         },
                         thread_id=event_thread_id,
+                    )
+
+            if phase.key == "final_report" and phase_result:
+                try:
+                    created_artifacts = _persist_requested_artifacts(
+                        task_query=task_query,
+                        report_markdown=phase_result,
+                        run_trace=run_trace,
+                    )
+                    requested_formats = _requested_artifact_formats(task_query)
+                    if requested_formats and not created_artifacts:
+                        raise RuntimeError("requested_artifact_not_created")
+                    run_trace.mark_phase_artifact(
+                        phase.key, "persisted" if requested_formats else "usable"
+                    )
+                except Exception as exc:  # noqa: BLE001 - return report text but mark run degraded
+                    run_trace.degraded = True
+                    run_trace.record_failure(str(exc) or exc.__class__.__name__)
+                    run_trace.mark_phase_artifact(phase.key, "persistence_failed")
+                    monitor._emit(
+                        "artifact_persistence_error",
+                        "最终报告已生成，但请求的文件未能可靠落盘。",
+                        {"error": repr(exc)},
                     )
 
             phase_outputs[phase.key] = phase_result

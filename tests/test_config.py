@@ -163,6 +163,7 @@ class AppSettingsTests(unittest.TestCase):
         deep = settings.research_budget_limits("deep_report")
         self.assertEqual(deep.total_seconds, 300)
         self.assertEqual(deep.max_search_queries, 12)
+        self.assertEqual(deep.max_llm_calls, 12)
         self.assertEqual(deep.writer_reserved_seconds, 75)
 
     def test_run_budget_respects_hard_runtime_cap(self):

@@ -13,11 +13,15 @@ async def test_run_deep_agent_writes_completed_trace(tmp_path, monkeypatch):
         trace.finish_phase(phase.key, "end")
         return "final report" if phase.key == "final_report" else f"{phase.key} output"
 
+    async def fake_direct_phase(**kwargs):
+        return await fake_phase(**kwargs)
+
     monkeypatch.setattr(main_agent, "project_root_path", tmp_path)
     monkeypatch.setattr(main_agent, "get_planner_agent", lambda: object())
     monkeypatch.setattr(main_agent, "get_research_agent", lambda: object())
     monkeypatch.setattr(main_agent, "get_writer_agent", lambda: object())
     monkeypatch.setattr(main_agent, "_run_agent_phase", fake_phase)
+    monkeypatch.setattr(main_agent, "_run_direct_phase", fake_direct_phase)
     monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
     monkeypatch.setattr(main_agent.monitor, "_emit", lambda *args, **kwargs: None)
 
@@ -30,3 +34,4 @@ async def test_run_deep_agent_writes_completed_trace(tmp_path, monkeypatch):
     assert trace["budget_profile"] == "deep_report"
     assert trace["budget"]["limits"]["total_seconds"] == 300
     assert [phase["status"] for phase in trace["phases"]] == ["end"] * 4
+    assert trace["schema_version"] == 2

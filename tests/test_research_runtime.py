@@ -48,15 +48,15 @@ def test_multidimensional_budget_refuses_excess_work():
     assert budget.take_research_round() is False
 
 
-def test_llm_budget_preserves_three_writer_calls():
+def test_llm_budget_preserves_compression_and_writer_calls():
     budget = make_budget()
 
     assert budget.take_llm_call("supervisor_research") is True
     assert budget.take_llm_call("supervisor_research") is True
     assert budget.take_llm_call("supervisor_research") is True
+    assert budget.take_llm_call("supervisor_research") is True
     assert budget.take_llm_call("supervisor_research") is False
-    assert budget.take_llm_call("final_report") is True
-    assert budget.take_llm_call("final_report") is True
+    assert budget.take_llm_call("evidence_compression") is True
     assert budget.take_llm_call("final_report") is True
     assert budget.take_llm_call("final_report") is False
 
@@ -69,6 +69,7 @@ def test_trace_records_phase_tokens_search_and_waste():
         "supervisor_research",
         SimpleNamespace(usage_metadata={"input_tokens": 10, "output_tokens": 4}),
     )
+    trace.record_tool_call("supervisor_research", "research_search")
     trace.record_tool_call("supervisor_research", "research_search")
     trace.record_search(
         ["alpha"],
@@ -95,6 +96,7 @@ def test_trace_records_phase_tokens_search_and_waste():
     payload = trace.finalize(status="completed", final_result="no links")
 
     assert payload["metrics"]["llm_calls"] == 1
+    assert payload["metrics"]["tool_calls_by_name"] == {"research_search": 2}
     assert payload["metrics"]["input_tokens"] == 10
     assert payload["metrics"]["fetched_pages"] == 1
     assert payload["waste"]["duplicate_queries"] == 1
@@ -113,6 +115,24 @@ def test_degraded_phase_is_not_reported_as_normal_completion():
 
     assert payload["status"] == "degraded"
     assert payload["failure_reason"] == "timeout"
+    assert payload["failure_reasons"] == ["timeout"]
+    assert payload["phases"][0]["artifact_status"] == "missing"
+
+
+def test_trace_preserves_all_unique_failure_reasons():
+    budget = make_budget()
+    trace = ResearchRunTrace("run-1", "thread-1", "test", budget)
+    trace.start_phase("clarify_and_brief", "Clarify")
+    trace.finish_phase("clarify_and_brief", "budget_exceeded", "timeout")
+    trace.start_phase("final_report", "Writer")
+    trace.finish_phase("final_report", "error", "artifact_missing")
+
+    payload = trace.finalize(
+        status="completed", final_result="partial", failure_reason="llm_call_limit"
+    )
+
+    assert payload["failure_reason"] == "timeout"
+    assert payload["failure_reasons"] == ["timeout", "artifact_missing", "llm_call_limit"]
 
 
 def test_search_tool_enforces_query_budget_and_records_zero_result_waste():

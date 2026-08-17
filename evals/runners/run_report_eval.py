@@ -361,14 +361,21 @@ def run(
         return values[index]
 
     failure_reasons: dict[str, int] = {}
+    tool_calls_by_name: dict[str, int] = {}
     for row in results:
         trace = row.get("research_trace") or {}
-        reason = trace.get("failure_reason")
-        if not reason and row.get("status") == "failed":
-            reason = row.get("reason", "unknown_failure")
-        if reason:
+        reasons = trace.get("failure_reasons") or []
+        if not reasons and trace.get("failure_reason"):
+            reasons = [trace["failure_reason"]]
+        if not reasons and row.get("status") == "failed":
+            reasons = [row.get("reason", "unknown_failure")]
+        for reason in reasons:
             key = str(reason)
             failure_reasons[key] = failure_reasons.get(key, 0) + 1
+        for tool_name, count in ((trace.get("metrics") or {}).get("tool_calls_by_name") or {}).items():
+            tool_calls_by_name[str(tool_name)] = tool_calls_by_name.get(str(tool_name), 0) + int(
+                count
+            )
 
     return {
         "name": "end_to_end_report_zh",
@@ -390,6 +397,7 @@ def run(
             "total_tool_calls": sum(
                 int((trace.get("metrics") or {}).get("tool_calls", 0)) for trace in traces
             ),
+            "tool_calls_by_name": dict(sorted(tool_calls_by_name.items())),
             "total_input_tokens": sum(
                 int((trace.get("metrics") or {}).get("input_tokens", 0)) for trace in traces
             ),

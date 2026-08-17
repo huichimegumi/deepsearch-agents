@@ -91,12 +91,12 @@ RESEARCH_PHASES = (
 必须执行：
 1. 先回答用户最关心的结论，再展开依据
 2. 所有关键信息尽量带来源；无法确认的内容明确标注不确定性
-3. 若用户要求 Markdown/PDF 等文件，此阶段才可以调用 generate_markdown / convert_md_to_pdf
-4. 若生成文件，内容必须来自已压缩证据包，不得写入“等待子任务完成”等占位内容
+3. 始终返回完整的 Markdown 正文，不要调用工具，不要只回复文件名或完成说明
+4. 若用户要求 Markdown/PDF 文件，后端会保存并校验正文；正文不得包含“等待子任务完成”等占位内容
 
 输出要求：
 - 未要求文件时，直接给出结构化最终答案
-- 要求文件时，先生成文件，再用简短文字说明已完成
+- 要求文件时，仍返回完整 Markdown 正文，由后端负责确定性落盘和转换
 """.strip(),
     ),
 )
@@ -184,13 +184,22 @@ def build_phase_prompt(
     runtime_instructions: str,
 ) -> str:
     """Build the user message for one enforced workflow phase."""
-    previous = format_previous_phase_outputs(phase_outputs)
+    prompt_outputs = phase_outputs
+    if phase.key == "final_report":
+        # The compressed package is the writer handoff. Do not replay the large raw ledger.
+        prompt_outputs = {
+            key: value
+            for key, value in phase_outputs.items()
+            if key in {"clarify_and_brief", "evidence_compression"}
+        }
+    previous = format_previous_phase_outputs(prompt_outputs)
     tool_boundary = ""
     if phase.key == "final_report":
         tool_boundary = (
             "FINAL REPORT TOOL BOUNDARY: Do not call researcher subagents, web search, "
-            "knowledge-base search, or database query tools in this phase. Write only from "
-            "the completed phase artifacts above. If evidence is missing, say so explicitly."
+            "knowledge-base search, database query, or file tools in this phase. Return the "
+            "complete Markdown report body from the completed phase artifacts. The backend "
+            "will persist requested files. If evidence is missing, say so explicitly."
         )
     elif not phase.requires_tools:
         tool_boundary = (
@@ -210,7 +219,7 @@ def build_phase_prompt(
         for part in (
             f"【用户原始问题】\n{task_query}",
             previous,
-            runtime_instructions,
+            runtime_instructions if phase.requires_tools or phase.key == "clarify_and_brief" else "",
             tool_boundary,
             phase.instruction,
         )

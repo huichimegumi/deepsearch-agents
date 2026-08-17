@@ -28,10 +28,10 @@ Relevant files:
 
 | Profile | Run SLO | Search queries | Fetched pages | Research rounds | LLM calls | Writer reserve |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Quick | 60 s | 3 | 4 | 1 | 8 | 15 s |
-| Standard | 180 s | 8 | 8 | 1 | 16 | 45 s |
-| Deep report | 300 s | 12 | 12 | 2 | 20 | 75 s |
-| Thorough | 900 s | 30 | 24 | 3 | 40 | 180 s |
+| Quick | 60 s | 3 | 4 | 1 | 6 | 15 s |
+| Standard | 180 s | 8 | 8 | 1 | 10 | 45 s |
+| Deep report | 300 s | 12 | 12 | 2 | 12 | 75 s |
+| Thorough | 900 s | 30 | 24 | 3 | 20 | 180 s |
 
 The current four-phase workflow receives 10%, 50%, 15%, and 25% of the selected run SLO. Existing phase limits remain safety caps. The run-level budget is authoritative when the two limits differ.
 
@@ -134,18 +134,20 @@ M0 made the failures visible, but the first trace schema has three gaps:
 - It reports only the first phase failure as the run's failure reason.
 - A phase can end normally and still return no usable artifact, but the trace does not record those as separate states.
 
-The follow-up should add `tool_calls_by_name`, `all_failure_reasons`, and an artifact status for each phase.
+M0.1 resolves these gaps with `tool_calls_by_name`, `failure_reasons`, and an artifact status for each phase.
 
-## Next milestone: M0.1 execution stabilization
+## M0.1 execution stabilization
 
-M0.1 should be completed before citation-quality evaluation begins.
+M0.1 was implemented on 2026-08-17. It makes the following changes:
 
-1. Replace the clarification DeepAgent with one direct structured-output model call.
-2. Replace the compression DeepAgent with one direct model call or deterministic aggregation.
-3. Restrict research subagents to an explicit backend allowlist.
-4. Make the writer return Markdown text and let the backend write and verify artifacts.
-5. Record tool names, all failure reasons, and phase artifact status in the trace.
-6. Rerun the same five web samples before changing retrieval behavior.
+1. Clarification now uses one direct structured-output model call. It returns a typed research brief and has no DeepAgents tools or built-in subagents.
+2. Evidence compression also uses one direct structured-output call. The writer receives the compressed package and brief, not the large raw supervisor ledger.
+3. The research supervisor rejects any `subagent_type` that is not one of the three configured researchers.
+4. Final writing uses one direct model call. The model returns the complete Markdown body, and backend code writes and verifies `report.md`. PDF requests still follow Markdown-first conversion.
+5. Trace schema version 2 records `tool_calls_by_name`, every unique failure reason, and an artifact status for each phase.
+6. Profile LLM limits were reduced to 6, 10, 12, and 20 calls. The budget reserves one compression call and one writer call after supervisor research.
+
+The code-level stabilization is complete. The same five web samples were rerun after implementation. Unit tests establish the orchestration boundaries; the live rerun below measures latency, token use, and artifact behavior.
 
 M0.1 acceptance targets:
 
@@ -158,6 +160,89 @@ M0.1 acceptance targets:
 | Average input tokens per task | 176k | At least 40% lower |
 | P95 elapsed time | 208 s | 180 s or lower |
 
+## M0.1 rerun result
+
+The rerun executed the five web-only samples. The five MySQL samples remained blocked because MySQL was not available on `localhost:3307`.
+
+The requested output path, `evals/results/report_eval.json`, still contains the older M0 aggregate with schema version 1. Its modification time predates the M0.1 source changes. The M0.1 process did create five new schema version 2 traces and report files under `app/output/user_evals`, but it did not finish writing the aggregate result. The measurements below were recalculated directly from those traces. This distinction matters because the stale JSON still reports 99 LLM calls and the old 20-call Deep Report limit.
+
+| Metric | M0 baseline | M0.1 rerun | Change |
+| --- | ---: | ---: | ---: |
+| Normally completed runs | 0/5 | 1/5 | +1 |
+| Degraded runs | 5/5 | 4/5 | -1 |
+| Non-empty Markdown files | 0/5 | 5/5 | +5 |
+| Strict artifact-format matches | 0/5 | 0/5 | No change |
+| Clarification timeouts | 5/5 | 0/5 | Fixed |
+| Average LLM calls per task | 19.8 | 9.2 | -53.5% |
+| Average input tokens per task | 176,110 | 76,843 | -56.4% |
+| Total output tokens | 23,166 | 31,414 | +35.6% |
+| Total tool calls | 84 | 39 | -53.6% |
+| P50 elapsed time | 131.2 s | 199.6 s | +52.1% |
+| P95 elapsed time | 208.3 s | 216.6 s | +4.0% |
+| Search queries | 52 | 60 | +15.4% |
+| Full pages fetched | 6 | 10 | +4 |
+
+Three M0.1 targets passed: clarification no longer times out, average LLM calls are below 12, and average input tokens fell by more than 40%. Backend persistence also wrote Markdown for every task. Latency failed the target, and only one run completed without degradation.
+
+### Per-sample phase outcome
+
+| Sample | Run status | LLM calls | Elapsed | Limiting phase | Markdown |
+| --- | --- | ---: | ---: | --- | --- |
+| `report_zh_001` | Degraded | 10 | 187.6 s | Supervisor timed out at 150 s | Written |
+| `report_zh_003` | Degraded | 9 | 199.6 s | Supervisor timed out at 150 s | Written |
+| `report_zh_005` | Degraded | 5 | 205.1 s | Supervisor timed out at 150 s | Written |
+| `report_zh_007` | Degraded | 11 | 216.6 s | Compression timed out at 45 s | Written |
+| `report_zh_009` | Completed | 11 | 172.7 s | None | Written |
+
+Clarification took one LLM call and no tool calls in every sample. Compression and final writing also used one direct call when admitted by the phase budget. The remaining latency is concentrated in supervisor research. Three supervisors used the full 150-second allowance, and a fourth ran for 138.5 seconds before compression consumed its full 45-second allowance.
+
+### Artifact-format false positive
+
+All five Markdown-only samples also generated `report.pdf`. The evaluator therefore treats them as artifact-format mismatches even though `report.md` exists and is non-empty.
+
+The constrained eval prompt names both `generate_markdown` and `convert_md_to_pdf` when it describes the report-generation route. `_requested_artifact_formats()` currently scans the whole task for the substring `pdf`, so the tool name overrides the later instruction to generate Markdown only. Artifact intent needs a structured field or an explicit precedence rule for the final-output instruction.
+
+### Supervisor fan-out still dominates runtime
+
+The five supervisors dispatched 6, 5, 1, 2, and 1 researcher tasks. A researcher task can run several queries and search backends, so the first two samples expanded far beyond one focused web-research pass. The rerun used the full 12-query allowance in every sample, up from 52 total queries in M0.
+
+Waste counters also worsened:
+
+- Duplicate queries increased from 0 to 12.
+- Queries with no new sources increased from 14 to 19.
+- Duplicate sources increased from 3 to 9.
+- Ten pages were fetched, all by `report_zh_009`, and all ten were counted as unused in the final report.
+
+The other four samples fetched no full pages. They still relied on snippets.
+
+### The research tool boundary is incomplete
+
+No unconfigured subagent type appears in the new run, and no `subagent_not_allowed` failure was recorded. The subagent allowlist is working for the observed calls.
+
+The research DeepAgent still called built-in tools that were not part of the configured evidence-gathering surface: `write_todos`, `write_file`, and `read_file`. Supervisors also claimed that report files had already been written. Backend persistence prevented this claim from breaking final delivery, but it remains misleading and consumes calls inside the research budget.
+
+### Final citations are not grounded in the logged search set
+
+An audit compared each final report URL with the URLs recorded in `search_result.top_results`. Exact overlap was zero for all five reports: 0 of 6, 0 of 7, 0 of 22, 0 of 11, and 0 of 14 report URLs matched the logged search URLs.
+
+This check covers only the top results stored in the audit log, so it cannot prove that every unmatched URL was invented. The result is still a strong warning. Several report links contain obvious placeholder patterns such as `docId=123456` and `sn=abc123def456ghi789`, while other citations point to pages that never appeared in the recorded search set. The writer can currently add URLs from model memory instead of staying inside retrieved evidence.
+
+Artifact completion must therefore remain separate from report quality. M0.1 fixed delivery, not evidence grounding.
+
+## Recommended M0.2 follow-up
+
+M0.2 should remain small and focus on the failures exposed by this rerun:
+
+1. Parse artifact intent from a structured request field. For text prompts, make the explicit final-output instruction take precedence over tool names.
+2. Limit web-only supervisor fan-out to one primary researcher task and, when needed, one targeted follow-up.
+3. Reduce the supervisor phase allowance to about 90 seconds so one phase cannot consume most of the SLO.
+4. Reject research-stage calls to file-writing built-ins and remove `write_todos` unless it is required for execution.
+5. Carry an allowlist of observed evidence URLs into compression and writing. Reject or label citations outside that set.
+6. When supervisor research falls back, force compression to return an explicit insufficient-evidence package instead of filling gaps with new facts.
+7. Write the eval aggregate incrementally or from a `finally` path so an interrupted shutdown cannot leave a stale result file.
+
+M1 retrieval work should begin after these controls are in place. Otherwise a stronger fetch pipeline can still feed an unbounded supervisor and an ungrounded writer.
+
 ## Verification
 
-The M0 implementation passed 82 automated tests. Ruff passed for every modified Python file. Pytest reported one cache-write warning because `.pytest_cache` was not writable in the local environment; the warning did not affect the test result.
+The M0.1 implementation passed 87 automated tests. The new regression coverage checks single-call structured phases, rejection of unconfigured built-in subagents, deterministic Markdown persistence, complete failure-reason collection, tool-name counters, and the compressed writer handoff. Ruff passed for every modified Python file. Pytest reported one cache-write warning because `.pytest_cache` was not writable in the local environment; the warning did not affect the test result.

@@ -22,7 +22,7 @@ def test_only_final_phase_allows_file_generation():
     final_instruction = RESEARCH_PHASES[-1].instruction
 
     assert "禁止调用 generate_markdown" in internal_instructions
-    assert "才可以调用 generate_markdown" in final_instruction
+    assert "后端会保存并校验正文" in final_instruction
 
 
 def test_phase_prompt_carries_previous_outputs():
@@ -60,6 +60,24 @@ def test_final_phase_prompt_blocks_research_tools():
 
     assert "FINAL REPORT TOOL BOUNDARY" in prompt
     assert "Do not call researcher subagents" in prompt
+
+
+def test_final_phase_receives_compressed_handoff_not_raw_ledger():
+    prompt = build_phase_prompt(
+        task_query="write final report",
+        phase=RESEARCH_PHASES[-1],
+        phase_outputs={
+            "clarify_and_brief": "brief",
+            "supervisor_research": "very large raw ledger",
+            "evidence_compression": "compact evidence",
+        },
+        runtime_instructions="filesystem instructions",
+    )
+
+    assert "brief" in prompt
+    assert "compact evidence" in prompt
+    assert "very large raw ledger" not in prompt
+    assert "filesystem instructions" not in prompt
 
 
 def test_non_research_phase_prompt_declares_no_tool_boundary():

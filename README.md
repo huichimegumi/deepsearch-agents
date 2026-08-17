@@ -12,7 +12,7 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### 主要功能
 
-- 阶段式深度研究：后端按固定顺序执行“澄清问题与研究简报 -> Supervisor 分派与 researcher 循环 -> 证据压缩 -> 最终报告”。M0 baseline 已确认阶段顺序生效，但严格的工具和子智能体隔离仍在 M0.1 中处理。
+- 阶段式深度研究：后端按固定顺序执行“澄清问题与研究简报 -> Supervisor 分派与 researcher 循环 -> 证据压缩 -> 最终报告”。M0.1 已将 Clarify、Compression 和 Writer 改为直接模型调用，只有 Research 阶段保留 DeepAgent。
 - 多智能体研究：主智能体负责分派、反思和汇总，网络搜索、数据库查询、本地知识库三个子智能体分别处理不同信息源。
 - 多源检索：支持 Tavily、DuckDuckGo、Perplexity、SearXNG、MySQL，以及基于 PostgreSQL、Qdrant、MinIO、Redis 和 FastEmbed 的本地 RAG。
 - 用户与会话：提供注册、登录、JWT 鉴权、会话列表、历史消息恢复、会话归档和按用户隔离的数据目录。
@@ -29,7 +29,9 @@ M0 已完成运行级 Budget、结构化 Trace 和端到端 baseline 支持。�
 
 2026-08-17 的首轮 M0 baseline 执行了 5 个纯 Web 报告样本，另外 5 个 MySQL 样本因本地数据库未启动而阻塞。5 个实际执行的样本全部降级，且没有生成要求的 Markdown 文件。Trace 定位到三个直接原因：Clarify 阶段仍可调用 DeepAgents 内建工具并全部超时，Supervisor 声称生成了实际不存在的文件，以及全局 LLM 调用预算在 Compression/Writer 完成前耗尽。
 
-因此，当前 Research Core 仍处于重构期。下一步 M0.1 会把 Clarify 和 Compression 改为直接模型调用，限制 Research 阶段的子智能体类型，并由后端确定性写入和校验最终文件。完整的实现、数据和验收目标见 [M0 development log](docs/development/m0-baseline-budget-trace.md)。
+M0.1 稳定性修复现已实现并完成首轮复测。5 个 Web 样本的 Clarify 都缩减为 1 次模型调用，平均 LLM 调用从 19.8 次降到 9.2 次，平均输入 Token 从约 176k 降到约 76.8k。后端为 5 个样本都写入了非空 `report.md`，其中 1 个任务正常完成，4 个任务仍因 Supervisor 或 Compression 超时而降级。P95 从 208.3 秒升到 216.6 秒，尚未达到 180 秒目标。
+
+本轮还发现三个待修复问题。评测提示中的 `convert_md_to_pdf` 工具名称触发了格式误判，导致 Markdown-only 样本额外生成 PDF；Supervisor 仍会调用 DeepAgents 内建的 `write_todos`、`write_file` 和 `read_file`；最终报告中的 URL 与审计日志记录的搜索结果没有精确重合，部分链接带有明显的占位符特征。因此文件交付已经稳定，但报告证据质量尚未达标。当前 `evals/results/report_eval.json` 仍是旧的 M0 汇总，本轮数据来自 5 份新生成的 schema v2 Trace。完整记录见 [M0 development log](docs/development/m0-baseline-budget-trace.md)。
 
 ### 系统架构
 
@@ -44,7 +46,7 @@ M0 已完成运行级 Budget、结构化 Trace 和端到端 baseline 支持。�
   -> 阶段 2：Researcher 根据证据缺口进行定向补检索和反思
   -> 阶段 3：压缩证据，保留来源、冲突和不确定性
   -> LangGraph checkpoint 保存同一 thread 的短期执行上下文
-  -> 阶段 4：主智能体生成最终答案，必要时生成 Markdown 或 PDF
+  -> 阶段 4：模型返回 Markdown 正文，后端确定性写入并按需转换 PDF
   -> WebSocket 实时推送过程和结果
   -> 写入历史消息、更新会话摘要、抽取长期记忆
 ```
@@ -342,7 +344,7 @@ DeepSearch Agents is a conversational multi-agent deep research system built on 
 
 ### Features
 
-- Staged deep research: the backend runs clarification and research brief, supervisor dispatch and researcher reflection, evidence compression, and final report in a fixed order. The M0 baseline confirmed phase ordering, but strict tool and subagent isolation remains M0.1 work.
+- Staged deep research: the backend runs clarification and research brief, supervisor dispatch and researcher reflection, evidence compression, and final report in a fixed order. M0.1 moved clarification, compression, and writing to direct model calls. Only the research phase uses a DeepAgent.
 - Multi-agent research: the main agent dispatches, reflects, and synthesizes work, while dedicated sub-agents handle web search, database queries, and local knowledge-base retrieval.
 - Multi-source retrieval: supports Tavily, DuckDuckGo, Perplexity, SearXNG, MySQL, and local RAG based on PostgreSQL, Qdrant, MinIO, Redis, and FastEmbed.
 - Users and conversations: includes registration, login, JWT authentication, conversation lists, historical message recovery, conversation archiving, and user-isolated data directories.
@@ -359,7 +361,9 @@ M0 adds run-level budgets, structured traces, and baseline aggregation. Every ex
 
 The first M0 baseline on 2026-08-17 executed five web-report samples. Five MySQL samples were blocked because the local database was unavailable. All five executed samples degraded, and none created the required Markdown artifact. The trace identified three immediate causes: the clarification phase could still call DeepAgents built-in tools and timed out in every run, supervisors claimed files that did not exist, and the global LLM-call budget was exhausted before compression or writing completed.
 
-The Research Core is still under active reconstruction. M0.1 will replace clarification and compression with direct model calls, restrict research subagent types, and move artifact creation and verification into deterministic backend code. See the [M0 development log](docs/development/m0-baseline-budget-trace.md) for the implementation notes, baseline data, and acceptance targets.
+M0.1 stabilization is implemented and has completed its first rerun. Clarification used exactly one model call in all five web samples. Average LLM calls fell from 19.8 to 9.2 per task, and average input tokens fell from about 176k to 76.8k. Backend code wrote a non-empty `report.md` for every sample. One task completed normally, while four still degraded because the supervisor or compression phase timed out. P95 latency increased from 208.3 to 216.6 seconds, so the 180-second target remains unmet.
+
+The rerun also exposed three follow-up issues. The `convert_md_to_pdf` tool name inside the eval prompt caused every Markdown-only task to generate an unwanted PDF. The research supervisor still used DeepAgents built-ins such as `write_todos`, `write_file`, and `read_file`. Final-report URLs had no exact overlap with the search-result URLs recorded in the audit logs, and several had obvious placeholder patterns. File delivery is now reliable, but evidence grounding is not. The current `evals/results/report_eval.json` is still the older M0 aggregate; the M0.1 measurements come from the five new schema v2 traces. See the [M0 development log](docs/development/m0-baseline-budget-trace.md) for the full comparison.
 
 ### Architecture
 
@@ -374,7 +378,7 @@ User login / frontend conversation
   -> Phase 2: researchers run targeted follow-up retrieval and reflection when evidence gaps remain
   -> Phase 3: compresses evidence while preserving sources, conflicts, and uncertainty
   -> LangGraph checkpoint stores short-term execution context for the same thread
-  -> Phase 4: main agent produces the final answer and generates Markdown or PDF when requested
+  -> Phase 4: model returns Markdown; backend persists it and converts PDF when requested
   -> WebSocket streams progress and results in real time
   -> Writes historical messages, updates conversation summary, extracts long-term memory
 ```
@@ -500,8 +504,8 @@ the writer's reserved time. `AGENT_PHASE_*` values remain phase safety caps and
 `AGENT_HARD_MAX_*` values remain absolute deployment caps.
 
 Every run writes `research_trace.json` into its session output directory. The
-trace records phase timing/status, LLM and tool calls, token metadata when the
-provider supplies it, search/page usage, budget consumption, failure category,
+trace records phase timing/status, LLM and named tool calls, token metadata when the
+provider supplies it, search/page usage, budget consumption, all failure categories,
 and initial waste indicators such as duplicate queries, duplicate sources,
 zero-new-source queries, and fetched-but-unused pages. Evidence-level waste is
 intentionally left unavailable until the structured evidence milestone.
@@ -512,11 +516,10 @@ unfinished tool loops or large intermediate message histories from one phase or
 previous run from leaking into the next phase. If a phase exhausts its timeout or
 recursion budget before producing a usable artifact, the backend inserts a
 deterministic degraded artifact so later phases can continue with explicit
-caveats instead of receiving an empty context. The final report phase does not
-receive the configured web, knowledge-base, or database tools. The first M0
-baseline showed that DeepAgents built-in tools are still available, so this is
-not yet a strict runtime capability boundary. M0.1 will replace this prompt-level
-restriction with deterministic orchestration.
+caveats instead of receiving an empty context. Clarification, compression, and
+final writing now call the model directly, so they do not inherit DeepAgents
+built-in tools. The research supervisor checks every requested subagent type
+against the configured backend allowlist before dispatch.
 
 #### 2. Start Backend Services
 

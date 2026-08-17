@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import re
+from collections import Counter
 from contextvars import ContextVar, Token
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -80,8 +81,14 @@ class ResearchBudget:
         return True
 
     def take_llm_call(self, phase_key: str) -> bool:
-        # A writer commonly needs model -> file tool -> model, so reserve three calls.
-        reserve = 0 if phase_key == "final_report" else min(3, self.limits.max_llm_calls)
+        # M0.1 uses one direct compression call and one direct writer call after research.
+        reserve_by_phase = {
+            "clarify_and_brief": 2,
+            "supervisor_research": 2,
+            "evidence_compression": 1,
+            "final_report": 0,
+        }
+        reserve = min(reserve_by_phase.get(phase_key, 0), self.limits.max_llm_calls)
         if self.llm_calls_used >= max(0, self.limits.max_llm_calls - reserve):
             return False
         self.llm_calls_used += 1
@@ -124,9 +131,11 @@ class ResearchRunTrace:
     status: str = "running"
     degraded: bool = False
     failure_reason: str | None = None
+    failure_reasons: list[str] = field(default_factory=list)
     phases: list[dict[str, Any]] = field(default_factory=list)
     llm_calls: int = 0
     tool_calls: int = 0
+    tool_calls_by_name: Counter[str] = field(default_factory=Counter)
     subagent_calls: int = 0
     input_tokens: int = 0
     output_tokens: int = 0
@@ -150,10 +159,18 @@ class ResearchRunTrace:
                 "_started_monotonic": monotonic(),
                 "llm_calls": 0,
                 "tool_calls": 0,
+                "tool_calls_by_name": {},
+                "artifact_status": "missing",
             }
         )
 
-    def finish_phase(self, phase_key: str, status: str, reason: str | None = None) -> None:
+    def finish_phase(
+        self,
+        phase_key: str,
+        status: str,
+        reason: str | None = None,
+        artifact_status: str | None = None,
+    ) -> None:
         phase = next(
             (item for item in reversed(self.phases) if item["phase_key"] == phase_key),
             None,
@@ -164,8 +181,23 @@ class ResearchRunTrace:
         phase["elapsed_ms"] = round((monotonic() - phase.pop("_started_monotonic")) * 1000)
         if reason:
             phase["reason"] = reason
+            self.record_failure(reason)
+        if artifact_status:
+            phase["artifact_status"] = artifact_status
         if status not in {"end", "completed"}:
             self.degraded = True
+
+    def mark_phase_artifact(self, phase_key: str, artifact_status: str) -> None:
+        phase = next(
+            (item for item in reversed(self.phases) if item["phase_key"] == phase_key),
+            None,
+        )
+        if phase:
+            phase["artifact_status"] = artifact_status
+
+    def record_failure(self, reason: str | None) -> None:
+        if reason and reason not in self.failure_reasons:
+            self.failure_reasons.append(reason)
 
     def record_llm_call(self, phase_key: str, message: Any) -> None:
         self.llm_calls += 1
@@ -181,6 +213,7 @@ class ResearchRunTrace:
 
     def record_tool_call(self, phase_key: str, tool_name: str) -> None:
         self.tool_calls += 1
+        self.tool_calls_by_name[tool_name] += 1
         if tool_name == "task":
             self.subagent_calls += 1
         phase = next(
@@ -189,6 +222,8 @@ class ResearchRunTrace:
         )
         if phase:
             phase["tool_calls"] += 1
+            phase_tools = phase["tool_calls_by_name"]
+            phase_tools[tool_name] = phase_tools.get(tool_name, 0) + 1
 
     def record_search(self, queries: list[str], results: list[dict[str, Any]]) -> None:
         new_sources_by_query = {query: 0 for query in queries}
@@ -228,15 +263,12 @@ class ResearchRunTrace:
         failure_reason: str | None = None,
     ) -> dict[str, Any]:
         self.status = "degraded" if self.degraded and status == "completed" else status
-        phase_reason = next(
-            (str(phase["reason"]) for phase in self.phases if phase.get("reason")),
-            None,
-        )
-        self.failure_reason = failure_reason or (phase_reason if self.degraded else None)
+        self.record_failure(failure_reason)
+        self.failure_reason = self.failure_reasons[0] if self.failure_reasons else None
         result_urls = set(re.findall(r"https?://[^\s)>\]]+", final_result or ""))
         unused_fetched = self._fetched_sources - result_urls
         return {
-            "schema_version": 1,
+            "schema_version": 2,
             "run_id": self.run_id,
             "thread_id": self.thread_id,
             "started_at": self.started_at,
@@ -245,12 +277,14 @@ class ResearchRunTrace:
             "status": self.status,
             "degraded": self.degraded,
             "failure_reason": self.failure_reason,
+            "failure_reasons": self.failure_reasons,
             "budget_profile": self.budget_profile,
             "budget": self.budget.snapshot(),
             "phases": self.phases,
             "metrics": {
                 "llm_calls": self.llm_calls,
                 "tool_calls": self.tool_calls,
+                "tool_calls_by_name": dict(self.tool_calls_by_name),
                 "subagent_calls": self.subagent_calls,
                 "input_tokens": self.input_tokens,
                 "output_tokens": self.output_tokens,

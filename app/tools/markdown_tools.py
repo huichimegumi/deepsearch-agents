@@ -20,6 +20,20 @@ from app.utils.path_utils import resolve_path
 FINAL_REPORT_PHASE = "final_report"
 
 
+def write_markdown_artifact(content: str, filename: str = "report.md") -> Path:
+    """Write and verify a Markdown artifact inside the active session directory."""
+    if not filename.endswith(".md"):
+        filename += ".md"
+    session_dir = get_session_context()
+    file_path = Path(resolve_path(filename, session_dir))
+    file_path.parent.mkdir(parents=True, exist_ok=True)
+    file_path.write_text(content, encoding="utf-8")
+    if not file_path.is_file() or file_path.stat().st_size == 0:
+        raise OSError(f"Markdown artifact was not persisted: {file_path}")
+    monitor.report_file_created(str(file_path))
+    return file_path
+
+
 @tool
 def generate_markdown(
     content: Annotated[str, "要写入Markdown文档的文本内容"],
@@ -66,10 +80,9 @@ def generate_markdown(
             parent_dir.mkdir(parents=True, exist_ok=True)
             print(f"[MarkdownTool] 已创建目录: {parent_dir}")
 
-        file_path.write_text(content, encoding="utf-8")
+        file_path = write_markdown_artifact(content, str(file_path.relative_to(session_dir)))
 
         print(f"[MarkdownTool] 文件写入完成: {file_path}")
-        monitor.report_file_created(str(file_path))
         return f"Markdown文件 '{file_path}' 已成功生成并保存。"
     except Exception as e:
         print(f"[MarkdownTool] 文件写入失败: {e}")

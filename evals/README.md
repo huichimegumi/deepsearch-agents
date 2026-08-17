@@ -131,3 +131,24 @@ uv run python evals\runners\run_report_eval.py --execute-ready --output evals\re
 `average_score=42.5` 不是内容质量分数。半数样本没有执行，其余样本也没有生成要求的文件。本轮真正有效的 baseline 指标是 artifact completion、degraded rate、阶段失败、延迟、Token 使用量和全文阅读率。
 
 详细分析与下一步 M0.1 验收目标见 [`docs/development/m0-baseline-budget-trace.md`](../docs/development/m0-baseline-budget-trace.md)。
+
+### 2026-08-17 M0.1 Trace 复测
+
+M0.1 修改后重新执行了 5 条纯 Web 报告样本。MySQL 仍未运行，因此另外 5 条样本继续标记为 `blocked`。
+
+本轮命令生成了新的 schema v2 Trace 和报告文件，但没有完成 `evals/results/report_eval.json` 的最终覆盖。该 JSON 仍是 19:45 生成的 M0 旧汇总。下面的数据直接来自 `app/output/user_evals/session_eval_report_zh_*/research_trace.json`，不要与旧 JSON 中的 schema v1 指标混用。
+
+- 1 条正常完成，4 条因 Supervisor 或 Compression 超时而降级。
+- 5 条样本都生成了非空 `report.md`。
+- Clarify 全部缩减为 1 次 LLM 调用，未再超时或调用工具。
+- 平均 LLM 调用为 9.2 次，较 M0 下降 53.5%。
+- 平均输入 Token 为 76,843，较 M0 下降 56.4%。
+- P50 为 199.6 秒，P95 为 216.6 秒，延迟目标未通过。
+- 60 个搜索查询中有 12 个重复查询，19 个查询没有带来新来源。
+- 只有 `report_zh_009` 抓取了网页全文，其余 4 条样本仍只使用搜索摘要。
+
+当前 artifact 判断还有一个已知误差。评测提示中的 `convert_md_to_pdf` 工具名称被运行时误判为 PDF 请求，导致 5 条 Markdown-only 样本都额外生成了 PDF。按 `_artifact_matches_expectation()` 的严格规则，这些样本仍不满足格式要求。
+
+本轮没有发现未配置的子智能体类型，但 Research 阶段仍调用了 `write_todos`、`write_file` 和 `read_file`。最终报告 URL 与审计日志记录的 `search_result.top_results` 没有精确重合，说明下一步评测必须增加引用来源约束，不能只检查文件和章节是否存在。
+
+完整分析和 M0.2 建议见 [`docs/development/m0-baseline-budget-trace.md`](../docs/development/m0-baseline-budget-trace.md)。
