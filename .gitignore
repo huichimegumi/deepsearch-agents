@@ -9,6 +9,8 @@ app/logs
 app/rag_temp
 .fastembed_cache/
 /data/knowledge_base/
+/data/benchmarks/dabstep_research/
+/evals/dabstep/work/
 /out-tsc
 # Only exists if Bazel was run
 /bazel-out

@@ -20,6 +20,7 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 - 文件处理：支持读取 PDF、Word、Excel、Markdown 和文本附件，并生成 Markdown、PDF 等交付文件。
 - 实时任务状态：通过 WebSocket 推送工具调用、子智能体执行、最终结果、异常和取消事件。
 - 研究阶段追踪：每个阶段的开始、完成和摘要会写入 WebSocket trace 与审计日志，便于复盘 brief、证据账本、压缩证据和最终报告之间的关系。
+- 可复现数据评测：固定 DABStep-Research 数据版本、文件哈希、任务子集和 SQL 参考结果，用于逐步验证数据库分析、证据引用与报告生成质量。
 - Web 工作台：前端提供聊天、任务事件流、附件上传、知识库管理、长期记忆抽屉、历史会话侧栏和结果下载。
 - 审计日志：任务开始、结果、取消、异常等事件会按会话写入 `app/logs/session_*.jsonl`，便于排查执行过程。
 
@@ -32,6 +33,24 @@ M0 已完成运行级 Budget、结构化 Trace 和端到端 baseline 支持。�
 M0.1 稳定性修复现已实现并完成首轮复测。5 个 Web 样本的 Clarify 都缩减为 1 次模型调用，平均 LLM 调用从 19.8 次降到 9.2 次，平均输入 Token 从约 176k 降到约 76.8k。后端为 5 个样本都写入了非空 `report.md`，其中 1 个任务正常完成，4 个任务仍因 Supervisor 或 Compression 超时而降级。P95 从 208.3 秒升到 216.6 秒，尚未达到 180 秒目标。
 
 本轮还发现三个待修复问题。评测提示中的 `convert_md_to_pdf` 工具名称触发了格式误判，导致 Markdown-only 样本额外生成 PDF；Supervisor 仍会调用 DeepAgents 内建的 `write_todos`、`write_file` 和 `read_file`；最终报告中的 URL 与审计日志记录的搜索结果没有精确重合，部分链接带有明显的占位符特征。因此文件交付已经稳定，但报告证据质量尚未达标。当前 `evals/results/report_eval.json` 仍是旧的 M0 汇总，本轮数据来自 5 份新生成的 schema v2 Trace。完整记录见 [M0 development log](docs/development/m0-baseline-budget-trace.md)。
+
+### DABStep 数据基线
+
+项目已加入第一阶段结构化数据研究基线，使用 `RUC-DataLab/DABStep-Research` 的固定提交 `62ae9e0de555a8fb1fd5ab334e0546dbf27aa10c`。`evals/dabstep/dataset.lock.json` 记录 8 个源文件的字节数和 SHA-256，下载器会在使用前逐一校验，防止上游更新导致评测结果漂移。
+
+数据审计确认：任务共 100 个、五类各 20 个，但 Open 类 20 个任务全部没有 checklist；交易表包含 138,236 笔交易和 5 个活跃商户，商户元数据包含 30 行；1,000 条费率规则中同时使用 `null` 和空列表表达通配条件，并引用了 7 个 MCC 参考表中不存在的代码。由于当前快照没有实际手续费列、权威计算样例、处理延迟或完整转化漏斗，精确手续费、反事实节省额和因果结论暂不作为硬真值。完整结论见 [DABStep 数据审计](evals/dabstep/AUDIT.md)。
+
+第一阶段固定 8 个原始任务：dev 使用 ID 2、84，holdout 使用 ID 0、3、20、41、47、85。只允许用 dev 调整 prompt、工具和工作流；holdout 用于里程碑验收。任务原文和 checklist 保持不变，附加字段只记录 split、可回答性、限制和必须核验的参考查询。
+
+一条命令可完成固定版本下载、哈希验证、审计产物生成、最小 SQL 导入和参考结果核验：
+
+```powershell
+.\.venv\Scripts\python.exe -m evals.dabstep.prepare
+```
+
+默认生成本地 SQLite 数据库，不需要启动基础设施；也可以通过 `DABSTEP_DATABASE_URL` 使用 MySQL SQLAlchemy URL。导入器创建交易、商户、收单机构、MCC、费率规则及其规范化关联表。6 组只读参考查询覆盖数据规模、缺失值、商户汇总、卡组织、境内/跨境路由和表行数。`reference_results.json` 仅供离线 evaluator 使用，不应暴露给研究 Agent。原始数据与工作数据库均被 Git 忽略。
+
+上游 `DABStep-Research` 仓库当前没有声明许可证。相关原始数据只按锁文件下载到本地，在许可证澄清前不应随本项目重新分发。详细命令和 MySQL 配置见 [DABStep baseline README](evals/dabstep/README.md)。
 
 ### 系统架构
 
@@ -108,7 +127,9 @@ deepsearch-agents/
 │   ├── tools/              # 搜索、数据库、RAG、附件、记忆和报告工具
 │   └── utils/              # 路径及文档转换工具
 ├── docker/                 # Dockerfile、Compose 和 MySQL 初始化数据
+├── evals/dabstep/          # 固定数据版本、审计、任务子集、SQL 导入和参考核验
 ├── data/knowledge_base/    # 本地 RAG 语料目录（不提交到 git）
+├── data/benchmarks/        # 下载的评测原始数据（不提交到 git）
 ├── frontend/               # React 前端
 ├── tests/                  # 自动化测试
 ├── .env.example            # 环境变量示例
@@ -241,8 +262,8 @@ uv run uvicorn app.api.server:app --host 0.0.0.0 --port 8000 --reload
 运行后端质量检查和测试：
 
 ```bash
-uv run ruff check app tests
-uv run ruff format --check app tests
+uv run ruff check app evals tests
+uv run ruff format --check app evals tests
 uv run pytest
 ```
 
@@ -322,6 +343,7 @@ pnpm build
 - 知识库原始文件存储在 MinIO。
 - RAG 索引任务使用 Redis 和 Celery Worker 执行。
 - MySQL 示例数据由 `docker/mysql/mysql.sql` 在数据卷首次创建时导入。
+- DABStep 原始数据下载到 `data/benchmarks/dabstep_research/<revision>/`，本地参考数据库保存在 `evals/dabstep/work/`；两者均不提交到版本库。
 - 本地运行时产生的输出文件、数据库卷、日志和模型缓存不应提交到版本库。
 
 ### 能力边界
@@ -333,6 +355,7 @@ pnpm build
 - 文件安全扫描、内容审核和敏感数据治理仍需外部补齐。
 - 长任务并发、队列治理、可观测性和告警仍偏向本地开发形态。
 - 记忆抽取依赖模型判断，重要生产场景应增加人工确认、评测和回滚机制。
+- DABStep 当前参考结果只覆盖可确定的源数据事实；手续费规则引擎完成独立交叉验证前，精确费用和节省额只能作为带假设的分析结果。
 
 用于公开网络或生产环境前，请补充正式身份认证、授权策略、限流、数据隔离、密钥管理、监控告警、安全审计和质量回归流程。
 
@@ -352,6 +375,7 @@ DeepSearch Agents is a conversational multi-agent deep research system built on 
 - File handling: reads PDF, Word, Excel, Markdown, and text attachments, and can generate Markdown or PDF deliverables.
 - Real-time task status: streams tool calls, sub-agent execution, final results, errors, and cancellation events through WebSocket.
 - Research phase tracing: each phase start, completion, and summary is written to the WebSocket trace and audit log so the brief, evidence ledger, compressed evidence, and final report can be reviewed together.
+- Reproducible data evaluation: pins the DABStep-Research revision, source hashes, task subset, and SQL reference results for incremental validation of database analysis, evidence grounding, and report generation.
 - Web workspace: the frontend provides chat, a task event stream, attachment uploads, knowledge-base management, a long-term memory drawer, a history sidebar, and result downloads.
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
@@ -364,6 +388,24 @@ The first M0 baseline on 2026-08-17 executed five web-report samples. Five MySQL
 M0.1 stabilization is implemented and has completed its first rerun. Clarification used exactly one model call in all five web samples. Average LLM calls fell from 19.8 to 9.2 per task, and average input tokens fell from about 176k to 76.8k. Backend code wrote a non-empty `report.md` for every sample. One task completed normally, while four still degraded because the supervisor or compression phase timed out. P95 latency increased from 208.3 to 216.6 seconds, so the 180-second target remains unmet.
 
 The rerun also exposed three follow-up issues. The `convert_md_to_pdf` tool name inside the eval prompt caused every Markdown-only task to generate an unwanted PDF. The research supervisor still used DeepAgents built-ins such as `write_todos`, `write_file`, and `read_file`. Final-report URLs had no exact overlap with the search-result URLs recorded in the audit logs, and several had obvious placeholder patterns. File delivery is now reliable, but evidence grounding is not. The current `evals/results/report_eval.json` is still the older M0 aggregate; the M0.1 measurements come from the five new schema v2 traces. See the [M0 development log](docs/development/m0-baseline-budget-trace.md) for the full comparison.
+
+### DABStep Data Baseline
+
+The project now includes its first structured-data research baseline. It pins `RUC-DataLab/DABStep-Research` at revision `62ae9e0de555a8fb1fd5ab334e0546dbf27aa10c`. `evals/dabstep/dataset.lock.json` records the byte size and SHA-256 digest of all eight source files, and the downloader verifies every file before it is used so upstream changes cannot silently alter evaluation results.
+
+The audit found 100 tasks distributed evenly across five categories, but all 20 Open tasks have empty checklists. The transaction table contains 138,236 payments from 5 active merchants, while merchant metadata contains 30 rows. The 1,000 fee rules use both `null` and empty lists as wildcard-like conditions and reference 7 MCC values missing from the MCC lookup table. Because the snapshot has no realized-fee column, authoritative worked fee example, processing-latency telemetry, or complete conversion funnel, exact fees, counterfactual savings, and causal claims are not yet treated as hard ground truth. See the [DABStep data audit](evals/dabstep/AUDIT.md) for the complete findings.
+
+The first phase freezes eight original tasks. IDs 2 and 84 form the development split; IDs 0, 3, 20, 41, 47, and 85 form the holdout split. Prompts, tools, and workflows may be tuned only on the development tasks. Holdout tasks are reserved for milestone acceptance. Original questions and checklists remain unchanged; added metadata records the split, answerability level, known limitations, and required reference checks.
+
+One command downloads the pinned snapshot, verifies its hashes, regenerates the audit artifacts, imports the minimal SQL schema, and checks the database against committed reference results:
+
+```powershell
+.\.venv\Scripts\python.exe -m evals.dabstep.prepare
+```
+
+The default target is a local SQLite database and requires no infrastructure services. A MySQL SQLAlchemy URL can be supplied through `DABSTEP_DATABASE_URL`. The importer creates transaction, merchant, acquirer, MCC, fee-rule, and normalized fee-condition tables. Six read-only query groups verify dataset size, missing values, merchant summaries, card schemes, domestic/cross-border routing, and imported table counts. `reference_results.json` is evaluator-only data and must not be exposed to the research agent. Raw data and working databases are ignored by Git.
+
+The upstream `DABStep-Research` repository currently declares no license. Raw files are downloaded locally from the locked revision and must not be redistributed with this project until the licensing status is clarified. See the [DABStep baseline README](evals/dabstep/README.md) for individual commands and MySQL configuration.
 
 ### Architecture
 
@@ -440,7 +482,9 @@ deepsearch-agents/
 │   ├── tools/              # Search, database, RAG, attachment, memory, and report tools
 │   └── utils/              # Path and document conversion utilities
 ├── docker/                 # Dockerfiles, Compose, and MySQL seed data
+├── evals/dabstep/          # Pinned data, audit, task subset, SQL import, and reference checks
 ├── data/knowledge_base/    # Local RAG corpus directory (not committed to git)
+├── data/benchmarks/        # Downloaded benchmark source data (not committed to git)
 ├── frontend/               # React frontend
 ├── tests/                  # Automated tests
 ├── .env.example            # Example environment variables
@@ -599,8 +643,8 @@ uv run uvicorn app.api.server:app --host 0.0.0.0 --port 8000 --reload
 Run backend quality checks and tests:
 
 ```bash
-uv run ruff check app tests
-uv run ruff format --check app tests
+uv run ruff check app evals tests
+uv run ruff format --check app evals tests
 uv run pytest
 ```
 
@@ -680,6 +724,7 @@ Use my long-term memory about the e-commerce livestreaming project, search the l
 - Original knowledge-base files are stored in MinIO.
 - RAG indexing jobs run through Redis and Celery Worker.
 - Example MySQL data is imported from `docker/mysql/mysql.sql` when the data volume is first created.
+- DABStep source files are downloaded under `data/benchmarks/dabstep_research/<revision>/`, and the local reference database is stored under `evals/dabstep/work/`. Neither is committed.
 - Runtime outputs, database volumes, logs, and model caches should not be committed to the repository.
 
 ### Limitations
@@ -691,5 +736,6 @@ The project already includes a basic user system, conversation isolation, and ma
 - File security scanning, content moderation, and sensitive-data governance still need external support.
 - Long-task concurrency, queue governance, observability, and alerting are still oriented toward local development.
 - Memory extraction depends on model judgment. Important production scenarios should add human confirmation, evaluation, and rollback mechanisms.
+- Current DABStep references cover deterministic source-data facts only. Exact fee totals and savings remain assumption-bound until the fee-rule engine is independently cross-validated.
 
 Before exposing the system publicly or using it in production, add formal authentication, authorization policies, rate limiting, data isolation, secret management, monitoring and alerts, security auditing, and quality regression workflows.

@@ -1,0 +1,212 @@
+{
+  "audit_version": 1,
+  "dataset_revision": "62ae9e0de555a8fb1fd5ab334e0546dbf27aa10c",
+  "integrity": {
+    "locked_files": 8,
+    "errors": []
+  },
+  "tasks": {
+    "total": 100,
+    "by_type": {
+      "Data Analysis": 20,
+      "Data Insight": 20,
+      "Data Preparation": 20,
+      "Open": 20,
+      "Report Generation": 20
+    },
+    "empty_checklist_ids": [
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79
+    ],
+    "exact_duplicate_question_groups": 0,
+    "all_tasks_use_same_file_set": true,
+    "selected_ids": [
+      2,
+      84,
+      0,
+      3,
+      20,
+      41,
+      47,
+      85
+    ],
+    "selected_by_split": {
+      "dev": 2,
+      "holdout": 6
+    },
+    "selected_by_type": {
+      "Data Preparation": 3,
+      "Report Generation": 2,
+      "Data Analysis": 1,
+      "Data Insight": 2
+    },
+    "selected": [
+      {
+        "source_id": 2,
+        "split": "dev",
+        "type": "Data Preparation",
+        "answerability": "directly_grounded"
+      },
+      {
+        "source_id": 84,
+        "split": "dev",
+        "type": "Report Generation",
+        "answerability": "partially_conditional"
+      },
+      {
+        "source_id": 0,
+        "split": "holdout",
+        "type": "Data Preparation",
+        "answerability": "directly_grounded"
+      },
+      {
+        "source_id": 3,
+        "split": "holdout",
+        "type": "Data Preparation",
+        "answerability": "partially_conditional"
+      },
+      {
+        "source_id": 20,
+        "split": "holdout",
+        "type": "Data Analysis",
+        "answerability": "partially_conditional"
+      },
+      {
+        "source_id": 41,
+        "split": "holdout",
+        "type": "Data Insight",
+        "answerability": "partially_conditional"
+      },
+      {
+        "source_id": 47,
+        "split": "holdout",
+        "type": "Data Insight",
+        "answerability": "partially_conditional"
+      },
+      {
+        "source_id": 85,
+        "split": "holdout",
+        "type": "Report Generation",
+        "answerability": "partially_conditional"
+      }
+    ]
+  },
+  "payments": {
+    "rows": 138236,
+    "columns": 21,
+    "unique_psp_references": 138236,
+    "duplicate_rows": 0,
+    "date_min": "2023-01-01",
+    "date_max": "2023-12-31",
+    "years": [
+      2023
+    ],
+    "null_counts": {
+      "psp_reference": 0,
+      "merchant": 0,
+      "card_scheme": 0,
+      "year": 0,
+      "hour_of_day": 0,
+      "minute_of_hour": 0,
+      "day_of_year": 0,
+      "is_credit": 0,
+      "eur_amount": 0,
+      "ip_country": 0,
+      "issuing_country": 0,
+      "device_type": 0,
+      "ip_address": 27647,
+      "email_address": 13824,
+      "card_number": 0,
+      "shopper_interaction": 0,
+      "card_bin": 0,
+      "has_fraudulent_dispute": 0,
+      "is_refused_by_adyen": 0,
+      "aci": 0,
+      "acquirer_country": 0
+    },
+    "invalid_aci_rows": 0,
+    "invalid_day_of_year_rows": 0
+  },
+  "cross_source": {
+    "transaction_merchants": 5,
+    "merchant_metadata_rows": 30,
+    "transactions_without_merchant_metadata": 0,
+    "unused_merchant_metadata_rows": 25,
+    "active_merchant_mccs_missing_from_reference": [],
+    "invalid_account_type_rows": 0,
+    "observed_payment_acquirer_country_codes": [
+      "FR",
+      "GB",
+      "IT",
+      "NL",
+      "US"
+    ],
+    "mapped_acquirer_country_codes": [
+      "FR",
+      "GB",
+      "IT",
+      "NL",
+      "US"
+    ],
+    "payment_rows_with_country_not_in_acquirer_mapping": 0
+  },
+  "fee_rules": {
+    "rows": 1000,
+    "unique_ids": 1000,
+    "null_wildcards": {
+      "ID": 0,
+      "card_scheme": 0,
+      "account_type": 0,
+      "capture_delay": 500,
+      "monthly_fraud_level": 900,
+      "monthly_volume": 800,
+      "merchant_category_code": 0,
+      "is_credit": 100,
+      "aci": 0,
+      "fixed_amount": 0,
+      "rate": 0,
+      "intracountry": 561
+    },
+    "empty_list_wildcards": {
+      "account_type": 720,
+      "merchant_category_code": 127,
+      "aci": 112
+    },
+    "fee_mccs_missing_from_reference": [
+      3003,
+      5412,
+      5736,
+      5911,
+      7231,
+      8000,
+      8742
+    ],
+    "formula_documented": "fixed_amount + rate * transaction_value / 10000"
+  },
+  "answerability_gaps": [
+    "No realized fee column or authoritative worked example exists in this snapshot.",
+    "The manual documents null as wildcard, while fees.json also uses empty lists as apparent wildcards.",
+    "Transactions contain acquirer country codes but not acquirer names, so merchant-to-acquirer usage cannot be reconstructed.",
+    "No processing latency or system-performance telemetry exists.",
+    "Refusal is available as an authorization proxy; a full conversion funnel is not.",
+    "Counterfactual savings and fraud-prevention ROI require assumptions not present in the data."
+  ]
+}

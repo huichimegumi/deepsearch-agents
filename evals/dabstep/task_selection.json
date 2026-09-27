@@ -1,0 +1,87 @@
+{
+  "policy_version": 1,
+  "selection_date": "2026-09-26",
+  "selection_principles": [
+    "Keep original task IDs, questions, checklists, and file lists unchanged.",
+    "Exclude Open tasks because all 20 have empty checklists.",
+    "Cover data preparation, analysis, insight, and report-generation behavior.",
+    "Use the development split for prompt/tool iteration and keep holdout tasks out of tuning.",
+    "Mark fee totals and counterfactual savings as conditional until fee-rule matching is independently validated."
+  ],
+  "tasks": [
+    {
+      "id": 2,
+      "split": "dev",
+      "answerability": "directly_grounded",
+      "selection_reason": "Focused data-quality task with checks that can be independently verified.",
+      "known_limitations": []
+    },
+    {
+      "id": 84,
+      "split": "dev",
+      "answerability": "partially_conditional",
+      "selection_reason": "Representative end-to-end report task with explicit structure and quantitative requirements.",
+      "known_limitations": [
+        "Exact fee totals depend on fee-rule matching semantics.",
+        "Optimization recommendations are counterfactual and must state assumptions."
+      ]
+    },
+    {
+      "id": 0,
+      "split": "holdout",
+      "answerability": "directly_grounded",
+      "selection_reason": "Tests multi-source schema reasoning and explicit treatment of inconsistencies.",
+      "known_limitations": [
+        "The transaction table stores acquirer country codes, not acquirer names."
+      ]
+    },
+    {
+      "id": 3,
+      "split": "holdout",
+      "answerability": "partially_conditional",
+      "selection_reason": "Tests whether the system documents fee-rule logic and unresolved edge cases instead of hiding them.",
+      "known_limitations": [
+        "Empty list wildcard semantics are implied by the data but not explicitly documented in the manual.",
+        "No authoritative worked fee example is included in this dataset snapshot."
+      ]
+    },
+    {
+      "id": 20,
+      "split": "holdout",
+      "answerability": "partially_conditional",
+      "selection_reason": "Representative quantitative analysis covering fee, fraud, and routing evidence.",
+      "known_limitations": [
+        "Cost-saving projections require declared counterfactual assumptions.",
+        "The dataset has refusal outcomes but no independent conversion-funnel data."
+      ]
+    },
+    {
+      "id": 41,
+      "split": "holdout",
+      "answerability": "partially_conditional",
+      "selection_reason": "Requires comparisons across at least two merchants and traceable recommendations.",
+      "known_limitations": [
+        "Fee contribution totals depend on independently validated rule matching."
+      ]
+    },
+    {
+      "id": 47,
+      "split": "holdout",
+      "answerability": "partially_conditional",
+      "selection_reason": "Tests evidence-backed insight synthesis without a rigid report template.",
+      "known_limitations": [
+        "Correlation does not establish that changing an ACI causes a fraud or fee outcome."
+      ]
+    },
+    {
+      "id": 85,
+      "split": "holdout",
+      "answerability": "partially_conditional",
+      "selection_reason": "Tests long-form report compliance, tables, citations, and explicit assumptions.",
+      "known_limitations": [
+        "Charts are optional for the first CLI baseline; three distinct tables satisfy the original requirement.",
+        "Exact fee totals remain conditional on fee-engine validation."
+      ]
+    }
+  ]
+}

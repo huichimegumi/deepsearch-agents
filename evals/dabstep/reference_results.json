@@ -1,0 +1,187 @@
+{
+  "dataset_revision": "62ae9e0de555a8fb1fd5ab334e0546dbf27aa10c",
+  "scope": "Deterministic source facts only; exact fee totals are intentionally excluded.",
+  "results": {
+    "dataset_overview": [
+      {
+        "transaction_count": 138236,
+        "unique_psp_references": 138236,
+        "active_merchants": 5,
+        "total_eur_amount": 12697297.46,
+        "average_eur_amount": 91.852321,
+        "fraudulent_transaction_count": 10765,
+        "fraudulent_eur_amount": 1162349.51,
+        "refused_transaction_count": 8825,
+        "intracountry_transaction_count": 24659,
+        "date_min": "2023-01-01",
+        "date_max": "2023-12-31"
+      }
+    ],
+    "data_quality": [
+      {
+        "missing_ip_address": 27647,
+        "missing_email_address": 13824,
+        "invalid_aci": 0,
+        "missing_merchant_metadata": 0,
+        "missing_mcc_reference": 0,
+        "invalid_intracountry_derivation": 0,
+        "acquirer_country_not_in_mapping": 0
+      }
+    ],
+    "merchant_summary": [
+      {
+        "merchant": "Belles_cookbook_store",
+        "transaction_count": 13848,
+        "total_eur_amount": 1262219.8,
+        "average_eur_amount": 91.148166,
+        "fraudulent_transaction_pct": 7.733969,
+        "fraudulent_volume_pct": 9.295703,
+        "refusal_pct": 6.318602,
+        "intracountry_pct": 0.0,
+        "account_type": "R",
+        "merchant_category_code": 5942,
+        "capture_delay": "1"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "transaction_count": 55139,
+        "total_eur_amount": 5076636.9,
+        "average_eur_amount": 92.069804,
+        "fraudulent_transaction_pct": 7.845627,
+        "fraudulent_volume_pct": 8.907926,
+        "refusal_pct": 6.374798,
+        "intracountry_pct": 21.414969,
+        "account_type": "F",
+        "merchant_category_code": 7997,
+        "capture_delay": "manual"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "transaction_count": 27748,
+        "total_eur_amount": 2553380.62,
+        "average_eur_amount": 92.020348,
+        "fraudulent_transaction_pct": 7.683437,
+        "fraudulent_volume_pct": 9.348991,
+        "refusal_pct": 6.472539,
+        "intracountry_pct": 20.019461,
+        "account_type": "F",
+        "merchant_category_code": 7993,
+        "capture_delay": "2"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "transaction_count": 13805,
+        "total_eur_amount": 1260227.18,
+        "average_eur_amount": 91.287735,
+        "fraudulent_transaction_pct": 8.004346,
+        "fraudulent_volume_pct": 9.133951,
+        "refusal_pct": 6.352771,
+        "intracountry_pct": 9.981891,
+        "account_type": "H",
+        "merchant_category_code": 5812,
+        "capture_delay": "immediate"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "transaction_count": 27696,
+        "total_eur_amount": 2544832.96,
+        "average_eur_amount": 91.884495,
+        "fraudulent_transaction_pct": 7.694252,
+        "fraudulent_volume_pct": 9.390414,
+        "refusal_pct": 6.36193,
+        "intracountry_pct": 21.367707,
+        "account_type": "D",
+        "merchant_category_code": 7372,
+        "capture_delay": "7"
+      }
+    ],
+    "card_scheme_summary": [
+      {
+        "card_scheme": "GlobalCard",
+        "transaction_count": 48150,
+        "total_eur_amount": 4415368.11,
+        "fraudulent_transaction_pct": 7.698858,
+        "refusal_pct": 6.245067
+      },
+      {
+        "card_scheme": "NexPay",
+        "transaction_count": 41679,
+        "total_eur_amount": 3813735.51,
+        "fraudulent_transaction_pct": 7.879268,
+        "refusal_pct": 6.446892
+      },
+      {
+        "card_scheme": "SwiftCharge",
+        "transaction_count": 13733,
+        "total_eur_amount": 1254697.51,
+        "fraudulent_transaction_pct": 8.024467,
+        "refusal_pct": 6.531712
+      },
+      {
+        "card_scheme": "TransactPlus",
+        "transaction_count": 34674,
+        "total_eur_amount": 3213496.33,
+        "fraudulent_transaction_pct": 7.706062,
+        "refusal_pct": 6.442868
+      }
+    ],
+    "routing_summary": [
+      {
+        "route_type": "cross_border",
+        "transaction_count": 113577,
+        "total_eur_amount": 10427322.28,
+        "fraudulent_transaction_pct": 7.554346,
+        "refusal_pct": 6.383335
+      },
+      {
+        "route_type": "domestic",
+        "transaction_count": 24659,
+        "total_eur_amount": 2269975.18,
+        "fraudulent_transaction_pct": 8.860862,
+        "refusal_pct": 6.38712
+      }
+    ],
+    "table_counts": [
+      {
+        "table_name": "acquirer_countries",
+        "row_count": 8
+      },
+      {
+        "table_name": "dataset_files",
+        "row_count": 8
+      },
+      {
+        "table_name": "fee_rule_account_types",
+        "row_count": 507
+      },
+      {
+        "table_name": "fee_rule_acis",
+        "row_count": 1368
+      },
+      {
+        "table_name": "fee_rule_mccs",
+        "row_count": 6842
+      },
+      {
+        "table_name": "fee_rules",
+        "row_count": 1000
+      },
+      {
+        "table_name": "merchant_acquirers",
+        "row_count": 49
+      },
+      {
+        "table_name": "merchant_category_codes",
+        "row_count": 769
+      },
+      {
+        "table_name": "merchants",
+        "row_count": 30
+      },
+      {
+        "table_name": "payments",
+        "row_count": 138236
+      }
+    ]
+  }
+}

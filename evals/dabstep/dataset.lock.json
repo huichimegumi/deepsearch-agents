@@ -1,0 +1,53 @@
+{
+  "dataset": "RUC-DataLab/DABStep-Research",
+  "repository_url": "https://huggingface.co/datasets/RUC-DataLab/DABStep-Research",
+  "revision": "62ae9e0de555a8fb1fd5ab334e0546dbf27aa10c",
+  "revision_date": "2025-10-18T07:44:51Z",
+  "license": {
+    "declared_by_upstream": null,
+    "status": "not_declared_in_repository",
+    "note": "Do not redistribute the raw files until the upstream license is clarified. The source context matches Adyen/DABstep, which declares CC BY 4.0, but that does not by itself establish this derivative dataset's license."
+  },
+  "files": [
+    {
+      "path": "dabstep_research.jsonl",
+      "bytes": 158085,
+      "sha256": "7a1c2fd0c654d07860638b189f35eb3116ac9ffe96dbb90096c1bb61030671b9"
+    },
+    {
+      "path": "context/acquirer_countries.csv",
+      "bytes": 194,
+      "sha256": "6744cf1962e4b5086342821e627f4557c32f06c3c58e8b0ff3b449dcc634f37f"
+    },
+    {
+      "path": "context/fees.json",
+      "bytes": 531118,
+      "sha256": "9a833666ae9be5a8e756dd1fe076c72e7c502d64161315ffa8fee9e5bf2599dc"
+    },
+    {
+      "path": "context/manual.md",
+      "bytes": 22127,
+      "sha256": "bb7f4ca6fdc759af1f480702b3a3b12e17e9293b0d38a1dbfbbc8ffc1e572d2c"
+    },
+    {
+      "path": "context/merchant_category_codes.csv",
+      "bytes": 26611,
+      "sha256": "83247d79f5ddcdd180e02f184b644f4912731942a2fc58d91f2a06b911d04b41"
+    },
+    {
+      "path": "context/merchant_data.json",
+      "bytes": 6857,
+      "sha256": "f158e834de27ee8407e99d9c32da690357981d2770958fd302a9bb79ced83581"
+    },
+    {
+      "path": "context/payments-readme.md",
+      "bytes": 1719,
+      "sha256": "8754b92d0b3127856ff72266ea482995d2a1f6a34d0a12732f7c26f527f2c4a5"
+    },
+    {
+      "path": "context/payments.csv",
+      "bytes": 23581339,
+      "sha256": "5fbb26210a45427d7a6560cfab3a362a08e4067f27cd03695f211a51c47ffc25"
+    }
+  ]
+}
