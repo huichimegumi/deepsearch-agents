@@ -1,0 +1,10 @@
+{
+  "dataset": "adyen/DABstep",
+  "repository_url": "https://huggingface.co/datasets/adyen/DABstep",
+  "revision": "8afcb4ee3df0d73da5e0cddfddfb55665b760169",
+  "path": "data/tasks/dev.jsonl",
+  "bytes": 6330,
+  "sha256": "c1da755a6fe9cb538fc84719f51e1db0bff0190a1d6905767ac18c755e66a07b",
+  "license": "cc-by-4.0",
+  "attribution": "DABstep by Adyen and Hugging Face"
+}

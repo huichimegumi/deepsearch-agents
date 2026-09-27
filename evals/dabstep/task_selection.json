@@ -6,7 +6,7 @@
     "Exclude Open tasks because all 20 have empty checklists.",
     "Cover data preparation, analysis, insight, and report-generation behavior.",
     "Use the development split for prompt/tool iteration and keep holdout tasks out of tuning.",
-    "Mark fee totals and counterfactual savings as conditional until fee-rule matching is independently validated."
+    "Treat current fee totals as grounded after Python, public-dev, and independent SQL validation; keep causal and counterfactual recommendations conditional."
   ],
   "tasks": [
     {
@@ -22,7 +22,6 @@
       "answerability": "partially_conditional",
       "selection_reason": "Representative end-to-end report task with explicit structure and quantitative requirements.",
       "known_limitations": [
-        "Exact fee totals depend on fee-rule matching semantics.",
         "Optimization recommendations are counterfactual and must state assumptions."
       ]
     },
@@ -38,12 +37,9 @@
     {
       "id": 3,
       "split": "holdout",
-      "answerability": "partially_conditional",
+      "answerability": "directly_grounded",
       "selection_reason": "Tests whether the system documents fee-rule logic and unresolved edge cases instead of hiding them.",
-      "known_limitations": [
-        "Empty list wildcard semantics are implied by the data but not explicitly documented in the manual.",
-        "No authoritative worked fee example is included in this dataset snapshot."
-      ]
+      "known_limitations": []
     },
     {
       "id": 20,
@@ -61,7 +57,7 @@
       "answerability": "partially_conditional",
       "selection_reason": "Requires comparisons across at least two merchants and traceable recommendations.",
       "known_limitations": [
-        "Fee contribution totals depend on independently validated rule matching."
+        "Optimization recommendations remain counterfactual and must not be presented as causal conclusions."
       ]
     },
     {
@@ -79,8 +75,7 @@
       "answerability": "partially_conditional",
       "selection_reason": "Tests long-form report compliance, tables, citations, and explicit assumptions.",
       "known_limitations": [
-        "Charts are optional for the first CLI baseline; three distinct tables satisfy the original requirement.",
-        "Exact fee totals remain conditional on fee-engine validation."
+        "Charts are optional for the first CLI baseline; three distinct tables satisfy the original requirement."
       ]
     }
   ]

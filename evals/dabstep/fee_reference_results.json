@@ -1,0 +1,512 @@
+{
+  "schema_version": 1,
+  "dataset_revision": "62ae9e0de555a8fb1fd5ab334e0546dbf27aa10c",
+  "engine_policy": {
+    "empty_lists": "wildcard",
+    "range_intervals": "written a-b bounds are inclusive; literal < and > are strict",
+    "monthly_fraud_rate": "fraudulent EUR volume / total EUR volume",
+    "fee_formula": "fixed_amount + rate * transaction_amount / 10000 per transaction",
+    "arithmetic": "decimal"
+  },
+  "coverage": {
+    "transaction_count": 138236,
+    "status_counts": {
+      "MATCHED": 81772,
+      "NO_MATCH": 56464
+    },
+    "unpriced_transaction_count": 56464,
+    "match_count_distribution": {
+      "0": 56464,
+      "1": 39711,
+      "2": 31186,
+      "3": 9002,
+      "4": 1455,
+      "5": 171,
+      "6": 101,
+      "7": 122,
+      "8": 7,
+      "9": 17
+    },
+    "all_transactions_have_status": true
+  },
+  "totals": {
+    "matched_fee_total_eur": "95213.255747",
+    "by_merchant": {
+      "Belles_cookbook_store": {
+        "matched_fee_total_eur": "6764.614042"
+      },
+      "Crossfit_Hanna": {
+        "matched_fee_total_eur": "43520.837094"
+      },
+      "Golfclub_Baron_Friso": {
+        "matched_fee_total_eur": "15237.486205"
+      },
+      "Martinis_Fine_Steakhouse": {
+        "matched_fee_total_eur": "12387.682233"
+      },
+      "Rafa_AI": {
+        "matched_fee_total_eur": "17302.636173"
+      }
+    },
+    "by_merchant_month": [
+      {
+        "merchant": "Belles_cookbook_store",
+        "year": 2023,
+        "month": 1,
+        "matched_fee_total_eur": "666.713196"
+      },
+      {
+        "merchant": "Belles_cookbook_store",
+        "year": 2023,
+        "month": 2,
+        "matched_fee_total_eur": "352.476111"
+      },
+      {
+        "merchant": "Belles_cookbook_store",
+        "year": 2023,
+        "month": 3,
+        "matched_fee_total_eur": "692.647362"
+      },
+      {
+        "merchant": "Belles_cookbook_store",
+        "year": 2023,
+        "month": 4,
+        "matched_fee_total_eur": "546.496555"
+      },
+      {
+        "merchant": "Belles_cookbook_store",
+        "year": 2023,
+        "month": 5,
+        "matched_fee_total_eur": "691.091800"
+      },
+      {
+        "merchant": "Belles_cookbook_store",
+        "year": 2023,
+        "month": 6,
+        "matched_fee_total_eur": "697.258468"
+      },
+      {
+        "merchant": "Belles_cookbook_store",
+        "year": 2023,
+        "month": 7,
+        "matched_fee_total_eur": "642.390363"
+      },
+      {
+        "merchant": "Belles_cookbook_store",
+        "year": 2023,
+        "month": 8,
+        "matched_fee_total_eur": "578.516596"
+      },
+      {
+        "merchant": "Belles_cookbook_store",
+        "year": 2023,
+        "month": 9,
+        "matched_fee_total_eur": "324.163776"
+      },
+      {
+        "merchant": "Belles_cookbook_store",
+        "year": 2023,
+        "month": 10,
+        "matched_fee_total_eur": "356.689749"
+      },
+      {
+        "merchant": "Belles_cookbook_store",
+        "year": 2023,
+        "month": 11,
+        "matched_fee_total_eur": "574.455381"
+      },
+      {
+        "merchant": "Belles_cookbook_store",
+        "year": 2023,
+        "month": 12,
+        "matched_fee_total_eur": "641.714685"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "year": 2023,
+        "month": 1,
+        "matched_fee_total_eur": "3648.379690"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "year": 2023,
+        "month": 2,
+        "matched_fee_total_eur": "3369.776736"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "year": 2023,
+        "month": 3,
+        "matched_fee_total_eur": "3701.576543"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "year": 2023,
+        "month": 4,
+        "matched_fee_total_eur": "3510.033302"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "year": 2023,
+        "month": 5,
+        "matched_fee_total_eur": "3778.985196"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "year": 2023,
+        "month": 6,
+        "matched_fee_total_eur": "3608.103134"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "year": 2023,
+        "month": 7,
+        "matched_fee_total_eur": "3586.057394"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "year": 2023,
+        "month": 8,
+        "matched_fee_total_eur": "3675.500384"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "year": 2023,
+        "month": 9,
+        "matched_fee_total_eur": "3551.008506"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "year": 2023,
+        "month": 10,
+        "matched_fee_total_eur": "3727.862804"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "year": 2023,
+        "month": 11,
+        "matched_fee_total_eur": "3595.650833"
+      },
+      {
+        "merchant": "Crossfit_Hanna",
+        "year": 2023,
+        "month": 12,
+        "matched_fee_total_eur": "3767.902572"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "year": 2023,
+        "month": 1,
+        "matched_fee_total_eur": "1327.443533"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "year": 2023,
+        "month": 2,
+        "matched_fee_total_eur": "1135.291797"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "year": 2023,
+        "month": 3,
+        "matched_fee_total_eur": "1348.251342"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "year": 2023,
+        "month": 4,
+        "matched_fee_total_eur": "1208.879550"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "year": 2023,
+        "month": 5,
+        "matched_fee_total_eur": "1324.280273"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "year": 2023,
+        "month": 6,
+        "matched_fee_total_eur": "1304.206180"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "year": 2023,
+        "month": 7,
+        "matched_fee_total_eur": "1374.110777"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "year": 2023,
+        "month": 8,
+        "matched_fee_total_eur": "1335.656315"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "year": 2023,
+        "month": 9,
+        "matched_fee_total_eur": "1174.803518"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "year": 2023,
+        "month": 10,
+        "matched_fee_total_eur": "1189.008984"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "year": 2023,
+        "month": 11,
+        "matched_fee_total_eur": "1195.945118"
+      },
+      {
+        "merchant": "Golfclub_Baron_Friso",
+        "year": 2023,
+        "month": 12,
+        "matched_fee_total_eur": "1319.608818"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "year": 2023,
+        "month": 1,
+        "matched_fee_total_eur": "1117.837894"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "year": 2023,
+        "month": 2,
+        "matched_fee_total_eur": "701.204774"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "year": 2023,
+        "month": 3,
+        "matched_fee_total_eur": "1144.884690"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "year": 2023,
+        "month": 4,
+        "matched_fee_total_eur": "1012.573695"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "year": 2023,
+        "month": 5,
+        "matched_fee_total_eur": "1235.957393"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "year": 2023,
+        "month": 6,
+        "matched_fee_total_eur": "1102.153813"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "year": 2023,
+        "month": 7,
+        "matched_fee_total_eur": "1120.774644"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "year": 2023,
+        "month": 8,
+        "matched_fee_total_eur": "1203.822159"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "year": 2023,
+        "month": 9,
+        "matched_fee_total_eur": "1107.331594"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "year": 2023,
+        "month": 10,
+        "matched_fee_total_eur": "759.428660"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "year": 2023,
+        "month": 11,
+        "matched_fee_total_eur": "1105.440058"
+      },
+      {
+        "merchant": "Martinis_Fine_Steakhouse",
+        "year": 2023,
+        "month": 12,
+        "matched_fee_total_eur": "776.272859"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "year": 2023,
+        "month": 1,
+        "matched_fee_total_eur": "1436.462240"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "year": 2023,
+        "month": 2,
+        "matched_fee_total_eur": "1293.310378"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "year": 2023,
+        "month": 3,
+        "matched_fee_total_eur": "1546.815046"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "year": 2023,
+        "month": 4,
+        "matched_fee_total_eur": "1460.470747"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "year": 2023,
+        "month": 5,
+        "matched_fee_total_eur": "1453.883842"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "year": 2023,
+        "month": 6,
+        "matched_fee_total_eur": "1449.457183"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "year": 2023,
+        "month": 7,
+        "matched_fee_total_eur": "1460.120894"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "year": 2023,
+        "month": 8,
+        "matched_fee_total_eur": "1361.737762"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "year": 2023,
+        "month": 9,
+        "matched_fee_total_eur": "1429.428425"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "year": 2023,
+        "month": 10,
+        "matched_fee_total_eur": "1427.625391"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "year": 2023,
+        "month": 11,
+        "matched_fee_total_eur": "1414.543927"
+      },
+      {
+        "merchant": "Rafa_AI",
+        "year": 2023,
+        "month": 12,
+        "matched_fee_total_eur": "1568.780338"
+      }
+    ]
+  },
+  "public_dev_validation": {
+    "source": "adyen/DABstep",
+    "passed": true,
+    "hard_check_count": 6,
+    "known_upstream_inconsistency_count": 1,
+    "checks": [
+      {
+        "task_id": "1273",
+        "kind": "average_rule_fee",
+        "expected": "0.120132",
+        "actual": "0.120132",
+        "matched_rule_count": 144,
+        "passed": true
+      },
+      {
+        "task_id": "1305",
+        "kind": "average_rule_fee",
+        "expected": "0.123217",
+        "actual": "0.123217",
+        "matched_rule_count": 46,
+        "passed": true
+      },
+      {
+        "task_id": "1464",
+        "kind": "partial_rule_filter",
+        "expected_count": 416,
+        "actual_count": 416,
+        "expected_sha256": "81ed5d2c2b7c8e949aede02f89ce9905b9d31097ff14bc4dc7dff3ffe0428a1b",
+        "actual_sha256": "81ed5d2c2b7c8e949aede02f89ce9905b9d31097ff14bc4dc7dff3ffe0428a1b",
+        "missing_ids": [],
+        "unexpected_ids": [],
+        "passed": true
+      },
+      {
+        "task_id": "1681",
+        "kind": "transaction_day_rule_union",
+        "expected_count": 10,
+        "actual_count": 10,
+        "expected_sha256": "1e0285b847def39ae107d9c795d41d57891c1e241502e43868605478db769e88",
+        "actual_sha256": "1e0285b847def39ae107d9c795d41d57891c1e241502e43868605478db769e88",
+        "missing_ids": [],
+        "unexpected_ids": [],
+        "passed": true,
+        "transaction_count": 37
+      },
+      {
+        "task_id": "1753",
+        "kind": "merchant_month_rule_union",
+        "expected_count": 34,
+        "actual_count": 34,
+        "expected_sha256": "fcc592cea7f562e65435efe239908e0d8a5e2f5951ea778922e08fbfa698054e",
+        "actual_sha256": "fcc592cea7f562e65435efe239908e0d8a5e2f5951ea778922e08fbfa698054e",
+        "missing_ids": [],
+        "unexpected_ids": [],
+        "passed": true,
+        "transaction_count": 1277
+      },
+      {
+        "task_id": "1871",
+        "kind": "rate_change_delta",
+        "expected": "-0.94810300000017",
+        "actual": "-0.94810300000000",
+        "applicable_transaction_count": 12,
+        "absolute_error": "1.7E-13",
+        "passed": true
+      },
+      {
+        "task_id": "2697",
+        "kind": "fraudulent_transaction_aci_counterfactual",
+        "validation_role": "known_upstream_inconsistency",
+        "upstream_discussion": "https://huggingface.co/datasets/adyen/DABstep/discussions/2",
+        "note": "The official answer is not reproducible from the documented per-transaction formula. This case is reported but excluded from hard validation.",
+        "expected": "E:13.57",
+        "actual": "G:61.05",
+        "fraudulent_transaction_count": 94,
+        "candidate_costs": {
+          "A": "132.01",
+          "B": "202.97",
+          "C": "131.20",
+          "D": "97.67",
+          "E": "77.68",
+          "F": "94.61",
+          "G": "61.05"
+        },
+        "matches_upstream_answer": false,
+        "passed": true
+      }
+    ]
+  },
+  "sql_cross_validation": {
+    "status": "PASSED",
+    "sample_count": 500,
+    "sample_sha256": "b736ca433c0580effd98fb074d2978fd56d63606f9e92b5413425026d8ee16e4",
+    "rule_id_mismatch_count": 0,
+    "fee_amount_mismatch_count": 0,
+    "rule_id_mismatch_examples": [],
+    "fee_amount_mismatch_examples": []
+  }
+}

@@ -21,6 +21,7 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 - 实时任务状态：通过 WebSocket 推送工具调用、子智能体执行、最终结果、异常和取消事件。
 - 研究阶段追踪：每个阶段的开始、完成和摘要会写入 WebSocket trace 与审计日志，便于复盘 brief、证据账本、压缩证据和最终报告之间的关系。
 - 可复现数据评测：固定 DABStep-Research 数据版本、文件哈希、任务子集和 SQL 参考结果，用于逐步验证数据库分析、证据引用与报告生成质量。
+- 确定性费率引擎：用 Decimal 执行 DABStep 逐交易费用规则，计算自然月维度指标，并显式返回匹配状态、规则来源和不确定性，不依赖 LLM。
 - Web 工作台：前端提供聊天、任务事件流、附件上传、知识库管理、长期记忆抽屉、历史会话侧栏和结果下载。
 - 审计日志：任务开始、结果、取消、异常等事件会按会话写入 `app/logs/session_*.jsonl`，便于排查执行过程。
 
@@ -38,7 +39,7 @@ M0.1 稳定性修复现已实现并完成首轮复测。5 个 Web 样本的 Clar
 
 项目已加入第一阶段结构化数据研究基线，使用 `RUC-DataLab/DABStep-Research` 的固定提交 `62ae9e0de555a8fb1fd5ab334e0546dbf27aa10c`。`evals/dabstep/dataset.lock.json` 记录 8 个源文件的字节数和 SHA-256，下载器会在使用前逐一校验，防止上游更新导致评测结果漂移。
 
-数据审计确认：任务共 100 个、五类各 20 个，但 Open 类 20 个任务全部没有 checklist；交易表包含 138,236 笔交易和 5 个活跃商户，商户元数据包含 30 行；1,000 条费率规则中同时使用 `null` 和空列表表达通配条件，并引用了 7 个 MCC 参考表中不存在的代码。由于当前快照没有实际手续费列、权威计算样例、处理延迟或完整转化漏斗，精确手续费、反事实节省额和因果结论暂不作为硬真值。完整结论见 [DABStep 数据审计](evals/dabstep/AUDIT.md)。
+数据审计确认：任务共 100 个、五类各 20 个，但 Open 类 20 个任务全部没有 checklist；交易表包含 138,236 笔交易和 5 个活跃商户，商户元数据包含 30 行；1,000 条费率规则中同时使用 `null` 和空列表表达通配条件，并引用了 7 个 MCC 参考表中不存在的代码。完整结论见 [DABStep 数据审计](evals/dabstep/AUDIT.md)。
 
 第一阶段固定 8 个原始任务：dev 使用 ID 2、84，holdout 使用 ID 0、3、20、41、47、85。只允许用 dev 调整 prompt、工具和工作流；holdout 用于里程碑验收。任务原文和 checklist 保持不变，附加字段只记录 split、可回答性、限制和必须核验的参考查询。
 
@@ -49,6 +50,18 @@ M0.1 稳定性修复现已实现并完成首轮复测。5 个 Web 样本的 Clar
 ```
 
 默认生成本地 SQLite 数据库，不需要启动基础设施；也可以通过 `DABSTEP_DATABASE_URL` 使用 MySQL SQLAlchemy URL。导入器创建交易、商户、收单机构、MCC、费率规则及其规范化关联表。6 组只读参考查询覆盖数据规模、缺失值、商户汇总、卡组织、境内/跨境路由和表行数。`reference_results.json` 仅供离线 evaluator 使用，不应暴露给研究 Agent。原始数据与工作数据库均被 Git 忽略。
+
+M1.1 Fee Rule Engine 已实现为不依赖 LLM 的确定性内核，使用 Decimal 执行逐交易公式，按自然月计算商户交易额和欺诈金额比例，并为每个费用组件返回规则 ID、匹配条件、通配条件和 `fees.json#ID=<id>` 定位。结果状态为 `MATCHED`、`NO_MATCH`、`AMBIGUOUS_SEMANTICS`、`INVALID_SOURCE_DATA` 或 `UNSUPPORTED_RULE`，调用方可以区分真实零费用、未覆盖数据和规则语义风险。
+
+在当前固定数据版本上，引擎对 138,236 笔交易全部给出状态：81,772 笔匹配至少一条规则，已匹配覆盖范围的费用合计为 €95,213.255747；56,464 笔明确标记为 `NO_MATCH`，不会被静默伪装成已验证的零费用。
+
+交叉验证包括 6 个 Adyen DABstep 公开 dev 硬检查和 500 个由独立 SQLite 查询重新匹配的多样化交易样本，规则 ID 与费用金额均无差异。公开 task 2697 的官方答案无法按手册逐交易公式复现，且上游讨论区已有同类质疑，因此被记录为已知上游真值争议，不计入硬检查。`fee_reference_results.json` 只供 evaluator 使用。
+
+如果数据已经下载，可以单独复验费率引擎和已提交的参考结果：
+
+```powershell
+.\.venv\Scripts\python.exe -m evals.dabstep.validate_fee_engine --no-download
+```
 
 上游 `DABStep-Research` 仓库当前没有声明许可证。相关原始数据只按锁文件下载到本地，在许可证澄清前不应随本项目重新分发。详细命令和 MySQL 配置见 [DABStep baseline README](evals/dabstep/README.md)。
 
@@ -123,6 +136,7 @@ deepsearch-agents/
 │   ├── memory/             # 长期记忆、会话摘要和 LangGraph checkpoint
 │   ├── prompt/             # 智能体提示词配置
 │   ├── rag/                # 文档解析、索引、检索、存储、模型和 Celery 任务
+│   ├── research/           # 确定性研究内核，当前包含 Fee Rule Engine
 │   ├── search/             # 多搜索后端、降级、聚合和正文抓取
 │   ├── tools/              # 搜索、数据库、RAG、附件、记忆和报告工具
 │   └── utils/              # 路径及文档转换工具
@@ -262,8 +276,8 @@ uv run uvicorn app.api.server:app --host 0.0.0.0 --port 8000 --reload
 运行后端质量检查和测试：
 
 ```bash
-uv run ruff check app evals tests
-uv run ruff format --check app evals tests
+uv run ruff check app tests
+uv run ruff format --check app tests
 uv run pytest
 ```
 
@@ -355,7 +369,7 @@ pnpm build
 - 文件安全扫描、内容审核和敏感数据治理仍需外部补齐。
 - 长任务并发、队列治理、可观测性和告警仍偏向本地开发形态。
 - 记忆抽取依赖模型判断，重要生产场景应增加人工确认、评测和回滚机制。
-- DABStep 当前参考结果只覆盖可确定的源数据事实；手续费规则引擎完成独立交叉验证前，精确费用和节省额只能作为带假设的分析结果。
+- DABStep 当前手续费已具备确定性规则匹配和独立交叉验证，但 `NO_MATCH` 交易必须单独披露；未来转化率、因果结论和反事实节省额仍只能作为带假设的分析结果。
 
 用于公开网络或生产环境前，请补充正式身份认证、授权策略、限流、数据隔离、密钥管理、监控告警、安全审计和质量回归流程。
 
@@ -376,6 +390,7 @@ DeepSearch Agents is a conversational multi-agent deep research system built on 
 - Real-time task status: streams tool calls, sub-agent execution, final results, errors, and cancellation events through WebSocket.
 - Research phase tracing: each phase start, completion, and summary is written to the WebSocket trace and audit log so the brief, evidence ledger, compressed evidence, and final report can be reviewed together.
 - Reproducible data evaluation: pins the DABStep-Research revision, source hashes, task subset, and SQL reference results for incremental validation of database analysis, evidence grounding, and report generation.
+- Deterministic fee engine: evaluates DABStep transaction-level fee rules with Decimal arithmetic and natural-month metrics, returning explicit statuses, rule provenance, and uncertainty without an LLM dependency.
 - Web workspace: the frontend provides chat, a task event stream, attachment uploads, knowledge-base management, a long-term memory drawer, a history sidebar, and result downloads.
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
@@ -393,7 +408,7 @@ The rerun also exposed three follow-up issues. The `convert_md_to_pdf` tool name
 
 The project now includes its first structured-data research baseline. It pins `RUC-DataLab/DABStep-Research` at revision `62ae9e0de555a8fb1fd5ab334e0546dbf27aa10c`. `evals/dabstep/dataset.lock.json` records the byte size and SHA-256 digest of all eight source files, and the downloader verifies every file before it is used so upstream changes cannot silently alter evaluation results.
 
-The audit found 100 tasks distributed evenly across five categories, but all 20 Open tasks have empty checklists. The transaction table contains 138,236 payments from 5 active merchants, while merchant metadata contains 30 rows. The 1,000 fee rules use both `null` and empty lists as wildcard-like conditions and reference 7 MCC values missing from the MCC lookup table. Because the snapshot has no realized-fee column, authoritative worked fee example, processing-latency telemetry, or complete conversion funnel, exact fees, counterfactual savings, and causal claims are not yet treated as hard ground truth. See the [DABStep data audit](evals/dabstep/AUDIT.md) for the complete findings.
+The audit found 100 tasks distributed evenly across five categories, but all 20 Open tasks have empty checklists. The transaction table contains 138,236 payments from 5 active merchants, while merchant metadata contains 30 rows. The 1,000 fee rules use both `null` and empty lists as wildcard-like conditions and reference 7 MCC values missing from the MCC lookup table. See the [DABStep data audit](evals/dabstep/AUDIT.md) for the complete findings.
 
 The first phase freezes eight original tasks. IDs 2 and 84 form the development split; IDs 0, 3, 20, 41, 47, and 85 form the holdout split. Prompts, tools, and workflows may be tuned only on the development tasks. Holdout tasks are reserved for milestone acceptance. Original questions and checklists remain unchanged; added metadata records the split, answerability level, known limitations, and required reference checks.
 
@@ -404,6 +419,18 @@ One command downloads the pinned snapshot, verifies its hashes, regenerates the 
 ```
 
 The default target is a local SQLite database and requires no infrastructure services. A MySQL SQLAlchemy URL can be supplied through `DABSTEP_DATABASE_URL`. The importer creates transaction, merchant, acquirer, MCC, fee-rule, and normalized fee-condition tables. Six read-only query groups verify dataset size, missing values, merchant summaries, card schemes, domestic/cross-border routing, and imported table counts. `reference_results.json` is evaluator-only data and must not be exposed to the research agent. Raw data and working databases are ignored by Git.
+
+M1.1 adds a deterministic Fee Rule Engine with no LLM dependency. It uses Decimal arithmetic, derives merchant volume and fraudulent-volume ratios by natural month, applies the documented per-transaction formula, and returns rule IDs, matched conditions, wildcard conditions, and `fees.json#ID=<id>` provenance for every fee component. Results use the explicit statuses `MATCHED`, `NO_MATCH`, `AMBIGUOUS_SEMANTICS`, `INVALID_SOURCE_DATA`, and `UNSUPPORTED_RULE`, allowing callers to distinguish genuine zero fees, uncovered data, and rule-semantics risks.
+
+On the current pinned snapshot, all 138,236 transactions receive a status: 81,772 match at least one rule, with €95,213.255747 in fees across that matched coverage, while 56,464 are marked `NO_MATCH` instead of being silently represented as verified zero-fee transactions.
+
+Validation covers six hard checks from the public Adyen DABstep dev split plus 500 diverse transactions independently re-matched in SQLite; rule IDs and fee amounts have zero mismatches. Public task 2697 cannot be reproduced from the documented per-transaction formula and has an existing upstream challenge, so it is recorded as a known upstream ground-truth inconsistency and excluded from hard validation. `fee_reference_results.json` remains evaluator-only.
+
+When the datasets have already been downloaded, the fee engine and committed reference result can be revalidated independently:
+
+```powershell
+.\.venv\Scripts\python.exe -m evals.dabstep.validate_fee_engine --no-download
+```
 
 The upstream `DABStep-Research` repository currently declares no license. Raw files are downloaded locally from the locked revision and must not be redistributed with this project until the licensing status is clarified. See the [DABStep baseline README](evals/dabstep/README.md) for individual commands and MySQL configuration.
 
@@ -478,6 +505,7 @@ deepsearch-agents/
 │   ├── memory/             # Long-term memory, conversation summaries, and LangGraph checkpoints
 │   ├── prompt/             # Agent prompt configuration
 │   ├── rag/                # Document parsing, indexing, retrieval, storage, models, and Celery tasks
+│   ├── research/           # Deterministic research core, currently including the Fee Rule Engine
 │   ├── search/             # Search backends, fallback, aggregation, and page-content extraction
 │   ├── tools/              # Search, database, RAG, attachment, memory, and report tools
 │   └── utils/              # Path and document conversion utilities
@@ -643,8 +671,8 @@ uv run uvicorn app.api.server:app --host 0.0.0.0 --port 8000 --reload
 Run backend quality checks and tests:
 
 ```bash
-uv run ruff check app evals tests
-uv run ruff format --check app evals tests
+uv run ruff check app tests
+uv run ruff format --check app tests
 uv run pytest
 ```
 
@@ -736,6 +764,6 @@ The project already includes a basic user system, conversation isolation, and ma
 - File security scanning, content moderation, and sensitive-data governance still need external support.
 - Long-task concurrency, queue governance, observability, and alerting are still oriented toward local development.
 - Memory extraction depends on model judgment. Important production scenarios should add human confirmation, evaluation, and rollback mechanisms.
-- Current DABStep references cover deterministic source-data facts only. Exact fee totals and savings remain assumption-bound until the fee-rule engine is independently cross-validated.
+- DABStep fee matching is now deterministic and independently cross-validated, but `NO_MATCH` transactions must remain visible. Conversion effects, causal conclusions, and counterfactual savings are still assumption-bound.
 
 Before exposing the system publicly or using it in production, add formal authentication, authorization policies, rate limiting, data isolation, secret management, monitoring and alerts, security auditing, and quality regression workflows.

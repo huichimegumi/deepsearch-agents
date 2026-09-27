@@ -21,6 +21,11 @@ def test_dataset_lock_is_immutable_and_complete():
     assert all(re.fullmatch(r"[0-9a-f]{64}", item["sha256"]) for item in lock["files"])
     assert lock["license"]["status"] == "not_declared_in_repository"
 
+    adyen_lock = _load(DABSTEP / "adyen_dev.lock.json")
+    assert re.fullmatch(r"[0-9a-f]{40}", adyen_lock["revision"])
+    assert re.fullmatch(r"[0-9a-f]{64}", adyen_lock["sha256"])
+    assert adyen_lock["license"] == "cc-by-4.0"
+
 
 def test_selected_task_subset_has_frozen_splits_and_original_ids():
     rows = [
@@ -51,3 +56,16 @@ def test_audit_snapshot_records_known_answerability_gaps():
     assert audit["cross_source"]["transaction_merchants"] == 5
     assert audit["fee_rules"]["rows"] == 1000
     assert audit["answerability_gaps"]
+
+
+def test_fee_reference_covers_every_transaction_and_independent_checks_pass():
+    reference = _load(DABSTEP / "fee_reference_results.json")
+    coverage = reference["coverage"]
+    assert coverage["transaction_count"] == 138236
+    assert sum(coverage["status_counts"].values()) == coverage["transaction_count"]
+    assert coverage["all_transactions_have_status"]
+    assert reference["public_dev_validation"]["passed"]
+    assert reference["public_dev_validation"]["hard_check_count"] == 6
+    assert reference["public_dev_validation"]["known_upstream_inconsistency_count"] == 1
+    assert reference["sql_cross_validation"]["status"] == "PASSED"
+    assert reference["sql_cross_validation"]["sample_count"] == 500

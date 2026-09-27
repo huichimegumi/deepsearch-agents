@@ -6,8 +6,12 @@ from pathlib import Path
 
 from evals.dabstep.audit_dataset import audit, render_markdown
 from evals.dabstep.common import HERE, default_data_dir
+from evals.dabstep.download_adyen_dev import DEFAULT_PATH as ADYEN_DEV_PATH
+from evals.dabstep.download_adyen_dev import download as download_adyen_dev
 from evals.dabstep.download_dataset import download
 from evals.dabstep.import_sql import import_database
+from evals.dabstep.validate_fee_engine import REFERENCE_PATH as FEE_REFERENCE_PATH
+from evals.dabstep.validate_fee_engine import build_reference as build_fee_reference
 from evals.dabstep.verify_reference import EXPECTED_PATH, collect
 
 
@@ -20,6 +24,7 @@ def main() -> int:
 
     if not args.skip_download:
         download(args.data_dir)
+        download_adyen_dev(ADYEN_DEV_PATH)
 
     result, selected = audit(args.data_dir)
     (HERE / "audit_snapshot.json").write_text(
@@ -37,6 +42,13 @@ def main() -> int:
     import_database(args.data_dir, args.database_url)
     if collect(args.database_url) != json.loads(EXPECTED_PATH.read_text(encoding="utf-8")):
         raise RuntimeError("SQL import does not match the committed reference results")
+    fee_reference = build_fee_reference(
+        args.data_dir,
+        ADYEN_DEV_PATH,
+        database_url=args.database_url,
+    )
+    if fee_reference != json.loads(FEE_REFERENCE_PATH.read_text(encoding="utf-8")):
+        raise RuntimeError("fee engine does not match the committed fee reference results")
     print("DABStep baseline is prepared and verified")
     return 0
 

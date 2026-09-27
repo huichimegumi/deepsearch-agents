@@ -152,8 +152,8 @@ def audit(data_dir: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
             "formula_documented": "fixed_amount + rate * transaction_value / 10000",
         },
         "answerability_gaps": [
-            "No realized fee column or authoritative worked example exists in this snapshot.",
-            "The manual documents null as wildcard, while fees.json also uses empty lists as apparent wildcards.",
+            "No realized fee column exists in the Research snapshot; fee totals are derived by the independently validated deterministic engine.",
+            "Empty-list wildcard semantics are externally confirmed by Adyen public dev answers and discussion #2.",
             "Transactions contain acquirer country codes but not acquirer names, so merchant-to-acquirer usage cannot be reconstructed.",
             "No processing latency or system-performance telemetry exists.",
             "Refusal is available as an authorization proxy; a full conversion funnel is not.",
@@ -184,7 +184,7 @@ def render_markdown(result: dict[str, Any]) -> str:
 - 第一阶段固定 8 个任务：dev 2 个、holdout 6 个，覆盖 Data Preparation、Data Analysis、Data Insight、Report Generation。
 - `payments.csv` 有 {payments["rows"]:,} 行、{payments["columns"]} 列，`psp_reference` 全部唯一，无重复整行，日期范围为 {payments["date_min"]} 至 {payments["date_max"]}。
 - 交易表只有 {cross["transaction_merchants"]} 个活跃商户；商户元数据有 {cross["merchant_metadata_rows"]} 行，其中 {cross["unused_merchant_metadata_rows"]} 行未出现在交易中。活跃交易均能关联商户元数据，活跃商户 MCC 均在参考表中。
-- `fees.json` 有 {fees["rows"]} 条唯一规则。手册只明确说明 `null` 是通配符，但规则中还存在空列表；手续费精确总额必须等独立规则引擎核验后才作为硬指标。
+- `fees.json` 有 {fees["rows"]} 条唯一规则。M1.1 Fee Rule Engine 已将 `null` 和空列表通配、自然月交易额与欺诈率、区间条件和逐交易公式实现为 Decimal 确定性计算；6 个 Adyen 公开 dev 硬检查及 500 个跨 SQL 样本全部通过。
 - 费率规则引用了 {len(fees["fee_mccs_missing_from_reference"])} 个 MCC 参考表中不存在的代码（{missing_fee_mccs}）；当前 5 个活跃商户不受此问题影响，但规则库并非完全自洽。
 - `acquirer_countries.csv` 是“收单机构名称 → 国家”的映射，而交易表只有国家代码；无法从当前快照还原每笔交易实际使用了哪个收单机构。
 - 上游仓库未声明许可证。锁文件只用于可复现下载，原始数据保持 Git 忽略，在许可证澄清前不随项目再分发。
@@ -220,8 +220,8 @@ def render_markdown(result: dict[str, Any]) -> str:
 
 - 只用 dev 任务调 prompt、工具和工作流；holdout 只用于里程碑验收。
 - 原始问题、checklist、文件列表和 source ID 原样保留；新增字段只描述 split、可回答性和已知限制。
-- SQL 参考结果只覆盖可确定事实。涉及手续费匹配、因果判断和反事实节省额时，报告必须标注假设及证据边界。
-- Agent 运行时只能读取源数据和任务；`reference_results.json` 只供离线 evaluator 使用。
+- SQL 和 Fee Engine 参考结果覆盖可确定事实及当前手续费；涉及因果判断、未来转化率和反事实节省额时，报告仍必须标注假设及证据边界。
+- Agent 运行时只能读取源数据和任务；`reference_results.json` 和 `fee_reference_results.json` 只供离线 evaluator 使用。
 """
 
 

@@ -81,7 +81,7 @@
         "source_id": 3,
         "split": "holdout",
         "type": "Data Preparation",
-        "answerability": "partially_conditional"
+        "answerability": "directly_grounded"
       },
       {
         "source_id": 20,
@@ -202,8 +202,8 @@
     "formula_documented": "fixed_amount + rate * transaction_value / 10000"
   },
   "answerability_gaps": [
-    "No realized fee column or authoritative worked example exists in this snapshot.",
-    "The manual documents null as wildcard, while fees.json also uses empty lists as apparent wildcards.",
+    "No realized fee column exists in the Research snapshot; fee totals are derived by the independently validated deterministic engine.",
+    "Empty-list wildcard semantics are externally confirmed by Adyen public dev answers and discussion #2.",
     "Transactions contain acquirer country codes but not acquirer names, so merchant-to-acquirer usage cannot be reconstructed.",
     "No processing latency or system-performance telemetry exists.",
     "Refusal is available as an authorization proxy; a full conversion funnel is not.",
