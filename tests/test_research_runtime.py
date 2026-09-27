@@ -119,6 +119,17 @@ def test_degraded_phase_is_not_reported_as_normal_completion():
     assert payload["phases"][0]["artifact_status"] == "missing"
 
 
+def test_trace_records_unique_evidence_ids_by_source():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    record = SimpleNamespace(evidence_id="ev1_sql_abc", source="sql")
+
+    trace.record_evidence((record, record))
+    payload = trace.finalize(status="completed", final_result="[ev1_sql_abc]")
+
+    assert payload["metrics"]["evidence_records"] == 1
+    assert payload["metrics"]["evidence_by_source"] == {"sql": 1}
+
+
 def test_trace_preserves_all_unique_failure_reasons():
     budget = make_budget()
     trace = ResearchRunTrace("run-1", "thread-1", "test", budget)

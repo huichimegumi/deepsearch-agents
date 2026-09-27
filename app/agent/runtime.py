@@ -148,6 +148,8 @@ class ResearchRunTrace:
     duplicate_queries: int = 0
     duplicate_sources: int = 0
     queries_with_zero_new_sources: int = 0
+    evidence_ids: list[str] = field(default_factory=list)
+    evidence_by_source: Counter[str] = field(default_factory=Counter)
 
     def start_phase(self, phase_key: str, title: str) -> None:
         self.phases.append(
@@ -255,6 +257,16 @@ class ResearchRunTrace:
             1 for count in new_sources_by_query.values() if count == 0
         )
 
+    def record_evidence(self, records: list[Any] | tuple[Any, ...]) -> None:
+        """Record stable evidence identities without copying source content into the trace."""
+        for record in records:
+            evidence_id = str(getattr(record, "evidence_id", "") or "")
+            source = getattr(record, "source", "unknown")
+            source_value = str(getattr(source, "value", source))
+            if evidence_id and evidence_id not in self.evidence_ids:
+                self.evidence_ids.append(evidence_id)
+                self.evidence_by_source[source_value] += 1
+
     def finalize(
         self,
         *,
@@ -291,6 +303,8 @@ class ResearchRunTrace:
                 "search_queries": len(self.search_queries),
                 "search_candidates": self.search_candidates,
                 "fetched_pages": self.fetched_pages,
+                "evidence_records": len(self.evidence_ids),
+                "evidence_by_source": dict(self.evidence_by_source),
             },
             "waste": {
                 "duplicate_queries": self.duplicate_queries,
@@ -298,7 +312,7 @@ class ResearchRunTrace:
                 "queries_with_zero_new_sources": self.queries_with_zero_new_sources,
                 "fetched_but_unused_sources": len(unused_fetched),
                 "evidence_never_used_in_claims": None,
-                "note": "Evidence-level waste becomes available after the M2 evidence schema.",
+                "note": "M1.2 records collected evidence IDs; claim-level usage requires the M2 claim schema.",
             },
         }
 

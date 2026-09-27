@@ -49,11 +49,11 @@ RESEARCH_PHASES = (
 必须执行：
 1. 按 brief 调用合适的子智能体或文件读取工具获取证据
 2. 复杂问题至少覆盖 2 个互补角度；若证据不足，进行 1 次有针对性的追问/补检索
-3. 对关键结论记录来源、URL/文件名/页码/SQL 结果等可追溯信息
+3. SQL、本地文档和 Fee Engine 证据必须通过 collect_evidence 获取；每条关键结论绑定工具返回的稳定 evidence_id，不得改写或自造 ID
 4. 明确列出证据缺口、冲突和可信度限制
 
 必须输出：
-- Evidence Ledger：按“结论候选 / 证据 / 来源 / 可信度 / 缺口”整理
+- Evidence Ledger：按“结论候选 / evidence_id / 证据 / 来源定位符 / 可信度 / 缺口”整理
 - Reflection：还缺什么、是否需要补检索、为什么可以停止
 
 禁止：
@@ -70,15 +70,15 @@ RESEARCH_PHASES = (
 目标：把 researcher 返回的大量材料压缩成最终报告可直接引用的证据包。
 
 必须输出：
-1. 核心结论列表：每条结论都绑定证据和来源
-2. 引用清单：保留 URL、文件名、页码、表名或 SQL 摘要等来源标识
+1. 核心结论列表：每条结论都绑定 evidence_id 和来源
+2. 引用清单：完整保留 evidence_id，以及 URL、文件名、页码、表名、SQL 摘要或费用规则定位符
 3. 冲突信息：不同来源不一致时保留分歧，不要强行抹平
 4. 不确定性与边界：哪些结论只能作为推断，哪些数据缺失
 5. 最终报告结构建议
 
 禁止：
 - 禁止调用 generate_markdown 或 convert_md_to_pdf
-- 禁止丢弃来源信息
+- 禁止丢弃或改写 evidence_id 和来源信息
 """.strip(),
     ),
     ResearchPhase(
@@ -90,7 +90,7 @@ RESEARCH_PHASES = (
 
 必须执行：
 1. 先回答用户最关心的结论，再展开依据
-2. 所有关键信息尽量带来源；无法确认的内容明确标注不确定性
+2. 所有关键信息尽量引用 `[evidence_id]`；无法确认的内容明确标注不确定性
 3. 始终返回完整的 Markdown 正文，不要调用工具，不要只回复文件名或完成说明
 4. 若用户要求 Markdown/PDF 文件，后端会保存并校验正文；正文不得包含“等待子任务完成”等占位内容
 
@@ -168,7 +168,8 @@ def build_degraded_phase_output(
             f"The final report phase could not complete normally: {reason}.",
             "",
             "Available phase artifacts:",
-            format_previous_phase_outputs(phase_outputs) or "No completed phase artifacts were captured.",
+            format_previous_phase_outputs(phase_outputs)
+            or "No completed phase artifacts were captured.",
             "",
             "Because the workflow did not finish, treat this as a partial result and verify any "
             "high-stakes conclusions before using them.",
@@ -219,7 +220,9 @@ def build_phase_prompt(
         for part in (
             f"【用户原始问题】\n{task_query}",
             previous,
-            runtime_instructions if phase.requires_tools or phase.key == "clarify_and_brief" else "",
+            runtime_instructions
+            if phase.requires_tools or phase.key == "clarify_and_brief"
+            else "",
             tool_boundary,
             phase.instruction,
         )

@@ -1,7 +1,7 @@
 """
 主智能体组装与异步执行模块
 
-负责把模型、主提示词、文件类工具和三个专家子智能体组装成 DeepAgent，
+负责把模型、主提示词、统一证据工具、文件工具和网络研究子智能体组装成 DeepAgent，
 并提供 run_deep_agent 作为后续 API 层调用的统一入口。运行时还会为每个
 session_id 创建独立工作目录，并把工具调用、子智能体调用和最终结果推送给前端。
 """
@@ -30,8 +30,6 @@ from app.agent.runtime import (
     reset_research_runtime,
     set_research_runtime,
 )
-from app.agent.subagents.database_query_agent import database_query_agent
-from app.agent.subagents.knowledge_base_agent import knowledge_base_agent
 from app.agent.subagents.network_search_agent import network_search_agent
 from app.api.audit import write_audit_event
 from app.api.context import (
@@ -46,6 +44,7 @@ from app.api.monitor import monitor
 from app.config import AgentExecutionBudget, get_settings
 from app.memory.checkpoint import get_short_term_checkpointer
 from app.memory.service import format_memories_for_prompt, search_memories
+from app.tools.evidence_tool import collect_evidence
 
 # 文件类工具由主智能体直接掌握，负责读取上传附件和生成最终交付文档
 from app.tools.markdown_tools import write_markdown_artifact
@@ -66,13 +65,19 @@ def get_research_agent():
     return create_deep_agent(
         model=get_model(),
         system_prompt=main_agent_content["system_prompt"],
-        tools=[
-            read_file_content,
-            remember_user_memory,
-            search_user_memory,
-        ],
+        tools=list(_research_tools()),
         checkpointer=get_short_term_checkpointer(),
-        subagents=[database_query_agent, network_search_agent, knowledge_base_agent],
+        subagents=[network_search_agent],
+    )
+
+
+def _research_tools():
+    """Return the bounded direct tools available during the research phase."""
+    return (
+        collect_evidence,
+        read_file_content,
+        remember_user_memory,
+        search_user_memory,
     )
 
 
@@ -140,7 +145,8 @@ class CompressedEvidence(BaseModel):
             ("Recommended report outline", self.report_outline),
         ]
         return "# Compressed Evidence Package\n\n" + "\n\n".join(
-            f"## {title}\n" + ("\n".join(f"- {item}" for item in items if item) or "- None recorded")
+            f"## {title}\n"
+            + ("\n".join(f"- {item}" for item in items if item) or "- None recorded")
             for title, items in sections
         )
 
@@ -220,7 +226,9 @@ async def _run_direct_phase(
                 raise ValueError(f"structured_output_error: {parsing_error!r}")
             result_text = parsed.to_markdown()
         else:
-            response = await asyncio.wait_for(model.ainvoke(messages), timeout=budget.timeout_seconds)
+            response = await asyncio.wait_for(
+                model.ainvoke(messages), timeout=budget.timeout_seconds
+            )
             run_trace.record_llm_call(phase.key, response)
             llm_recorded = True
             result_text = _message_text(response)
@@ -408,10 +416,7 @@ def _max_subagent_calls_for_profile(budget_profile: str) -> int:
 
 def _configured_research_subagent_names() -> frozenset[str]:
     """Return the only subagent types the research supervisor may dispatch."""
-    return frozenset(
-        agent["name"]
-        for agent in (database_query_agent, network_search_agent, knowledge_base_agent)
-    )
+    return frozenset(agent["name"] for agent in (network_search_agent,))
 
 
 async def _run_agent_phase(
@@ -776,15 +781,17 @@ async def run_deep_agent(
         source_routing_instruction = """
 
     【信息源路由指令】
-    用户正在询问具体白皮书、研报、报告、PDF 或文档中的内容。第一步必须调用“本地知识库助手”检索本地已索引文档；
-    只有当本地知识库助手明确返回没有可用知识库、没有命中或证据不足时，才可以调用“网络搜索助手”补充公开信息。
+    用户正在询问具体白皮书、研报、报告、PDF 或文档中的内容。第一步必须调用 collect_evidence，
+    使用 source=local_document 检索本地已索引文档；只有工具明确返回 NO_EVIDENCE、ERROR 或证据不足时，
+    才可以调用“网络搜索助手”补充公开信息。
     """
     if _requires_local_knowledge_base_only(task_query):
         source_routing_instruction += """
 
     【本地知识库限定】
-    用户明确要求只使用本地知识库助手。本轮任务禁止调用“网络搜索助手”和任何互联网搜索工具；
-    如果本地知识库助手没有找到答案或执行失败，必须直接说明本地知识库结果不足或失败原因，不得改用网络搜索补充。
+    用户明确要求只使用本地知识库。本轮任务禁止调用“网络搜索助手”和任何互联网搜索工具；
+    只能调用 collect_evidence 的 source=local_document；如果没有找到答案或执行失败，必须直接说明
+    本地知识库结果不足或失败原因，不得改用网络搜索补充。
     """
 
     memory_instruction = ""

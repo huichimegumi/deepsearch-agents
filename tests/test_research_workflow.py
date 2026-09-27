@@ -102,6 +102,8 @@ def test_supervisor_phase_prompt_declares_research_boundary():
 
     assert "RESEARCH PHASE BOUNDARY" in prompt
     assert "only phase where researcher subagents" in prompt
+    assert "collect_evidence" in prompt
+    assert "evidence_id" in prompt
 
 
 def test_degraded_phase_output_preserves_next_phase_context():

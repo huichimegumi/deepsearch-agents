@@ -21,6 +21,8 @@ class RetrievedChunk:
     page_end: int | None
     section: str | None
     score: float
+    document_sha256: str | None = None
+    chunk_index: int | None = None
 
     @property
     def citation(self) -> str:
@@ -114,6 +116,8 @@ def _rank_candidates(
             page_end=chunk.page_end,
             section=chunk.section,
             score=float(score),
+            document_sha256=getattr(document, "sha256", None),
+            chunk_index=getattr(chunk, "chunk_index", None),
         )
         for ((chunk, document), score) in ranked
     ]

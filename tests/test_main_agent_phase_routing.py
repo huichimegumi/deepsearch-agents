@@ -1,6 +1,10 @@
 """Tests for backend-enforced phase capability routing."""
 
-from app.agent.main_agent import _max_subagent_calls_for_profile, _phase_agent_for
+from app.agent.main_agent import (
+    _max_subagent_calls_for_profile,
+    _phase_agent_for,
+    _research_tools,
+)
 from app.agent.research_workflow import RESEARCH_PHASES
 
 
@@ -30,3 +34,6 @@ def test_subagent_call_limits_scale_by_budget_profile():
     assert _max_subagent_calls_for_profile("standard") == 4
     assert _max_subagent_calls_for_profile("deep_report") == 8
 
+
+def test_research_phase_exposes_unified_evidence_tool():
+    assert "collect_evidence" in {item.name for item in _research_tools()}

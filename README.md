@@ -22,6 +22,7 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 - 研究阶段追踪：每个阶段的开始、完成和摘要会写入 WebSocket trace 与审计日志，便于复盘 brief、证据账本、压缩证据和最终报告之间的关系。
 - 可复现数据评测：固定 DABStep-Research 数据版本、文件哈希、任务子集和 SQL 参考结果，用于逐步验证数据库分析、证据引用与报告生成质量。
 - 确定性费率引擎：用 Decimal 执行 DABStep 逐交易费用规则，计算自然月维度指标，并显式返回匹配状态、规则来源和不确定性，不依赖 LLM。
+- 统一证据工具：Fee Engine、只读 SQL 和本地文档检索统一返回带稳定 `evidence_id` 的结构化证据，研究、压缩和写作阶段沿用同一引用键。
 - Web 工作台：前端提供聊天、任务事件流、附件上传、知识库管理、长期记忆抽屉、历史会话侧栏和结果下载。
 - 审计日志：任务开始、结果、取消、异常等事件会按会话写入 `app/logs/session_*.jsonl`，便于排查执行过程。
 
@@ -63,6 +64,39 @@ M1.1 Fee Rule Engine 已实现为不依赖 LLM 的确定性内核，使用 Decim
 .\.venv\Scripts\python.exe -m evals.dabstep.validate_fee_engine --no-download
 ```
 
+M1.2 已把 Fee Engine、MySQL 和本地知识库检索统一到 `collect_evidence`。工具返回 schema v1 的 `EvidenceBatch`，每条 `EvidenceRecord` 都包含 `evidence_id`、`source`、`locator`、`content` 和 `metadata`。ID 由规范化来源身份和内容摘要生成，不依赖运行时间、检索排名或模型输出：相同 SQL 行、相同文档分块或相同费用计算在重复执行时保持同一 ID；来源内容变化则生成新 ID。
+
+三个来源分别使用不同的可追溯定位方式：SQL 记录绑定数据库身份、规范化查询摘要和行内容摘要；本地文档绑定文档 SHA-256 与 chunk index；费用证据绑定数据集指纹、`psp_reference` 和 `fees.json#ID=<id>` 规则 provenance。SQL 仅允许只读语句，在只读事务内执行并受行数预算限制；本地文档直接返回检索片段，不再先经过一次问答模型改写。
+
+| `source` | 必填输入 | 稳定定位依据 | 主要边界 |
+| --- | --- | --- | --- |
+| `fee_engine` | `psp_reference`；可选 `aci` | 数据集指纹、交易号、命中规则 ID | 只处理已加载固定数据中的交易；`NO_MATCH` 仍作为可追溯证据返回 |
+| `sql` | 只读 `query`，或 `operation=list_tables` | 数据库身份、规范化 SQL 摘要、行内容摘要 | 禁止写语句和多语句；结果受 `DB_QUERY_PREVIEW_ROWS` 限制 |
+| `local_document` | `query`；可选 `knowledge_base` | 文档 SHA-256、chunk index、内容摘要 | 依赖已完成索引的本地知识库；结果可能因上下文预算标记为 `PARTIAL` |
+
+应用代码也可以直接调用同一工具：
+
+```python
+import json
+
+from app.tools.evidence_tool import collect_evidence
+
+payload = json.loads(
+    collect_evidence.invoke(
+        {
+            "source": "fee_engine",
+            "psp_reference": "20034594130",
+        }
+    )
+)
+for record in payload["records"]:
+    print(record["evidence_id"], record["locator"])
+```
+
+返回批次状态为 `OK`、`NO_EVIDENCE`、`PARTIAL` 或 `ERROR`。错误和截断通过 `warnings` 显式返回，不会生成伪造的证据记录。当前全量测试为 107 项；真实固定 DABStep 数据上的重复 Fee Evidence 调用已验证会产生相同 `evidence_id`。MySQL 和 PostgreSQL/Qdrant 在线链路仍需要在启动相应基础设施后做环境级冒烟测试。
+
+最小研究工作流现在要求 Supervisor 只通过 `collect_evidence` 获取这三类内部证据，并在 Evidence Ledger 中原样保留 `evidence_id`。证据压缩和最终报告继续引用 `[evidence_id]`，从而可以从报告追溯到具体 SQL 行、文档片段或费用计算。网络检索仍由独立助手负责，尚未纳入 M1.2 的统一内部证据 schema。Fee 来源默认自动发现唯一的固定 DABStep 快照；存在零个或多个快照时，应通过 `DABSTEP_DATA_DIR` 明确指定目录。
+
 上游 `DABStep-Research` 仓库当前没有声明许可证。相关原始数据只按锁文件下载到本地，在许可证澄清前不应随本项目重新分发。详细命令和 MySQL 配置见 [DABStep baseline README](evals/dabstep/README.md)。
 
 ### 系统架构
@@ -74,9 +108,10 @@ M1.1 Fee Rule Engine 已实现为不依赖 LLM 的确定性内核，使用 Decim
   -> FastAPI 鉴权并创建 thread_id
   -> 注入历史会话摘要、最近消息和长期记忆
   -> 阶段 1：澄清问题并生成 research brief
-  -> 阶段 2：Supervisor 分派网络搜索 / MySQL / 本地知识库 / 上传附件 / 记忆工具
+  -> 阶段 2：Supervisor 直接调用 Evidence Tool 获取 Fee / SQL / 本地文档证据
+  -> 阶段 2：外部公开信息按需分派给网络搜索助手，并读取上传附件 / 记忆
   -> 阶段 2：Researcher 根据证据缺口进行定向补检索和反思
-  -> 阶段 3：压缩证据，保留来源、冲突和不确定性
+  -> 阶段 3：压缩证据，原样保留 evidence_id、来源、冲突和不确定性
   -> LangGraph checkpoint 保存同一 thread 的短期执行上下文
   -> 阶段 4：模型返回 Markdown 正文，后端确定性写入并按需转换 PDF
   -> WebSocket 实时推送过程和结果
@@ -136,7 +171,7 @@ deepsearch-agents/
 │   ├── memory/             # 长期记忆、会话摘要和 LangGraph checkpoint
 │   ├── prompt/             # 智能体提示词配置
 │   ├── rag/                # 文档解析、索引、检索、存储、模型和 Celery 任务
-│   ├── research/           # 确定性研究内核，当前包含 Fee Rule Engine
+│   ├── research/           # 确定性研究内核：Fee Rule Engine、Evidence schema 与最小工作流
 │   ├── search/             # 多搜索后端、降级、聚合和正文抓取
 │   ├── tools/              # 搜索、数据库、RAG、附件、记忆和报告工具
 │   └── utils/              # 路径及文档转换工具
@@ -391,6 +426,7 @@ DeepSearch Agents is a conversational multi-agent deep research system built on 
 - Research phase tracing: each phase start, completion, and summary is written to the WebSocket trace and audit log so the brief, evidence ledger, compressed evidence, and final report can be reviewed together.
 - Reproducible data evaluation: pins the DABStep-Research revision, source hashes, task subset, and SQL reference results for incremental validation of database analysis, evidence grounding, and report generation.
 - Deterministic fee engine: evaluates DABStep transaction-level fee rules with Decimal arithmetic and natural-month metrics, returning explicit statuses, rule provenance, and uncertainty without an LLM dependency.
+- Unified evidence tool: normalizes Fee Engine, read-only SQL, and local-document retrieval into structured evidence with stable `evidence_id` values preserved across research, compression, and writing.
 - Web workspace: the frontend provides chat, a task event stream, attachment uploads, knowledge-base management, a long-term memory drawer, a history sidebar, and result downloads.
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
@@ -432,6 +468,39 @@ When the datasets have already been downloaded, the fee engine and committed ref
 .\.venv\Scripts\python.exe -m evals.dabstep.validate_fee_engine --no-download
 ```
 
+M1.2 unifies the Fee Engine, MySQL, and local knowledge-base retrieval behind `collect_evidence`. The tool returns a schema-v1 `EvidenceBatch`; every `EvidenceRecord` contains an `evidence_id`, `source`, `locator`, `content`, and `metadata`. IDs are derived from normalized source identity and a content digest, never from timestamps, retrieval rank, or model output. Re-running the same SQL row, document chunk, or fee calculation therefore preserves its ID, while a source-content change produces a new ID.
+
+Each source has an explicit locator model. SQL evidence binds the database identity, normalized-query digest, and row-content digest. Local-document evidence binds the document SHA-256 and chunk index. Fee evidence binds the dataset fingerprint, `psp_reference`, and `fees.json#ID=<id>` rule provenance. SQL accepts read-only statements only, executes inside a read-only transaction, and applies the configured row budget. Local-document retrieval returns source chunks directly instead of passing them through an additional answer-generation model.
+
+| `source` | Required input | Stable locator basis | Primary boundary |
+| --- | --- | --- | --- |
+| `fee_engine` | `psp_reference`; optional `aci` | Dataset fingerprint, transaction reference, matched rule IDs | Only evaluates transactions in the loaded pinned dataset; `NO_MATCH` remains explicit evidence |
+| `sql` | Read-only `query`, or `operation=list_tables` | Database identity, normalized SQL digest, row-content digest | Rejects writes and multiple statements; bounded by `DB_QUERY_PREVIEW_ROWS` |
+| `local_document` | `query`; optional `knowledge_base` | Document SHA-256, chunk index, content digest | Requires an indexed local knowledge base; context limits can produce `PARTIAL` results |
+
+Application code can call the same tool directly:
+
+```python
+import json
+
+from app.tools.evidence_tool import collect_evidence
+
+payload = json.loads(
+    collect_evidence.invoke(
+        {
+            "source": "fee_engine",
+            "psp_reference": "20034594130",
+        }
+    )
+)
+for record in payload["records"]:
+    print(record["evidence_id"], record["locator"])
+```
+
+Batch status is one of `OK`, `NO_EVIDENCE`, `PARTIAL`, or `ERROR`. Errors and truncation are exposed through `warnings`; the tool never manufactures evidence records to hide a failure. The current full suite contains 107 passing tests, and repeated Fee Evidence calls against the real pinned DABStep snapshot have been verified to return the same `evidence_id`. Live MySQL and PostgreSQL/Qdrant paths still require environment-level smoke testing after their services are started.
+
+The minimal research workflow now requires the supervisor to obtain these three internal evidence types only through `collect_evidence` and preserve every `evidence_id` in its Evidence Ledger. Compression and final writing continue to cite `[evidence_id]`, making report claims traceable to a SQL row, document chunk, or fee calculation. Web research remains a separate sub-agent and is outside the M1.2 internal-evidence schema. The fee source auto-discovers one pinned DABStep snapshot by default; set `DABSTEP_DATA_DIR` explicitly when zero or multiple snapshots are present.
+
 The upstream `DABStep-Research` repository currently declares no license. Raw files are downloaded locally from the locked revision and must not be redistributed with this project until the licensing status is clarified. See the [DABStep baseline README](evals/dabstep/README.md) for individual commands and MySQL configuration.
 
 ### Architecture
@@ -443,9 +512,10 @@ User login / frontend conversation
   -> FastAPI authenticates and creates thread_id
   -> Injects historical conversation summary, recent messages, and long-term memory
   -> Phase 1: clarifies the task and writes a research brief
-  -> Phase 2: supervisor dispatches web search / MySQL / local knowledge base / uploaded files / memory tools
+  -> Phase 2: supervisor calls the Evidence Tool directly for Fee / SQL / local-document evidence
+  -> Phase 2: external public research is delegated to the web researcher as needed; uploads and memory remain available
   -> Phase 2: researchers run targeted follow-up retrieval and reflection when evidence gaps remain
-  -> Phase 3: compresses evidence while preserving sources, conflicts, and uncertainty
+  -> Phase 3: compresses evidence while preserving evidence_id, sources, conflicts, and uncertainty
   -> LangGraph checkpoint stores short-term execution context for the same thread
   -> Phase 4: model returns Markdown; backend persists it and converts PDF when requested
   -> WebSocket streams progress and results in real time
@@ -505,7 +575,7 @@ deepsearch-agents/
 │   ├── memory/             # Long-term memory, conversation summaries, and LangGraph checkpoints
 │   ├── prompt/             # Agent prompt configuration
 │   ├── rag/                # Document parsing, indexing, retrieval, storage, models, and Celery tasks
-│   ├── research/           # Deterministic research core, currently including the Fee Rule Engine
+│   ├── research/           # Deterministic core: Fee Rule Engine, evidence schema, minimal workflow
 │   ├── search/             # Search backends, fallback, aggregation, and page-content extraction
 │   ├── tools/              # Search, database, RAG, attachment, memory, and report tools
 │   └── utils/              # Path and document conversion utilities
