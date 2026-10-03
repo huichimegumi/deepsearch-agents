@@ -150,6 +150,13 @@ class ResearchRunTrace:
     queries_with_zero_new_sources: int = 0
     evidence_ids: list[str] = field(default_factory=list)
     evidence_by_source: Counter[str] = field(default_factory=Counter)
+    claim_ids: list[str] = field(default_factory=list)
+    claim_evidence_ids: list[str] = field(default_factory=list)
+    claims_by_kind: Counter[str] = field(default_factory=Counter)
+    rejected_claims: int = 0
+    unknown_claim_evidence_ids: list[str] = field(default_factory=list)
+    report_cited_evidence_ids: list[str] = field(default_factory=list)
+    report_citation_valid: bool | None = None
 
     def start_phase(self, phase_key: str, title: str) -> None:
         self.phases.append(
@@ -267,6 +274,30 @@ class ResearchRunTrace:
                 self.evidence_ids.append(evidence_id)
                 self.evidence_by_source[source_value] += 1
 
+    def record_claim_validation(self, report: Any) -> None:
+        """Record backend-validated claim links without copying claim or evidence content."""
+        for claim in getattr(report, "accepted", ()):
+            claim_id = str(getattr(claim, "claim_id", "") or "")
+            kind = getattr(claim, "kind", "unknown")
+            kind_value = str(getattr(kind, "value", kind))
+            if claim_id and claim_id not in self.claim_ids:
+                self.claim_ids.append(claim_id)
+                self.claims_by_kind[kind_value] += 1
+            for evidence_id in getattr(claim, "evidence_ids", ()):
+                if evidence_id not in self.claim_evidence_ids:
+                    self.claim_evidence_ids.append(evidence_id)
+
+        self.rejected_claims += len(getattr(report, "rejected", ()))
+        for evidence_id in getattr(report, "unknown_evidence_ids", ()):
+            if evidence_id not in self.unknown_claim_evidence_ids:
+                self.unknown_claim_evidence_ids.append(evidence_id)
+
+    def record_report_citation_validation(self, validation: Any) -> None:
+        self.report_citation_valid = bool(getattr(validation, "valid", False))
+        self.report_cited_evidence_ids = list(
+            dict.fromkeys(getattr(validation, "cited_evidence_ids", ()))
+        )
+
     def finalize(
         self,
         *,
@@ -280,7 +311,7 @@ class ResearchRunTrace:
         result_urls = set(re.findall(r"https?://[^\s)>\]]+", final_result or ""))
         unused_fetched = self._fetched_sources - result_urls
         return {
-            "schema_version": 2,
+            "schema_version": 3,
             "run_id": self.run_id,
             "thread_id": self.thread_id,
             "started_at": self.started_at,
@@ -305,14 +336,23 @@ class ResearchRunTrace:
                 "fetched_pages": self.fetched_pages,
                 "evidence_records": len(self.evidence_ids),
                 "evidence_by_source": dict(self.evidence_by_source),
+                "validated_claims": len(self.claim_ids),
+                "rejected_claims": self.rejected_claims,
+                "claims_by_kind": dict(self.claims_by_kind),
+                "claim_evidence_records": len(self.claim_evidence_ids),
+                "unknown_claim_evidence_ids": len(self.unknown_claim_evidence_ids),
+                "report_cited_evidence_records": len(self.report_cited_evidence_ids),
+                "report_citation_valid": self.report_citation_valid,
             },
             "waste": {
                 "duplicate_queries": self.duplicate_queries,
                 "duplicate_sources": self.duplicate_sources,
                 "queries_with_zero_new_sources": self.queries_with_zero_new_sources,
                 "fetched_but_unused_sources": len(unused_fetched),
-                "evidence_never_used_in_claims": None,
-                "note": "M1.2 records collected evidence IDs; claim-level usage requires the M2 claim schema.",
+                "evidence_never_used_in_claims": len(
+                    set(self.evidence_ids) - set(self.claim_evidence_ids)
+                ),
+                "note": "M2.1 records backend-validated Claim-to-Evidence links.",
             },
         }
 

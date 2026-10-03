@@ -10,8 +10,9 @@ import asyncio
 import re
 import shutil
 import uuid
-from functools import lru_cache
+from functools import lru_cache, partial
 from pathlib import Path
+from typing import Any, Callable
 
 from deepagents import create_deep_agent
 from pydantic import BaseModel, Field
@@ -44,6 +45,13 @@ from app.api.monitor import monitor
 from app.config import AgentExecutionBudget, get_settings
 from app.memory.checkpoint import get_short_term_checkpointer
 from app.memory.service import format_memories_for_prompt, search_memories
+from app.research.claims import (
+    ClaimDraft,
+    ClaimValidationReport,
+    ReportCitationValidation,
+    validate_claims,
+    validate_report_citations,
+)
 from app.tools.evidence_tool import collect_evidence
 
 # 文件类工具由主智能体直接掌握，负责读取上传附件和生成最终交付文档
@@ -130,25 +138,94 @@ class ResearchBrief(BaseModel):
 class CompressedEvidence(BaseModel):
     """Bounded, machine-readable output for the compression phase."""
 
-    core_findings: list[str] = Field(default_factory=list)
-    citations: list[str] = Field(default_factory=list)
+    claims: list[ClaimDraft] = Field(default_factory=list)
     conflicts: list[str] = Field(default_factory=list)
     uncertainties: list[str] = Field(default_factory=list)
     report_outline: list[str] = Field(default_factory=list)
 
-    def to_markdown(self) -> str:
+    def to_markdown(self, validation: ClaimValidationReport | None = None) -> str:
+        if validation is None:
+            validation = validate_claims(self.claims, available_evidence_ids=())
+
+        accepted = []
+        for claim in validation.accepted:
+            evidence = " ".join(f"[{item}]" for item in claim.evidence_ids)
+            limitations = (
+                "\n  - Limitations: " + "; ".join(claim.limitations) if claim.limitations else ""
+            )
+            accepted.append(
+                f"- [{claim.claim_id}] ({claim.kind.value}) {claim.text}\n"
+                f"  - Evidence: {evidence}{limitations}"
+            )
+
+        rejected = []
+        for item in validation.rejected:
+            reasons = "; ".join(f"{issue.code.value}: {issue.detail}" for issue in item.issues)
+            rejected.append(f"- {item.draft.text}\n  - Rejected: {reasons}")
+
         sections = [
-            ("Core findings", self.core_findings),
-            ("Citation ledger", self.citations),
-            ("Conflicts", self.conflicts),
-            ("Uncertainties and boundaries", self.uncertainties),
-            ("Recommended report outline", self.report_outline),
+            ("Validated claims", accepted),
+            ("Rejected claim drafts", rejected),
+            ("Conflicts", [f"- {item}" for item in self.conflicts if item]),
+            (
+                "Uncertainties and boundaries",
+                [f"- {item}" for item in self.uncertainties if item],
+            ),
+            (
+                "Recommended report outline",
+                [f"- {item}" for item in self.report_outline if item],
+            ),
         ]
-        return "# Compressed Evidence Package\n\n" + "\n\n".join(
-            f"## {title}\n"
-            + ("\n".join(f"- {item}" for item in items if item) or "- None recorded")
-            for title, items in sections
+        return "# Validated Claim Package\n\n" + "\n\n".join(
+            f"## {title}\n" + ("\n".join(items) or "- None recorded") for title, items in sections
         )
+
+
+def _render_validated_compression(
+    parsed: CompressedEvidence,
+    run_trace: ResearchRunTrace,
+) -> str:
+    validation = validate_claims(
+        parsed.claims,
+        available_evidence_ids=run_trace.evidence_ids,
+    )
+    run_trace.record_claim_validation(validation)
+    return parsed.to_markdown(validation)
+
+
+def _enforce_final_report_citations(
+    *,
+    report_markdown: str,
+    compressed_fallback: str,
+    run_trace: ResearchRunTrace,
+) -> tuple[str, ReportCitationValidation]:
+    validation = validate_report_citations(
+        report_markdown,
+        allowed_evidence_ids=run_trace.claim_evidence_ids,
+        citations_required=bool(run_trace.evidence_ids or run_trace.rejected_claims),
+    )
+    run_trace.record_report_citation_validation(validation)
+    if validation.valid:
+        return report_markdown, validation
+
+    reasons: list[str] = []
+    if validation.unknown_evidence_ids:
+        reasons.append("the writer referenced one or more unknown evidence IDs")
+    if validation.missing_required_citations:
+        reasons.append("the writer omitted all validated evidence citations")
+    reason = "; ".join(reasons)
+    run_trace.degraded = True
+    run_trace.record_failure("final_report_citation_validation_failed")
+    fallback = compressed_fallback or (
+        "No validated claim package was available. The writer output was withheld."
+    )
+    return (
+        "# Evidence-Validated Partial Result\n\n"
+        f"> The generated report failed citation validation ({reason}). "
+        "The backend returned the validated claim package instead.\n\n"
+        f"{fallback}",
+        validation,
+    )
 
 
 async def _astream_with_runtime_limit(agent, payload, config, timeout_seconds: float):
@@ -187,7 +264,8 @@ async def _run_direct_phase(
     budget_profile: str,
     research_budget: ResearchBudget,
     run_trace: ResearchRunTrace,
-    schema: type[ResearchBrief] | type[CompressedEvidence] | None = None,
+    schema: type[BaseModel] | None = None,
+    structured_renderer: Callable[[BaseModel], str] | None = None,
     emit_final_result: bool = False,
 ) -> str | None:
     """Run a phase as exactly one model call with no DeepAgents built-ins."""
@@ -224,7 +302,11 @@ async def _run_direct_phase(
                 llm_recorded = True
             if parsing_error or parsed is None:
                 raise ValueError(f"structured_output_error: {parsing_error!r}")
-            result_text = parsed.to_markdown()
+            result_text = (
+                structured_renderer(parsed)
+                if structured_renderer is not None
+                else parsed.to_markdown()
+            )
         else:
             response = await asyncio.wait_for(
                 model.ainvoke(messages), timeout=budget.timeout_seconds
@@ -860,12 +942,18 @@ async def run_deep_agent(
                     reason=reason,
                 )
                 if phase.key == "final_report":
+                    phase_result, citation_validation = _enforce_final_report_citations(
+                        report_markdown=phase_result,
+                        compressed_fallback=phase_outputs.get("evidence_compression", ""),
+                        run_trace=run_trace,
+                    )
                     monitor.report_task_result(phase_result)
                     write_audit_event(
                         "task_result",
                         {
                             "result": phase_result,
                             "degraded": True,
+                            "citation_valid": citation_validation.valid,
                             "budget_profile": budget_profile,
                         },
                         thread_id=event_thread_id,
@@ -926,10 +1014,15 @@ async def run_deep_agent(
                 )
             else:
                 schema = None
+                structured_renderer: Callable[[Any], str] | None = None
                 if phase.key == "clarify_and_brief":
                     schema = ResearchBrief
                 elif phase.key == "evidence_compression":
                     schema = CompressedEvidence
+                    structured_renderer = partial(
+                        _render_validated_compression,
+                        run_trace=run_trace,
+                    )
                 phase_result = await _run_direct_phase(
                     model=phase_agent,
                     phase=phase,
@@ -939,7 +1032,8 @@ async def run_deep_agent(
                     research_budget=research_budget,
                     run_trace=run_trace,
                     schema=schema,
-                    emit_final_result=phase.key == "final_report",
+                    structured_renderer=structured_renderer,
+                    emit_final_result=False,
                 )
             if not phase_result:
                 run_trace.degraded = True
@@ -970,19 +1064,35 @@ async def run_deep_agent(
                     },
                     thread_id=event_thread_id,
                 )
-                if phase.key == "final_report":
-                    monitor.report_task_result(phase_result)
-                    write_audit_event(
-                        "task_result",
-                        {
-                            "result": phase_result,
-                            "degraded": True,
-                            "budget_profile": budget_profile,
-                        },
-                        thread_id=event_thread_id,
-                    )
-
             if phase.key == "final_report" and phase_result:
+                phase_result, citation_validation = _enforce_final_report_citations(
+                    report_markdown=phase_result,
+                    compressed_fallback=phase_outputs.get("evidence_compression", ""),
+                    run_trace=run_trace,
+                )
+                if not citation_validation.valid:
+                    run_trace.mark_phase_artifact(phase.key, "citation_rejected")
+                    monitor._emit(
+                        "final_report_citation_rejected",
+                        "Writer output failed deterministic citation validation.",
+                        {
+                            "unknown_evidence_ids": list(citation_validation.unknown_evidence_ids),
+                            "missing_required_citations": (
+                                citation_validation.missing_required_citations
+                            ),
+                        },
+                    )
+                monitor.report_task_result(phase_result)
+                write_audit_event(
+                    "task_result",
+                    {
+                        "result": phase_result,
+                        "degraded": run_trace.degraded,
+                        "citation_valid": citation_validation.valid,
+                        "budget_profile": budget_profile,
+                    },
+                    thread_id=event_thread_id,
+                )
                 try:
                     created_artifacts = _persist_requested_artifacts(
                         task_query=task_query,
@@ -992,9 +1102,15 @@ async def run_deep_agent(
                     requested_formats = _requested_artifact_formats(task_query)
                     if requested_formats and not created_artifacts:
                         raise RuntimeError("requested_artifact_not_created")
-                    run_trace.mark_phase_artifact(
-                        phase.key, "persisted" if requested_formats else "usable"
-                    )
+                    if citation_validation.valid:
+                        artifact_status = "persisted" if requested_formats else "usable"
+                    else:
+                        artifact_status = (
+                            "validated_fallback_persisted"
+                            if requested_formats
+                            else "validated_fallback"
+                        )
+                    run_trace.mark_phase_artifact(phase.key, artifact_status)
                 except Exception as exc:  # noqa: BLE001 - return report text but mark run degraded
                     run_trace.degraded = True
                     run_trace.record_failure(str(exc) or exc.__class__.__name__)

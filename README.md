@@ -97,6 +97,10 @@ for record in payload["records"]:
 
 最小研究工作流现在要求 Supervisor 只通过 `collect_evidence` 获取这三类内部证据，并在 Evidence Ledger 中原样保留 `evidence_id`。证据压缩和最终报告继续引用 `[evidence_id]`，从而可以从报告追溯到具体 SQL 行、文档片段或费用计算。网络检索仍由独立助手负责，尚未纳入 M1.2 的统一内部证据 schema。Fee 来源默认自动发现唯一的固定 DABStep 快照；存在零个或多个快照时，应通过 `DABSTEP_DATA_DIR` 明确指定目录。
 
+M2.1 在此基础上加入后端强制的 Claim→Evidence 协议。压缩模型不再分别输出 `core_findings` 和 `citations` 字符串列表，而是提交包含 `text`、`evidence_ids`、`kind` 和 `limitations` 的 Claim 草稿。后端只接受引用本轮真实已收集 ID 的 Claim；无证据、未知 ID，以及没有说明限制条件的 inference 会进入 `Rejected claim drafts`，不会作为已验证结论交给 Writer。通过校验的 Claim 获得稳定 `clm1_...` ID。
+
+最终报告生成后还会执行确定性引用检查：Writer 只能引用已接受 Claim 中的 `[evidence_id]`；若引用未知 ID，或在已有有效证据时完全省略引用，后端会拒绝该 Writer 结果、把运行标记为 degraded，并返回经过验证的 Claim Package。Trace schema v3 记录接受/拒绝 Claim 数、证据使用率和最终引用状态，但不复制私有证据正文。完整设计与失败行为见 [`docs/development/m2-1-claim-evidence-validation.md`](docs/development/m2-1-claim-evidence-validation.md)。当前 Web 搜索还没有转换成统一 Evidence，只能作为缺口或不确定性；Web Evidence 是下一阶段。
+
 上游 `DABStep-Research` 仓库当前没有声明许可证。相关原始数据只按锁文件下载到本地，在许可证澄清前不应随本项目重新分发。详细命令和 MySQL 配置见 [DABStep baseline README](evals/dabstep/README.md)。
 
 ### 系统架构
@@ -111,9 +115,9 @@ for record in payload["records"]:
   -> 阶段 2：Supervisor 直接调用 Evidence Tool 获取 Fee / SQL / 本地文档证据
   -> 阶段 2：外部公开信息按需分派给网络搜索助手，并读取上传附件 / 记忆
   -> 阶段 2：Researcher 根据证据缺口进行定向补检索和反思
-  -> 阶段 3：压缩证据，原样保留 evidence_id、来源、冲突和不确定性
+  -> 阶段 3：生成 Claim 草稿；后端校验 Claim→Evidence 关系并拒绝未知或缺失 ID
   -> LangGraph checkpoint 保存同一 thread 的短期执行上下文
-  -> 阶段 4：模型返回 Markdown 正文，后端确定性写入并按需转换 PDF
+  -> 阶段 4：Writer 基于 Validated Claim Package 返回 Markdown；后端复核引用后落盘
   -> WebSocket 实时推送过程和结果
   -> 写入历史消息、更新会话摘要、抽取长期记忆
 ```
@@ -501,6 +505,10 @@ Batch status is one of `OK`, `NO_EVIDENCE`, `PARTIAL`, or `ERROR`. Errors and tr
 
 The minimal research workflow now requires the supervisor to obtain these three internal evidence types only through `collect_evidence` and preserve every `evidence_id` in its Evidence Ledger. Compression and final writing continue to cite `[evidence_id]`, making report claims traceable to a SQL row, document chunk, or fee calculation. Web research remains a separate sub-agent and is outside the M1.2 internal-evidence schema. The fee source auto-discovers one pinned DABStep snapshot by default; set `DABSTEP_DATA_DIR` explicitly when zero or multiple snapshots are present.
 
+M2.1 adds a backend-enforced Claim-to-Evidence protocol on top of that ledger. Instead of producing unrelated `core_findings` and `citations` string lists, the compression model proposes claim drafts containing `text`, `evidence_ids`, `kind`, and `limitations`. The backend accepts only claims whose IDs were actually collected in the current run. Claims with no evidence, unknown IDs, or an inference without an explicit limitation are retained under `Rejected claim drafts` and are not passed to the writer as verified facts. Accepted claims receive stable `clm1_...` IDs.
+
+The completed report passes one more deterministic citation gate. The writer may cite only `[evidence_id]` values attached to accepted claims. An unknown ID, or a complete absence of citations when validated evidence exists, causes the backend to reject the writer output, mark the run degraded, and return the validated claim package. Trace schema v3 records accepted and rejected claim counts, evidence usage, and final citation validity without copying private evidence content. See [`docs/development/m2-1-claim-evidence-validation.md`](docs/development/m2-1-claim-evidence-validation.md) for the protocol and failure behavior. Web search has not yet been promoted into the unified Evidence schema and remains an explicit gap for the next milestone.
+
 The upstream `DABStep-Research` repository currently declares no license. Raw files are downloaded locally from the locked revision and must not be redistributed with this project until the licensing status is clarified. See the [DABStep baseline README](evals/dabstep/README.md) for individual commands and MySQL configuration.
 
 ### Architecture
@@ -515,9 +523,9 @@ User login / frontend conversation
   -> Phase 2: supervisor calls the Evidence Tool directly for Fee / SQL / local-document evidence
   -> Phase 2: external public research is delegated to the web researcher as needed; uploads and memory remain available
   -> Phase 2: researchers run targeted follow-up retrieval and reflection when evidence gaps remain
-  -> Phase 3: compresses evidence while preserving evidence_id, sources, conflicts, and uncertainty
+  -> Phase 3: proposes claims; the backend validates Claim-to-Evidence links and rejects missing or unknown IDs
   -> LangGraph checkpoint stores short-term execution context for the same thread
-  -> Phase 4: model returns Markdown; backend persists it and converts PDF when requested
+  -> Phase 4: writer uses the Validated Claim Package; backend checks citations before persistence
   -> WebSocket streams progress and results in real time
   -> Writes historical messages, updates conversation summary, extracts long-term memory
 ```

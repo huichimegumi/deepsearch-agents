@@ -22,7 +22,7 @@ def test_only_final_phase_allows_file_generation():
     final_instruction = RESEARCH_PHASES[-1].instruction
 
     assert "禁止调用 generate_markdown" in internal_instructions
-    assert "后端会保存并校验正文" in final_instruction
+    assert "后端会验证引用后再保存正文" in final_instruction
 
 
 def test_phase_prompt_carries_previous_outputs():
@@ -60,6 +60,8 @@ def test_final_phase_prompt_blocks_research_tools():
 
     assert "FINAL REPORT TOOL BOUNDARY" in prompt
     assert "Do not call researcher subagents" in prompt
+    assert "validated claims only" in prompt
+    assert "rejected drafts are gaps" in prompt
 
 
 def test_final_phase_receives_compressed_handoff_not_raw_ledger():
@@ -90,6 +92,14 @@ def test_non_research_phase_prompt_declares_no_tool_boundary():
 
     assert "NO-TOOL PHASE BOUNDARY" in prompt
     assert "record it as a gap" in prompt
+
+
+def test_compression_phase_requires_structured_claim_links():
+    instruction = RESEARCH_PHASES[2].instruction
+
+    assert "text、evidence_ids、kind" in instruction
+    assert "fact / inference" in instruction
+    assert "Rejected claim drafts" in instruction
 
 
 def test_supervisor_phase_prompt_declares_research_boundary():

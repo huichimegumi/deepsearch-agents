@@ -128,6 +128,38 @@ def test_trace_records_unique_evidence_ids_by_source():
 
     assert payload["metrics"]["evidence_records"] == 1
     assert payload["metrics"]["evidence_by_source"] == {"sql": 1}
+    assert payload["waste"]["evidence_never_used_in_claims"] == 1
+
+
+def test_trace_records_validated_claim_usage_and_report_citations():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    claim = SimpleNamespace(
+        claim_id="clm1_abc",
+        kind="fact",
+        evidence_ids=("ev1_sql_abc",),
+    )
+    report = SimpleNamespace(
+        accepted=(claim,),
+        rejected=(SimpleNamespace(),),
+        unknown_evidence_ids=("ev1_sql_unknown",),
+    )
+    citation_validation = SimpleNamespace(
+        valid=True,
+        cited_evidence_ids=("ev1_sql_abc",),
+    )
+
+    trace.record_evidence((SimpleNamespace(evidence_id="ev1_sql_abc", source="sql"),))
+    trace.record_claim_validation(report)
+    trace.record_report_citation_validation(citation_validation)
+    payload = trace.finalize(status="completed", final_result="[ev1_sql_abc]")
+
+    assert payload["metrics"]["validated_claims"] == 1
+    assert payload["metrics"]["rejected_claims"] == 1
+    assert payload["metrics"]["claims_by_kind"] == {"fact": 1}
+    assert payload["metrics"]["claim_evidence_records"] == 1
+    assert payload["metrics"]["unknown_claim_evidence_ids"] == 1
+    assert payload["metrics"]["report_citation_valid"] is True
+    assert payload["waste"]["evidence_never_used_in_claims"] == 0
 
 
 def test_trace_preserves_all_unique_failure_reasons():

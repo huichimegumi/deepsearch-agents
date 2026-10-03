@@ -34,4 +34,4 @@ async def test_run_deep_agent_writes_completed_trace(tmp_path, monkeypatch):
     assert trace["budget_profile"] == "deep_report"
     assert trace["budget"]["limits"]["total_seconds"] == 300
     assert [phase["status"] for phase in trace["phases"]] == ["end"] * 4
-    assert trace["schema_version"] == 2
+    assert trace["schema_version"] == 3

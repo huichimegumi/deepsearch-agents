@@ -14,6 +14,7 @@ from urllib.request import urlopen
 
 import pytest
 
+from app.research.claims import ClaimDraft, validate_claims, validate_report_citations
 from app.tools.evidence_tool import collect_evidence
 
 pytestmark = [
@@ -99,3 +100,21 @@ def test_local_document_evidence_crosses_postgres_and_qdrant_repeatably():
     assert second["status"] in {"OK", "PARTIAL"}
     assert first["records"] and second["records"]
     assert _record_identity(first) == _record_identity(second)
+
+
+def test_live_sql_evidence_can_back_a_validated_claim_and_report():
+    batch = _collect({"source": "sql", "query": "SELECT 1 AS evidence_smoke_value"})
+    evidence_id = batch["records"][0]["evidence_id"]
+
+    claims = validate_claims(
+        [ClaimDraft(text="The deterministic smoke value is 1.", evidence_ids=[evidence_id])],
+        available_evidence_ids=[evidence_id],
+    )
+    citations = validate_report_citations(
+        f"The deterministic smoke value is 1 [{evidence_id}].",
+        allowed_evidence_ids=claims.referenced_evidence_ids,
+    )
+
+    assert len(claims.accepted) == 1
+    assert claims.accepted[0].claim_id.startswith("clm1_")
+    assert citations.valid is True

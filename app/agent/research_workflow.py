@@ -70,11 +70,15 @@ RESEARCH_PHASES = (
 目标：把 researcher 返回的大量材料压缩成最终报告可直接引用的证据包。
 
 必须输出：
-1. 核心结论列表：每条结论都绑定 evidence_id 和来源
-2. 引用清单：完整保留 evidence_id，以及 URL、文件名、页码、表名、SQL 摘要或费用规则定位符
+1. Claims：每条包含 text、evidence_ids、kind（fact / inference）和 limitations
+2. fact 与 inference 都必须绑定已收集的 evidence_id；inference 必须明确 limitations
 3. 冲突信息：不同来源不一致时保留分歧，不要强行抹平
-4. 不确定性与边界：哪些结论只能作为推断，哪些数据缺失
+4. 不确定性与边界：哪些材料尚未登记为 Evidence、哪些数据缺失
 5. 最终报告结构建议
+
+后端会确定性校验每个 evidence_id。未知 ID、没有证据的 Claim、没有 limitation 的 inference
+都会进入 Rejected claim drafts，不能交给 Writer 当作已验证结论。当前尚未登记为 Evidence 的
+Web 材料只能记录在不确定性中，等待后续 Web Evidence 阶段处理。
 
 禁止：
 - 禁止调用 generate_markdown 或 convert_md_to_pdf
@@ -86,13 +90,14 @@ RESEARCH_PHASES = (
         title="最终报告",
         instruction="""
 【阶段 4/4：最终报告】
-目标：只基于前面阶段的 research brief、Evidence Ledger 和压缩证据生成最终回答或交付文档。
+目标：只基于前面阶段的 research brief 和后端校验后的 Validated Claim Package 生成最终回答或交付文档。
 
 必须执行：
 1. 先回答用户最关心的结论，再展开依据
-2. 所有关键信息尽量引用 `[evidence_id]`；无法确认的内容明确标注不确定性
-3. 始终返回完整的 Markdown 正文，不要调用工具，不要只回复文件名或完成说明
-4. 若用户要求 Markdown/PDF 文件，后端会保存并校验正文；正文不得包含“等待子任务完成”等占位内容
+2. 每项事实或推断必须引用其 Claim 中列出的 `[evidence_id]`，不得引用 Rejected claim drafts
+3. 不得编造、改写或引用 Validated Claim Package 之外的 evidence_id
+4. 始终返回完整的 Markdown 正文，不要调用工具，不要只回复文件名或完成说明
+5. 若用户要求 Markdown/PDF 文件，后端会验证引用后再保存正文；正文不得包含“等待子任务完成”等占位内容
 
 输出要求：
 - 未要求文件时，直接给出结构化最终答案
@@ -199,8 +204,9 @@ def build_phase_prompt(
         tool_boundary = (
             "FINAL REPORT TOOL BOUNDARY: Do not call researcher subagents, web search, "
             "knowledge-base search, database query, or file tools in this phase. Return the "
-            "complete Markdown report body from the completed phase artifacts. The backend "
-            "will persist requested files. If evidence is missing, say so explicitly."
+            "complete Markdown report body from validated claims only. Cite only evidence IDs "
+            "listed on accepted claims; rejected drafts are gaps, not report facts. The backend "
+            "validates citations before persisting requested files."
         )
     elif not phase.requires_tools:
         tool_boundary = (
