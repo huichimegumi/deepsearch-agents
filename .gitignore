@@ -8,6 +8,7 @@ app/updated
 app/logs
 app/rag_temp
 .fastembed_cache/
+.cache/
 /data/knowledge_base/
 /data/benchmarks/dabstep_research/
 /evals/dabstep/work/

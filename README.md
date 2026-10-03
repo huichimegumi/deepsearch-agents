@@ -93,7 +93,7 @@ for record in payload["records"]:
     print(record["evidence_id"], record["locator"])
 ```
 
-返回批次状态为 `OK`、`NO_EVIDENCE`、`PARTIAL` 或 `ERROR`。错误和截断通过 `warnings` 显式返回，不会生成伪造的证据记录。当前全量测试为 107 项；真实固定 DABStep 数据上的重复 Fee Evidence 调用已验证会产生相同 `evidence_id`。MySQL 和 PostgreSQL/Qdrant 在线链路仍需要在启动相应基础设施后做环境级冒烟测试。
+返回批次状态为 `OK`、`NO_EVIDENCE`、`PARTIAL` 或 `ERROR`。错误和截断通过 `warnings` 显式返回，不会生成伪造的证据记录。除默认单元测试外，M1.2 现在包含 4 项显式启用的真实基础设施验收：Qdrant 客户端/服务端兼容性、MySQL 只读与稳定 ID、固定 DABStep Fee Evidence，以及跨 PostgreSQL/Qdrant 的本地文档稳定检索。当前开发环境已全部通过；复验命令与失败解释见 [`docs/development/m1-2-live-infrastructure.md`](docs/development/m1-2-live-infrastructure.md)。
 
 最小研究工作流现在要求 Supervisor 只通过 `collect_evidence` 获取这三类内部证据，并在 Evidence Ledger 中原样保留 `evidence_id`。证据压缩和最终报告继续引用 `[evidence_id]`，从而可以从报告追溯到具体 SQL 行、文档片段或费用计算。网络检索仍由独立助手负责，尚未纳入 M1.2 的统一内部证据 schema。Fee 来源默认自动发现唯一的固定 DABStep 快照；存在零个或多个快照时，应通过 `DABSTEP_DATA_DIR` 明确指定目录。
 
@@ -238,7 +238,7 @@ SEARXNG_URL=http://localhost:8888
 使用 Docker Compose 启动 API、RAG Worker 和全部基础设施：
 
 ```bash
-docker compose -f docker/docker-compose.yaml up -d --build
+docker compose --env-file .env -f docker/docker-compose.yaml up -d --build
 ```
 
 后端默认地址为 `http://localhost:8000`。首次索引知识库文档或首次使用记忆语义检索时会下载 FastEmbed 模型，因此可能需要等待一段时间。
@@ -246,8 +246,8 @@ docker compose -f docker/docker-compose.yaml up -d --build
 查看服务状态或日志：
 
 ```bash
-docker compose -f docker/docker-compose.yaml ps
-docker compose -f docker/docker-compose.yaml logs -f api rag-worker
+docker compose --env-file .env -f docker/docker-compose.yaml ps
+docker compose --env-file .env -f docker/docker-compose.yaml logs -f api rag-worker
 ```
 
 服务启动后可检查运行状态：
@@ -297,7 +297,7 @@ VITE_WS_BASE_URL=ws://localhost:8000
 如需在本机运行 Python 服务并使用热重载，可只启动基础设施：
 
 ```bash
-docker compose -f docker/docker-compose.yaml up -d postgres redis qdrant minio mysql
+docker compose --env-file .env -f docker/docker-compose.yaml up -d postgres redis qdrant minio mysql
 uv sync --group dev
 uv run celery -A app.rag.celery_app:celery_app worker --loglevel=INFO --pool=solo
 ```
@@ -497,7 +497,7 @@ for record in payload["records"]:
     print(record["evidence_id"], record["locator"])
 ```
 
-Batch status is one of `OK`, `NO_EVIDENCE`, `PARTIAL`, or `ERROR`. Errors and truncation are exposed through `warnings`; the tool never manufactures evidence records to hide a failure. The current full suite contains 107 passing tests, and repeated Fee Evidence calls against the real pinned DABStep snapshot have been verified to return the same `evidence_id`. Live MySQL and PostgreSQL/Qdrant paths still require environment-level smoke testing after their services are started.
+Batch status is one of `OK`, `NO_EVIDENCE`, `PARTIAL`, or `ERROR`. Errors and truncation are exposed through `warnings`; the tool never manufactures evidence records to hide a failure. In addition to the default unit suite, M1.2 now includes four opt-in live-infrastructure checks: Qdrant client/server compatibility, MySQL read-only behavior and stable IDs, pinned DABStep Fee Evidence, and repeatable local-document retrieval across PostgreSQL and Qdrant. All four pass in the current development environment; see [`docs/development/m1-2-live-infrastructure.md`](docs/development/m1-2-live-infrastructure.md) for reproduction commands and failure interpretation.
 
 The minimal research workflow now requires the supervisor to obtain these three internal evidence types only through `collect_evidence` and preserve every `evidence_id` in its Evidence Ledger. Compression and final writing continue to cite `[evidence_id]`, making report claims traceable to a SQL row, document chunk, or fee calculation. Web research remains a separate sub-agent and is outside the M1.2 internal-evidence schema. The fee source auto-discovers one pinned DABStep snapshot by default; set `DABSTEP_DATA_DIR` explicitly when zero or multiple snapshots are present.
 
@@ -668,7 +668,7 @@ against the configured backend allowlist before dispatch.
 Use Docker Compose to start the API, RAG worker, and all required infrastructure:
 
 ```bash
-docker compose -f docker/docker-compose.yaml up -d --build
+docker compose --env-file .env -f docker/docker-compose.yaml up -d --build
 ```
 
 The backend defaults to `http://localhost:8000`. The first knowledge-base indexing run or first semantic memory retrieval may download FastEmbed models, so startup-related work can take a little while.
@@ -676,8 +676,8 @@ The backend defaults to `http://localhost:8000`. The first knowledge-base indexi
 Check service status or logs:
 
 ```bash
-docker compose -f docker/docker-compose.yaml ps
-docker compose -f docker/docker-compose.yaml logs -f api rag-worker
+docker compose --env-file .env -f docker/docker-compose.yaml ps
+docker compose --env-file .env -f docker/docker-compose.yaml logs -f api rag-worker
 ```
 
 After startup, check runtime health:
@@ -727,7 +727,7 @@ The first frontend visit requires registration or login. Registration is control
 To run the Python service locally with hot reload, start only the infrastructure:
 
 ```bash
-docker compose -f docker/docker-compose.yaml up -d postgres redis qdrant minio mysql
+docker compose --env-file .env -f docker/docker-compose.yaml up -d postgres redis qdrant minio mysql
 uv sync --group dev
 uv run celery -A app.rag.celery_app:celery_app worker --loglevel=INFO --pool=solo
 ```
