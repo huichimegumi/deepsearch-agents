@@ -35,7 +35,8 @@ default limits are:
 - at most two fetched pages per task;
 - at most six search queries and six fetched pages for the complete smoke run.
 
-The default backend is `duckduckgo`, which does not use the configured Tavily API key. Modes that
+The default backend is hard-locked to `duckduckgo`, which does not use the configured Tavily API
+key even if the model requests `advanced`. Modes that
 may consume paid credits (`tavily`, `perplexity`, `auto`, and `advanced`) fail closed unless the
 operator also passes `--allow-paid-search`.
 
@@ -69,3 +70,12 @@ metric is therefore named `strict_correct`, not official accuracy.
 
 Every task also reports whether both SQL and Web Evidence were collected, whether final citations
 passed backend validation, elapsed time, query/page usage, and accepted/rejected Claim counts.
+
+## First DuckDuckGo baseline
+
+The first post-fix execution on 2026-10-05 is recorded in
+[`docs/development/m3-2-hybrid-smoke-baseline.md`](../../docs/development/m3-2-hybrid-smoke-baseline.md).
+It used four of the six allowed queries and no intentionally authorized paid backend. All three
+reports passed citation validation, two collected both source types, and none passed the strict
+answer check. This is a diagnostic baseline, not a result to optimize by leaking task-specific gold
+information into prompts.

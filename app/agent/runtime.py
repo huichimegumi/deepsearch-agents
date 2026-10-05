@@ -150,6 +150,7 @@ class ResearchRunTrace:
     queries_with_zero_new_sources: int = 0
     evidence_ids: list[str] = field(default_factory=list)
     evidence_by_source: Counter[str] = field(default_factory=Counter)
+    _evidence_records_by_id: dict[str, Any] = field(default_factory=dict, repr=False)
     claim_ids: list[str] = field(default_factory=list)
     claim_evidence_ids: list[str] = field(default_factory=list)
     claims_by_kind: Counter[str] = field(default_factory=Counter)
@@ -273,6 +274,53 @@ class ResearchRunTrace:
             if evidence_id and evidence_id not in self.evidence_ids:
                 self.evidence_ids.append(evidence_id)
                 self.evidence_by_source[source_value] += 1
+                self._evidence_records_by_id[evidence_id] = record
+
+    def render_evidence_ledger(
+        self,
+        *,
+        max_records: int = 80,
+        max_total_content_chars: int = 24_000,
+        max_record_content_chars: int = 4_000,
+    ) -> str:
+        """Render a bounded in-memory ledger for synthesis without adding content to telemetry."""
+        if not self._evidence_records_by_id:
+            return ""
+        lines = ["# Backend Evidence Ledger", ""]
+        remaining = max_total_content_chars
+        records = list(self._evidence_records_by_id.values())[:max_records]
+        for record in records:
+            evidence_id = str(getattr(record, "evidence_id", "") or "")
+            source = getattr(record, "source", "unknown")
+            source_value = str(getattr(source, "value", source))
+            locator = str(getattr(record, "locator", "") or "")
+            content = json.dumps(
+                getattr(record, "content", None),
+                ensure_ascii=False,
+                sort_keys=True,
+                default=str,
+            )
+            allowed = min(max_record_content_chars, remaining)
+            if allowed <= 0:
+                break
+            truncated = len(content) > allowed
+            excerpt = content[:allowed]
+            remaining -= len(excerpt)
+            lines.extend(
+                [
+                    f"## [{evidence_id}]",
+                    f"- Source: `{source_value}`",
+                    f"- Locator: `{locator}`",
+                    f"- Content: {excerpt}{' [truncated]' if truncated else ''}",
+                    "",
+                ]
+            )
+        omitted = len(self._evidence_records_by_id) - (len(lines) - 2) // 5
+        if omitted > 0 or remaining <= 0:
+            lines.append(
+                "- Ledger limit reached; additional collected records remain registered by ID."
+            )
+        return "\n".join(lines).strip()
 
     def record_claim_validation(self, report: Any) -> None:
         """Record backend-validated claim links without copying claim or evidence content."""

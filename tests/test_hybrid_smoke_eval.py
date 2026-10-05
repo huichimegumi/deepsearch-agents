@@ -5,11 +5,13 @@ import sqlite3
 
 import pytest
 
+from app.agent.main_agent import _requested_artifact_formats
 from app.tools.evidence_tool import collect_evidence
 from evals.hybrid.common import CANARY, CANARY_NOTICE, SELECTION_PATH, decrypt_record, load_json
 from evals.hybrid.run_smoke import (
     _sql_result_match,
     _strict_text_match,
+    _task_prompt,
     _validate_paid_search,
 )
 
@@ -125,3 +127,15 @@ def test_smoke_correctness_helpers_do_not_require_llm_judge(tmp_path):
         is True
     )
     assert _sql_result_match("No SQL supplied", "SELECT name FROM metrics", database) is False
+
+
+def test_smoke_prompt_does_not_accidentally_request_file_artifacts():
+    prompt = _task_prompt(
+        {
+            "final_question": "Answer the hybrid question.",
+            "hint": "",
+            "db": "alien",
+        }
+    )
+
+    assert _requested_artifact_formats(prompt) == set()

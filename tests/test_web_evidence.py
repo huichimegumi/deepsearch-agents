@@ -106,6 +106,23 @@ def test_research_search_returns_and_traces_fetched_web_evidence():
     assert traced_records[0].evidence_id == evidence["evidence_id"]
 
 
+def test_search_backend_lock_overrides_model_requested_advanced_mode(monkeypatch):
+    captured = []
+    response = SearchResponse(queries=["market"], backend="duckduckgo", results=[])
+    service = SimpleNamespace(search=lambda request: captured.append(request) or response)
+    monkeypatch.setenv("SEARCH_BACKEND_LOCK", "duckduckgo")
+
+    with (
+        patch("app.tools.tavily_tool.get_search_service", return_value=service),
+        patch("app.tools.tavily_tool.get_research_budget", return_value=None),
+        patch("app.tools.tavily_tool.get_research_trace", return_value=None),
+        patch("app.tools.tavily_tool.write_audit_event"),
+    ):
+        research_search.invoke({"queries": ["market"], "backend": "advanced"})
+
+    assert captured[0].backend == "duckduckgo"
+
+
 def test_fetched_web_evidence_passes_claim_and_report_gates():
     record = web_results_to_evidence([_result()])[0]
     claims = validate_claims(

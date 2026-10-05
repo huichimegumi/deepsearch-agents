@@ -6,6 +6,7 @@ import contextlib
 import json
 import os
 import re
+import shutil
 import sqlite3
 from dataclasses import replace
 from pathlib import Path
@@ -56,6 +57,16 @@ def _load_trace(session_id: str) -> dict[str, Any] | None:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _reset_session(session_id: str) -> None:
+    log_path = project_root_path / "logs" / f"session_{session_id}.jsonl"
+    if log_path.is_file():
+        log_path.unlink()
+    output_dir = project_root_path / "output" / "user_evals" / f"session_{session_id}"
+    expected_parent = project_root_path / "output" / "user_evals"
+    if output_dir.exists() and output_dir.parent == expected_parent:
+        shutil.rmtree(output_dir)
+
+
 def _task_prompt(task: dict[str, Any]) -> str:
     hint = str(task.get("hint") or "").strip()
     return f"""{task["final_question"]}
@@ -70,7 +81,7 @@ Evaluation constraints:
   snippet or CANDIDATE_ONLY result is not evidence.
 - Keep the answer concise and cite exact SQL and Web evidence IDs.
 - If the requested output is a SQL result, include the final read-only query in one ```sql``` block.
-- Do not create Markdown or PDF artifacts. Return the answer directly.
+- Return the answer directly in chat without creating file artifacts.
 """.strip()
 
 
@@ -165,17 +176,19 @@ async def _execute_task(
     max_fetched_pages: int,
 ) -> dict[str, Any]:
     session_id = f"hybrid_smoke_{task['id']}"
+    _reset_session(session_id)
     settings = get_settings()
     limits = replace(
         settings.research_budget_limits("standard"),
         max_search_queries=max_search_queries,
         max_fetched_pages=max_fetched_pages,
         max_research_rounds=1,
+        max_llm_calls=16,
     )
     with _temporary_environment(
         {
             "EVIDENCE_SQLITE_PATH": str(database_path.resolve()),
-            "SEARCH_BACKEND": search_backend,
+            "SEARCH_BACKEND_LOCK": search_backend,
         }
     ):
         answer = await run_deep_agent(
@@ -252,6 +265,8 @@ def run(
                     }
                 )
 
+    total_search_queries = sum(int(row.get("search_queries", 0)) for row in results)
+    total_fetched_pages = sum(int(row.get("fetched_pages", 0)) for row in results)
     return {
         "name": selection["name"],
         "generated_at": now_utc(),
@@ -271,6 +286,18 @@ def run(
         "status_counts": status_counts(results),
         "strict_correct": sum(bool(row.get("strict_correct")) for row in results),
         "cross_source_evidence": sum(bool(row.get("cross_source_evidence")) for row in results),
+        "citation_valid": sum(row.get("citation_valid") is True for row in results),
+        "total_search_queries": total_search_queries,
+        "total_fetched_pages": total_fetched_pages,
+        "search_budget_compliant": bool(
+            total_search_queries <= len(tasks) * max_search_queries
+            and total_fetched_pages <= len(tasks) * max_fetched_pages
+            and all(
+                int(row.get("search_queries", 0)) <= max_search_queries
+                and int(row.get("fetched_pages", 0)) <= max_fetched_pages
+                for row in results
+            )
+        ),
         "results": results,
         "privacy_note": "Questions, gold answers, SQL, and model outputs are decrypted in memory only.",
     }

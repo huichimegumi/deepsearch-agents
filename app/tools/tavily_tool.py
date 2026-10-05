@@ -61,14 +61,20 @@ def research_search(
                 "notices": ["本次研究已达到搜索查询预算，停止继续搜索"],
             }
     configured_backend = os.getenv("SEARCH_BACKEND", "auto").strip().lower()
-    if backend == "auto" and configured_backend in {
+    allowed_backends = {
         "auto",
         "advanced",
         "tavily",
         "duckduckgo",
         "perplexity",
         "searxng",
-    }:
+    }
+    locked_backend = os.getenv("SEARCH_BACKEND_LOCK", "").strip().lower()
+    if locked_backend and locked_backend not in allowed_backends:
+        raise ValueError(f"invalid SEARCH_BACKEND_LOCK: {locked_backend}")
+    if locked_backend:
+        backend = locked_backend
+    elif backend == "auto" and configured_backend in allowed_backends:
         backend = configured_backend
 
     resolved_max_results = max_results or int(os.getenv("SEARCH_MAX_RESULTS", "8"))
@@ -83,6 +89,7 @@ def research_search(
             "queries": queries,
             "requested_backend": requested_backend,
             "configured_backend": backend,
+            "locked_backend": locked_backend or None,
             "topic": topic,
             "max_results": resolved_max_results,
             "fetch_full_page": fetch_full_page,

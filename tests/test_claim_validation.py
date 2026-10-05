@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 from app.agent.main_agent import (
     CompressedEvidence,
+    _attach_backend_evidence_ledger,
     _enforce_final_report_citations,
     _render_validated_compression,
 )
@@ -179,3 +180,24 @@ def test_compression_renderer_records_only_backend_validated_claims():
     assert trace.claim_evidence_ids == [KNOWN_EVIDENCE_ID]
     assert trace.rejected_claims == 1
     assert trace.unknown_claim_evidence_ids == [UNKNOWN_EVIDENCE_ID]
+
+
+def test_backend_ledger_survives_missing_supervisor_summary():
+    trace = _trace()
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id=KNOWN_EVIDENCE_ID,
+                source="sql",
+                locator="sql://test/row",
+                content={"value": 42},
+            ),
+        )
+    )
+
+    result = _attach_backend_evidence_ledger(None, trace)
+
+    assert result is not None
+    assert "# Backend Evidence Ledger" in result
+    assert f"[{KNOWN_EVIDENCE_ID}]" in result
+    assert '"value": 42' in result

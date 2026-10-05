@@ -229,6 +229,18 @@ def _enforce_final_report_citations(
     )
 
 
+def _attach_backend_evidence_ledger(
+    phase_result: str | None,
+    run_trace: ResearchRunTrace,
+) -> str | None:
+    ledger = run_trace.render_evidence_ledger()
+    if not ledger:
+        return phase_result
+    if not phase_result:
+        return ledger
+    return f"{phase_result.rstrip()}\n\n{ledger}"
+
+
 async def _astream_with_runtime_limit(agent, payload, config, timeout_seconds: float):
     if timeout_seconds <= 0:
         async for chunk in agent.astream(payload, config=config):
@@ -1039,6 +1051,8 @@ async def run_deep_agent(
                     structured_renderer=structured_renderer,
                     emit_final_result=False,
                 )
+            if phase.key == "supervisor_research":
+                phase_result = _attach_backend_evidence_ledger(phase_result, run_trace)
             if not phase_result:
                 run_trace.degraded = True
                 phase_result = build_degraded_phase_output(

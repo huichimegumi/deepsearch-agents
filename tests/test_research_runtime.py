@@ -1,5 +1,6 @@
 """Tests for run-level budgets and structured research traces."""
 
+import json
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -129,6 +130,24 @@ def test_trace_records_unique_evidence_ids_by_source():
     assert payload["metrics"]["evidence_records"] == 1
     assert payload["metrics"]["evidence_by_source"] == {"sql": 1}
     assert payload["waste"]["evidence_never_used_in_claims"] == 1
+
+
+def test_trace_renders_bounded_backend_ledger_without_serializing_content():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    record = SimpleNamespace(
+        evidence_id="ev1_sql_abc",
+        source="sql",
+        locator="sql://test/row",
+        content={"secret": "internal fact"},
+    )
+
+    trace.record_evidence((record,))
+    ledger = trace.render_evidence_ledger()
+    payload = trace.finalize(status="completed", final_result="done")
+
+    assert "[ev1_sql_abc]" in ledger
+    assert "internal fact" in ledger
+    assert "internal fact" not in json.dumps(payload)
 
 
 def test_trace_records_validated_claim_usage_and_report_citations():
