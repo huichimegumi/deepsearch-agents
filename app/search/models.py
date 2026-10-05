@@ -2,6 +2,9 @@
 
 from dataclasses import asdict, dataclass, field
 from typing import Literal
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+TRACKING_PARAMETERS = frozenset({"fbclid", "gclid", "ref", "source"})
 
 SearchBackend = Literal[
     "auto",
@@ -12,6 +15,20 @@ SearchBackend = Literal[
     "searxng",
 ]
 SearchTopic = Literal["general", "news", "finance"]
+
+
+def canonicalize_web_url(url: str) -> str:
+    """Remove fragments and common tracking parameters from a public-result URL."""
+    parts = urlsplit(url.strip())
+    filtered_query = [
+        (key, value)
+        for key, value in parse_qsl(parts.query, keep_blank_values=True)
+        if not key.lower().startswith("utm_") and key.lower() not in TRACKING_PARAMETERS
+    ]
+    path = parts.path.rstrip("/") or "/"
+    return urlunsplit(
+        (parts.scheme.lower(), parts.netloc.lower(), path, urlencode(filtered_query), "")
+    )
 
 
 @dataclass(slots=True)

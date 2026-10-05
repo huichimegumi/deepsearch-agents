@@ -7,13 +7,19 @@ from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, as_completed
 from html.parser import HTMLParser
 from threading import Lock
 from time import monotonic
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import urljoin, urlsplit
 
 import requests
 
 from app.api.monitor import monitor
 from app.search.base import SearchProvider
-from app.search.models import SearchRequest, SearchResponse, SearchResult, SearchTopic
+from app.search.models import (
+    SearchRequest,
+    SearchResponse,
+    SearchResult,
+    SearchTopic,
+    canonicalize_web_url,
+)
 from app.search.providers import (
     DuckDuckGoProvider,
     PerplexityProvider,
@@ -21,9 +27,10 @@ from app.search.providers import (
     TavilyProvider,
 )
 
-TRACKING_PARAMETERS = {"fbclid", "gclid", "ref", "source"}
 MAX_QUERIES = 5
 MAX_RESULTS = 20
+MAX_FETCH_REDIRECTS = 5
+REDIRECT_STATUS_CODES = frozenset({301, 302, 303, 307, 308})
 
 
 class _TextExtractor(HTMLParser):
@@ -249,16 +256,7 @@ class SearchService:
 
     @staticmethod
     def _canonical_url(url: str) -> str:
-        parts = urlsplit(url.strip())
-        filtered_query = [
-            (key, value)
-            for key, value in parse_qsl(parts.query, keep_blank_values=True)
-            if not key.lower().startswith("utm_") and key.lower() not in TRACKING_PARAMETERS
-        ]
-        path = parts.path.rstrip("/") or "/"
-        return urlunsplit(
-            (parts.scheme.lower(), parts.netloc.lower(), path, urlencode(filtered_query), "")
-        )
+        return canonicalize_web_url(url)
 
     def _merge_results(self, results: list[SearchResult], limit: int) -> list[SearchResult]:
         unique: dict[str, SearchResult] = {}
@@ -316,20 +314,33 @@ class SearchService:
                     result.raw_content = ""
 
     def _fetch_page(self, url: str) -> str:
-        if not self._is_public_url(url):
-            return ""
-        response = requests.get(
-            url,
-            timeout=self.timeout,
-            headers={"User-Agent": "DeepSearchAgents/0.1 (+research crawler)"},
-        )
-        response.raise_for_status()
-        content_type = response.headers.get("content-type", "").lower()
-        if "html" not in content_type and "text/plain" not in content_type:
-            return ""
-        parser = _TextExtractor()
-        parser.feed(response.text[: self.max_content_chars * 4])
-        return "\n".join(parser.parts)[: self.max_content_chars]
+        current_url = url
+        for redirect_count in range(MAX_FETCH_REDIRECTS + 1):
+            if not self._is_public_url(current_url):
+                return ""
+            response = requests.get(
+                current_url,
+                timeout=self.timeout,
+                headers={"User-Agent": "DeepSearchAgents/0.1 (+research crawler)"},
+                allow_redirects=False,
+            )
+            if response.status_code in REDIRECT_STATUS_CODES:
+                if redirect_count >= MAX_FETCH_REDIRECTS:
+                    return ""
+                location = response.headers.get("location")
+                if not location:
+                    return ""
+                current_url = urljoin(current_url, location)
+                continue
+
+            response.raise_for_status()
+            content_type = response.headers.get("content-type", "").lower()
+            if "html" not in content_type and "text/plain" not in content_type:
+                return ""
+            parser = _TextExtractor()
+            parser.feed(response.text[: self.max_content_chars * 4])
+            return "\n".join(parser.parts)[: self.max_content_chars]
+        return ""
 
     @staticmethod
     def _is_public_url(url: str) -> bool:

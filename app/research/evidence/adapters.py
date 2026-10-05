@@ -9,6 +9,7 @@ from typing import Any, Iterable, Sequence
 from app.rag.retrieval import RetrievedChunk
 from app.research.evidence.models import EvidenceRecord, EvidenceSource, json_safe
 from app.research.fee_engine import FeeCalculation
+from app.search.models import SearchResult, canonicalize_web_url
 
 
 def _digest(value: str) -> str:
@@ -18,6 +19,43 @@ def _digest(value: str) -> str:
 def normalize_sql(query: str) -> str:
     """Normalize insignificant SQL whitespace for stable query identities."""
     return re.sub(r"\s+", " ", query.strip().rstrip(";")).strip()
+
+
+def normalize_web_content(content: str) -> str:
+    """Normalize parser whitespace without turning a search snippet into evidence."""
+    return re.sub(r"\s+", " ", content).strip()
+
+
+def web_results_to_evidence(
+    results: Iterable[SearchResult],
+) -> tuple[EvidenceRecord, ...]:
+    """Promote fetched public pages to Evidence; snippet-only candidates are ignored."""
+    records: list[EvidenceRecord] = []
+    seen_urls: set[str] = set()
+    for result in results:
+        content = normalize_web_content(result.raw_content)
+        locator = canonicalize_web_url(result.url)
+        if not content or not locator.startswith(("http://", "https://")) or locator in seen_urls:
+            continue
+        seen_urls.add(locator)
+        records.append(
+            EvidenceRecord.create(
+                source=EvidenceSource.WEB,
+                locator=locator,
+                content=content,
+                identity={"canonical_url": locator},
+                metadata={
+                    "title": result.title,
+                    "published_date": result.published_date,
+                    "source_backend": result.source_backend,
+                    "matched_queries": result.matched_queries,
+                    "content_kind": "fetched_page_text",
+                    "content_scope": "bounded_extracted_page_text",
+                    "content_chars": len(content),
+                },
+            )
+        )
+    return tuple(records)
 
 
 def fee_calculation_to_evidence(

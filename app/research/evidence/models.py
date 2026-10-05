@@ -15,6 +15,7 @@ class EvidenceSource(StrEnum):
     FEE_ENGINE = "fee_engine"
     SQL = "sql"
     LOCAL_DOCUMENT = "local_document"
+    WEB = "web"
 
 
 class EvidenceBatchStatus(StrEnum):

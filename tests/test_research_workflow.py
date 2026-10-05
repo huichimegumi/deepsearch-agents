@@ -100,6 +100,14 @@ def test_compression_phase_requires_structured_claim_links():
     assert "text、evidence_ids、kind" in instruction
     assert "fact / inference" in instruction
     assert "Rejected claim drafts" in instruction
+    assert "ev1_web_..." in instruction
+
+
+def test_research_phase_distinguishes_web_candidates_from_evidence():
+    instruction = RESEARCH_PHASES[1].instruction
+
+    assert "抓取正文并返回 Web Evidence" in instruction
+    assert "CANDIDATE_ONLY 搜索结果不是证据" in instruction
 
 
 def test_supervisor_phase_prompt_declares_research_boundary():

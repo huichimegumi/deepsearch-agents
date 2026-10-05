@@ -49,8 +49,9 @@ RESEARCH_PHASES = (
 必须执行：
 1. 按 brief 调用合适的子智能体或文件读取工具获取证据
 2. 复杂问题至少覆盖 2 个互补角度；若证据不足，进行 1 次有针对性的追问/补检索
-3. SQL、本地文档和 Fee Engine 证据必须通过 collect_evidence 获取；每条关键结论绑定工具返回的稳定 evidence_id，不得改写或自造 ID
-4. 明确列出证据缺口、冲突和可信度限制
+3. SQL、本地文档和 Fee Engine 证据必须通过 collect_evidence 获取；公开网页必须由网络搜索助手抓取正文并返回 Web Evidence
+4. 每条关键结论绑定工具实际返回的稳定 evidence_id；CANDIDATE_ONLY 搜索结果不是证据，不得改写或自造 ID
+5. 明确列出证据缺口、冲突和可信度限制
 
 必须输出：
 - Evidence Ledger：按“结论候选 / evidence_id / 证据 / 来源定位符 / 可信度 / 缺口”整理
@@ -73,12 +74,12 @@ RESEARCH_PHASES = (
 1. Claims：每条包含 text、evidence_ids、kind（fact / inference）和 limitations
 2. fact 与 inference 都必须绑定已收集的 evidence_id；inference 必须明确 limitations
 3. 冲突信息：不同来源不一致时保留分歧，不要强行抹平
-4. 不确定性与边界：哪些材料尚未登记为 Evidence、哪些数据缺失
+4. 不确定性与边界：哪些搜索候选未成功抓取正文、哪些数据缺失
 5. 最终报告结构建议
 
 后端会确定性校验每个 evidence_id。未知 ID、没有证据的 Claim、没有 limitation 的 inference
-都会进入 Rejected claim drafts，不能交给 Writer 当作已验证结论。当前尚未登记为 Evidence 的
-Web 材料只能记录在不确定性中，等待后续 Web Evidence 阶段处理。
+都会进入 Rejected claim drafts，不能交给 Writer 当作已验证结论。只有研究阶段实际登记的
+ev1_web_... 可用于 Web Claim；只有 URL、搜索摘要或 CANDIDATE_ONLY 状态的材料仍只能记录为缺口。
 
 禁止：
 - 禁止调用 generate_markdown 或 convert_md_to_pdf

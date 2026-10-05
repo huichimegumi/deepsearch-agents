@@ -56,6 +56,7 @@ pythonpath = ["."]
 asyncio_mode = "auto"
 markers = [
     "infrastructure: requires the local Docker Compose infrastructure and seeded test data",
+    "network: requires access to a live public network resource",
 ]
 
 [tool.ruff]

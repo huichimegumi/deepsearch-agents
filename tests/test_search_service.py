@@ -3,7 +3,7 @@
 import os
 import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from app.search.base import SearchProvider, SearchProviderError
 from app.search.models import SearchRequest, SearchResult
@@ -162,7 +162,6 @@ class SearchServiceTests(unittest.TestCase):
         self.assertEqual(len(response.results), 3)
         self.assertNotIn("https://example.com/c", [item.url for item in response.results])
 
-
     @patch("app.search.service.monitor.report_search")
     def test_provider_timeout_stops_waiting_for_slow_backend(self, _report_search):
         slow = SlowProvider("slow", delay=0.2)
@@ -183,6 +182,26 @@ class SearchServiceTests(unittest.TestCase):
             service._fetch_full_pages([result])
 
         self.assertEqual(result.raw_content, "full page")
+
+    @patch("app.search.service.requests.get")
+    def test_fetch_page_revalidates_redirect_target(self, get):
+        redirect = Mock(
+            status_code=302,
+            headers={"location": "http://127.0.0.1/private"},
+        )
+        get.return_value = redirect
+        service = SearchService({}, timeout=0.01)
+
+        with patch.object(
+            service,
+            "_is_public_url",
+            side_effect=lambda url: "127.0.0.1" not in url,
+        ):
+            content = service._fetch_page("https://public.example/start")
+
+        self.assertEqual(content, "")
+        get.assert_called_once()
+        self.assertFalse(get.call_args.kwargs["allow_redirects"])
 
 
 if __name__ == "__main__":

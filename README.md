@@ -99,7 +99,9 @@ for record in payload["records"]:
 
 M2.1 在此基础上加入后端强制的 Claim→Evidence 协议。压缩模型不再分别输出 `core_findings` 和 `citations` 字符串列表，而是提交包含 `text`、`evidence_ids`、`kind` 和 `limitations` 的 Claim 草稿。后端只接受引用本轮真实已收集 ID 的 Claim；无证据、未知 ID，以及没有说明限制条件的 inference 会进入 `Rejected claim drafts`，不会作为已验证结论交给 Writer。通过校验的 Claim 获得稳定 `clm1_...` ID。
 
-最终报告生成后还会执行确定性引用检查：Writer 只能引用已接受 Claim 中的 `[evidence_id]`；若引用未知 ID，或在已有有效证据时完全省略引用，后端会拒绝该 Writer 结果、把运行标记为 degraded，并返回经过验证的 Claim Package。Trace schema v3 记录接受/拒绝 Claim 数、证据使用率和最终引用状态，但不复制私有证据正文。完整设计与失败行为见 [`docs/development/m2-1-claim-evidence-validation.md`](docs/development/m2-1-claim-evidence-validation.md)。当前 Web 搜索还没有转换成统一 Evidence，只能作为缺口或不确定性；Web Evidence 是下一阶段。
+最终报告生成后还会执行确定性引用检查：Writer 只能引用已接受 Claim 中的 `[evidence_id]`；若引用未知 ID，或在已有有效证据时完全省略引用，后端会拒绝该 Writer 结果、把运行标记为 degraded，并返回经过验证的 Claim Package。Trace schema v3 记录接受/拒绝 Claim 数、证据使用率和最终引用状态，但不复制私有证据正文。完整设计与失败行为见 [`docs/development/m2-1-claim-evidence-validation.md`](docs/development/m2-1-claim-evidence-validation.md)。
+
+M2.2 将成功抓取并解析的公开网页正文接入同一证据链。网络搜索结果先标记为候选；只有 `fetch_full_page=true` 且正文抓取成功的页面才会生成稳定 `ev1_web_...`，并进入 Trace、Claim 校验和最终引用门禁。只有标题、URL 或搜索摘要的 `CANDIDATE_ONLY` 结果不属于证据。Web ID 基于规范化 URL 和正文内容寻址，不受排名分数、查询词、搜索后端或跟踪参数变化影响；网页实质内容变化会生成新 ID。详见 [`docs/development/m2-2-web-evidence.md`](docs/development/m2-2-web-evidence.md)。
 
 上游 `DABStep-Research` 仓库当前没有声明许可证。相关原始数据只按锁文件下载到本地，在许可证澄清前不应随本项目重新分发。详细命令和 MySQL 配置见 [DABStep baseline README](evals/dabstep/README.md)。
 
@@ -113,7 +115,7 @@ M2.1 在此基础上加入后端强制的 Claim→Evidence 协议。压缩模型
   -> 注入历史会话摘要、最近消息和长期记忆
   -> 阶段 1：澄清问题并生成 research brief
   -> 阶段 2：Supervisor 直接调用 Evidence Tool 获取 Fee / SQL / 本地文档证据
-  -> 阶段 2：外部公开信息按需分派给网络搜索助手，并读取上传附件 / 记忆
+  -> 阶段 2：网络助手发现候选并抓取正文，生成稳定 Web Evidence；同时读取上传附件 / 记忆
   -> 阶段 2：Researcher 根据证据缺口进行定向补检索和反思
   -> 阶段 3：生成 Claim 草稿；后端校验 Claim→Evidence 关系并拒绝未知或缺失 ID
   -> LangGraph checkpoint 保存同一 thread 的短期执行上下文
@@ -507,7 +509,9 @@ The minimal research workflow now requires the supervisor to obtain these three 
 
 M2.1 adds a backend-enforced Claim-to-Evidence protocol on top of that ledger. Instead of producing unrelated `core_findings` and `citations` string lists, the compression model proposes claim drafts containing `text`, `evidence_ids`, `kind`, and `limitations`. The backend accepts only claims whose IDs were actually collected in the current run. Claims with no evidence, unknown IDs, or an inference without an explicit limitation are retained under `Rejected claim drafts` and are not passed to the writer as verified facts. Accepted claims receive stable `clm1_...` IDs.
 
-The completed report passes one more deterministic citation gate. The writer may cite only `[evidence_id]` values attached to accepted claims. An unknown ID, or a complete absence of citations when validated evidence exists, causes the backend to reject the writer output, mark the run degraded, and return the validated claim package. Trace schema v3 records accepted and rejected claim counts, evidence usage, and final citation validity without copying private evidence content. See [`docs/development/m2-1-claim-evidence-validation.md`](docs/development/m2-1-claim-evidence-validation.md) for the protocol and failure behavior. Web search has not yet been promoted into the unified Evidence schema and remains an explicit gap for the next milestone.
+The completed report passes one more deterministic citation gate. The writer may cite only `[evidence_id]` values attached to accepted claims. An unknown ID, or a complete absence of citations when validated evidence exists, causes the backend to reject the writer output, mark the run degraded, and return the validated claim package. Trace schema v3 records accepted and rejected claim counts, evidence usage, and final citation validity without copying private evidence content. See [`docs/development/m2-1-claim-evidence-validation.md`](docs/development/m2-1-claim-evidence-validation.md) for the protocol and failure behavior.
+
+M2.2 brings successfully fetched and parsed public pages into the same evidence chain. Search results begin as candidates; only pages fetched with `fetch_full_page=true` receive stable `ev1_web_...` IDs and enter the trace, claim validation, and final citation gate. A title, URL, or search snippet marked `CANDIDATE_ONLY` is not evidence. Web IDs are content-addressed from a canonical URL and normalized page text, so ranking, query, provider, and tracking-parameter changes do not destabilize identity, while substantive page changes produce a new ID. See [`docs/development/m2-2-web-evidence.md`](docs/development/m2-2-web-evidence.md).
 
 The upstream `DABStep-Research` repository currently declares no license. Raw files are downloaded locally from the locked revision and must not be redistributed with this project until the licensing status is clarified. See the [DABStep baseline README](evals/dabstep/README.md) for individual commands and MySQL configuration.
 
@@ -521,7 +525,7 @@ User login / frontend conversation
   -> Injects historical conversation summary, recent messages, and long-term memory
   -> Phase 1: clarifies the task and writes a research brief
   -> Phase 2: supervisor calls the Evidence Tool directly for Fee / SQL / local-document evidence
-  -> Phase 2: external public research is delegated to the web researcher as needed; uploads and memory remain available
+  -> Phase 2: web researcher discovers candidates, fetches pages, and emits stable Web Evidence; uploads and memory remain available
   -> Phase 2: researchers run targeted follow-up retrieval and reflection when evidence gaps remain
   -> Phase 3: proposes claims; the backend validates Claim-to-Evidence links and rejects missing or unknown IDs
   -> LangGraph checkpoint stores short-term execution context for the same thread

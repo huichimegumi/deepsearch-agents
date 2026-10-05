@@ -2,6 +2,7 @@ from app.research.evidence.adapters import (
     fee_calculation_to_evidence,
     retrieved_chunks_to_evidence,
     sql_rows_to_evidence,
+    web_results_to_evidence,
 )
 from app.research.evidence.models import (
     EvidenceBatch,
@@ -28,4 +29,5 @@ __all__ = [
     "run_minimal_evidence_workflow",
     "sql_rows_to_evidence",
     "stable_evidence_id",
+    "web_results_to_evidence",
 ]

@@ -54,12 +54,13 @@ The research trace now records counts only; it does not duplicate claim or evide
 
 This makes evidence waste measurable without putting private source text into telemetry.
 
-## Current boundary
+## Boundary at completion
 
 M2.1 validates the internal sources registered in M1.2: Fee Engine, SQL, and local documents. Web
 search is still a discovery-oriented sub-agent and does not yet create `EvidenceRecord` objects.
 Web material must therefore remain an uncertainty or gap in M2.1; promoting fetched web passages to
-stable Web Evidence is the next milestone.
+stable Web Evidence was the next milestone. M2.2 subsequently closed this boundary for successfully
+fetched public pages; search snippets and unfetched candidates remain gaps.
 
 ## Verification
 

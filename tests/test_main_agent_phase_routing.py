@@ -5,6 +5,7 @@ from app.agent.main_agent import (
     _phase_agent_for,
     _research_tools,
 )
+from app.agent.prompts import sub_agents_content
 from app.agent.research_workflow import RESEARCH_PHASES
 
 
@@ -37,3 +38,12 @@ def test_subagent_call_limits_scale_by_budget_profile():
 
 def test_research_phase_exposes_unified_evidence_tool():
     assert "collect_evidence" in {item.name for item in _research_tools()}
+
+
+def test_network_researcher_requires_fetched_web_evidence():
+    prompt = sub_agents_content["search"]["system_prompt"]
+
+    assert "fetch_full_page=true" in prompt
+    assert "evidence_status=FETCHED" in prompt
+    assert "CANDIDATE_ONLY" in prompt
+    assert "ev1_web_..." in prompt
