@@ -27,6 +27,7 @@ from app.agent.research_workflow import (
 )
 from app.agent.runtime import (
     ResearchBudget,
+    ResearchBudgetLimits,
     ResearchRunTrace,
     reset_research_runtime,
     set_research_runtime,
@@ -760,6 +761,7 @@ async def run_deep_agent(
     monitor_thread_id: str | None = None,
     conversation_memory: str = "",
     budget_profile_override: str | None = None,
+    research_limits_override: ResearchBudgetLimits | None = None,
 ):
     """
     异步流式执行主智能体
@@ -778,7 +780,9 @@ async def run_deep_agent(
         else _classify_budget_profile(task_query)
     )
     workflow_run_id = uuid.uuid4().hex
-    research_budget = ResearchBudget(settings.research_budget_limits(budget_profile))
+    research_budget = ResearchBudget(
+        research_limits_override or settings.research_budget_limits(budget_profile)
+    )
     run_trace = ResearchRunTrace(
         run_id=workflow_run_id,
         thread_id=event_thread_id,

@@ -1,0 +1,25 @@
+{
+  "name": "hybrid_deep_research_smoke_v1",
+  "selection_policy": "One official-subset task per hybrid mode, all using the alien database.",
+  "statistical_claim": "Engineering smoke test only; not comparable to the 380-task benchmark.",
+  "default_search_backend": "duckduckgo",
+  "max_search_queries_per_task": 2,
+  "max_fetched_pages_per_task": 2,
+  "tasks": [
+    {
+      "id": "s2sql_041",
+      "hybrid_type": "search_to_sql",
+      "db": "alien"
+    },
+    {
+      "id": "sql2s_192",
+      "hybrid_type": "sql_to_search",
+      "db": "alien"
+    },
+    {
+      "id": "parallel_053",
+      "hybrid_type": "parallel",
+      "db": "alien"
+    }
+  ]
+}

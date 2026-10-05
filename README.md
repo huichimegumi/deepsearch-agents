@@ -103,6 +103,8 @@ M2.1 在此基础上加入后端强制的 Claim→Evidence 协议。压缩模型
 
 M2.2 将成功抓取并解析的公开网页正文接入同一证据链。网络搜索结果先标记为候选；只有 `fetch_full_page=true` 且正文抓取成功的页面才会生成稳定 `ev1_web_...`，并进入 Trace、Claim 校验和最终引用门禁。只有标题、URL 或搜索摘要的 `CANDIDATE_ONLY` 结果不属于证据。Web ID 基于规范化 URL 和正文内容寻址，不受排名分数、查询词、搜索后端或跟踪参数变化影响；网页实质内容变化会生成新 ID。详见 [`docs/development/m2-2-web-evidence.md`](docs/development/m2-2-web-evidence.md)。
 
+M3.1 增加 HybridDeepResearch 三题 smoke 适配：三种 SQL/Web 协同模式各选一题，并统一使用一个只读 SQLite 数据库。默认 DuckDuckGo，每题最多两个查询和两个抓取页面，完整运行最多六个查询；任何可能使用 Tavily 等付费额度的模式都必须显式授权。加密题目只在内存解密，结果文件不保存问题、参考答案、SQL 或模型正文。该子集用于发现跨来源链路故障，不代表官方 benchmark 成绩。复现方法见 [`evals/hybrid/README.md`](evals/hybrid/README.md)。
+
 上游 `DABStep-Research` 仓库当前没有声明许可证。相关原始数据只按锁文件下载到本地，在许可证澄清前不应随本项目重新分发。详细命令和 MySQL 配置见 [DABStep baseline README](evals/dabstep/README.md)。
 
 ### 系统架构
@@ -512,6 +514,8 @@ M2.1 adds a backend-enforced Claim-to-Evidence protocol on top of that ledger. I
 The completed report passes one more deterministic citation gate. The writer may cite only `[evidence_id]` values attached to accepted claims. An unknown ID, or a complete absence of citations when validated evidence exists, causes the backend to reject the writer output, mark the run degraded, and return the validated claim package. Trace schema v3 records accepted and rejected claim counts, evidence usage, and final citation validity without copying private evidence content. See [`docs/development/m2-1-claim-evidence-validation.md`](docs/development/m2-1-claim-evidence-validation.md) for the protocol and failure behavior.
 
 M2.2 brings successfully fetched and parsed public pages into the same evidence chain. Search results begin as candidates; only pages fetched with `fetch_full_page=true` receive stable `ev1_web_...` IDs and enter the trace, claim validation, and final citation gate. A title, URL, or search snippet marked `CANDIDATE_ONLY` is not evidence. Web IDs are content-addressed from a canonical URL and normalized page text, so ranking, query, provider, and tracking-parameter changes do not destabilize identity, while substantive page changes produce a new ID. See [`docs/development/m2-2-web-evidence.md`](docs/development/m2-2-web-evidence.md).
+
+M3.1 adds a three-task HybridDeepResearch smoke adapter: one task for each SQL/Web coordination mode, all sharing one read-only SQLite database. DuckDuckGo is the default, each task is capped at two queries and two fetched pages, and the full run is capped at six queries. Any mode that may consume Tavily or other paid credits requires explicit authorization. Encrypted tasks are decrypted in memory, while result files omit questions, gold answers, SQL, and model text. This subset detects cross-source pipeline failures; it is not an official benchmark score. See [`evals/hybrid/README.md`](evals/hybrid/README.md).
 
 The upstream `DABStep-Research` repository currently declares no license. Raw files are downloaded locally from the locked revision and must not be redistributed with this project until the licensing status is clarified. See the [DABStep baseline README](evals/dabstep/README.md) for individual commands and MySQL configuration.
 

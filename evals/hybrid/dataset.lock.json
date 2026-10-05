@@ -1,0 +1,42 @@
+{
+  "task_dataset": {
+    "name": "Snowflake/HybridDeepResearch",
+    "repository_url": "https://huggingface.co/datasets/Snowflake/HybridDeepResearch",
+    "revision": "31304784b7aec82f22d59772a8afeb78567fd8b3",
+    "files": [
+      {
+        "path": "hybrid_ds_release/hybrid_ds_release.jsonl",
+        "bytes": 1960554,
+        "sha256": "105144a923371dccf997c71339b7ff1d5761e51442e3f9b9d2ee2abea1716466"
+      }
+    ]
+  },
+  "database_dataset": {
+    "name": "birdsql/livesqlbench-base-lite-sqlite",
+    "repository_url": "https://huggingface.co/datasets/birdsql/livesqlbench-base-lite-sqlite",
+    "revision": "0664a2f28555faa0dd2947c8c23288df79bcc06b",
+    "files": [
+      {
+        "path": "alien/alien_template.sqlite",
+        "bytes": 2371584,
+        "sha256": "e160643c9abb43ba69917532f2654637e677460df25678f9daecdefb416046ed"
+      },
+      {
+        "path": "alien/alien_schema.txt",
+        "bytes": 12943,
+        "sha256": "729488f9927834a3ea51638205269fc93010a7766e03e3c33d5954f107c44d71"
+      },
+      {
+        "path": "alien/alien_column_meaning_base.json",
+        "bytes": 26120,
+        "sha256": "75b578cec2d43fd0f61f622c5301946a58aa20de7007a8957f17a8bf935e520a"
+      },
+      {
+        "path": "alien/alien_kb.jsonl",
+        "bytes": 25309,
+        "sha256": "96144f99e683efd4a7438d34c07f150f071ae9ba13b3dd23cda5ab783620a77a"
+      }
+    ]
+  },
+  "license_note": "Benchmark records retain upstream licenses; do not commit decrypted tasks or outputs."
+}

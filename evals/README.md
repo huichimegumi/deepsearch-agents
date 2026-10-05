@@ -2,6 +2,12 @@
 
 本目录包含 DeepSearch Agents 第一阶段的项目内中文评测集，覆盖路由、联网搜索、数据库查询、本地知识库检索和端到端报告生成。
 
+此外，`hybrid/` 提供固定版本的 HybridDeepResearch 三题 smoke 子集，分别覆盖
+Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckGo，每题最多两个
+搜索查询和两个抓取页面；Tavily、Perplexity、auto 或 advanced 模式必须显式传入
+`--allow-paid-search`。该子集只用于检查跨来源执行链，不是可与官方 380 题结果比较的分数。
+详细说明见 [`hybrid/README.md`](hybrid/README.md)。
+
 ## 数据集
 
 - `datasets/web_research_zh.jsonl`：20 条联网搜索 QA 任务。

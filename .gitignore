@@ -11,6 +11,7 @@ app/rag_temp
 .cache/
 /data/knowledge_base/
 /data/benchmarks/dabstep_research/
+/data/benchmarks/hybrid_deep_research/
 /evals/dabstep/work/
 /out-tsc
 # Only exists if Bazel was run

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import os
 import re
+import sqlite3
 from functools import lru_cache
+from hashlib import sha256
 from pathlib import Path
 from time import monotonic
 from typing import Literal
@@ -49,6 +51,10 @@ def _error_batch(source: EvidenceSource, query: str | None, exc: Exception) -> E
 
 
 def _collect_sql(query: str, operation: str) -> EvidenceBatch:
+    sqlite_path = os.getenv("EVIDENCE_SQLITE_PATH", "").strip()
+    if sqlite_path:
+        return _collect_sqlite(query, operation, Path(sqlite_path))
+
     from mysql.connector import connect
 
     config = get_db_config()
@@ -99,6 +105,69 @@ def _collect_sql(query: str, operation: str) -> EvidenceBatch:
         ),
         records=records,
         warnings=warnings or (() if records else ("SQL query returned no rows.",)),
+        query=executed_query,
+    )
+
+
+@lru_cache(maxsize=8)
+def _sqlite_fingerprint(path: str, size: int, modified_ns: int) -> str:
+    del size, modified_ns
+    digest = sha256()
+    with Path(path).open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _collect_sqlite(query: str, operation: str, database_path: Path) -> EvidenceBatch:
+    resolved = database_path.expanduser().resolve(strict=True)
+    stat = resolved.stat()
+    database_identity = (
+        f"sqlite/sha256/{_sqlite_fingerprint(str(resolved), stat.st_size, stat.st_mtime_ns)}"
+    )
+    executed_query = (
+        "SELECT name AS table_name FROM sqlite_master "
+        "WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+        if operation == "list_tables"
+        else _validate_read_only_sql(query)
+    )
+    row_limit = get_settings().db_query_preview_rows
+    preview_query, _limited = _preview_sql_query(executed_query, row_limit)
+    timeout_seconds = get_settings().db_timeout_seconds
+    deadline = monotonic() + timeout_seconds
+
+    with sqlite3.connect(f"{resolved.as_uri()}?mode=ro", uri=True) as connection:
+        connection.execute("PRAGMA query_only = ON")
+        connection.set_progress_handler(lambda: int(monotonic() >= deadline), 10_000)
+        cursor = connection.execute(preview_query)
+        if cursor.description is None:
+            raise ValueError("SQLite evidence query returned no tabular result")
+        columns = [item[0] for item in cursor.description]
+        rows = cursor.fetchmany(row_limit + 1)
+
+    truncated = len(rows) > row_limit
+    records = sql_rows_to_evidence(
+        query=executed_query,
+        columns=columns,
+        rows=rows[:row_limit],
+        database_identity=database_identity,
+    )
+    warnings = (
+        (f"SQLite evidence was truncated to {row_limit} rows; narrow the query.",)
+        if truncated
+        else ()
+    )
+    return EvidenceBatch(
+        source=EvidenceSource.SQL,
+        status=(
+            EvidenceBatchStatus.PARTIAL
+            if truncated
+            else EvidenceBatchStatus.OK
+            if records
+            else EvidenceBatchStatus.NO_EVIDENCE
+        ),
+        records=records,
+        warnings=warnings or (() if records else ("SQLite query returned no rows.",)),
         query=executed_query,
     )
 
