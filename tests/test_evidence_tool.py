@@ -14,6 +14,7 @@ from app.research.evidence import (
     retrieved_chunks_to_evidence,
     run_minimal_evidence_workflow,
     sql_rows_to_evidence,
+    sql_schema_to_evidence,
 )
 from app.research.fee_engine import FeeEngine, FeeRule, TransactionContext
 from app.tools.evidence_tool import _validate_read_only_sql, collect_evidence
@@ -98,6 +99,24 @@ def test_sql_evidence_is_stable_across_insignificant_query_whitespace():
 
     assert first[0].evidence_id == second[0].evidence_id
     assert first[0].content == {"merchant": "A", "total": "1.20"}
+
+
+def test_sql_schema_evidence_is_stable_and_table_scoped():
+    tables = [
+        {
+            "table_name": "payments",
+            "columns": [{"name": "id", "declared_type": "INTEGER"}],
+            "foreign_keys": [],
+            "indexes": [],
+        }
+    ]
+
+    first = sql_schema_to_evidence(tables=tables, database_identity="sqlite/sha256/demo")
+    second = sql_schema_to_evidence(tables=tables, database_identity="sqlite/sha256/demo")
+
+    assert first[0].evidence_id == second[0].evidence_id
+    assert first[0].locator.endswith("/schema/payments")
+    assert first[0].metadata["evidence_kind"] == "database_schema"
 
 
 def test_local_document_identity_survives_reranking():

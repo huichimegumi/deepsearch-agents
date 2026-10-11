@@ -75,8 +75,9 @@ Benchmark hint: {hint or "None"}
 Database: {task["db"]}
 
 Evaluation constraints:
-- The database is mounted read-only. Use collect_evidence(source=sql, operation=list_tables)
-  before querying it. You may inspect columns with a bounded SELECT from pragma_table_info.
+- The database is mounted read-only. Before writing SQL, use
+  collect_evidence(source=sql, operation=describe_schema). Use operation=sample_table with an
+  exact table_name only when a bounded three-row value preview is needed.
 - Use the network researcher for the public-web leg and require fetched Web Evidence; a search
   snippet or CANDIDATE_ONLY result is not evidence.
 - Keep the answer concise and cite exact SQL and Web evidence IDs.

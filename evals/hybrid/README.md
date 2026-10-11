@@ -79,3 +79,10 @@ It used four of the six allowed queries and no intentionally authorized paid bac
 reports passed citation validation, two collected both source types, and none passed the strict
 answer check. This is a diagnostic baseline, not a result to optimize by leaking task-specific gold
 information into prompts.
+
+M3.3 addresses the observed column-guessing failure mode. The evaluator now requires
+`collect_evidence(source=sql, operation=describe_schema)` before query construction. The operation
+returns stable Evidence for columns, keys, and indexes across the mounted SQLite database. A
+separate `sample_table` operation accepts an exact catalog table name and returns at most three rows
+when value-domain inspection is necessary. See
+[`docs/development/m3-3-sqlite-schema-discovery.md`](../../docs/development/m3-3-sqlite-schema-discovery.md).

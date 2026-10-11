@@ -24,6 +24,7 @@ from app.research.evidence import (
     fee_calculation_to_evidence,
     retrieved_chunks_to_evidence,
     sql_rows_to_evidence,
+    sql_schema_to_evidence,
 )
 from app.research.fee_engine import FeeDataset
 from app.tools.db_tools import _apply_query_timeout, _preview_sql_query, get_db_config
@@ -39,6 +40,8 @@ MUTATING_SQL_PATTERN = re.compile(
     r"\b(insert|update|delete|replace|merge|alter|drop|truncate|create|grant|revoke|call|load)\b",
     re.IGNORECASE,
 )
+SQLITE_SCHEMA_TABLE_LIMIT = 40
+SQLITE_SAMPLE_ROW_LIMIT = 3
 
 
 def _error_batch(source: EvidenceSource, query: str | None, exc: Exception) -> EvidenceBatch:
@@ -54,6 +57,9 @@ def _collect_sql(query: str, operation: str) -> EvidenceBatch:
     sqlite_path = os.getenv("EVIDENCE_SQLITE_PATH", "").strip()
     if sqlite_path:
         return _collect_sqlite(query, operation, Path(sqlite_path))
+
+    if operation not in {"query", "list_tables"}:
+        raise ValueError(f"SQL operation {operation!r} currently requires EVIDENCE_SQLITE_PATH")
 
     from mysql.connector import connect
 
@@ -119,26 +125,167 @@ def _sqlite_fingerprint(path: str, size: int, modified_ns: int) -> str:
     return digest.hexdigest()
 
 
-def _collect_sqlite(query: str, operation: str, database_path: Path) -> EvidenceBatch:
+def _sqlite_table_names(connection: sqlite3.Connection) -> list[str]:
+    return [
+        str(row[0])
+        for row in connection.execute(
+            "SELECT name FROM sqlite_master "
+            "WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+        )
+    ]
+
+
+def _sqlite_describe_schema(
+    connection: sqlite3.Connection,
+    *,
+    database_identity: str,
+    table_name: str,
+) -> EvidenceBatch:
+    available = _sqlite_table_names(connection)
+    if table_name and table_name not in available:
+        raise ValueError(f"unknown SQLite table: {table_name}")
+    selected = [table_name] if table_name else available[:SQLITE_SCHEMA_TABLE_LIMIT]
+    schemas = []
+    for name in selected:
+        columns = [
+            {
+                "cid": row[0],
+                "name": row[1],
+                "declared_type": row[2],
+                "not_null": bool(row[3]),
+                "default_value": row[4],
+                "primary_key_position": row[5],
+                "hidden": row[6],
+            }
+            for row in connection.execute("SELECT * FROM pragma_table_xinfo(?)", (name,))
+        ]
+        foreign_keys = [
+            {
+                "id": row[0],
+                "sequence": row[1],
+                "target_table": row[2],
+                "from_column": row[3],
+                "to_column": row[4],
+                "on_update": row[5],
+                "on_delete": row[6],
+                "match": row[7],
+            }
+            for row in connection.execute("SELECT * FROM pragma_foreign_key_list(?)", (name,))
+        ]
+        indexes = []
+        for row in connection.execute("SELECT * FROM pragma_index_list(?)", (name,)):
+            index_name = str(row[1])
+            indexes.append(
+                {
+                    "name": index_name,
+                    "unique": bool(row[2]),
+                    "origin": row[3],
+                    "partial": bool(row[4]),
+                    "columns": [
+                        item[2]
+                        for item in connection.execute(
+                            "SELECT * FROM pragma_index_info(?)", (index_name,)
+                        )
+                    ],
+                }
+            )
+        schemas.append(
+            {
+                "table_name": name,
+                "columns": columns,
+                "foreign_keys": foreign_keys,
+                "indexes": indexes,
+            }
+        )
+
+    records = sql_schema_to_evidence(
+        tables=schemas,
+        database_identity=database_identity,
+    )
+    truncated = not table_name and len(available) > len(selected)
+    return EvidenceBatch(
+        source=EvidenceSource.SQL,
+        status=EvidenceBatchStatus.PARTIAL if truncated else EvidenceBatchStatus.OK,
+        records=records,
+        warnings=(
+            (
+                f"SQLite schema was limited to {SQLITE_SCHEMA_TABLE_LIMIT} tables; "
+                "request a specific table_name for omitted tables."
+            ),
+        )
+        if truncated
+        else (),
+        query=f"describe_schema:{table_name or '*'}",
+    )
+
+
+def _sqlite_sample_table(
+    connection: sqlite3.Connection,
+    *,
+    database_identity: str,
+    table_name: str,
+) -> EvidenceBatch:
+    if not table_name:
+        raise ValueError("table_name is required for sample_table")
+    if table_name not in _sqlite_table_names(connection):
+        raise ValueError(f"unknown SQLite table: {table_name}")
+    quoted = '"' + table_name.replace('"', '""') + '"'
+    executed_query = f"SELECT * FROM {quoted} LIMIT {SQLITE_SAMPLE_ROW_LIMIT}"
+    cursor = connection.execute(executed_query)
+    columns = [item[0] for item in cursor.description or ()]
+    rows = cursor.fetchall()
+    records = sql_rows_to_evidence(
+        query=executed_query,
+        columns=columns,
+        rows=rows,
+        database_identity=database_identity,
+    )
+    return EvidenceBatch(
+        source=EvidenceSource.SQL,
+        status=EvidenceBatchStatus.OK if records else EvidenceBatchStatus.NO_EVIDENCE,
+        records=records,
+        warnings=() if records else ("SQLite table contained no sample rows.",),
+        query=executed_query,
+    )
+
+
+def _collect_sqlite(
+    query: str,
+    operation: str,
+    database_path: Path,
+    table_name: str = "",
+) -> EvidenceBatch:
     resolved = database_path.expanduser().resolve(strict=True)
     stat = resolved.stat()
     database_identity = (
         f"sqlite/sha256/{_sqlite_fingerprint(str(resolved), stat.st_size, stat.st_mtime_ns)}"
     )
-    executed_query = (
-        "SELECT name AS table_name FROM sqlite_master "
-        "WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
-        if operation == "list_tables"
-        else _validate_read_only_sql(query)
-    )
-    row_limit = get_settings().db_query_preview_rows
-    preview_query, _limited = _preview_sql_query(executed_query, row_limit)
     timeout_seconds = get_settings().db_timeout_seconds
     deadline = monotonic() + timeout_seconds
 
     with sqlite3.connect(f"{resolved.as_uri()}?mode=ro", uri=True) as connection:
         connection.execute("PRAGMA query_only = ON")
         connection.set_progress_handler(lambda: int(monotonic() >= deadline), 10_000)
+        if operation == "describe_schema":
+            return _sqlite_describe_schema(
+                connection,
+                database_identity=database_identity,
+                table_name=table_name,
+            )
+        if operation == "sample_table":
+            return _sqlite_sample_table(
+                connection,
+                database_identity=database_identity,
+                table_name=table_name,
+            )
+        executed_query = (
+            "SELECT name AS table_name FROM sqlite_master "
+            "WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
+            if operation == "list_tables"
+            else _validate_read_only_sql(query)
+        )
+        row_limit = get_settings().db_query_preview_rows
+        preview_query, _limited = _preview_sql_query(executed_query, row_limit)
         cursor = connection.execute(preview_query)
         if cursor.description is None:
             raise ValueError("SQLite evidence query returned no tabular result")
@@ -296,11 +443,13 @@ def collect_evidence(
     knowledge_base: str = "all",
     psp_reference: str = "",
     aci: str = "",
-    operation: Literal["query", "list_tables"] = "query",
+    operation: Literal["query", "list_tables", "describe_schema", "sample_table"] = "query",
+    table_name: str = "",
 ) -> str:
     """Collect bounded, traceable evidence with stable evidence_id values.
 
-    Use source=sql with a read-only query (or operation=list_tables),
+    Use source=sql with a read-only query. For SQLite, call operation=describe_schema
+    before writing SQL and optionally operation=sample_table with an exact table_name.
     source=local_document with a retrieval query and optional knowledge-base name,
     or source=fee_engine with a PSP reference and optional ACI override.
     The returned JSON is the evidence ledger input; cite its evidence_id values unchanged.
@@ -316,11 +465,16 @@ def collect_evidence(
             "psp_reference": psp_reference,
             "aci": aci,
             "operation": operation,
+            "table_name": table_name,
         },
     )
     try:
         if source_type is EvidenceSource.SQL:
-            batch = _collect_sql(query, operation)
+            sqlite_path = os.getenv("EVIDENCE_SQLITE_PATH", "").strip()
+            if sqlite_path:
+                batch = _collect_sqlite(query, operation, Path(sqlite_path), table_name)
+            else:
+                batch = _collect_sql(query, operation)
         elif source_type is EvidenceSource.LOCAL_DOCUMENT:
             batch = _collect_local_documents(query, knowledge_base)
         else:

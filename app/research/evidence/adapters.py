@@ -4,7 +4,8 @@ import hashlib
 import json
 import re
 from collections import defaultdict
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Mapping, Sequence
+from urllib.parse import quote
 
 from app.rag.retrieval import RetrievedChunk
 from app.research.evidence.models import EvidenceRecord, EvidenceSource, json_safe
@@ -117,6 +118,31 @@ def sql_rows_to_evidence(
                     "duplicate_index": duplicate_index,
                 },
                 metadata={"query": normalized_query},
+            )
+        )
+    return tuple(records)
+
+
+def sql_schema_to_evidence(
+    *,
+    tables: Iterable[Mapping[str, Any]],
+    database_identity: str,
+) -> tuple[EvidenceRecord, ...]:
+    """Promote deterministic database schema descriptions to SQL Evidence."""
+    records: list[EvidenceRecord] = []
+    for table in sorted(tables, key=lambda item: str(item.get("table_name", ""))):
+        table_name = str(table.get("table_name", ""))
+        if not table_name:
+            continue
+        content = json_safe(table)
+        locator = f"sql://{database_identity}/schema/{quote(table_name, safe='')}"
+        records.append(
+            EvidenceRecord.create(
+                source=EvidenceSource.SQL,
+                locator=locator,
+                content=content,
+                identity={"database": database_identity, "table": table_name},
+                metadata={"evidence_kind": "database_schema"},
             )
         )
     return tuple(records)

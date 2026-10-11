@@ -107,6 +107,8 @@ M3.1 增加 HybridDeepResearch 三题 smoke 适配：三种 SQL/Web 协同模式
 
 M3.2 完成首次真实 smoke baseline，并据此修复两项执行链缺陷：搜索后端现在使用工具层硬锁，模型不能以 `advanced` 绕过 DuckDuckGo 限制；后端还会维护不写入 telemetry 的有界 Evidence Ledger，即使 Supervisor 没有生成摘要，Compression 仍能收到真实证据。修复后 3/3 报告通过引用校验、2/3 收集到 SQL+Web 双源证据，但严格答案正确率仍为 0/3。当前瓶颈是 SQLite schema 探索和受限预算内的 SQL 修复，而不是搜索数量。完整基线见 [`docs/development/m3-2-hybrid-smoke-baseline.md`](docs/development/m3-2-hybrid-smoke-baseline.md)。
 
+M3.3 为 SQLite Evidence 增加确定性的 schema discovery。`describe_schema` 一次返回表、字段类型、主键、外键和索引的稳定 `ev1_sql_...` Evidence；`sample_table` 只接受 catalog 中的精确表名，并最多返回三行用于判断值域。两者均通过只读连接、查询超时和固定上限约束。冻结的 `alien` 数据库可一次发现全部 11 张表，评测提示词现在要求先查看 schema 再编写 SQL。实现与边界见 [`docs/development/m3-3-sqlite-schema-discovery.md`](docs/development/m3-3-sqlite-schema-discovery.md)。
+
 上游 `DABStep-Research` 仓库当前没有声明许可证。相关原始数据只按锁文件下载到本地，在许可证澄清前不应随本项目重新分发。详细命令和 MySQL 配置见 [DABStep baseline README](evals/dabstep/README.md)。
 
 ### 系统架构
@@ -520,6 +522,8 @@ M2.2 brings successfully fetched and parsed public pages into the same evidence 
 M3.1 adds a three-task HybridDeepResearch smoke adapter: one task for each SQL/Web coordination mode, all sharing one read-only SQLite database. DuckDuckGo is the default, each task is capped at two queries and two fetched pages, and the full run is capped at six queries. Any mode that may consume Tavily or other paid credits requires explicit authorization. Encrypted tasks are decrypted in memory, while result files omit questions, gold answers, SQL, and model text. This subset detects cross-source pipeline failures; it is not an official benchmark score. See [`evals/hybrid/README.md`](evals/hybrid/README.md).
 
 M3.2 records the first live smoke baseline and fixes two execution-chain failures it exposed. Search now uses a tool-level backend lock, so the model cannot bypass the DuckDuckGo constraint by requesting `advanced`. A bounded in-memory Evidence Ledger also preserves real records for compression when the Supervisor produces no summary, without serializing evidence content into telemetry. After the fixes, all three reports passed citation validation and two collected both SQL and Web Evidence, but strict answer correctness remained 0/3. SQLite schema discovery and bounded SQL repair—not more searching—are the current bottlenecks. See [`docs/development/m3-2-hybrid-smoke-baseline.md`](docs/development/m3-2-hybrid-smoke-baseline.md).
+
+M3.3 adds deterministic schema discovery to SQLite Evidence. `describe_schema` returns stable `ev1_sql_...` Evidence for tables, column types, primary and foreign keys, and indexes in one call. `sample_table` accepts only an exact catalog table name and returns at most three rows for value-domain inspection. Both paths retain read-only connections, query deadlines, and fixed bounds. The frozen `alien` database exposes all 11 tables in one discovery call, and the evaluator now requires schema inspection before SQL construction. See [`docs/development/m3-3-sqlite-schema-discovery.md`](docs/development/m3-3-sqlite-schema-discovery.md).
 
 The upstream `DABStep-Research` repository currently declares no license. Raw files are downloaded locally from the locked revision and must not be redistributed with this project until the licensing status is clarified. See the [DABStep baseline README](evals/dabstep/README.md) for individual commands and MySQL configuration.
 

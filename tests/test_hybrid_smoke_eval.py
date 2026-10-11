@@ -39,10 +39,17 @@ def _encrypted_record(payload: dict) -> dict:
 
 def _sqlite_database(path):
     with sqlite3.connect(path) as connection:
-        connection.execute("CREATE TABLE metrics (name TEXT, value INTEGER)")
+        connection.execute(
+            "CREATE TABLE groups (id INTEGER PRIMARY KEY, label TEXT NOT NULL UNIQUE)"
+        )
+        connection.execute(
+            "CREATE TABLE metrics (name TEXT, value INTEGER, group_id INTEGER, "
+            "FOREIGN KEY(group_id) REFERENCES groups(id))"
+        )
+        connection.execute("INSERT INTO groups VALUES (1, 'primary')")
         connection.executemany(
-            "INSERT INTO metrics VALUES (?, ?)",
-            [("alpha", 1), ("beta", 2)],
+            "INSERT INTO metrics VALUES (?, ?, ?)",
+            [("alpha", 1, 1), ("beta", 2, 1)],
         )
 
 
@@ -101,7 +108,10 @@ def test_sqlite_evidence_backend_is_read_only_and_stable(tmp_path, monkeypatch):
     )
 
     assert tables["status"] == "OK"
-    assert tables["records"][0]["content"] == {"table_name": "metrics"}
+    assert {item["content"]["table_name"] for item in tables["records"]} == {
+        "groups",
+        "metrics",
+    }
     assert [item["evidence_id"] for item in first["records"]] == [
         item["evidence_id"] for item in second["records"]
     ]
@@ -109,6 +119,45 @@ def test_sqlite_evidence_backend_is_read_only_and_stable(tmp_path, monkeypatch):
     assert rejected["status"] == "ERROR"
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT SUM(value) FROM metrics").fetchone()[0] == 3
+
+
+def test_sqlite_schema_and_samples_are_bounded_stable_evidence(tmp_path, monkeypatch):
+    database = tmp_path / "schema.sqlite"
+    _sqlite_database(database)
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database))
+
+    first = json.loads(collect_evidence.invoke({"source": "sql", "operation": "describe_schema"}))
+    second = json.loads(collect_evidence.invoke({"source": "sql", "operation": "describe_schema"}))
+    sample = json.loads(
+        collect_evidence.invoke(
+            {"source": "sql", "operation": "sample_table", "table_name": "metrics"}
+        )
+    )
+    rejected = json.loads(
+        collect_evidence.invoke(
+            {
+                "source": "sql",
+                "operation": "sample_table",
+                "table_name": 'metrics"; DROP TABLE metrics; --',
+            }
+        )
+    )
+
+    assert first["status"] == "OK"
+    assert [item["evidence_id"] for item in first["records"]] == [
+        item["evidence_id"] for item in second["records"]
+    ]
+    metrics = next(item for item in first["records"] if item["content"]["table_name"] == "metrics")
+    assert {column["name"] for column in metrics["content"]["columns"]} == {
+        "name",
+        "value",
+        "group_id",
+    }
+    assert metrics["content"]["foreign_keys"][0]["target_table"] == "groups"
+    groups = next(item for item in first["records"] if item["content"]["table_name"] == "groups")
+    assert groups["content"]["indexes"][0]["columns"] == ["label"]
+    assert len(sample["records"]) == 2
+    assert rejected["status"] == "ERROR"
 
 
 def test_smoke_correctness_helpers_do_not_require_llm_judge(tmp_path):

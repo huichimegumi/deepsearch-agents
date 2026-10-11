@@ -50,6 +50,7 @@ RESEARCH_PHASES = (
 1. 按 brief 调用合适的子智能体或文件读取工具获取证据
 2. 复杂问题至少覆盖 2 个互补角度；若证据不足，进行 1 次有针对性的追问/补检索
 3. SQL、本地文档和 Fee Engine 证据必须通过 collect_evidence 获取；公开网页必须由网络搜索助手抓取正文并返回 Web Evidence
+   对 SQLite，编写查询前必须先调用 operation=describe_schema；只有需要确认值域时，才对相关表调用 operation=sample_table
 4. 每条关键结论绑定工具实际返回的稳定 evidence_id；CANDIDATE_ONLY 搜索结果不是证据，不得改写或自造 ID
 5. 明确列出证据缺口、冲突和可信度限制
 
