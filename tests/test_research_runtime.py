@@ -183,6 +183,52 @@ def test_trace_allows_one_sql_correction_after_discovery():
     assert payload["metrics"]["sql_correction_successes"] == 0
 
 
+def test_trace_reserves_one_correction_after_consecutive_sql_failures():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_sql_schema",
+                source="sql",
+                metadata={"evidence_kind": "database_schema"},
+            ),
+        )
+    )
+    for query in ("SELECT missing_one FROM metrics", "SELECT missing_two FROM metrics"):
+        admitted, _ = trace.admit_sql_query(query)
+        assert admitted is True
+        trace.record_sql_query_result(
+            query,
+            status="ERROR",
+            warnings=("no such column",),
+        )
+
+    admitted, limited = trace.admit_sql_query("SELECT value FROM metrics")
+    assert admitted is False
+    assert limited["reason"] == "consecutive_failure_limit"
+    assert trace.can_attempt_sql_correction is True
+
+    admitted, duplicate = trace.admit_sql_query(
+        "SELECT missing_one FROM metrics",
+        correction=True,
+    )
+    assert admitted is False
+    assert duplicate["reason"] == "duplicate_failed_query"
+
+    admitted, recovery = trace.admit_sql_query(
+        "SELECT value FROM metrics",
+        correction=True,
+    )
+    assert admitted is True
+    assert recovery["failure_limit_override"] is True
+    trace.record_sql_correction(success=False)
+
+    payload = trace.finalize(status="completed", final_result="gap")
+    assert payload["schema_version"] == 6
+    assert payload["metrics"]["sql_correction_admission_overrides"] == 1
+    assert trace.can_attempt_sql_correction is False
+
+
 def test_trace_renders_bounded_backend_ledger_without_serializing_content():
     trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
     record = SimpleNamespace(
@@ -300,7 +346,7 @@ def test_trace_bounds_sql_repair_and_keeps_query_text_private():
 
     payload = trace.finalize(status="completed", final_result="gap")
     serialized = json.dumps(payload)
-    assert payload["schema_version"] == 5
+    assert payload["schema_version"] == 6
     assert payload["metrics"]["sql_query_attempts"] == 2
     assert payload["metrics"]["sql_query_failures"] == 2
     assert payload["metrics"]["sql_query_blocked"] == 2

@@ -13,6 +13,7 @@ from langchain_core.tools import tool
 
 from app.agent.runtime import get_research_trace
 from app.api.audit import write_audit_event
+from app.api.context import get_research_phase_context
 from app.api.monitor import monitor
 from app.config import get_settings
 from app.rag.retrieval import hybrid_search, hybrid_search_many
@@ -476,7 +477,10 @@ def collect_evidence(
     try:
         if source_type is EvidenceSource.SQL:
             if operation == "query" and trace is not None:
-                admitted, sql_policy = trace.admit_sql_query(query)
+                admitted, sql_policy = trace.admit_sql_query(
+                    query,
+                    correction=get_research_phase_context() == "sql_evidence_correction",
+                )
             else:
                 admitted = True
             if not admitted:

@@ -64,6 +64,7 @@ speed-measure-plugin*.json
 
 # misc
 evals/results/
+/.test-tmp/
 /.angular/cache
 /.sass-cache
 /connect.lock

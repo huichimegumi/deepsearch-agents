@@ -173,6 +173,7 @@ class ResearchRunTrace:
     sql_sample_calls: int = 0
     sql_correction_attempts: int = 0
     sql_correction_successes: int = 0
+    sql_correction_admission_overrides: int = 0
     sql_error_categories: Counter[str] = field(default_factory=Counter)
     _consecutive_sql_failures: int = field(default=0, repr=False)
     _failed_sql_query_digests: set[str] = field(default_factory=set, repr=False)
@@ -314,7 +315,7 @@ class ResearchRunTrace:
         return (
             discovered_database
             and not self.has_analytical_sql_evidence
-            and self._consecutive_sql_failures < MAX_CONSECUTIVE_SQL_FAILURES
+            and self.sql_correction_attempts == 0
         )
 
     def record_sql_correction(self, *, success: bool) -> None:
@@ -327,7 +328,12 @@ class ResearchRunTrace:
         normalized = " ".join(query.strip().rstrip(";").split())
         return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:16]
 
-    def admit_sql_query(self, query: str) -> tuple[bool, dict[str, Any]]:
+    def admit_sql_query(
+        self,
+        query: str,
+        *,
+        correction: bool = False,
+    ) -> tuple[bool, dict[str, Any]]:
         """Admit an original SQL attempt plus at most one consecutive repair."""
         query_digest = self._sql_query_digest(query)
         if query_digest in self._failed_sql_query_digests:
@@ -337,18 +343,23 @@ class ResearchRunTrace:
                 "reason": "duplicate_failed_query",
                 "query_digest": query_digest,
             }
-        if self._consecutive_sql_failures >= MAX_CONSECUTIVE_SQL_FAILURES:
+        failure_limit_reached = self._consecutive_sql_failures >= MAX_CONSECUTIVE_SQL_FAILURES
+        if failure_limit_reached and not correction:
             self.sql_query_blocked += 1
             return False, {
                 "admitted": False,
                 "reason": "consecutive_failure_limit",
                 "query_digest": query_digest,
             }
+        if failure_limit_reached:
+            self.sql_correction_admission_overrides += 1
         self.sql_query_attempts += 1
         return True, {
             "admitted": True,
             "attempt": self.sql_query_attempts,
             "query_digest": query_digest,
+            "correction": correction,
+            "failure_limit_override": failure_limit_reached,
         }
 
     @staticmethod
@@ -509,7 +520,7 @@ class ResearchRunTrace:
         result_urls = set(re.findall(r"https?://[^\s)>\]]+", final_result or ""))
         unused_fetched = self._fetched_sources - result_urls
         return {
-            "schema_version": 5,
+            "schema_version": 6,
             "run_id": self.run_id,
             "thread_id": self.thread_id,
             "started_at": self.started_at,
@@ -551,6 +562,9 @@ class ResearchRunTrace:
                 "sql_sample_calls": self.sql_sample_calls,
                 "sql_correction_attempts": self.sql_correction_attempts,
                 "sql_correction_successes": self.sql_correction_successes,
+                "sql_correction_admission_overrides": (
+                    self.sql_correction_admission_overrides
+                ),
                 "sql_error_categories": dict(self.sql_error_categories),
             },
             "waste": {

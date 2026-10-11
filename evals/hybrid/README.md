@@ -121,3 +121,12 @@ validity, but exhausted the 45-second correction window. Web Evidence is now ord
 bounded correction ledger, the full frozen schema fits in the context allowance, and the single
 correction call has a 60-second cap. See
 [`docs/development/m3-8-structured-sql-correction.md`](../../docs/development/m3-8-structured-sql-correction.md).
+
+M3.9 follows a third `s2sql_041` live check that used exactly two Tavily queries and two fetched
+pages. The run retained cross-source Evidence but ended its Supervisor phase with two consecutive
+unknown-column failures, so the existing repair gate prevented structured correction from starting
+despite roughly 90 seconds of run budget remaining. The correction phase now has one reserved SQL
+admission: it may cross the exhausted consecutive-failure limit, while duplicate failed SQL and all
+read-only/runtime constraints remain enforced. Smoke output reports
+`sql_correction_admission_overrides` per task and in aggregate. See
+[`docs/development/m3-9-reserved-sql-correction.md`](../../docs/development/m3-9-reserved-sql-correction.md).

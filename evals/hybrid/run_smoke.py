@@ -187,6 +187,9 @@ def _score_task(
         "sql_schema_discovery_calls": int(metrics.get("sql_schema_discovery_calls", 0)),
         "sql_correction_attempts": int(metrics.get("sql_correction_attempts", 0)),
         "sql_correction_successes": int(metrics.get("sql_correction_successes", 0)),
+        "sql_correction_admission_overrides": int(
+            metrics.get("sql_correction_admission_overrides", 0)
+        ),
         "analytical_sql_evidence": bool(
             (metrics.get("sql_evidence_by_kind") or {}).get("query_result", 0)
         ),
@@ -302,6 +305,9 @@ def run(
     total_sql_correction_successes = sum(
         int(row.get("sql_correction_successes", 0)) for row in results
     )
+    total_sql_correction_admission_overrides = sum(
+        int(row.get("sql_correction_admission_overrides", 0)) for row in results
+    )
     return {
         "name": selection["name"],
         "generated_at": now_utc(),
@@ -330,6 +336,9 @@ def run(
         "total_sql_query_blocked": total_sql_query_blocked,
         "total_sql_correction_attempts": total_sql_correction_attempts,
         "total_sql_correction_successes": total_sql_correction_successes,
+        "total_sql_correction_admission_overrides": (
+            total_sql_correction_admission_overrides
+        ),
         "search_budget_compliant": bool(
             total_search_queries <= len(tasks) * max_search_queries
             and total_fetched_pages <= len(tasks) * max_fetched_pages

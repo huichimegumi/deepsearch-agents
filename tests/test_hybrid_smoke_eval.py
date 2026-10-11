@@ -13,6 +13,7 @@ from app.agent.runtime import (
     reset_research_runtime,
     set_research_runtime,
 )
+from app.api.context import reset_research_phase_context, set_research_phase_context
 from app.tools.evidence_tool import collect_evidence
 from evals.hybrid.common import CANARY, CANARY_NOTICE, SELECTION_PATH, decrypt_record, load_json
 from evals.hybrid.run_smoke import (
@@ -242,6 +243,51 @@ def test_sqlite_query_repair_policy_blocks_duplicate_and_third_failure(tmp_path,
     assert trace.sql_query_attempts == 2
     assert trace.sql_query_failures == 2
     assert trace.sql_query_blocked == 2
+
+
+def test_sqlite_correction_gets_one_recovery_slot_after_repair_limit(tmp_path, monkeypatch):
+    database = tmp_path / "correction.sqlite"
+    _sqlite_database(database)
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database))
+    budget = ResearchBudget(
+        ResearchBudgetLimits(
+            profile="test",
+            total_seconds=30,
+            max_search_queries=0,
+            max_fetched_pages=0,
+            max_research_rounds=1,
+            max_llm_calls=1,
+            writer_reserved_seconds=0,
+        )
+    )
+    trace = ResearchRunTrace("run", "thread", "test", budget)
+    tokens = set_research_runtime(budget, trace)
+    phase_token = None
+    try:
+        collect_evidence.invoke({"source": "sql", "operation": "describe_schema"})
+        for column in ("missing_one", "missing_two"):
+            result = json.loads(
+                collect_evidence.invoke(
+                    {"source": "sql", "query": f"SELECT {column} FROM metrics"}
+                )
+            )
+            assert result["status"] == "ERROR"
+
+        phase_token = set_research_phase_context("sql_evidence_correction")
+        recovered = json.loads(
+            collect_evidence.invoke(
+                {"source": "sql", "query": "SELECT name, value FROM metrics"}
+            )
+        )
+    finally:
+        if phase_token is not None:
+            reset_research_phase_context(phase_token)
+        reset_research_runtime(tokens)
+
+    assert recovered["status"] == "OK"
+    assert trace.has_analytical_sql_evidence is True
+    assert trace.sql_query_attempts == 3
+    assert trace.sql_correction_admission_overrides == 1
 
 
 def test_smoke_correctness_helpers_do_not_require_llm_judge(tmp_path):
