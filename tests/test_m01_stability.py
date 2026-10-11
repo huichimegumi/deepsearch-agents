@@ -1,10 +1,17 @@
 """Regression tests for the M0.1 workflow stability boundaries."""
 
+import sqlite3
 from types import SimpleNamespace
 
 from app.agent import main_agent
 from app.agent.research_workflow import RESEARCH_PHASES
-from app.agent.runtime import ResearchBudget, ResearchBudgetLimits, ResearchRunTrace
+from app.agent.runtime import (
+    ResearchBudget,
+    ResearchBudgetLimits,
+    ResearchRunTrace,
+    reset_research_runtime,
+    set_research_runtime,
+)
 from app.api.context import reset_session_context, set_session_context
 from app.config import AgentExecutionBudget
 
@@ -33,9 +40,7 @@ async def test_structured_direct_phase_uses_exactly_one_model_call(monkeypatch):
             calls += 1
             assert len(messages) == 2
             return {
-                "raw": SimpleNamespace(
-                    usage_metadata={"input_tokens": 20, "output_tokens": 8}
-                ),
+                "raw": SimpleNamespace(usage_metadata={"input_tokens": 20, "output_tokens": 8}),
                 "parsed": main_agent.ResearchBrief(
                     research_question="What should be researched?",
                     constraints=["Use current sources"],
@@ -121,6 +126,117 @@ async def test_research_phase_rejects_unconfigured_builtin_subagent(monkeypatch)
     assert continued_after_rejection is False
     assert trace.failure_reasons == ["subagent_not_allowed:general-purpose"]
     assert trace.subagent_calls == 0
+
+
+async def test_sql_correction_executes_one_query_without_search(tmp_path, monkeypatch):
+    database_path = tmp_path / "correction.sqlite"
+    with sqlite3.connect(database_path) as connection:
+        connection.execute("CREATE TABLE metrics (name TEXT, value INTEGER)")
+        connection.execute("INSERT INTO metrics VALUES ('verified', 42)")
+
+    class FakeBoundModel:
+        async def ainvoke(self, messages):
+            assert "Backend Evidence Ledger" in messages[-1]["content"]
+            return SimpleNamespace(
+                usage_metadata={"input_tokens": 20, "output_tokens": 8},
+                tool_calls=[
+                    {
+                        "name": main_agent.collect_evidence.name,
+                        "args": {
+                            "source": "sql",
+                            "operation": "query",
+                            "query": "SELECT name, value FROM metrics",
+                        },
+                    }
+                ],
+            )
+
+    class FakeModel:
+        def bind_tools(self, tools):
+            assert [tool.name for tool in tools] == ["collect_evidence"]
+            return FakeBoundModel()
+
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database_path))
+    monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    budget, trace = make_runtime()
+    trace.record_sql_discovery("describe_schema")
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_sql_schema",
+                source="sql",
+                locator="sql://schema/metrics",
+                content={"table_name": "metrics", "columns": ["name", "value"]},
+                metadata={"evidence_kind": "database_schema"},
+            ),
+        )
+    )
+    tokens = set_research_runtime(budget, trace)
+    try:
+        success = await main_agent._run_sql_evidence_correction(
+            model=FakeModel(),
+            task_query="Return the verified metric.",
+            research_brief="Read the metrics table.",
+            budget=AgentExecutionBudget(recursion_limit=2, timeout_seconds=5),
+            budget_profile="test",
+            research_budget=budget,
+            run_trace=trace,
+        )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert success is True
+    assert trace.has_analytical_sql_evidence is True
+    assert trace.sql_query_attempts == 1
+    assert trace.sql_correction_attempts == 1
+    assert trace.sql_correction_successes == 1
+    assert trace.tool_calls_by_name == {"collect_evidence": 1}
+    assert budget.search_queries_used == 0
+    assert budget.fetched_pages_used == 0
+    assert budget.research_rounds_used == 0
+
+
+async def test_sql_correction_rejects_non_sql_tool_arguments(monkeypatch):
+    class FakeBoundModel:
+        async def ainvoke(self, messages):
+            return SimpleNamespace(
+                usage_metadata={},
+                tool_calls=[
+                    {
+                        "name": main_agent.collect_evidence.name,
+                        "args": {
+                            "source": "local_document",
+                            "operation": "query",
+                            "query": "try to escape the SQL-only boundary",
+                        },
+                    }
+                ],
+            )
+
+    class FakeModel:
+        def bind_tools(self, tools):
+            return FakeBoundModel()
+
+    monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    budget, trace = make_runtime()
+    trace.record_sql_discovery("describe_schema")
+
+    success = await main_agent._run_sql_evidence_correction(
+        model=FakeModel(),
+        task_query="Research task",
+        research_brief="Use SQL.",
+        budget=AgentExecutionBudget(recursion_limit=2, timeout_seconds=5),
+        budget_profile="test",
+        research_budget=budget,
+        run_trace=trace,
+    )
+
+    assert success is False
+    assert trace.tool_calls == 0
+    assert trace.sql_correction_attempts == 1
+    assert "sql_correction_tool_boundary" in trace.failure_reasons
 
 
 def test_backend_persists_requested_markdown_and_records_tool(tmp_path, monkeypatch):

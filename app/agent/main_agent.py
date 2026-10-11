@@ -22,6 +22,7 @@ from app.agent.llm import get_model
 from app.agent.prompts import main_agent_content
 from app.agent.research_workflow import (
     RESEARCH_PHASES,
+    SQL_EVIDENCE_CORRECTION_PHASE,
     ResearchPhase,
     build_degraded_phase_output,
     build_phase_prompt,
@@ -262,6 +263,134 @@ def _enforce_research_evidence_requirements(
     if not phase_result:
         return notice
     return f"{phase_result.rstrip()}\n\n{notice}"
+
+
+def _should_attempt_sql_evidence_correction(run_trace: ResearchRunTrace) -> bool:
+    """Gate the SQL-only correction to runs that explicitly require analytical SQL."""
+    return (
+        os.getenv("REQUIRE_ANALYTICAL_SQL_EVIDENCE", "").strip() == "1"
+        and run_trace.can_attempt_sql_correction
+        and run_trace.sql_correction_attempts == 0
+    )
+
+
+async def _run_sql_evidence_correction(
+    *,
+    model,
+    task_query: str,
+    research_brief: str,
+    budget: AgentExecutionBudget,
+    budget_profile: str,
+    research_budget: ResearchBudget,
+    run_trace: ResearchRunTrace,
+) -> bool:
+    """Offer one model call that can execute exactly one analytical SQL tool call."""
+    phase = SQL_EVIDENCE_CORRECTION_PHASE
+    budget_data = _budget_payload(
+        budget=budget,
+        budget_profile=budget_profile,
+        remaining_workflow_seconds=research_budget.remaining_seconds,
+    )
+    run_trace.start_phase(phase.key, phase.title)
+    monitor.report_research_phase(phase.key, phase.title, "start", budget_data)
+    write_audit_event(
+        "research_phase_started",
+        {"phase_key": phase.key, "phase_title": phase.title, **budget_data},
+    )
+    phase_status = "end"
+    reason = None
+    error = None
+    success = False
+    phase_token = set_research_phase_context(phase.key)
+    try:
+        if not research_budget.take_llm_call(phase.key):
+            raise PhaseBudgetExceeded("llm_call_limit")
+        prompt = "\n\n".join(
+            (
+                f"【用户原始问题】\n{task_query}",
+                f"【Research Brief】\n{research_brief or 'No completed brief was captured.'}",
+                run_trace.render_evidence_ledger(),
+                phase.instruction,
+            )
+        )
+        bound_model = model.bind_tools([collect_evidence])
+        response = await asyncio.wait_for(
+            bound_model.ainvoke(
+                [
+                    {"role": "system", "content": main_agent_content["system_prompt"]},
+                    {"role": "user", "content": prompt},
+                ]
+            ),
+            timeout=budget.timeout_seconds,
+        )
+        run_trace.record_llm_call(phase.key, response)
+        tool_calls = list(getattr(response, "tool_calls", None) or ())
+        if len(tool_calls) != 1:
+            reason = "sql_correction_requires_one_tool_call"
+        else:
+            tool_call = tool_calls[0]
+            args = dict(tool_call.get("args") or {})
+            if (
+                tool_call.get("name") != collect_evidence.name
+                or args.get("source") != "sql"
+                or args.get("operation", "query") != "query"
+                or not str(args.get("query") or "").strip()
+            ):
+                reason = "sql_correction_tool_boundary"
+            else:
+                run_trace.record_tool_call(phase.key, collect_evidence.name)
+                await collect_evidence.ainvoke(args)
+                success = run_trace.has_analytical_sql_evidence
+                if not success:
+                    reason = "sql_correction_no_analytical_evidence"
+    except asyncio.CancelledError:
+        phase_status = "cancelled"
+        reason = "cancelled"
+        raise
+    except (TimeoutError, asyncio.TimeoutError) as exc:
+        phase_status = "budget_exceeded"
+        reason = "timeout"
+        error = repr(exc)
+    except PhaseBudgetExceeded as exc:
+        phase_status = "budget_exceeded"
+        reason = exc.reason
+        error = repr(exc)
+    except Exception as exc:  # noqa: BLE001 - correction failure degrades to an evidence gap
+        phase_status = "error"
+        reason = exc.__class__.__name__
+        error = repr(exc)
+    finally:
+        reset_research_phase_context(phase_token)
+        run_trace.record_sql_correction(success=success)
+        if reason:
+            run_trace.record_failure(reason)
+        run_trace.finish_phase(
+            phase.key,
+            phase_status,
+            artifact_status="usable" if success else "missing",
+        )
+
+    phase_end_data = {"success": success, **budget_data}
+    if reason:
+        phase_end_data["reason"] = reason
+    if error:
+        phase_end_data["error"] = error
+    monitor.report_research_phase(
+        phase.key,
+        phase.title,
+        phase_status,
+        phase_end_data,
+    )
+    write_audit_event(
+        "research_phase_finished",
+        {
+            "phase_key": phase.key,
+            "phase_title": phase.title,
+            "status": phase_status,
+            **phase_end_data,
+        },
+    )
+    return success
 
 
 async def _astream_with_runtime_limit(agent, payload, config, timeout_seconds: float):
@@ -1075,6 +1204,28 @@ async def run_deep_agent(
                     emit_final_result=False,
                 )
             if phase.key == "supervisor_research":
+                if _should_attempt_sql_evidence_correction(run_trace):
+                    correction_config = settings.agent_phase_budget(
+                        SQL_EVIDENCE_CORRECTION_PHASE.key,
+                        budget_profile,
+                    )
+                    correction_budget = AgentExecutionBudget(
+                        recursion_limit=correction_config.recursion_limit,
+                        timeout_seconds=research_budget.phase_timeout(
+                            SQL_EVIDENCE_CORRECTION_PHASE.key,
+                            correction_config.timeout_seconds,
+                        ),
+                    )
+                    if correction_budget.timeout_seconds > 0:
+                        await _run_sql_evidence_correction(
+                            model=planner_agent,
+                            task_query=task_query,
+                            research_brief=phase_outputs.get("clarify_and_brief", ""),
+                            budget=correction_budget,
+                            budget_profile=budget_profile,
+                            research_budget=research_budget,
+                            run_trace=run_trace,
+                        )
                 phase_result = _attach_backend_evidence_ledger(phase_result, run_trace)
                 phase_result = _enforce_research_evidence_requirements(phase_result, run_trace)
             if not phase_result:

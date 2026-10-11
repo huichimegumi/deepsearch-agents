@@ -2,6 +2,7 @@
 
 from app.agent.research_workflow import (
     RESEARCH_PHASES,
+    SQL_EVIDENCE_CORRECTION_PHASE,
     build_degraded_phase_output,
     build_phase_prompt,
     format_previous_phase_outputs,
@@ -122,6 +123,15 @@ def test_supervisor_phase_prompt_declares_research_boundary():
     assert "only phase where researcher subagents" in prompt
     assert "collect_evidence" in prompt
     assert "evidence_id" in prompt
+
+
+def test_sql_correction_phase_is_query_only():
+    instruction = SQL_EVIDENCE_CORRECTION_PHASE.instruction
+
+    assert "source=sql、operation=query" in instruction
+    assert "只调用一次 collect_evidence" in instruction
+    assert "禁止网络搜索" in instruction
+    assert "禁止调用 describe_schema、sample_table 或 list_tables" in instruction
 
 
 def test_degraded_phase_output_preserves_next_phase_context():

@@ -105,3 +105,10 @@ M3.6 therefore classifies schema and samples as discovery-only Evidence. They re
 planning but cannot support final Claims; only explicit `operation=query` results are claim-eligible.
 The hybrid runner marks a missing analytical query as an evidence requirement failure. See
 [`docs/development/m3-6-analytical-sql-evidence-gate.md`](../../docs/development/m3-6-analytical-sql-evidence-gate.md).
+
+M3.7 gives discovery-only runs one SQL-only correction before that failure is finalized. It uses a
+single model call with only `collect_evidence` bound, admits exactly one analytical SQL tool call,
+and cannot invoke Web search or consume a second research round. The existing two-query/two-page
+external-search caps are unchanged. Smoke output includes `sql_correction_attempts` and
+`sql_correction_successes` per task and in aggregate. See
+[`docs/development/m3-7-sql-only-correction.md`](../../docs/development/m3-7-sql-only-correction.md).

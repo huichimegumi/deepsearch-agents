@@ -34,6 +34,7 @@ def test_phase_timeout_uses_run_allocation_and_writer_reserve():
 
     assert budget.phase_timeout("clarify_and_brief", 999) == 10
     assert budget.phase_timeout("supervisor_research", 999) == 50
+    assert budget.phase_timeout("sql_evidence_correction", 999) == 15
     assert budget.phase_timeout("evidence_compression", 999) == 15
     assert budget.phase_timeout("final_report", 999) == 25
 
@@ -159,6 +160,29 @@ def test_trace_keeps_sql_discovery_evidence_out_of_claim_gate():
     assert payload["waste"]["evidence_never_used_in_claims"] == 0
 
 
+def test_trace_allows_one_sql_correction_after_discovery():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+
+    assert trace.can_attempt_sql_correction is False
+    trace.record_sql_discovery("describe_schema")
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_sql_schema",
+                source="sql",
+                metadata={"evidence_kind": "database_schema"},
+            ),
+        )
+    )
+    assert trace.can_attempt_sql_correction is True
+
+    trace.record_sql_correction(success=False)
+    payload = trace.finalize(status="completed", final_result="gap")
+
+    assert payload["metrics"]["sql_correction_attempts"] == 1
+    assert payload["metrics"]["sql_correction_successes"] == 0
+
+
 def test_trace_renders_bounded_backend_ledger_without_serializing_content():
     trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
     record = SimpleNamespace(
@@ -252,7 +276,7 @@ def test_trace_bounds_sql_repair_and_keeps_query_text_private():
 
     payload = trace.finalize(status="completed", final_result="gap")
     serialized = json.dumps(payload)
-    assert payload["schema_version"] == 4
+    assert payload["schema_version"] == 5
     assert payload["metrics"]["sql_query_attempts"] == 2
     assert payload["metrics"]["sql_query_failures"] == 2
     assert payload["metrics"]["sql_query_blocked"] == 2

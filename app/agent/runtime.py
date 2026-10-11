@@ -55,6 +55,7 @@ class ResearchBudget:
         shares = {
             "clarify_and_brief": 0.10,
             "supervisor_research": 0.50,
+            "sql_evidence_correction": 0.15,
             "evidence_compression": 0.15,
             "final_report": 0.25,
         }
@@ -88,6 +89,7 @@ class ResearchBudget:
         reserve_by_phase = {
             "clarify_and_brief": 2,
             "supervisor_research": 2,
+            "sql_evidence_correction": 2,
             "evidence_compression": 1,
             "final_report": 0,
         }
@@ -169,6 +171,8 @@ class ResearchRunTrace:
     sql_query_blocked: int = 0
     sql_schema_discovery_calls: int = 0
     sql_sample_calls: int = 0
+    sql_correction_attempts: int = 0
+    sql_correction_successes: int = 0
     sql_error_categories: Counter[str] = field(default_factory=Counter)
     _consecutive_sql_failures: int = field(default=0, repr=False)
     _failed_sql_query_digests: set[str] = field(default_factory=set, repr=False)
@@ -299,6 +303,24 @@ class ResearchRunTrace:
     @property
     def has_analytical_sql_evidence(self) -> bool:
         return self.sql_evidence_by_kind.get("query_result", 0) > 0
+
+    @property
+    def can_attempt_sql_correction(self) -> bool:
+        """Return whether one bounded correction can still execute a useful SQL query."""
+        discovered_database = bool(
+            self.sql_evidence_by_kind.get("database_schema", 0)
+            or self.sql_evidence_by_kind.get("database_sample", 0)
+        )
+        return (
+            discovered_database
+            and not self.has_analytical_sql_evidence
+            and self._consecutive_sql_failures < MAX_CONSECUTIVE_SQL_FAILURES
+        )
+
+    def record_sql_correction(self, *, success: bool) -> None:
+        self.sql_correction_attempts += 1
+        if success:
+            self.sql_correction_successes += 1
 
     @staticmethod
     def _sql_query_digest(query: str) -> str:
@@ -464,7 +486,7 @@ class ResearchRunTrace:
         result_urls = set(re.findall(r"https?://[^\s)>\]]+", final_result or ""))
         unused_fetched = self._fetched_sources - result_urls
         return {
-            "schema_version": 4,
+            "schema_version": 5,
             "run_id": self.run_id,
             "thread_id": self.thread_id,
             "started_at": self.started_at,
@@ -504,6 +526,8 @@ class ResearchRunTrace:
                 "sql_query_blocked": self.sql_query_blocked,
                 "sql_schema_discovery_calls": self.sql_schema_discovery_calls,
                 "sql_sample_calls": self.sql_sample_calls,
+                "sql_correction_attempts": self.sql_correction_attempts,
+                "sql_correction_successes": self.sql_correction_successes,
                 "sql_error_categories": dict(self.sql_error_categories),
             },
             "waste": {

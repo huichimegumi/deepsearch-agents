@@ -111,6 +111,27 @@ ev1_web_... 可用于 Web Claim；只有 URL、搜索摘要或 CANDIDATE_ONLY �
 )
 
 
+SQL_EVIDENCE_CORRECTION_PHASE = ResearchPhase(
+    key="sql_evidence_correction",
+    title="分析型 SQL 证据修正",
+    instruction="""
+【受限修正：分析型 SQL 证据】
+数据库结构或样例已经可用，但研究阶段尚未取得可支撑结论的分析型 SQL 结果。
+
+必须执行：
+1. 根据用户问题、research brief 和 Backend Evidence Ledger 构造一条只读分析查询
+2. 只调用一次 collect_evidence，参数必须是 source=sql、operation=query
+3. 使用已经发现的真实表名、列名和值域；不要重复 schema 或 sample 调用
+
+禁止：
+- 禁止网络搜索、子智能体、本地文档、Fee Engine 和文件工具
+- 禁止调用 describe_schema、sample_table 或 list_tables
+- 禁止在没有工具结果时声称已经取得 SQL Evidence
+""".strip(),
+    requires_tools=True,
+)
+
+
 def format_previous_phase_outputs(phase_outputs: dict[str, str]) -> str:
     """Format completed phase outputs for the next phase prompt."""
     if not phase_outputs:
