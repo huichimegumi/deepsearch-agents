@@ -113,6 +113,8 @@ M3.4 在 Evidence Tool 边界执行 SQL 修复上限：首次失败后只允许�
 
 M3.5 将 Hybrid smoke 从 180 秒的 `standard` 档调整为 300 秒的 `deep_report` 档，以避免慢模型在首次研究工具调用前耗尽 Supervisor 的 90 秒窗口。每题搜索与页面上限仍为 2、研究轮次仍为 1、付费后端仍需显式授权，因此增加的是模型执行时间而不是外部检索额度。详见 [`docs/development/m3-5-hybrid-phase-budget.md`](docs/development/m3-5-hybrid-phase-budget.md)。
 
+M3.6 修复“发现证据冒充分析证据”的语义漏洞。表清单和 schema 标记为 `database_schema`，三行预览标记为 `database_sample`，它们可帮助构造查询但不能支撑最终 Claim；只有显式 `operation=query` 的 `query_result` 才能进入 Claim 校验。Hybrid 任务若没有成功的分析 SQL，会记录 `analytical_sql_evidence_missing` 并以证据缺口降级。该门来自一次单题复验：schema 1 次、样例 3 次、DuckDuckGo 2/2、分析 SQL 0 次、严格答案仍错误，且未授权或使用 Tavily。详见 [`docs/development/m3-6-analytical-sql-evidence-gate.md`](docs/development/m3-6-analytical-sql-evidence-gate.md)。
+
 上游 `DABStep-Research` 仓库当前没有声明许可证。相关原始数据只按锁文件下载到本地，在许可证澄清前不应随本项目重新分发。详细命令和 MySQL 配置见 [DABStep baseline README](evals/dabstep/README.md)。
 
 ### 系统架构
@@ -532,6 +534,8 @@ M3.3 adds deterministic schema discovery to SQLite Evidence. `describe_schema` r
 M3.4 enforces the SQL repair bound at the Evidence Tool boundary. One different repair is allowed after an initial failure, an unchanged failed query is rejected, and a second consecutive failure prevents later queries from reaching the database. A successful query resets the consecutive-failure counter. Trace schema v4 stores only query digests, success/failure/block counts, and bounded error categories—not SQL or database error text—and the Hybrid smoke summary surfaces the same diagnostics. See [`docs/development/m3-4-bounded-sql-repair.md`](docs/development/m3-4-bounded-sql-repair.md).
 
 M3.5 moves Hybrid smoke from the 180-second `standard` profile to the 300-second `deep_report` profile so a slow model does not exhaust the 90-second Supervisor window before its first research tool call. The per-task query and page caps remain two, the research-round cap remains one, and paid backends still require explicit authorization; this adds model execution time without expanding external retrieval. See [`docs/development/m3-5-hybrid-phase-budget.md`](docs/development/m3-5-hybrid-phase-budget.md).
+
+M3.6 closes the semantic gap where discovery evidence could masquerade as analytical evidence. Table catalogs and schemas are tagged `database_schema`, three-row previews are `database_sample`, and both remain useful for query construction but are excluded from final Claim validation. Only explicit `operation=query` rows tagged `query_result` are claim-eligible. A Hybrid run without successful analytical SQL records `analytical_sql_evidence_missing` and degrades to an evidence gap. The gate follows a one-task validation that performed one schema call, three samples, and two of two DuckDuckGo queries but zero analytical SQL attempts and remained strictly incorrect; Tavily was neither authorized nor used. See [`docs/development/m3-6-analytical-sql-evidence-gate.md`](docs/development/m3-6-analytical-sql-evidence-gate.md).
 
 The upstream `DABStep-Research` repository currently declares no license. Raw files are downloaded locally from the locked revision and must not be redistributed with this project until the licensing status is clarified. See the [DABStep baseline README](evals/dabstep/README.md) for individual commands and MySQL configuration.
 

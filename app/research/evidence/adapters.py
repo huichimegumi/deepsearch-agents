@@ -92,6 +92,7 @@ def sql_rows_to_evidence(
     columns: Sequence[str],
     rows: Iterable[Sequence[Any]],
     database_identity: str,
+    evidence_kind: str = "query_result",
 ) -> tuple[EvidenceRecord, ...]:
     normalized_query = normalize_sql(query)
     query_digest = _digest(normalized_query)[:24]
@@ -117,7 +118,7 @@ def sql_rows_to_evidence(
                     "row_sha256": _digest(row_json),
                     "duplicate_index": duplicate_index,
                 },
-                metadata={"query": normalized_query},
+                metadata={"query": normalized_query, "evidence_kind": evidence_kind},
             )
         )
     return tuple(records)

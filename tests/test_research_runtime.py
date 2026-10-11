@@ -129,7 +129,34 @@ def test_trace_records_unique_evidence_ids_by_source():
 
     assert payload["metrics"]["evidence_records"] == 1
     assert payload["metrics"]["evidence_by_source"] == {"sql": 1}
+    assert payload["metrics"]["claim_eligible_evidence_records"] == 1
+    assert payload["metrics"]["sql_evidence_by_kind"] == {"query_result": 1}
     assert payload["waste"]["evidence_never_used_in_claims"] == 1
+
+
+def test_trace_keeps_sql_discovery_evidence_out_of_claim_gate():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    schema = SimpleNamespace(
+        evidence_id="ev1_sql_schema",
+        source="sql",
+        metadata={"evidence_kind": "database_schema"},
+    )
+    sample = SimpleNamespace(
+        evidence_id="ev1_sql_sample",
+        source="sql",
+        metadata={"evidence_kind": "database_sample"},
+    )
+
+    trace.record_evidence((schema, sample))
+    payload = trace.finalize(status="completed", final_result="gap")
+
+    assert trace.claim_eligible_evidence_ids == []
+    assert trace.has_analytical_sql_evidence is False
+    assert payload["metrics"]["sql_evidence_by_kind"] == {
+        "database_schema": 1,
+        "database_sample": 1,
+    }
+    assert payload["waste"]["evidence_never_used_in_claims"] == 0
 
 
 def test_trace_renders_bounded_backend_ledger_without_serializing_content():

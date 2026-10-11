@@ -192,6 +192,8 @@ def test_sqlite_schema_and_samples_are_bounded_stable_evidence(tmp_path, monkeyp
     groups = next(item for item in first["records"] if item["content"]["table_name"] == "groups")
     assert groups["content"]["indexes"][0]["columns"] == ["label"]
     assert len(sample["records"]) == 2
+    assert all(item["metadata"]["evidence_kind"] == "database_schema" for item in first["records"])
+    assert all(item["metadata"]["evidence_kind"] == "database_sample" for item in sample["records"])
     assert rejected["status"] == "ERROR"
 
 

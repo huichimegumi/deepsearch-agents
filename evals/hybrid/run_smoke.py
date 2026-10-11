@@ -185,6 +185,9 @@ def _score_task(
         "sql_query_failures": int(metrics.get("sql_query_failures", 0)),
         "sql_query_blocked": int(metrics.get("sql_query_blocked", 0)),
         "sql_schema_discovery_calls": int(metrics.get("sql_schema_discovery_calls", 0)),
+        "analytical_sql_evidence": bool(
+            (metrics.get("sql_evidence_by_kind") or {}).get("query_result", 0)
+        ),
         "elapsed_ms": (trace or {}).get("elapsed_ms"),
     }
 
@@ -209,6 +212,7 @@ async def _execute_task(
         {
             "EVIDENCE_SQLITE_PATH": str(database_path.resolve()),
             "SEARCH_BACKEND_LOCK": search_backend,
+            "REQUIRE_ANALYTICAL_SQL_EVIDENCE": "1",
         }
     ):
         answer = await run_deep_agent(

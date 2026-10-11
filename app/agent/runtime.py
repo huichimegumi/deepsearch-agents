@@ -152,7 +152,9 @@ class ResearchRunTrace:
     duplicate_sources: int = 0
     queries_with_zero_new_sources: int = 0
     evidence_ids: list[str] = field(default_factory=list)
+    claim_eligible_evidence_ids: list[str] = field(default_factory=list)
     evidence_by_source: Counter[str] = field(default_factory=Counter)
+    sql_evidence_by_kind: Counter[str] = field(default_factory=Counter)
     _evidence_records_by_id: dict[str, Any] = field(default_factory=dict, repr=False)
     claim_ids: list[str] = field(default_factory=list)
     claim_evidence_ids: list[str] = field(default_factory=list)
@@ -284,9 +286,19 @@ class ResearchRunTrace:
             source = getattr(record, "source", "unknown")
             source_value = str(getattr(source, "value", source))
             if evidence_id and evidence_id not in self.evidence_ids:
+                metadata = getattr(record, "metadata", {}) or {}
+                evidence_kind = str(metadata.get("evidence_kind", "query_result"))
                 self.evidence_ids.append(evidence_id)
                 self.evidence_by_source[source_value] += 1
+                if source_value == "sql":
+                    self.sql_evidence_by_kind[evidence_kind] += 1
+                if evidence_kind not in {"database_schema", "database_sample"}:
+                    self.claim_eligible_evidence_ids.append(evidence_id)
                 self._evidence_records_by_id[evidence_id] = record
+
+    @property
+    def has_analytical_sql_evidence(self) -> bool:
+        return self.sql_evidence_by_kind.get("query_result", 0) > 0
 
     @staticmethod
     def _sql_query_digest(query: str) -> str:
@@ -477,6 +489,8 @@ class ResearchRunTrace:
                 "fetched_pages": self.fetched_pages,
                 "evidence_records": len(self.evidence_ids),
                 "evidence_by_source": dict(self.evidence_by_source),
+                "claim_eligible_evidence_records": len(self.claim_eligible_evidence_ids),
+                "sql_evidence_by_kind": dict(self.sql_evidence_by_kind),
                 "validated_claims": len(self.claim_ids),
                 "rejected_claims": self.rejected_claims,
                 "claims_by_kind": dict(self.claims_by_kind),
@@ -498,7 +512,7 @@ class ResearchRunTrace:
                 "queries_with_zero_new_sources": self.queries_with_zero_new_sources,
                 "fetched_but_unused_sources": len(unused_fetched),
                 "evidence_never_used_in_claims": len(
-                    set(self.evidence_ids) - set(self.claim_evidence_ids)
+                    set(self.claim_eligible_evidence_ids) - set(self.claim_evidence_ids)
                 ),
                 "blocked_sql_queries": self.sql_query_blocked,
                 "note": "M2.1 records backend-validated Claim-to-Evidence links.",

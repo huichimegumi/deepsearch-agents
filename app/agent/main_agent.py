@@ -7,6 +7,7 @@ session_id 创建独立工作目录，并把工具调用、子智能体调用和
 """
 
 import asyncio
+import os
 import re
 import shutil
 import uuid
@@ -188,7 +189,7 @@ def _render_validated_compression(
 ) -> str:
     validation = validate_claims(
         parsed.claims,
-        available_evidence_ids=run_trace.evidence_ids,
+        available_evidence_ids=run_trace.claim_eligible_evidence_ids,
     )
     run_trace.record_claim_validation(validation)
     return parsed.to_markdown(validation)
@@ -203,7 +204,7 @@ def _enforce_final_report_citations(
     validation = validate_report_citations(
         report_markdown,
         allowed_evidence_ids=run_trace.claim_evidence_ids,
-        citations_required=bool(run_trace.evidence_ids or run_trace.rejected_claims),
+        citations_required=bool(run_trace.claim_eligible_evidence_ids or run_trace.rejected_claims),
     )
     run_trace.record_report_citation_validation(validation)
     if validation.valid:
@@ -239,6 +240,28 @@ def _attach_backend_evidence_ledger(
     if not phase_result:
         return ledger
     return f"{phase_result.rstrip()}\n\n{ledger}"
+
+
+def _enforce_research_evidence_requirements(
+    phase_result: str | None,
+    run_trace: ResearchRunTrace,
+) -> str | None:
+    if os.getenv("REQUIRE_ANALYTICAL_SQL_EVIDENCE", "").strip() != "1":
+        return phase_result
+    if run_trace.has_analytical_sql_evidence:
+        return phase_result
+    run_trace.degraded = True
+    run_trace.record_failure("analytical_sql_evidence_missing")
+    notice = (
+        "# Backend Evidence Requirement\n\n"
+        "- Analytical SQL Evidence is missing. Schema descriptions and sample rows are "
+        "discovery-only and cannot support final business or benchmark claims.\n"
+        "- The final answer must report this evidence gap instead of treating discovery "
+        "records as query results."
+    )
+    if not phase_result:
+        return notice
+    return f"{phase_result.rstrip()}\n\n{notice}"
 
 
 async def _astream_with_runtime_limit(agent, payload, config, timeout_seconds: float):
@@ -1053,6 +1076,7 @@ async def run_deep_agent(
                 )
             if phase.key == "supervisor_research":
                 phase_result = _attach_backend_evidence_ledger(phase_result, run_trace)
+                phase_result = _enforce_research_evidence_requirements(phase_result, run_trace)
             if not phase_result:
                 run_trace.degraded = True
                 phase_result = build_degraded_phase_output(

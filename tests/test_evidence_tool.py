@@ -99,6 +99,7 @@ def test_sql_evidence_is_stable_across_insignificant_query_whitespace():
 
     assert first[0].evidence_id == second[0].evidence_id
     assert first[0].content == {"merchant": "A", "total": "1.20"}
+    assert first[0].metadata["evidence_kind"] == "query_result"
 
 
 def test_sql_schema_evidence_is_stable_and_table_scoped():

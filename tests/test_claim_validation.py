@@ -4,6 +4,7 @@ from app.agent.main_agent import (
     CompressedEvidence,
     _attach_backend_evidence_ledger,
     _enforce_final_report_citations,
+    _enforce_research_evidence_requirements,
     _render_validated_compression,
 )
 from app.agent.runtime import ResearchBudget, ResearchBudgetLimits, ResearchRunTrace
@@ -201,3 +202,30 @@ def test_backend_ledger_survives_missing_supervisor_summary():
     assert "# Backend Evidence Ledger" in result
     assert f"[{KNOWN_EVIDENCE_ID}]" in result
     assert '"value": 42' in result
+
+
+def test_required_analytical_sql_rejects_discovery_only_evidence(monkeypatch):
+    monkeypatch.setenv("REQUIRE_ANALYTICAL_SQL_EVIDENCE", "1")
+    trace = _trace()
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id=KNOWN_EVIDENCE_ID,
+                source="sql",
+                metadata={"evidence_kind": "database_sample"},
+            ),
+        )
+    )
+    compressed = CompressedEvidence(
+        claims=[ClaimDraft(text="Sample-based claim", evidence_ids=[KNOWN_EVIDENCE_ID])],
+        report_outline=["Summary"],
+    )
+
+    markdown = _render_validated_compression(compressed, trace)
+    result = _enforce_research_evidence_requirements("Supervisor summary", trace)
+
+    assert "unknown_evidence" in markdown
+    assert trace.rejected_claims == 1
+    assert "Analytical SQL Evidence is missing" in result
+    assert trace.degraded is True
+    assert "analytical_sql_evidence_missing" in trace.failure_reasons

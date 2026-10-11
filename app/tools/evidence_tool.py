@@ -94,6 +94,7 @@ def _collect_sql(query: str, operation: str) -> EvidenceBatch:
         columns=columns,
         rows=rows[:row_limit],
         database_identity=database_identity,
+        evidence_kind="database_schema" if operation == "list_tables" else "query_result",
     )
     warnings = (
         (f"SQL evidence was truncated to {row_limit} rows; narrow the query for full coverage.",)
@@ -239,6 +240,7 @@ def _sqlite_sample_table(
         columns=columns,
         rows=rows,
         database_identity=database_identity,
+        evidence_kind="database_sample",
     )
     return EvidenceBatch(
         source=EvidenceSource.SQL,
@@ -298,6 +300,7 @@ def _collect_sqlite(
         columns=columns,
         rows=rows[:row_limit],
         database_identity=database_identity,
+        evidence_kind="database_schema" if operation == "list_tables" else "query_result",
     )
     warnings = (
         (f"SQLite evidence was truncated to {row_limit} rows; narrow the query.",)

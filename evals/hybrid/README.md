@@ -98,3 +98,10 @@ M3.5 moves the hybrid runner from the 180-second `standard` profile to the 300-s
 remains capped at two queries and two fetched pages per task, with one research round, so the change
 adds model execution time without increasing external-search use. See
 [`docs/development/m3-5-hybrid-phase-budget.md`](../../docs/development/m3-5-hybrid-phase-budget.md).
+
+The post-M3.5 one-task run reached schema discovery, three bounded samples, two DuckDuckGo pages,
+and valid cross-source citations, but it executed no analytical SQL and remained strictly incorrect.
+M3.6 therefore classifies schema and samples as discovery-only Evidence. They remain visible for
+planning but cannot support final Claims; only explicit `operation=query` results are claim-eligible.
+The hybrid runner marks a missing analytical query as an evidence requirement failure. See
+[`docs/development/m3-6-analytical-sql-evidence-gate.md`](../../docs/development/m3-6-analytical-sql-evidence-gate.md).
