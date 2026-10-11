@@ -128,6 +128,46 @@ async def test_research_phase_rejects_unconfigured_builtin_subagent(monkeypatch)
     assert trace.subagent_calls == 0
 
 
+async def test_research_phase_recovers_from_provider_timeout(monkeypatch):
+    class APITimeoutError(Exception):
+        pass
+
+    class FakeAgent:
+        async def astream(self, payload, config):
+            if False:
+                yield None
+            raise APITimeoutError("Request timed out")
+
+    events = []
+    monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        main_agent.monitor,
+        "_emit",
+        lambda event, message, data: events.append((event, message, data)),
+    )
+    budget, trace = make_runtime()
+
+    result = await main_agent._run_agent_phase(
+        agent=FakeAgent(),
+        phase=RESEARCH_PHASES[1],
+        prompt="Research",
+        config={},
+        budget=AgentExecutionBudget(recursion_limit=2, timeout_seconds=5),
+        budget_profile="test",
+        research_budget=budget,
+        run_trace=trace,
+    )
+
+    assert result is None
+    assert trace.upstream_timeout_recoveries == 1
+    assert trace.failure_reasons == ["upstream_timeout"]
+    assert trace.phases[0]["status"] == "budget_exceeded"
+    assert trace.phases[0]["reason"] == "upstream_timeout"
+    assert events[0][0] == "phase_budget_exceeded"
+    assert "continuing with collected evidence" in events[0][1]
+
+
 async def test_sql_correction_executes_one_query_without_search(tmp_path, monkeypatch):
     database_path = tmp_path / "correction.sqlite"
     with sqlite3.connect(database_path) as connection:

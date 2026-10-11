@@ -200,6 +200,7 @@ def _score_task(
         "sql_correction_empty_result_repair_successes": int(
             metrics.get("sql_correction_empty_result_repair_successes", 0)
         ),
+        "upstream_timeout_recoveries": int(metrics.get("upstream_timeout_recoveries", 0)),
         "analytical_sql_evidence": bool(
             (metrics.get("sql_evidence_by_kind") or {}).get("query_result", 0)
         ),
@@ -362,6 +363,9 @@ def run(
     total_sql_correction_empty_result_repair_successes = sum(
         int(row.get("sql_correction_empty_result_repair_successes", 0)) for row in results
     )
+    total_upstream_timeout_recoveries = sum(
+        int(row.get("upstream_timeout_recoveries", 0)) for row in results
+    )
     return {
         "name": selection["name"],
         "generated_at": now_utc(),
@@ -402,6 +406,7 @@ def run(
         "total_sql_correction_empty_result_repair_successes": (
             total_sql_correction_empty_result_repair_successes
         ),
+        "total_upstream_timeout_recoveries": total_upstream_timeout_recoveries,
         "search_budget_compliant": bool(
             total_search_queries <= len(tasks) * max_search_queries
             and total_fetched_pages <= len(tasks) * max_fetched_pages

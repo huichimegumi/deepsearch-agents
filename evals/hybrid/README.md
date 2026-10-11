@@ -175,3 +175,12 @@ runner now supports explicit per-task query and fetched-page overrides capped at
 the frozen defaults unchanged. Reports disclose the effective budget and whether it was
 overridden; paid backends still fail closed without separate authorization. See
 [`docs/development/m3-13-evaluation-retrieval-overrides.md`](../../docs/development/m3-13-evaluation-retrieval-overrides.md).
+
+M3.14 follows the first expanded one-task run. With a 6/6 override it actually used five Tavily
+queries and three fetched pages, but an upstream model request timed out before any analytical SQL
+could run. Previously that provider-specific exception escaped the Supervisor boundary and ended
+the complete workflow even though collected Evidence and roughly half the run budget remained.
+Timeout wrappers are now recovered as a degraded `upstream_timeout` phase so SQL correction,
+compression, and writing can continue. Smoke output exposes `upstream_timeout_recoveries` per task
+and in aggregate. See
+[`docs/development/m3-14-upstream-timeout-recovery.md`](../../docs/development/m3-14-upstream-timeout-recovery.md).

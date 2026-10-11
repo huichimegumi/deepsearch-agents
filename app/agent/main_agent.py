@@ -517,6 +517,20 @@ async def _astream_with_runtime_limit(agent, payload, config, timeout_seconds: f
             yield chunk
 
 
+def _is_upstream_timeout_exception(exc: BaseException) -> bool:
+    """Recognize provider timeout wrappers without importing a provider-specific SDK."""
+    seen: set[int] = set()
+    current: BaseException | None = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        if isinstance(current, (TimeoutError, asyncio.TimeoutError)):
+            return True
+        if "timeout" in current.__class__.__name__.casefold():
+            return True
+        current = current.__cause__ or current.__context__
+    return False
+
+
 def _message_text(message) -> str:
     """Normalize provider-specific message content into plain text."""
     content = getattr(message, "content", message)
@@ -919,29 +933,58 @@ async def _run_agent_phase(
             },
         )
     except Exception as exc:
-        if exc.__class__.__name__ != "GraphRecursionError":
+        if _is_upstream_timeout_exception(exc):
+            phase_status = "budget_exceeded"
+            phase_error = repr(exc)
+            budget_reason = "upstream_timeout"
+            run_trace.record_upstream_timeout_recovery()
+            message = (
+                f"Research phase {phase.key} reached an upstream model timeout; "
+                "continuing with collected evidence"
+            )
+            monitor._emit(
+                "phase_budget_exceeded",
+                message,
+                {"phase_key": phase.key, **budget_data},
+            )
+            write_audit_event(
+                "research_phase_budget_exceeded",
+                {
+                    "phase_key": phase.key,
+                    "phase_title": phase.title,
+                    "reason": budget_reason,
+                    "error": phase_error,
+                    **budget_data,
+                },
+            )
+        elif exc.__class__.__name__ != "GraphRecursionError":
             phase_status = "error"
             phase_error = repr(exc)
             budget_reason = exc.__class__.__name__
             raise
-        phase_status = "budget_exceeded"
-        phase_error = repr(exc)
-        budget_reason = "recursion_limit"
-        message = (
-            f"Research phase {phase.key} reached its recursion budget; "
-            "continuing with available evidence"
-        )
-        monitor._emit("phase_budget_exceeded", message, {"phase_key": phase.key, **budget_data})
-        write_audit_event(
-            "research_phase_budget_exceeded",
-            {
-                "phase_key": phase.key,
-                "phase_title": phase.title,
-                "reason": budget_reason,
-                "error": phase_error,
-                **budget_data,
-            },
-        )
+        else:
+            phase_status = "budget_exceeded"
+            phase_error = repr(exc)
+            budget_reason = "recursion_limit"
+            message = (
+                f"Research phase {phase.key} reached its recursion budget; "
+                "continuing with available evidence"
+            )
+            monitor._emit(
+                "phase_budget_exceeded",
+                message,
+                {"phase_key": phase.key, **budget_data},
+            )
+            write_audit_event(
+                "research_phase_budget_exceeded",
+                {
+                    "phase_key": phase.key,
+                    "phase_title": phase.title,
+                    "reason": budget_reason,
+                    "error": phase_error,
+                    **budget_data,
+                },
+            )
     finally:
         reset_research_phase_context(phase_token)
         run_trace.finish_phase(
