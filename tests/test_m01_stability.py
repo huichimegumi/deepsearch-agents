@@ -191,6 +191,178 @@ async def test_sql_correction_executes_one_query_without_search(tmp_path, monkey
     assert budget.research_rounds_used == 0
 
 
+async def test_sql_correction_repairs_one_database_error_within_same_budget(
+    tmp_path,
+    monkeypatch,
+):
+    database_path = tmp_path / "correction-repair.sqlite"
+    with sqlite3.connect(database_path) as connection:
+        connection.execute("CREATE TABLE metrics (name TEXT, value INTEGER)")
+        connection.execute("INSERT INTO metrics VALUES ('verified', 42)")
+
+    proposals = iter(
+        (
+            "SELECT invented_metric FROM metrics",
+            "SELECT name, value * 2 AS derived_value FROM metrics",
+        )
+    )
+    calls = []
+
+    class StructuredInvoker:
+        async def ainvoke(self, messages):
+            calls.append(messages)
+            return {
+                "raw": SimpleNamespace(usage_metadata={"input_tokens": 20, "output_tokens": 8}),
+                "parsed": main_agent.SQLCorrectionProposal(query=next(proposals)),
+                "parsing_error": None,
+            }
+
+    class FakeModel:
+        def with_structured_output(self, schema, include_raw=False):
+            return StructuredInvoker()
+
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database_path))
+    monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    budget, trace = make_runtime()
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_sql_schema",
+                source="sql",
+                locator="sql://schema/metrics",
+                content={"table_name": "metrics", "columns": ["name", "value"]},
+                metadata={"evidence_kind": "database_schema"},
+            ),
+        )
+    )
+    tokens = set_research_runtime(budget, trace)
+    try:
+        success = await main_agent._run_sql_evidence_correction(
+            model=FakeModel(),
+            task_query="Return a derived metric.",
+            research_brief="Use the metrics table.",
+            budget=AgentExecutionBudget(recursion_limit=2, timeout_seconds=5),
+            budget_profile="test",
+            research_budget=budget,
+            run_trace=trace,
+        )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert success is True
+    assert len(calls) == 2
+    assert "previous SQL proposal was rejected" in calls[1][0]["content"]
+    assert "invented_metric" in calls[1][1]["content"]
+    assert trace.sql_query_attempts == 2
+    assert trace.sql_query_failures == 1
+    assert trace.sql_correction_attempts == 1
+    assert trace.sql_correction_successes == 1
+    assert trace.sql_correction_repair_attempts == 1
+    assert trace.sql_correction_repair_successes == 1
+    assert trace.tool_calls_by_name == {"collect_evidence": 2}
+    payload = trace.finalize(status="completed", final_result="verified")
+    assert payload["metrics"]["sql_correction_repair_attempts"] == 1
+    assert payload["metrics"]["sql_correction_repair_successes"] == 1
+    assert budget.search_queries_used == 0
+    assert budget.fetched_pages_used == 0
+    assert budget.research_rounds_used == 0
+
+
+async def test_sql_correction_does_not_retry_an_empty_valid_query(tmp_path, monkeypatch):
+    database_path = tmp_path / "correction-empty.sqlite"
+    with sqlite3.connect(database_path) as connection:
+        connection.execute("CREATE TABLE metrics (name TEXT, value INTEGER)")
+
+    calls = 0
+
+    class StructuredInvoker:
+        async def ainvoke(self, messages):
+            nonlocal calls
+            calls += 1
+            return {
+                "raw": SimpleNamespace(usage_metadata={}),
+                "parsed": main_agent.SQLCorrectionProposal(
+                    query="SELECT name, value FROM metrics"
+                ),
+                "parsing_error": None,
+            }
+
+    class FakeModel:
+        def with_structured_output(self, schema, include_raw=False):
+            return StructuredInvoker()
+
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database_path))
+    monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    budget, trace = make_runtime()
+    trace.record_sql_discovery("describe_schema")
+    tokens = set_research_runtime(budget, trace)
+    try:
+        success = await main_agent._run_sql_evidence_correction(
+            model=FakeModel(),
+            task_query="Return metrics.",
+            research_brief="Use the metrics table.",
+            budget=AgentExecutionBudget(recursion_limit=2, timeout_seconds=5),
+            budget_profile="test",
+            research_budget=budget,
+            run_trace=trace,
+        )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert success is False
+    assert calls == 1
+    assert trace.sql_query_successes == 1
+    assert trace.sql_correction_repair_attempts == 0
+
+
+async def test_sql_correction_rejects_duplicate_repair_proposal(monkeypatch):
+    calls = 0
+
+    class StructuredInvoker:
+        async def ainvoke(self, messages):
+            nonlocal calls
+            calls += 1
+            return {
+                "raw": SimpleNamespace(usage_metadata={}),
+                "parsed": main_agent.SQLCorrectionProposal(query="SELECT missing FROM metrics"),
+                "parsing_error": None,
+            }
+
+    class FakeModel:
+        def with_structured_output(self, schema, include_raw=False):
+            return StructuredInvoker()
+
+    class FakeEvidenceTool:
+        name = "collect_evidence"
+
+        async def ainvoke(self, args):
+            return '{"status":"ERROR","records":[],"warnings":[]}'
+
+    monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent, "collect_evidence", FakeEvidenceTool())
+    budget, trace = make_runtime()
+    trace.record_sql_discovery("describe_schema")
+
+    success = await main_agent._run_sql_evidence_correction(
+        model=FakeModel(),
+        task_query="Return metrics.",
+        research_brief="Use the metrics table.",
+        budget=AgentExecutionBudget(recursion_limit=2, timeout_seconds=5),
+        budget_profile="test",
+        research_budget=budget,
+        run_trace=trace,
+    )
+
+    assert success is False
+    assert calls == 2
+    assert trace.tool_calls_by_name == {"collect_evidence": 1}
+    assert trace.sql_correction_repair_attempts == 1
+    assert "sql_correction_duplicate_proposal" in trace.failure_reasons
+
+
 async def test_sql_correction_maps_proposal_to_fixed_sql_tool_arguments(monkeypatch):
     invoked_args = None
 

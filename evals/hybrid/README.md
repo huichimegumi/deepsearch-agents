@@ -130,3 +130,12 @@ admission: it may cross the exhausted consecutive-failure limit, while duplicate
 read-only/runtime constraints remain enforced. Smoke output reports
 `sql_correction_admission_overrides` per task and in aggregate. See
 [`docs/development/m3-9-reserved-sql-correction.md`](../../docs/development/m3-9-reserved-sql-correction.md).
+
+M3.10 follows the first post-M3.9 validation, which used exactly two Tavily queries and one fetched
+page. Structured correction started successfully but returned a query with an unknown column,
+confirming that proposal repair—not scheduling or more retrieval—was the next boundary. When the
+first correction query returns `ERROR`, the phase may now request one different structured query
+against the same schema ledger. Valid empty results are not retried, and both attempts share the
+existing correction deadline and external-search limits. Smoke output reports
+`sql_correction_repair_attempts` and `sql_correction_repair_successes` per task and in aggregate.
+See [`docs/development/m3-10-error-aware-sql-correction.md`](../../docs/development/m3-10-error-aware-sql-correction.md).

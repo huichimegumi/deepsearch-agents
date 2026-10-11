@@ -7,6 +7,7 @@ session_id 创建独立工作目录，并把工具调用、子智能体调用和
 """
 
 import asyncio
+import json
 import os
 import re
 import shutil
@@ -193,6 +194,9 @@ class SQLCorrectionProposal(BaseModel):
     )
 
 
+SQL_CORRECTION_MAX_PROPOSALS = 2
+
+
 def _render_validated_compression(
     parsed: CompressedEvidence,
     run_trace: ResearchRunTrace,
@@ -293,7 +297,7 @@ async def _run_sql_evidence_correction(
     research_budget: ResearchBudget,
     run_trace: ResearchRunTrace,
 ) -> bool:
-    """Generate one structured SQL proposal and execute it through the Evidence Tool."""
+    """Execute one structured SQL proposal plus one bounded error-only repair."""
     phase = SQL_EVIDENCE_CORRECTION_PHASE
     budget_data = _budget_payload(
         budget=budget,
@@ -311,10 +315,9 @@ async def _run_sql_evidence_correction(
     error = None
     success = False
     llm_recorded = False
+    repair_started = False
     phase_token = set_research_phase_context(phase.key)
     try:
-        if not research_budget.take_llm_call(phase.key):
-            raise PhaseBudgetExceeded("llm_call_limit")
         prompt = "\n\n".join(
             (
                 f"【用户原始问题】\n{task_query}",
@@ -331,38 +334,81 @@ async def _run_sql_evidence_correction(
             SQLCorrectionProposal,
             include_raw=True,
         )
-        response = await asyncio.wait_for(
-            structured_model.ainvoke(
-                [
+        loop = asyncio.get_running_loop()
+        phase_deadline = loop.time() + budget.timeout_seconds
+        previous_query = ""
+        proposed_queries: set[str] = set()
+        for proposal_index in range(SQL_CORRECTION_MAX_PROPOSALS):
+            if not research_budget.take_llm_call(phase.key):
+                raise PhaseBudgetExceeded("llm_call_limit")
+            if proposal_index:
+                repair_started = True
+            remaining_seconds = phase_deadline - loop.time()
+            if remaining_seconds <= 0:
+                raise TimeoutError
+            if proposal_index:
+                system_instruction = (
+                    "The previous SQL proposal was rejected by the database. Return exactly one "
+                    "different read-only analytical SQL query through the required structured "
+                    "schema. Re-check every table and column against the supplied Evidence Ledger; "
+                    "do not invent a requested metric as a physical column."
+                )
+                user_prompt = (
+                    f"{prompt}\n\n【Rejected proposal】\n{previous_query}\n\n"
+                    "Repair only the SQL identifier or expression error."
+                )
+            else:
+                system_instruction = (
+                    "You are a SQL correction planner. Return exactly one read-only analytical "
+                    "SQL query through the required structured schema. Use only table names and "
+                    "columns present in the supplied Evidence Ledger. Derive requested metrics "
+                    "with SQL expressions instead of inventing physical columns."
+                )
+                user_prompt = prompt
+            response = await asyncio.wait_for(
+                structured_model.ainvoke(
+                    [
+                        {"role": "system", "content": system_instruction},
+                        {"role": "user", "content": user_prompt},
+                    ]
+                ),
+                timeout=remaining_seconds,
+            )
+            raw = response.get("raw") if isinstance(response, dict) else None
+            proposal = response.get("parsed") if isinstance(response, dict) else response
+            parsing_error = response.get("parsing_error") if isinstance(response, dict) else None
+            run_trace.record_llm_call(phase.key, raw)
+            llm_recorded = True
+            if parsing_error or not isinstance(proposal, SQLCorrectionProposal):
+                raise ValueError(f"structured_output_error: {parsing_error!r}")
+            normalized_query = " ".join(proposal.query.strip().rstrip(";").split()).casefold()
+            if normalized_query in proposed_queries:
+                raise ValueError("sql_correction_duplicate_proposal")
+            proposed_queries.add(normalized_query)
+            previous_query = proposal.query
+            run_trace.record_tool_call(phase.key, collect_evidence.name)
+            remaining_seconds = phase_deadline - loop.time()
+            if remaining_seconds <= 0:
+                raise TimeoutError
+            tool_result = await asyncio.wait_for(
+                collect_evidence.ainvoke(
                     {
-                        "role": "system",
-                        "content": (
-                            "You are a SQL correction planner. Return exactly one read-only "
-                            "analytical SQL query through the required structured schema. Use "
-                            "only table names and columns present in the supplied Evidence Ledger."
-                        ),
-                    },
-                    {"role": "user", "content": prompt},
-                ]
-            ),
-            timeout=budget.timeout_seconds,
-        )
-        raw = response.get("raw") if isinstance(response, dict) else None
-        proposal = response.get("parsed") if isinstance(response, dict) else response
-        parsing_error = response.get("parsing_error") if isinstance(response, dict) else None
-        run_trace.record_llm_call(phase.key, raw)
-        llm_recorded = True
-        if parsing_error or not isinstance(proposal, SQLCorrectionProposal):
-            raise ValueError(f"structured_output_error: {parsing_error!r}")
-        run_trace.record_tool_call(phase.key, collect_evidence.name)
-        await collect_evidence.ainvoke(
-            {
-                "source": "sql",
-                "operation": "query",
-                "query": proposal.query,
-            }
-        )
-        success = run_trace.has_analytical_sql_evidence
+                        "source": "sql",
+                        "operation": "query",
+                        "query": proposal.query,
+                    }
+                ),
+                timeout=remaining_seconds,
+            )
+            success = run_trace.has_analytical_sql_evidence
+            if success:
+                break
+            try:
+                tool_status = str(json.loads(tool_result).get("status", ""))
+            except (TypeError, ValueError, AttributeError):
+                tool_status = ""
+            if tool_status != "ERROR":
+                break
         if not success:
             reason = "sql_correction_no_analytical_evidence"
     except asyncio.CancelledError:
@@ -389,6 +435,8 @@ async def _run_sql_evidence_correction(
         if not llm_recorded:
             run_trace.record_llm_call(phase.key, None)
         reset_research_phase_context(phase_token)
+        if repair_started:
+            run_trace.record_sql_correction_repair(success=success)
         run_trace.record_sql_correction(success=success)
         if reason:
             run_trace.record_failure(reason)

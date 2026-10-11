@@ -224,7 +224,7 @@ def test_trace_reserves_one_correction_after_consecutive_sql_failures():
     trace.record_sql_correction(success=False)
 
     payload = trace.finalize(status="completed", final_result="gap")
-    assert payload["schema_version"] == 6
+    assert payload["schema_version"] == 7
     assert payload["metrics"]["sql_correction_admission_overrides"] == 1
     assert trace.can_attempt_sql_correction is False
 
@@ -346,7 +346,7 @@ def test_trace_bounds_sql_repair_and_keeps_query_text_private():
 
     payload = trace.finalize(status="completed", final_result="gap")
     serialized = json.dumps(payload)
-    assert payload["schema_version"] == 6
+    assert payload["schema_version"] == 7
     assert payload["metrics"]["sql_query_attempts"] == 2
     assert payload["metrics"]["sql_query_failures"] == 2
     assert payload["metrics"]["sql_query_blocked"] == 2
