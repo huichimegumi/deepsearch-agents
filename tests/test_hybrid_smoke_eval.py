@@ -16,6 +16,8 @@ from app.agent.runtime import (
 from app.tools.evidence_tool import collect_evidence
 from evals.hybrid.common import CANARY, CANARY_NOTICE, SELECTION_PATH, decrypt_record, load_json
 from evals.hybrid.run_smoke import (
+    HYBRID_BUDGET_PROFILE,
+    _hybrid_research_limits,
     _sql_result_match,
     _strict_text_match,
     _task_prompt,
@@ -92,6 +94,32 @@ def test_paid_or_mixed_search_requires_explicit_authorization():
         with pytest.raises(ValueError, match="allow-paid-search"):
             _validate_paid_search(backend, allow_paid_search=False)
         _validate_paid_search(backend, allow_paid_search=True)
+
+
+def test_hybrid_budget_uses_deep_time_without_expanding_search():
+    base = ResearchBudgetLimits(
+        profile="deep_report",
+        total_seconds=300,
+        max_search_queries=12,
+        max_fetched_pages=12,
+        max_research_rounds=2,
+        max_llm_calls=12,
+        writer_reserved_seconds=75,
+    )
+
+    class FakeSettings:
+        def research_budget_limits(self, profile):
+            assert profile == HYBRID_BUDGET_PROFILE
+            return base
+
+    limits = _hybrid_research_limits(FakeSettings(), max_search_queries=2, max_fetched_pages=2)
+
+    assert limits.profile == "deep_report"
+    assert limits.total_seconds == 300
+    assert limits.max_search_queries == 2
+    assert limits.max_fetched_pages == 2
+    assert limits.max_research_rounds == 1
+    assert limits.max_llm_calls == 16
 
 
 def test_sqlite_evidence_backend_is_read_only_and_stable(tmp_path, monkeypatch):

@@ -111,6 +111,8 @@ M3.3 为 SQLite Evidence 增加确定性的 schema discovery。`describe_schema`
 
 M3.4 在 Evidence Tool 边界执行 SQL 修复上限：首次失败后只允许一条不同的修复 SQL，原样重复会被拒绝；若修复仍失败，后续查询不会触达数据库。成功查询会重置连续失败计数。Trace schema v4 只保存查询摘要、成功/失败/拦截数量和有限错误类别，不保存 SQL 或数据库错误正文；Hybrid smoke 汇总也暴露这些指标。详见 [`docs/development/m3-4-bounded-sql-repair.md`](docs/development/m3-4-bounded-sql-repair.md)。
 
+M3.5 将 Hybrid smoke 从 180 秒的 `standard` 档调整为 300 秒的 `deep_report` 档，以避免慢模型在首次研究工具调用前耗尽 Supervisor 的 90 秒窗口。每题搜索与页面上限仍为 2、研究轮次仍为 1、付费后端仍需显式授权，因此增加的是模型执行时间而不是外部检索额度。详见 [`docs/development/m3-5-hybrid-phase-budget.md`](docs/development/m3-5-hybrid-phase-budget.md)。
+
 上游 `DABStep-Research` 仓库当前没有声明许可证。相关原始数据只按锁文件下载到本地，在许可证澄清前不应随本项目重新分发。详细命令和 MySQL 配置见 [DABStep baseline README](evals/dabstep/README.md)。
 
 ### 系统架构
@@ -528,6 +530,8 @@ M3.2 records the first live smoke baseline and fixes two execution-chain failure
 M3.3 adds deterministic schema discovery to SQLite Evidence. `describe_schema` returns stable `ev1_sql_...` Evidence for tables, column types, primary and foreign keys, and indexes in one call. `sample_table` accepts only an exact catalog table name and returns at most three rows for value-domain inspection. Both paths retain read-only connections, query deadlines, and fixed bounds. The frozen `alien` database exposes all 11 tables in one discovery call, and the evaluator now requires schema inspection before SQL construction. See [`docs/development/m3-3-sqlite-schema-discovery.md`](docs/development/m3-3-sqlite-schema-discovery.md).
 
 M3.4 enforces the SQL repair bound at the Evidence Tool boundary. One different repair is allowed after an initial failure, an unchanged failed query is rejected, and a second consecutive failure prevents later queries from reaching the database. A successful query resets the consecutive-failure counter. Trace schema v4 stores only query digests, success/failure/block counts, and bounded error categories—not SQL or database error text—and the Hybrid smoke summary surfaces the same diagnostics. See [`docs/development/m3-4-bounded-sql-repair.md`](docs/development/m3-4-bounded-sql-repair.md).
+
+M3.5 moves Hybrid smoke from the 180-second `standard` profile to the 300-second `deep_report` profile so a slow model does not exhaust the 90-second Supervisor window before its first research tool call. The per-task query and page caps remain two, the research-round cap remains one, and paid backends still require explicit authorization; this adds model execution time without expanding external retrieval. See [`docs/development/m3-5-hybrid-phase-budget.md`](docs/development/m3-5-hybrid-phase-budget.md).
 
 The upstream `DABStep-Research` repository currently declares no license. Raw files are downloaded locally from the locked revision and must not be redistributed with this project until the licensing status is clarified. See the [DABStep baseline README](evals/dabstep/README.md) for individual commands and MySQL configuration.
 

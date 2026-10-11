@@ -25,6 +25,7 @@ from evals.hybrid.common import (
 from evals.runners.common import RESULTS_DIR, now_utc, status_counts, write_json
 
 DEFAULT_OUTPUT = RESULTS_DIR / "hybrid_smoke_eval.json"
+HYBRID_BUDGET_PROFILE = "deep_report"
 PAID_OR_MIXED_BACKENDS = frozenset({"auto", "advanced", "tavily", "perplexity"})
 SQL_FENCE_PATTERN = re.compile(r"```sql\s*(.*?)```", re.IGNORECASE | re.DOTALL)
 EVIDENCE_CITATION_PATTERN = re.compile(r"\[ev1_[a-z0-9_-]+\]", re.IGNORECASE)
@@ -84,6 +85,22 @@ Evaluation constraints:
 - If the requested output is a SQL result, include the final read-only query in one ```sql``` block.
 - Return the answer directly in chat without creating file artifacts.
 """.strip()
+
+
+def _hybrid_research_limits(
+    settings,
+    *,
+    max_search_queries: int,
+    max_fetched_pages: int,
+):
+    """Keep external retrieval small while allowing a hybrid task enough model time."""
+    return replace(
+        settings.research_budget_limits(HYBRID_BUDGET_PROFILE),
+        max_search_queries=max_search_queries,
+        max_fetched_pages=max_fetched_pages,
+        max_research_rounds=1,
+        max_llm_calls=16,
+    )
 
 
 def _normalize_text(value: Any) -> str:
@@ -183,12 +200,10 @@ async def _execute_task(
     session_id = f"hybrid_smoke_{task['id']}"
     _reset_session(session_id)
     settings = get_settings()
-    limits = replace(
-        settings.research_budget_limits("standard"),
+    limits = _hybrid_research_limits(
+        settings,
         max_search_queries=max_search_queries,
         max_fetched_pages=max_fetched_pages,
-        max_research_rounds=1,
-        max_llm_calls=16,
     )
     with _temporary_environment(
         {
@@ -201,7 +216,7 @@ async def _execute_task(
             session_id=session_id,
             user_id="evals",
             monitor_thread_id=session_id,
-            budget_profile_override="standard",
+            budget_profile_override=HYBRID_BUDGET_PROFILE,
             research_limits_override=limits,
         )
     trace = _load_trace(session_id)
@@ -283,6 +298,7 @@ def run(
         "selected_task_ids": [task["id"] for task in tasks],
         "selected_modes": [task["hybrid_type"] for task in tasks],
         "database": "alien",
+        "research_budget_profile": HYBRID_BUDGET_PROFILE,
         "search_budget": {
             "backend": search_backend,
             "paid_search_authorized": allow_paid_search,

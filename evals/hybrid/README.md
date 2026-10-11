@@ -92,3 +92,9 @@ same failed query cannot be repeated, and a second consecutive failure blocks fu
 for that run. A successful repair resets the counter. Smoke results include SQL attempts, failures,
 blocked calls, and schema-discovery calls without storing SQL text in the trace. See
 [`docs/development/m3-4-bounded-sql-repair.md`](../../docs/development/m3-4-bounded-sql-repair.md).
+
+M3.5 moves the hybrid runner from the 180-second `standard` profile to the 300-second
+`deep_report` profile after a one-task run timed out before its first research tool call. Search
+remains capped at two queries and two fetched pages per task, with one research round, so the change
+adds model execution time without increasing external-search use. See
+[`docs/development/m3-5-hybrid-phase-budget.md`](../../docs/development/m3-5-hybrid-phase-budget.md).
