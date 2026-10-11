@@ -18,7 +18,9 @@ from app.tools.evidence_tool import collect_evidence
 from evals.hybrid.common import CANARY, CANARY_NOTICE, SELECTION_PATH, decrypt_record, load_json
 from evals.hybrid.run_smoke import (
     HYBRID_BUDGET_PROFILE,
+    MAX_EVALUATION_RETRIEVAL_PER_TASK,
     _hybrid_research_limits,
+    _resolve_evaluation_retrieval_budget,
     _sql_result_match,
     _strict_text_match,
     _task_prompt,
@@ -95,6 +97,31 @@ def test_paid_or_mixed_search_requires_explicit_authorization():
         with pytest.raises(ValueError, match="allow-paid-search"):
             _validate_paid_search(backend, allow_paid_search=False)
         _validate_paid_search(backend, allow_paid_search=True)
+
+
+def test_evaluation_retrieval_override_preserves_defaults_and_caps_expansion():
+    selection = {
+        "max_search_queries_per_task": 2,
+        "max_fetched_pages_per_task": 2,
+    }
+
+    assert _resolve_evaluation_retrieval_budget(
+        selection,
+        max_search_queries_override=None,
+        max_fetched_pages_override=None,
+    ) == (2, 2, False)
+    assert _resolve_evaluation_retrieval_budget(
+        selection,
+        max_search_queries_override=6,
+        max_fetched_pages_override=8,
+    ) == (6, 8, True)
+
+    with pytest.raises(ValueError, match="between 1 and 10"):
+        _resolve_evaluation_retrieval_budget(
+            selection,
+            max_search_queries_override=MAX_EVALUATION_RETRIEVAL_PER_TASK + 1,
+            max_fetched_pages_override=2,
+        )
 
 
 def test_hybrid_budget_uses_deep_time_without_expanding_search():
@@ -267,17 +294,13 @@ def test_sqlite_correction_gets_one_recovery_slot_after_repair_limit(tmp_path, m
         collect_evidence.invoke({"source": "sql", "operation": "describe_schema"})
         for column in ("missing_one", "missing_two"):
             result = json.loads(
-                collect_evidence.invoke(
-                    {"source": "sql", "query": f"SELECT {column} FROM metrics"}
-                )
+                collect_evidence.invoke({"source": "sql", "query": f"SELECT {column} FROM metrics"})
             )
             assert result["status"] == "ERROR"
 
         phase_token = set_research_phase_context("sql_evidence_correction")
         recovered = json.loads(
-            collect_evidence.invoke(
-                {"source": "sql", "query": "SELECT name, value FROM metrics"}
-            )
+            collect_evidence.invoke({"source": "sql", "query": "SELECT name, value FROM metrics"})
         )
     finally:
         if phase_token is not None:

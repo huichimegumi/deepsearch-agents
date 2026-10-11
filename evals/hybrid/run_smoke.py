@@ -27,6 +27,7 @@ from evals.runners.common import RESULTS_DIR, now_utc, status_counts, write_json
 DEFAULT_OUTPUT = RESULTS_DIR / "hybrid_smoke_eval.json"
 HYBRID_BUDGET_PROFILE = "deep_report"
 PAID_OR_MIXED_BACKENDS = frozenset({"auto", "advanced", "tavily", "perplexity"})
+MAX_EVALUATION_RETRIEVAL_PER_TASK = 10
 SQL_FENCE_PATTERN = re.compile(r"```sql\s*(.*?)```", re.IGNORECASE | re.DOTALL)
 EVIDENCE_CITATION_PATTERN = re.compile(r"\[ev1_[a-z0-9_-]+\]", re.IGNORECASE)
 
@@ -261,6 +262,32 @@ def _validate_paid_search(search_backend: str, allow_paid_search: bool) -> None:
         )
 
 
+def _resolve_evaluation_retrieval_budget(
+    selection: dict[str, Any],
+    *,
+    max_search_queries_override: int | None,
+    max_fetched_pages_override: int | None,
+) -> tuple[int, int, bool]:
+    default_queries = int(selection["max_search_queries_per_task"])
+    default_pages = int(selection["max_fetched_pages_per_task"])
+    max_search_queries = (
+        default_queries if max_search_queries_override is None else max_search_queries_override
+    )
+    max_fetched_pages = (
+        default_pages if max_fetched_pages_override is None else max_fetched_pages_override
+    )
+    for name, value in (
+        ("max_search_queries", max_search_queries),
+        ("max_fetched_pages", max_fetched_pages),
+    ):
+        if not 1 <= value <= MAX_EVALUATION_RETRIEVAL_PER_TASK:
+            raise ValueError(
+                f"{name} must be between 1 and {MAX_EVALUATION_RETRIEVAL_PER_TASK} per task"
+            )
+    overridden = max_search_queries_override is not None or max_fetched_pages_override is not None
+    return max_search_queries, max_fetched_pages, overridden
+
+
 def run(
     *,
     data_dir: Path,
@@ -268,6 +295,8 @@ def run(
     limit: int,
     search_backend: str,
     allow_paid_search: bool,
+    max_search_queries_override: int | None = None,
+    max_fetched_pages_override: int | None = None,
 ) -> dict[str, Any]:
     errors = verify_files(data_dir)
     if errors:
@@ -275,8 +304,11 @@ def run(
     _validate_paid_search(search_backend, allow_paid_search)
     selection = load_json(SELECTION_PATH)
     tasks = load_selected_tasks(data_dir)[: max(0, min(limit, len(selection["tasks"])))]
-    max_search_queries = int(selection["max_search_queries_per_task"])
-    max_fetched_pages = int(selection["max_fetched_pages_per_task"])
+    max_search_queries, max_fetched_pages, budget_overridden = _resolve_evaluation_retrieval_budget(
+        selection,
+        max_search_queries_override=max_search_queries_override,
+        max_fetched_pages_override=max_fetched_pages_override,
+    )
     database_path = data_dir / "alien" / "alien_template.sqlite"
 
     results: list[dict[str, Any]] = []
@@ -342,6 +374,8 @@ def run(
         "search_budget": {
             "backend": search_backend,
             "paid_search_authorized": allow_paid_search,
+            "frozen_defaults_overridden": budget_overridden,
+            "hard_cap_per_task": MAX_EVALUATION_RETRIEVAL_PER_TASK,
             "max_queries_per_task": max_search_queries,
             "max_fetched_pages_per_task": max_fetched_pages,
             "max_queries_this_run": len(tasks) * max_search_queries,
@@ -394,6 +428,18 @@ def main() -> int:
         default="duckduckgo",
     )
     parser.add_argument("--allow-paid-search", action="store_true")
+    parser.add_argument(
+        "--max-search-queries",
+        type=int,
+        choices=range(1, MAX_EVALUATION_RETRIEVAL_PER_TASK + 1),
+        help="Override the frozen per-task query budget for an explicit evaluation run.",
+    )
+    parser.add_argument(
+        "--max-fetched-pages",
+        type=int,
+        choices=range(1, MAX_EVALUATION_RETRIEVAL_PER_TASK + 1),
+        help="Override the frozen per-task fetched-page budget for an explicit evaluation run.",
+    )
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
     try:
@@ -403,6 +449,8 @@ def main() -> int:
             limit=args.limit,
             search_backend=args.search_backend,
             allow_paid_search=args.allow_paid_search,
+            max_search_queries_override=args.max_search_queries,
+            max_fetched_pages_override=args.max_fetched_pages,
         )
     except (RuntimeError, ValueError) as exc:
         parser.error(str(exc))

@@ -40,6 +40,11 @@ key even if the model requests `advanced`. Modes that
 may consume paid credits (`tavily`, `perplexity`, `auto`, and `advanced`) fail closed unless the
 operator also passes `--allow-paid-search`.
 
+For an explicit diagnostic run, the frozen two-query/two-page defaults can be overridden with
+`--max-search-queries N` and `--max-fetched-pages N`. Each value is independently capped at 10 per
+task. The output records both the effective limits and whether an override was used. Paid backends
+still require the separate `--allow-paid-search` flag.
+
 ## Execute
 
 ```powershell
@@ -54,7 +59,10 @@ To intentionally use Tavily:
 .\.venv\Scripts\python.exe -m evals.hybrid.run_smoke `
   --execute `
   --search-backend tavily `
-  --allow-paid-search
+  --allow-paid-search `
+  --limit 1 `
+  --max-search-queries 6 `
+  --max-fetched-pages 6
 ```
 
 Results are written under ignored `evals/results/`. They contain task IDs, statuses, budget usage,
@@ -159,3 +167,11 @@ search or research-round capacity. Smoke results expose
 `sql_correction_empty_result_repair_attempts` and
 `sql_correction_empty_result_repair_successes` per task and in aggregate. See
 [`docs/development/m3-12-empty-result-sql-repair.md`](../../docs/development/m3-12-empty-result-sql-repair.md).
+
+M3.13 follows a post-M3.12 run that used exactly two Tavily queries and two fetched pages. The run
+completed with cross-source Evidence, valid citations, analytical SQL Evidence, and an attached
+executed query, but entity resolution failed and strict SQLite comparison remained false. The
+runner now supports explicit per-task query and fetched-page overrides capped at 10 while keeping
+the frozen defaults unchanged. Reports disclose the effective budget and whether it was
+overridden; paid backends still fail closed without separate authorization. See
+[`docs/development/m3-13-evaluation-retrieval-overrides.md`](../../docs/development/m3-13-evaluation-retrieval-overrides.md).
