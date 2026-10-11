@@ -296,6 +296,49 @@ async def test_sql_correction_prefetches_pinned_semantic_knowledge(tmp_path, mon
     assert budget.research_rounds_used == 0
 
 
+async def test_supervisor_prefetch_exposes_pinned_formula_without_web_budget(
+    tmp_path,
+    monkeypatch,
+):
+    database_path = tmp_path / "supervisor-semantic.sqlite"
+    with sqlite3.connect(database_path) as connection:
+        connection.execute("CREATE TABLE metrics (value INTEGER)")
+    knowledge_path = tmp_path / "supervisor-semantic.jsonl"
+    knowledge_path.write_text(
+        json.dumps(
+            {
+                "id": 4,
+                "knowledge": "Verified Metric Score (VMS)",
+                "description": "Approved formula.",
+                "definition": "VMS = value * 2",
+                "type": "calculation_knowledge",
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database_path))
+    monkeypatch.setenv("EVIDENCE_SQLITE_KNOWLEDGE_PATH", str(knowledge_path))
+    budget, trace = make_runtime()
+    tokens = set_research_runtime(budget, trace)
+    try:
+        context = await main_agent._prefetch_sql_semantic_context(
+            task_query="Calculate Verified Metric Score (VMS).",
+            run_trace=trace,
+            timeout_seconds=5,
+        )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert "Verified Metric Score (VMS)" in context
+    assert "VMS = value * 2" in context
+    assert trace.sql_semantic_discovery_calls == 1
+    assert trace.claim_eligible_evidence_ids == []
+    assert trace.tool_calls_by_name == {"collect_evidence": 1}
+    assert budget.search_queries_used == 0
+    assert budget.fetched_pages_used == 0
+    assert budget.research_rounds_used == 0
+
+
 async def test_sql_correction_repairs_one_database_error_within_same_budget(
     tmp_path,
     monkeypatch,

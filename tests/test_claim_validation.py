@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from app.agent.main_agent import (
     CompressedEvidence,
     _attach_backend_evidence_ledger,
+    _compression_phase_outputs,
     _enforce_final_report_citations,
     _enforce_research_evidence_requirements,
     _render_validated_compression,
@@ -202,6 +203,46 @@ def test_backend_ledger_survives_missing_supervisor_summary():
     assert "# Backend Evidence Ledger" in result
     assert f"[{KNOWN_EVIDENCE_ID}]" in result
     assert '"value": 42' in result
+
+
+def test_compression_handoff_excludes_supervisor_text_and_discovery_evidence():
+    trace = _trace()
+    schema = SimpleNamespace(
+        evidence_id="ev1_sql_schema",
+        source="sql",
+        locator="sql://test/schema/metrics",
+        content={"table_name": "metrics"},
+        metadata={"evidence_kind": "database_schema"},
+    )
+    semantics = SimpleNamespace(
+        evidence_id="ev1_sql_semantics",
+        source="sql",
+        locator="sql://test/semantics/1",
+        content={"definition": "score = value * 2"},
+        metadata={"evidence_kind": "database_semantics"},
+    )
+    result = SimpleNamespace(
+        evidence_id=KNOWN_EVIDENCE_ID,
+        source="sql",
+        locator="sql://test/query/row",
+        content={"score": 84},
+        metadata={"evidence_kind": "query_result"},
+    )
+    trace.record_evidence((schema, semantics, result))
+
+    handoff = _compression_phase_outputs(
+        {
+            "clarify_and_brief": "brief",
+            "supervisor_research": "unsafe supervisor summary [ev1_sql_schema]",
+        },
+        trace,
+    )
+
+    assert handoff["clarify_and_brief"] == "brief"
+    assert "unsafe supervisor summary" not in handoff["supervisor_research"]
+    assert KNOWN_EVIDENCE_ID in handoff["supervisor_research"]
+    assert "ev1_sql_schema" not in handoff["supervisor_research"]
+    assert "ev1_sql_semantics" not in handoff["supervisor_research"]
 
 
 def test_required_analytical_sql_rejects_discovery_only_evidence(monkeypatch):

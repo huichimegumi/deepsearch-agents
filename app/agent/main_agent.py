@@ -274,6 +274,71 @@ def _attach_backend_evidence_ledger(
     return f"{phase_result.rstrip()}\n\n{ledger}"
 
 
+def _compression_phase_outputs(
+    phase_outputs: dict[str, str],
+    run_trace: ResearchRunTrace,
+) -> dict[str, str]:
+    """Build a Claim-safe handoff without replaying discovery-only supervisor citations."""
+    claim_ledger = run_trace.render_evidence_ledger(
+        claim_eligible_only=True,
+        source_priority=("web", "sql"),
+    )
+    supervisor_handoff = (
+        "Only the Evidence IDs below are eligible to support compressed Claims. "
+        "Schema, samples, and semantic-formula discovery records were removed by the backend."
+    )
+    if claim_ledger:
+        supervisor_handoff = f"{supervisor_handoff}\n\n{claim_ledger}"
+    else:
+        supervisor_handoff = (
+            f"{supervisor_handoff}\n\nNo claim-eligible Evidence was collected; return evidence "
+            "gaps instead of factual Claims."
+        )
+    return {
+        key: value
+        for key, value in {
+            "clarify_and_brief": phase_outputs.get("clarify_and_brief", ""),
+            "supervisor_research": supervisor_handoff,
+        }.items()
+        if value
+    }
+
+
+async def _prefetch_sql_semantic_context(
+    *,
+    task_query: str,
+    run_trace: ResearchRunTrace,
+    timeout_seconds: float,
+) -> str:
+    """Deterministically load task-relevant pinned formulas before Supervisor research."""
+    if (
+        not os.getenv("EVIDENCE_SQLITE_PATH", "").strip()
+        or not os.getenv("EVIDENCE_SQLITE_KNOWLEDGE_PATH", "").strip()
+    ):
+        return ""
+    if timeout_seconds <= 0:
+        return ""
+    run_trace.record_tool_call("supervisor_research", collect_evidence.name)
+    try:
+        await asyncio.wait_for(
+            collect_evidence.ainvoke(
+                {
+                    "source": "sql",
+                    "operation": "search_semantic_knowledge",
+                    "query": task_query,
+                }
+            ),
+            timeout=min(timeout_seconds, 10.0),
+        )
+    except (TimeoutError, asyncio.TimeoutError):
+        return ""
+    return run_trace.render_evidence_ledger(
+        max_records=8,
+        max_total_content_chars=8_000,
+        evidence_kinds=("database_semantics",),
+    )
+
+
 def _enforce_research_evidence_requirements(
     phase_result: str | None,
     run_trace: ResearchRunTrace,
@@ -1320,11 +1385,29 @@ async def run_deep_agent(
                     phase_budget.timeout_seconds,
                 ),
             )
+            phase_runtime_instructions = runtime_instructions
+            if phase.key == "supervisor_research":
+                semantic_context = await _prefetch_sql_semantic_context(
+                    task_query=task_query,
+                    run_trace=run_trace,
+                    timeout_seconds=remaining_workflow_seconds,
+                )
+                if semantic_context:
+                    phase_runtime_instructions = (
+                        f"{phase_runtime_instructions}\n\n"
+                        "【Backend SQL Semantic Context】\n"
+                        "Use these pinned metric definitions to construct SQL expressions. "
+                        "They are discovery-only and cannot directly support final Claims.\n\n"
+                        f"{semantic_context}"
+                    )
+            prompt_phase_outputs = phase_outputs
+            if phase.key == "evidence_compression":
+                prompt_phase_outputs = _compression_phase_outputs(phase_outputs, run_trace)
             prompt = build_phase_prompt(
                 task_query=task_query,
                 phase=phase,
-                phase_outputs=phase_outputs,
-                runtime_instructions=runtime_instructions,
+                phase_outputs=prompt_phase_outputs,
+                runtime_instructions=phase_runtime_instructions,
             )
             phase_agent = _phase_agent_for(
                 phase=phase,

@@ -195,3 +195,14 @@ remain discovery-only and cannot support final Claims without a successful analy
 runner reports whether both sidecars are mounted plus semantic columns, discovery calls, and record
 counts. See
 [`docs/development/m3-15-pinned-sql-semantics.md`](../../docs/development/m3-15-pinned-sql-semantics.md).
+
+The first post-M3.15 live run used all six authorized Tavily queries and five of six fetched pages.
+All five analytical SQL attempts succeeded, analytical Evidence was available, and one executed
+query was attached. The previous unknown-column correction failure was therefore resolved. The run
+still degraded because the Supervisor did not select formula discovery and Compression reused five
+discovery-only schema IDs; all six proposed Claims were rejected and report citation validation
+failed. M3.16 makes both boundaries deterministic: the backend prefetches task-relevant pinned
+formulas before Supervisor research, while Compression receives a newly rendered ledger filtered to
+Claim-eligible IDs rather than raw Supervisor prose. The prefetch consumes no external-search or
+research-round budget. See
+[`docs/development/m3-16-deterministic-semantic-handoff.md`](../../docs/development/m3-16-deterministic-semantic-handoff.md).

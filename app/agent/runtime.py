@@ -485,6 +485,8 @@ class ResearchRunTrace:
         max_total_content_chars: int = 24_000,
         max_record_content_chars: int = 4_000,
         source_priority: tuple[str, ...] = (),
+        claim_eligible_only: bool = False,
+        evidence_kinds: tuple[str, ...] = (),
     ) -> str:
         """Render a bounded in-memory ledger for synthesis without adding content to telemetry."""
         if not self._evidence_records_by_id:
@@ -492,6 +494,24 @@ class ResearchRunTrace:
         lines = ["# Backend Evidence Ledger", ""]
         remaining = max_total_content_chars
         records = list(self._evidence_records_by_id.values())
+        if claim_eligible_only:
+            eligible_ids = set(self.claim_eligible_evidence_ids)
+            records = [
+                record
+                for record in records
+                if str(getattr(record, "evidence_id", "") or "") in eligible_ids
+            ]
+        if evidence_kinds:
+            allowed_kinds = set(evidence_kinds)
+            records = [
+                record
+                for record in records
+                if str((getattr(record, "metadata", {}) or {}).get("evidence_kind", ""))
+                in allowed_kinds
+            ]
+        available_records = len(records)
+        if not available_records:
+            return ""
         if source_priority:
             source_rank = {source: index for index, source in enumerate(source_priority)}
             records = sorted(
@@ -540,7 +560,7 @@ class ResearchRunTrace:
                 ]
             )
             rendered_records += 1
-        omitted = len(self._evidence_records_by_id) - rendered_records
+        omitted = available_records - rendered_records
         if omitted > 0 or remaining <= 0:
             lines.append(
                 "- Ledger limit reached; additional collected records remain registered by ID."

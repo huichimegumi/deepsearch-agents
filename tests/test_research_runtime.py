@@ -279,6 +279,44 @@ def test_trace_can_prioritize_web_context_for_sql_correction():
     assert ledger.index("ev1_web_target") < ledger.index("ev1_sql_schema")
 
 
+def test_trace_can_filter_ledger_by_claim_eligibility_and_evidence_kind():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_sql_schema",
+                source="sql",
+                locator="sql://schema/table",
+                content={"table": "metrics"},
+                metadata={"evidence_kind": "database_schema"},
+            ),
+            SimpleNamespace(
+                evidence_id="ev1_sql_semantics",
+                source="sql",
+                locator="sql://semantics/1",
+                content={"definition": "score = value * 2"},
+                metadata={"evidence_kind": "database_semantics"},
+            ),
+            SimpleNamespace(
+                evidence_id="ev1_sql_result",
+                source="sql",
+                locator="sql://query/row",
+                content={"score": 84},
+                metadata={"evidence_kind": "query_result"},
+            ),
+        )
+    )
+
+    claim_ledger = trace.render_evidence_ledger(claim_eligible_only=True)
+    semantic_ledger = trace.render_evidence_ledger(evidence_kinds=("database_semantics",))
+
+    assert "ev1_sql_result" in claim_ledger
+    assert "ev1_sql_schema" not in claim_ledger
+    assert "ev1_sql_semantics" not in claim_ledger
+    assert "ev1_sql_semantics" in semantic_ledger
+    assert "ev1_sql_result" not in semantic_ledger
+
+
 def test_trace_records_validated_claim_usage_and_report_citations():
     trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
     claim = SimpleNamespace(
