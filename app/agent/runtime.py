@@ -158,6 +158,8 @@ class ResearchRunTrace:
     evidence_by_source: Counter[str] = field(default_factory=Counter)
     sql_evidence_by_kind: Counter[str] = field(default_factory=Counter)
     _evidence_records_by_id: dict[str, Any] = field(default_factory=dict, repr=False)
+    _sql_query_by_evidence_id: dict[str, str] = field(default_factory=dict, repr=False)
+    _successful_analytical_sql_queries: list[str] = field(default_factory=list, repr=False)
     claim_ids: list[str] = field(default_factory=list)
     claim_evidence_ids: list[str] = field(default_factory=list)
     claims_by_kind: Counter[str] = field(default_factory=Counter)
@@ -165,6 +167,7 @@ class ResearchRunTrace:
     unknown_claim_evidence_ids: list[str] = field(default_factory=list)
     report_cited_evidence_ids: list[str] = field(default_factory=list)
     report_citation_valid: bool | None = None
+    report_sql_query_attached: bool = False
     sql_query_attempts: int = 0
     sql_query_successes: int = 0
     sql_query_failures: int = 0
@@ -302,6 +305,34 @@ class ResearchRunTrace:
                 if evidence_kind not in {"database_schema", "database_sample"}:
                     self.claim_eligible_evidence_ids.append(evidence_id)
                 self._evidence_records_by_id[evidence_id] = record
+
+    def record_sql_query_evidence(
+        self,
+        query: str,
+        records: list[Any] | tuple[Any, ...],
+    ) -> None:
+        """Keep executed SQL provenance in memory without serializing query text."""
+        evidence_ids = [
+            str(getattr(record, "evidence_id", "") or "")
+            for record in records
+            if getattr(record, "evidence_id", None)
+        ]
+        if not evidence_ids:
+            return
+        self._successful_analytical_sql_queries.append(query)
+        for evidence_id in evidence_ids:
+            self._sql_query_by_evidence_id[evidence_id] = query
+
+    @property
+    def preferred_analytical_sql_query(self) -> str | None:
+        """Return claim-linked SQL when possible, otherwise the latest successful query."""
+        for evidence_id in reversed(self.claim_evidence_ids):
+            query = self._sql_query_by_evidence_id.get(evidence_id)
+            if query:
+                return query
+        if self._successful_analytical_sql_queries:
+            return self._successful_analytical_sql_queries[-1]
+        return None
 
     @property
     def has_analytical_sql_evidence(self) -> bool:
@@ -527,7 +558,7 @@ class ResearchRunTrace:
         result_urls = set(re.findall(r"https?://[^\s)>\]]+", final_result or ""))
         unused_fetched = self._fetched_sources - result_urls
         return {
-            "schema_version": 7,
+            "schema_version": 8,
             "run_id": self.run_id,
             "thread_id": self.thread_id,
             "started_at": self.started_at,
@@ -561,6 +592,7 @@ class ResearchRunTrace:
                 "unknown_claim_evidence_ids": len(self.unknown_claim_evidence_ids),
                 "report_cited_evidence_records": len(self.report_cited_evidence_ids),
                 "report_citation_valid": self.report_citation_valid,
+                "report_sql_query_attached": self.report_sql_query_attached,
                 "sql_query_attempts": self.sql_query_attempts,
                 "sql_query_successes": self.sql_query_successes,
                 "sql_query_failures": self.sql_query_failures,

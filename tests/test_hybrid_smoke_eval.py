@@ -288,6 +288,7 @@ def test_sqlite_correction_gets_one_recovery_slot_after_repair_limit(tmp_path, m
     assert trace.has_analytical_sql_evidence is True
     assert trace.sql_query_attempts == 3
     assert trace.sql_correction_admission_overrides == 1
+    assert trace.preferred_analytical_sql_query == "SELECT name, value FROM metrics"
 
 
 def test_smoke_correctness_helpers_do_not_require_llm_judge(tmp_path):

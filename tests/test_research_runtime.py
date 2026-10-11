@@ -224,7 +224,7 @@ def test_trace_reserves_one_correction_after_consecutive_sql_failures():
     trace.record_sql_correction(success=False)
 
     payload = trace.finalize(status="completed", final_result="gap")
-    assert payload["schema_version"] == 7
+    assert payload["schema_version"] == 8
     assert payload["metrics"]["sql_correction_admission_overrides"] == 1
     assert trace.can_attempt_sql_correction is False
 
@@ -302,6 +302,34 @@ def test_trace_records_validated_claim_usage_and_report_citations():
     assert payload["waste"]["evidence_never_used_in_claims"] == 0
 
 
+def test_trace_selects_claim_linked_sql_without_serializing_query_text():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    first_record = SimpleNamespace(evidence_id="ev1_sql_first", source="sql")
+    latest_record = SimpleNamespace(evidence_id="ev1_sql_latest", source="sql")
+    trace.record_sql_query_evidence("SELECT private_first FROM metrics", (first_record,))
+    trace.record_sql_query_evidence("SELECT private_latest FROM metrics", (latest_record,))
+    trace.record_claim_validation(
+        SimpleNamespace(
+            accepted=(
+                SimpleNamespace(
+                    claim_id="clm1_supported",
+                    kind="fact",
+                    evidence_ids=("ev1_sql_first",),
+                ),
+            ),
+            rejected=(),
+            unknown_evidence_ids=(),
+        )
+    )
+
+    assert trace.preferred_analytical_sql_query == "SELECT private_first FROM metrics"
+    payload = trace.finalize(status="completed", final_result="done")
+    serialized = json.dumps(payload)
+
+    assert "private_first" not in serialized
+    assert "private_latest" not in serialized
+
+
 def test_trace_preserves_all_unique_failure_reasons():
     budget = make_budget()
     trace = ResearchRunTrace("run-1", "thread-1", "test", budget)
@@ -346,7 +374,7 @@ def test_trace_bounds_sql_repair_and_keeps_query_text_private():
 
     payload = trace.finalize(status="completed", final_result="gap")
     serialized = json.dumps(payload)
-    assert payload["schema_version"] == 7
+    assert payload["schema_version"] == 8
     assert payload["metrics"]["sql_query_attempts"] == 2
     assert payload["metrics"]["sql_query_failures"] == 2
     assert payload["metrics"]["sql_query_blocked"] == 2

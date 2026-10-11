@@ -195,6 +195,7 @@ class SQLCorrectionProposal(BaseModel):
 
 
 SQL_CORRECTION_MAX_PROPOSALS = 2
+SQL_FENCE_PATTERN = re.compile(r"```sql\s*.*?```", re.IGNORECASE | re.DOTALL)
 
 
 def _render_validated_compression(
@@ -207,6 +208,25 @@ def _render_validated_compression(
     )
     run_trace.record_claim_validation(validation)
     return parsed.to_markdown(validation)
+
+
+def _attach_required_executed_sql(
+    report_markdown: str,
+    run_trace: ResearchRunTrace,
+) -> str:
+    """Attach exactly one executed analytical query when the caller requires SQL output."""
+    if os.getenv("INCLUDE_EXECUTED_SQL_IN_REPORT", "").strip() != "1":
+        return report_markdown
+    query = run_trace.preferred_analytical_sql_query
+    if not query:
+        return report_markdown
+    report_without_sql_fences = SQL_FENCE_PATTERN.sub("", report_markdown).rstrip()
+    run_trace.report_sql_query_attached = True
+    return (
+        f"{report_without_sql_fences}\n\n"
+        "## Executed analytical SQL\n\n"
+        f"```sql\n{query.strip()}\n```"
+    )
 
 
 def _enforce_final_report_citations(
@@ -1191,6 +1211,7 @@ async def run_deep_agent(
                         compressed_fallback=phase_outputs.get("evidence_compression", ""),
                         run_trace=run_trace,
                     )
+                    phase_result = _attach_required_executed_sql(phase_result, run_trace)
                     monitor.report_task_result(phase_result)
                     write_audit_event(
                         "task_result",
@@ -1339,6 +1360,7 @@ async def run_deep_agent(
                     compressed_fallback=phase_outputs.get("evidence_compression", ""),
                     run_trace=run_trace,
                 )
+                phase_result = _attach_required_executed_sql(phase_result, run_trace)
                 if not citation_validation.valid:
                     run_trace.mark_phase_artifact(phase.key, "citation_rejected")
                     monitor._emit(

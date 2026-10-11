@@ -412,6 +412,44 @@ async def test_sql_correction_maps_proposal_to_fixed_sql_tool_arguments(monkeypa
     assert "sql_correction_no_analytical_evidence" in trace.failure_reasons
 
 
+def test_required_sql_output_uses_claim_linked_executed_query(monkeypatch):
+    _budget, trace = make_runtime()
+    supported = SimpleNamespace(evidence_id="ev1_sql_supported", source="sql")
+    latest = SimpleNamespace(evidence_id="ev1_sql_latest", source="sql")
+    trace.record_sql_query_evidence("SELECT supported_value FROM metrics", (supported,))
+    trace.record_sql_query_evidence("SELECT unrelated_value FROM metrics", (latest,))
+    trace.record_claim_validation(
+        SimpleNamespace(
+            accepted=(
+                SimpleNamespace(
+                    claim_id="clm1_supported",
+                    kind="fact",
+                    evidence_ids=("ev1_sql_supported",),
+                ),
+            ),
+            rejected=(),
+            unknown_evidence_ids=(),
+        )
+    )
+    original_report = "Report\n\n```sql\nSELECT invented FROM nowhere\n```"
+
+    assert main_agent._attach_required_executed_sql(original_report, trace) == original_report
+    monkeypatch.setenv("INCLUDE_EXECUTED_SQL_IN_REPORT", "1")
+
+    result = main_agent._attach_required_executed_sql(
+        original_report,
+        trace,
+    )
+
+    assert result.count("```sql") == 1
+    assert "SELECT supported_value FROM metrics" in result
+    assert "invented" not in result
+    assert "unrelated_value" not in result
+    assert trace.report_sql_query_attached is True
+    payload = trace.finalize(status="completed", final_result=result)
+    assert payload["metrics"]["report_sql_query_attached"] is True
+
+
 def test_backend_persists_requested_markdown_and_records_tool(tmp_path, monkeypatch):
     monkeypatch.setattr(main_agent.monitor, "report_file_created", lambda *args, **kwargs: None)
     budget, trace = make_runtime()

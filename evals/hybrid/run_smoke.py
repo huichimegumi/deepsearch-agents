@@ -172,6 +172,7 @@ def _score_task(
         "trace_present": trace is not None,
         "trace_status": (trace or {}).get("status"),
         "citation_valid": metrics.get("report_citation_valid"),
+        "executed_sql_attached": bool(metrics.get("report_sql_query_attached", False)),
         "sql_evidence_records": int(evidence_by_source.get("sql", 0)),
         "web_evidence_records": int(evidence_by_source.get("web", 0)),
         "cross_source_evidence": bool(
@@ -224,6 +225,7 @@ async def _execute_task(
             "EVIDENCE_SQLITE_PATH": str(database_path.resolve()),
             "SEARCH_BACKEND_LOCK": search_backend,
             "REQUIRE_ANALYTICAL_SQL_EVIDENCE": "1",
+            "INCLUDE_EXECUTED_SQL_IN_REPORT": "1",
         }
     ):
         answer = await run_deep_agent(
@@ -341,6 +343,9 @@ def run(
         "strict_correct": sum(bool(row.get("strict_correct")) for row in results),
         "cross_source_evidence": sum(bool(row.get("cross_source_evidence")) for row in results),
         "citation_valid": sum(row.get("citation_valid") is True for row in results),
+        "executed_sql_attached": sum(
+            bool(row.get("executed_sql_attached")) for row in results
+        ),
         "total_search_queries": total_search_queries,
         "total_fetched_pages": total_fetched_pages,
         "total_sql_query_attempts": total_sql_query_attempts,

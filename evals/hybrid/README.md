@@ -139,3 +139,12 @@ against the same schema ledger. Valid empty results are not retried, and both at
 existing correction deadline and external-search limits. Smoke output reports
 `sql_correction_repair_attempts` and `sql_correction_repair_successes` per task and in aggregate.
 See [`docs/development/m3-10-error-aware-sql-correction.md`](../../docs/development/m3-10-error-aware-sql-correction.md).
+
+M3.11 follows a run that used exactly two Tavily queries and two fetched pages, completed three SQL
+queries without errors, produced analytical SQL Evidence, and passed citation validation. Strict
+scoring still failed because the report omitted the required SQL fence. The runner now explicitly
+requests executed-SQL output. Runtime-only provenance selects the query associated with accepted
+Claim Evidence when possible, removes model-written SQL fences, and appends exactly one query that
+was actually executed. Portable traces continue to omit SQL text and report only
+`report_sql_query_attached`; smoke output exposes `executed_sql_attached`. See
+[`docs/development/m3-11-executed-sql-output.md`](../../docs/development/m3-11-executed-sql-output.md).

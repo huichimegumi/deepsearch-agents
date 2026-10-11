@@ -529,6 +529,8 @@ def collect_evidence(
     }
     if trace is not None:
         trace.record_evidence(batch.records)
+        if source_type is EvidenceSource.SQL and operation == "query":
+            trace.record_sql_query_evidence(query, batch.records)
     write_audit_event("evidence_collected", event)
     if batch.status is EvidenceBatchStatus.ERROR:
         monitor.report_tool_error(EVIDENCE_TOOL_NAME, "; ".join(batch.warnings), event)
