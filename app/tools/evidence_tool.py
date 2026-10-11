@@ -456,6 +456,8 @@ def collect_evidence(
     """
     started_at = monotonic()
     source_type = EvidenceSource(source)
+    trace = get_research_trace()
+    sql_policy: dict[str, object] | None = None
     monitor.report_tool(
         tool_name=EVIDENCE_TOOL_NAME,
         args={
@@ -470,17 +472,44 @@ def collect_evidence(
     )
     try:
         if source_type is EvidenceSource.SQL:
-            sqlite_path = os.getenv("EVIDENCE_SQLITE_PATH", "").strip()
-            if sqlite_path:
-                batch = _collect_sqlite(query, operation, Path(sqlite_path), table_name)
+            if operation == "query" and trace is not None:
+                admitted, sql_policy = trace.admit_sql_query(query)
             else:
-                batch = _collect_sql(query, operation)
+                admitted = True
+            if not admitted:
+                reason = str(sql_policy["reason"] if sql_policy else "limit")
+                batch = _error_batch(
+                    source_type,
+                    query,
+                    RuntimeError(
+                        "SQL repair policy blocked execution: "
+                        f"{reason}. Stop querying and report the evidence gap."
+                    ),
+                )
+            else:
+                sqlite_path = os.getenv("EVIDENCE_SQLITE_PATH", "").strip()
+                if sqlite_path:
+                    batch = _collect_sqlite(query, operation, Path(sqlite_path), table_name)
+                else:
+                    batch = _collect_sql(query, operation)
         elif source_type is EvidenceSource.LOCAL_DOCUMENT:
             batch = _collect_local_documents(query, knowledge_base)
         else:
             batch = _collect_fee(psp_reference, aci or None)
     except Exception as exc:  # noqa: BLE001 - keep agent failures inspectable and bounded
         batch = _error_batch(source_type, query or psp_reference, exc)
+    if source_type is EvidenceSource.SQL and trace is not None:
+        if operation == "query" and sql_policy and sql_policy.get("admitted"):
+            sql_policy = {
+                **sql_policy,
+                **trace.record_sql_query_result(
+                    query,
+                    status=batch.status.value,
+                    warnings=batch.warnings,
+                ),
+            }
+        elif operation != "query":
+            trace.record_sql_discovery(operation)
     event = {
         "source": source,
         "status": batch.status.value,
@@ -489,8 +518,8 @@ def collect_evidence(
         "record_count": len(batch.records),
         "warnings": list(batch.warnings),
         "elapsed_ms": round((monotonic() - started_at) * 1000),
+        "sql_policy": sql_policy,
     }
-    trace = get_research_trace()
     if trace is not None:
         trace.record_evidence(batch.records)
     write_audit_event("evidence_collected", event)

@@ -164,6 +164,10 @@ def _score_task(
         "fetched_pages": int(metrics.get("fetched_pages", 0)),
         "validated_claims": int(metrics.get("validated_claims", 0)),
         "rejected_claims": int(metrics.get("rejected_claims", 0)),
+        "sql_query_attempts": int(metrics.get("sql_query_attempts", 0)),
+        "sql_query_failures": int(metrics.get("sql_query_failures", 0)),
+        "sql_query_blocked": int(metrics.get("sql_query_blocked", 0)),
+        "sql_schema_discovery_calls": int(metrics.get("sql_schema_discovery_calls", 0)),
         "elapsed_ms": (trace or {}).get("elapsed_ms"),
     }
 
@@ -268,6 +272,9 @@ def run(
 
     total_search_queries = sum(int(row.get("search_queries", 0)) for row in results)
     total_fetched_pages = sum(int(row.get("fetched_pages", 0)) for row in results)
+    total_sql_query_attempts = sum(int(row.get("sql_query_attempts", 0)) for row in results)
+    total_sql_query_failures = sum(int(row.get("sql_query_failures", 0)) for row in results)
+    total_sql_query_blocked = sum(int(row.get("sql_query_blocked", 0)) for row in results)
     return {
         "name": selection["name"],
         "generated_at": now_utc(),
@@ -290,6 +297,9 @@ def run(
         "citation_valid": sum(row.get("citation_valid") is True for row in results),
         "total_search_queries": total_search_queries,
         "total_fetched_pages": total_fetched_pages,
+        "total_sql_query_attempts": total_sql_query_attempts,
+        "total_sql_query_failures": total_sql_query_failures,
+        "total_sql_query_blocked": total_sql_query_blocked,
         "search_budget_compliant": bool(
             total_search_queries <= len(tasks) * max_search_queries
             and total_fetched_pages <= len(tasks) * max_fetched_pages

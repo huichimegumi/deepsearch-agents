@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import json
 import re
 from collections import Counter
@@ -11,6 +12,8 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from time import monotonic
 from typing import Any
+
+MAX_CONSECUTIVE_SQL_FAILURES = 2
 
 
 @dataclass(frozen=True)
@@ -158,6 +161,15 @@ class ResearchRunTrace:
     unknown_claim_evidence_ids: list[str] = field(default_factory=list)
     report_cited_evidence_ids: list[str] = field(default_factory=list)
     report_citation_valid: bool | None = None
+    sql_query_attempts: int = 0
+    sql_query_successes: int = 0
+    sql_query_failures: int = 0
+    sql_query_blocked: int = 0
+    sql_schema_discovery_calls: int = 0
+    sql_sample_calls: int = 0
+    sql_error_categories: Counter[str] = field(default_factory=Counter)
+    _consecutive_sql_failures: int = field(default=0, repr=False)
+    _failed_sql_query_digests: set[str] = field(default_factory=set, repr=False)
 
     def start_phase(self, phase_key: str, title: str) -> None:
         self.phases.append(
@@ -276,6 +288,87 @@ class ResearchRunTrace:
                 self.evidence_by_source[source_value] += 1
                 self._evidence_records_by_id[evidence_id] = record
 
+    @staticmethod
+    def _sql_query_digest(query: str) -> str:
+        normalized = " ".join(query.strip().rstrip(";").split())
+        return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:16]
+
+    def admit_sql_query(self, query: str) -> tuple[bool, dict[str, Any]]:
+        """Admit an original SQL attempt plus at most one consecutive repair."""
+        query_digest = self._sql_query_digest(query)
+        if query_digest in self._failed_sql_query_digests:
+            self.sql_query_blocked += 1
+            return False, {
+                "admitted": False,
+                "reason": "duplicate_failed_query",
+                "query_digest": query_digest,
+            }
+        if self._consecutive_sql_failures >= MAX_CONSECUTIVE_SQL_FAILURES:
+            self.sql_query_blocked += 1
+            return False, {
+                "admitted": False,
+                "reason": "consecutive_failure_limit",
+                "query_digest": query_digest,
+            }
+        self.sql_query_attempts += 1
+        return True, {
+            "admitted": True,
+            "attempt": self.sql_query_attempts,
+            "query_digest": query_digest,
+        }
+
+    @staticmethod
+    def _sql_error_category(warnings: tuple[str, ...]) -> str:
+        message = " ".join(warnings).casefold()
+        if "no such column" in message or "unknown column" in message:
+            return "unknown_column"
+        if "no such table" in message or "doesn't exist" in message:
+            return "unknown_table"
+        if "ambiguous" in message:
+            return "ambiguous_column"
+        if "syntax" in message:
+            return "syntax_error"
+        if "read-only" in message or "mutating" in message:
+            return "unsafe_query"
+        if "interrupted" in message or "timeout" in message:
+            return "timeout"
+        return "other"
+
+    def record_sql_query_result(
+        self,
+        query: str,
+        *,
+        status: str,
+        warnings: tuple[str, ...] = (),
+    ) -> dict[str, Any]:
+        """Record a privacy-safe SQL outcome without serializing query or error text."""
+        query_digest = self._sql_query_digest(query)
+        if status == "ERROR":
+            category = self._sql_error_category(warnings)
+            self.sql_query_failures += 1
+            self._consecutive_sql_failures += 1
+            self._failed_sql_query_digests.add(query_digest)
+            self.sql_error_categories[category] += 1
+            return {
+                "status": status,
+                "query_digest": query_digest,
+                "error_category": category,
+                "consecutive_failures": self._consecutive_sql_failures,
+            }
+        self.sql_query_successes += 1
+        self._consecutive_sql_failures = 0
+        return {
+            "status": status,
+            "query_digest": query_digest,
+            "consecutive_failures": 0,
+        }
+
+    def record_sql_discovery(self, operation: str) -> None:
+        if operation == "describe_schema":
+            self.sql_schema_discovery_calls += 1
+        elif operation == "sample_table":
+            self.sql_sample_calls += 1
+
     def render_evidence_ledger(
         self,
         *,
@@ -359,7 +452,7 @@ class ResearchRunTrace:
         result_urls = set(re.findall(r"https?://[^\s)>\]]+", final_result or ""))
         unused_fetched = self._fetched_sources - result_urls
         return {
-            "schema_version": 3,
+            "schema_version": 4,
             "run_id": self.run_id,
             "thread_id": self.thread_id,
             "started_at": self.started_at,
@@ -391,6 +484,13 @@ class ResearchRunTrace:
                 "unknown_claim_evidence_ids": len(self.unknown_claim_evidence_ids),
                 "report_cited_evidence_records": len(self.report_cited_evidence_ids),
                 "report_citation_valid": self.report_citation_valid,
+                "sql_query_attempts": self.sql_query_attempts,
+                "sql_query_successes": self.sql_query_successes,
+                "sql_query_failures": self.sql_query_failures,
+                "sql_query_blocked": self.sql_query_blocked,
+                "sql_schema_discovery_calls": self.sql_schema_discovery_calls,
+                "sql_sample_calls": self.sql_sample_calls,
+                "sql_error_categories": dict(self.sql_error_categories),
             },
             "waste": {
                 "duplicate_queries": self.duplicate_queries,
@@ -400,6 +500,7 @@ class ResearchRunTrace:
                 "evidence_never_used_in_claims": len(
                     set(self.evidence_ids) - set(self.claim_evidence_ids)
                 ),
+                "blocked_sql_queries": self.sql_query_blocked,
                 "note": "M2.1 records backend-validated Claim-to-Evidence links.",
             },
         }

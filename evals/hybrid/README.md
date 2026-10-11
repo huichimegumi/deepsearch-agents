@@ -86,3 +86,9 @@ returns stable Evidence for columns, keys, and indexes across the mounted SQLite
 separate `sample_table` operation accepts an exact catalog table name and returns at most three rows
 when value-domain inspection is necessary. See
 [`docs/development/m3-3-sqlite-schema-discovery.md`](../../docs/development/m3-3-sqlite-schema-discovery.md).
+
+M3.4 bounds SQL repair at the Evidence Tool boundary. A failed query may be replaced once; the
+same failed query cannot be repeated, and a second consecutive failure blocks further SQL execution
+for that run. A successful repair resets the counter. Smoke results include SQL attempts, failures,
+blocked calls, and schema-discovery calls without storing SQL text in the trace. See
+[`docs/development/m3-4-bounded-sql-repair.md`](../../docs/development/m3-4-bounded-sql-repair.md).

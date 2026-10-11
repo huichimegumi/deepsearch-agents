@@ -197,6 +197,60 @@ def test_trace_preserves_all_unique_failure_reasons():
     assert payload["failure_reasons"] == ["timeout", "artifact_missing", "llm_call_limit"]
 
 
+def test_trace_bounds_sql_repair_and_keeps_query_text_private():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    original = "SELECT secret_name FROM observatories"
+    repaired = "SELECT observatory_name FROM observatories"
+
+    admitted, _first = trace.admit_sql_query(original)
+    assert admitted is True
+    trace.record_sql_query_result(
+        original,
+        status="ERROR",
+        warnings=("OperationalError: no such column: secret_name",),
+    )
+    admitted, duplicate = trace.admit_sql_query(original)
+    assert admitted is False
+    assert duplicate["reason"] == "duplicate_failed_query"
+    admitted, _second = trace.admit_sql_query(repaired)
+    assert admitted is True
+    trace.record_sql_query_result(
+        repaired,
+        status="ERROR",
+        warnings=("OperationalError: no such column: observatory_name",),
+    )
+    admitted, limited = trace.admit_sql_query("SELECT name FROM observatories")
+    assert admitted is False
+    assert limited["reason"] == "consecutive_failure_limit"
+
+    payload = trace.finalize(status="completed", final_result="gap")
+    serialized = json.dumps(payload)
+    assert payload["schema_version"] == 4
+    assert payload["metrics"]["sql_query_attempts"] == 2
+    assert payload["metrics"]["sql_query_failures"] == 2
+    assert payload["metrics"]["sql_query_blocked"] == 2
+    assert payload["metrics"]["sql_error_categories"] == {"unknown_column": 2}
+    assert "secret_name" not in serialized
+    assert "observatory_name" not in serialized
+
+
+def test_successful_sql_repair_resets_consecutive_failure_limit():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    admitted, _ = trace.admit_sql_query("SELECT missing FROM metrics")
+    assert admitted is True
+    trace.record_sql_query_result(
+        "SELECT missing FROM metrics",
+        status="ERROR",
+        warnings=("no such column: missing",),
+    )
+    admitted, _ = trace.admit_sql_query("SELECT value FROM metrics")
+    assert admitted is True
+    trace.record_sql_query_result("SELECT value FROM metrics", status="OK")
+    admitted, _ = trace.admit_sql_query("SELECT another_missing FROM metrics")
+
+    assert admitted is True
+
+
 def test_search_tool_enforces_query_budget_and_records_zero_result_waste():
     budget = make_budget()
     trace = ResearchRunTrace("run-1", "thread-1", "test", budget)

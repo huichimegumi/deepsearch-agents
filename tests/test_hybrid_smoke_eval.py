@@ -6,6 +6,13 @@ import sqlite3
 import pytest
 
 from app.agent.main_agent import _requested_artifact_formats
+from app.agent.runtime import (
+    ResearchBudget,
+    ResearchBudgetLimits,
+    ResearchRunTrace,
+    reset_research_runtime,
+    set_research_runtime,
+)
 from app.tools.evidence_tool import collect_evidence
 from evals.hybrid.common import CANARY, CANARY_NOTICE, SELECTION_PATH, decrypt_record, load_json
 from evals.hybrid.run_smoke import (
@@ -158,6 +165,53 @@ def test_sqlite_schema_and_samples_are_bounded_stable_evidence(tmp_path, monkeyp
     assert groups["content"]["indexes"][0]["columns"] == ["label"]
     assert len(sample["records"]) == 2
     assert rejected["status"] == "ERROR"
+
+
+def test_sqlite_query_repair_policy_blocks_duplicate_and_third_failure(tmp_path, monkeypatch):
+    database = tmp_path / "repair.sqlite"
+    _sqlite_database(database)
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database))
+    budget = ResearchBudget(
+        ResearchBudgetLimits(
+            profile="test",
+            total_seconds=30,
+            max_search_queries=0,
+            max_fetched_pages=0,
+            max_research_rounds=1,
+            max_llm_calls=1,
+            writer_reserved_seconds=0,
+        )
+    )
+    trace = ResearchRunTrace("run", "thread", "test", budget)
+    tokens = set_research_runtime(budget, trace)
+    try:
+        schema = json.loads(
+            collect_evidence.invoke({"source": "sql", "operation": "describe_schema"})
+        )
+        first = json.loads(
+            collect_evidence.invoke({"source": "sql", "query": "SELECT missing FROM metrics"})
+        )
+        duplicate = json.loads(
+            collect_evidence.invoke({"source": "sql", "query": "SELECT missing FROM metrics"})
+        )
+        repair = json.loads(
+            collect_evidence.invoke({"source": "sql", "query": "SELECT still_missing FROM metrics"})
+        )
+        limited = json.loads(
+            collect_evidence.invoke({"source": "sql", "query": "SELECT value FROM metrics"})
+        )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert schema["status"] == "OK"
+    assert first["status"] == "ERROR"
+    assert "duplicate_failed_query" in duplicate["warnings"][0]
+    assert repair["status"] == "ERROR"
+    assert "consecutive_failure_limit" in limited["warnings"][0]
+    assert trace.sql_schema_discovery_calls == 1
+    assert trace.sql_query_attempts == 2
+    assert trace.sql_query_failures == 2
+    assert trace.sql_query_blocked == 2
 
 
 def test_smoke_correctness_helpers_do_not_require_llm_judge(tmp_path):
