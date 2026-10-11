@@ -148,3 +148,14 @@ Claim Evidence when possible, removes model-written SQL fences, and appends exac
 was actually executed. Portable traces continue to omit SQL text and report only
 `report_sql_query_attached`; smoke output exposes `executed_sql_attached`. See
 [`docs/development/m3-11-executed-sql-output.md`](../../docs/development/m3-11-executed-sql-output.md).
+
+M3.12 follows the first post-M3.11 run, which used exactly two Tavily queries and two fetched pages,
+collected both source types, and passed citation validation. Its valid correction SQL returned zero
+rows because of an over-constrained location filter, so no analytical Evidence or executed SQL was
+available. The existing second structured proposal may now follow `NO_EVIDENCE` as well as
+`ERROR`. Empty-result repair must preserve the requested entity and computation and may relax only
+filters unsupported by the collected Evidence. It shares the same 60-second deadline and adds no
+search or research-round capacity. Smoke results expose
+`sql_correction_empty_result_repair_attempts` and
+`sql_correction_empty_result_repair_successes` per task and in aggregate. See
+[`docs/development/m3-12-empty-result-sql-repair.md`](../../docs/development/m3-12-empty-result-sql-repair.md).

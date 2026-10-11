@@ -269,11 +269,86 @@ async def test_sql_correction_repairs_one_database_error_within_same_budget(
     assert budget.research_rounds_used == 0
 
 
-async def test_sql_correction_does_not_retry_an_empty_valid_query(tmp_path, monkeypatch):
+async def test_sql_correction_repairs_one_empty_result_within_same_budget(
+    tmp_path,
+    monkeypatch,
+):
     database_path = tmp_path / "correction-empty.sqlite"
     with sqlite3.connect(database_path) as connection:
         connection.execute("CREATE TABLE metrics (name TEXT, value INTEGER)")
+        connection.execute("INSERT INTO metrics VALUES ('verified', 42)")
 
+    proposals = iter(
+        (
+            "SELECT name, value FROM metrics WHERE name = 'unsupported'",
+            "SELECT name, value FROM metrics",
+        )
+    )
+    calls = []
+
+    class StructuredInvoker:
+        async def ainvoke(self, messages):
+            calls.append(messages)
+            return {
+                "raw": SimpleNamespace(usage_metadata={}),
+                "parsed": main_agent.SQLCorrectionProposal(query=next(proposals)),
+                "parsing_error": None,
+            }
+
+    class FakeModel:
+        def with_structured_output(self, schema, include_raw=False):
+            return StructuredInvoker()
+
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database_path))
+    monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    budget, trace = make_runtime()
+    trace.record_sql_discovery("describe_schema")
+    tokens = set_research_runtime(budget, trace)
+    try:
+        success = await main_agent._run_sql_evidence_correction(
+            model=FakeModel(),
+            task_query="Return metrics.",
+            research_brief="Use the metrics table.",
+            budget=AgentExecutionBudget(recursion_limit=2, timeout_seconds=5),
+            budget_profile="test",
+            research_budget=budget,
+            run_trace=trace,
+        )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert success is True
+    assert len(calls) == 2
+    assert "returned zero rows" in calls[1][0]["content"]
+    assert "unsupported" in calls[1][1]["content"]
+    assert trace.sql_query_attempts == 2
+    assert trace.sql_query_successes == 2
+    assert trace.sql_query_failures == 0
+    assert trace.sql_correction_repair_attempts == 1
+    assert trace.sql_correction_repair_successes == 1
+    assert trace.sql_correction_empty_result_repair_attempts == 1
+    assert trace.sql_correction_empty_result_repair_successes == 1
+    assert trace.tool_calls_by_name == {"collect_evidence": 2}
+    payload = trace.finalize(status="completed", final_result="verified")
+    assert payload["metrics"]["sql_correction_empty_result_repair_attempts"] == 1
+    assert payload["metrics"]["sql_correction_empty_result_repair_successes"] == 1
+    assert budget.search_queries_used == 0
+    assert budget.fetched_pages_used == 0
+    assert budget.research_rounds_used == 0
+
+
+async def test_sql_correction_stops_after_second_empty_result(tmp_path, monkeypatch):
+    database_path = tmp_path / "correction-still-empty.sqlite"
+    with sqlite3.connect(database_path) as connection:
+        connection.execute("CREATE TABLE metrics (name TEXT, value INTEGER)")
+
+    proposals = iter(
+        (
+            "SELECT name, value FROM metrics WHERE name = 'first'",
+            "SELECT name, value FROM metrics WHERE name = 'second'",
+        )
+    )
     calls = 0
 
     class StructuredInvoker:
@@ -282,9 +357,7 @@ async def test_sql_correction_does_not_retry_an_empty_valid_query(tmp_path, monk
             calls += 1
             return {
                 "raw": SimpleNamespace(usage_metadata={}),
-                "parsed": main_agent.SQLCorrectionProposal(
-                    query="SELECT name, value FROM metrics"
-                ),
+                "parsed": main_agent.SQLCorrectionProposal(query=next(proposals)),
                 "parsing_error": None,
             }
 
@@ -312,9 +385,13 @@ async def test_sql_correction_does_not_retry_an_empty_valid_query(tmp_path, monk
         reset_research_runtime(tokens)
 
     assert success is False
-    assert calls == 1
-    assert trace.sql_query_successes == 1
-    assert trace.sql_correction_repair_attempts == 0
+    assert calls == 2
+    assert trace.sql_query_attempts == 2
+    assert trace.sql_correction_repair_attempts == 1
+    assert trace.sql_correction_repair_successes == 0
+    assert trace.sql_correction_empty_result_repair_attempts == 1
+    assert trace.sql_correction_empty_result_repair_successes == 0
+    assert "sql_correction_no_analytical_evidence" in trace.failure_reasons
 
 
 async def test_sql_correction_rejects_duplicate_repair_proposal(monkeypatch):

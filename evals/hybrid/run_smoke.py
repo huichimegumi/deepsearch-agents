@@ -191,11 +191,13 @@ def _score_task(
         "sql_correction_admission_overrides": int(
             metrics.get("sql_correction_admission_overrides", 0)
         ),
-        "sql_correction_repair_attempts": int(
-            metrics.get("sql_correction_repair_attempts", 0)
+        "sql_correction_repair_attempts": int(metrics.get("sql_correction_repair_attempts", 0)),
+        "sql_correction_repair_successes": int(metrics.get("sql_correction_repair_successes", 0)),
+        "sql_correction_empty_result_repair_attempts": int(
+            metrics.get("sql_correction_empty_result_repair_attempts", 0)
         ),
-        "sql_correction_repair_successes": int(
-            metrics.get("sql_correction_repair_successes", 0)
+        "sql_correction_empty_result_repair_successes": int(
+            metrics.get("sql_correction_empty_result_repair_successes", 0)
         ),
         "analytical_sql_evidence": bool(
             (metrics.get("sql_evidence_by_kind") or {}).get("query_result", 0)
@@ -322,6 +324,12 @@ def run(
     total_sql_correction_repair_successes = sum(
         int(row.get("sql_correction_repair_successes", 0)) for row in results
     )
+    total_sql_correction_empty_result_repair_attempts = sum(
+        int(row.get("sql_correction_empty_result_repair_attempts", 0)) for row in results
+    )
+    total_sql_correction_empty_result_repair_successes = sum(
+        int(row.get("sql_correction_empty_result_repair_successes", 0)) for row in results
+    )
     return {
         "name": selection["name"],
         "generated_at": now_utc(),
@@ -343,9 +351,7 @@ def run(
         "strict_correct": sum(bool(row.get("strict_correct")) for row in results),
         "cross_source_evidence": sum(bool(row.get("cross_source_evidence")) for row in results),
         "citation_valid": sum(row.get("citation_valid") is True for row in results),
-        "executed_sql_attached": sum(
-            bool(row.get("executed_sql_attached")) for row in results
-        ),
+        "executed_sql_attached": sum(bool(row.get("executed_sql_attached")) for row in results),
         "total_search_queries": total_search_queries,
         "total_fetched_pages": total_fetched_pages,
         "total_sql_query_attempts": total_sql_query_attempts,
@@ -353,11 +359,15 @@ def run(
         "total_sql_query_blocked": total_sql_query_blocked,
         "total_sql_correction_attempts": total_sql_correction_attempts,
         "total_sql_correction_successes": total_sql_correction_successes,
-        "total_sql_correction_admission_overrides": (
-            total_sql_correction_admission_overrides
-        ),
+        "total_sql_correction_admission_overrides": (total_sql_correction_admission_overrides),
         "total_sql_correction_repair_attempts": total_sql_correction_repair_attempts,
         "total_sql_correction_repair_successes": total_sql_correction_repair_successes,
+        "total_sql_correction_empty_result_repair_attempts": (
+            total_sql_correction_empty_result_repair_attempts
+        ),
+        "total_sql_correction_empty_result_repair_successes": (
+            total_sql_correction_empty_result_repair_successes
+        ),
         "search_budget_compliant": bool(
             total_search_queries <= len(tasks) * max_search_queries
             and total_fetched_pages <= len(tasks) * max_fetched_pages

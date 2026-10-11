@@ -179,6 +179,8 @@ class ResearchRunTrace:
     sql_correction_admission_overrides: int = 0
     sql_correction_repair_attempts: int = 0
     sql_correction_repair_successes: int = 0
+    sql_correction_empty_result_repair_attempts: int = 0
+    sql_correction_empty_result_repair_successes: int = 0
     sql_error_categories: Counter[str] = field(default_factory=Counter)
     _consecutive_sql_failures: int = field(default=0, repr=False)
     _failed_sql_query_digests: set[str] = field(default_factory=set, repr=False)
@@ -360,6 +362,11 @@ class ResearchRunTrace:
         self.sql_correction_repair_attempts += 1
         if success:
             self.sql_correction_repair_successes += 1
+
+    def record_sql_correction_empty_result_repair(self, *, success: bool) -> None:
+        self.sql_correction_empty_result_repair_attempts += 1
+        if success:
+            self.sql_correction_empty_result_repair_successes += 1
 
     @staticmethod
     def _sql_query_digest(query: str) -> str:
@@ -558,7 +565,7 @@ class ResearchRunTrace:
         result_urls = set(re.findall(r"https?://[^\s)>\]]+", final_result or ""))
         unused_fetched = self._fetched_sources - result_urls
         return {
-            "schema_version": 8,
+            "schema_version": 9,
             "run_id": self.run_id,
             "thread_id": self.thread_id,
             "started_at": self.started_at,
@@ -601,11 +608,15 @@ class ResearchRunTrace:
                 "sql_sample_calls": self.sql_sample_calls,
                 "sql_correction_attempts": self.sql_correction_attempts,
                 "sql_correction_successes": self.sql_correction_successes,
-                "sql_correction_admission_overrides": (
-                    self.sql_correction_admission_overrides
-                ),
+                "sql_correction_admission_overrides": (self.sql_correction_admission_overrides),
                 "sql_correction_repair_attempts": self.sql_correction_repair_attempts,
                 "sql_correction_repair_successes": self.sql_correction_repair_successes,
+                "sql_correction_empty_result_repair_attempts": (
+                    self.sql_correction_empty_result_repair_attempts
+                ),
+                "sql_correction_empty_result_repair_successes": (
+                    self.sql_correction_empty_result_repair_successes
+                ),
                 "sql_error_categories": dict(self.sql_error_categories),
             },
             "waste": {

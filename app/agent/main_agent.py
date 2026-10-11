@@ -223,9 +223,7 @@ def _attach_required_executed_sql(
     report_without_sql_fences = SQL_FENCE_PATTERN.sub("", report_markdown).rstrip()
     run_trace.report_sql_query_attached = True
     return (
-        f"{report_without_sql_fences}\n\n"
-        "## Executed analytical SQL\n\n"
-        f"```sql\n{query.strip()}\n```"
+        f"{report_without_sql_fences}\n\n## Executed analytical SQL\n\n```sql\n{query.strip()}\n```"
     )
 
 
@@ -317,7 +315,7 @@ async def _run_sql_evidence_correction(
     research_budget: ResearchBudget,
     run_trace: ResearchRunTrace,
 ) -> bool:
-    """Execute one structured SQL proposal plus one bounded error-only repair."""
+    """Execute one structured SQL proposal plus one bounded result-aware repair."""
     phase = SQL_EVIDENCE_CORRECTION_PHASE
     budget_data = _budget_payload(
         budget=budget,
@@ -336,6 +334,8 @@ async def _run_sql_evidence_correction(
     success = False
     llm_recorded = False
     repair_started = False
+    repair_trigger = ""
+    empty_result_repair_started = False
     phase_token = set_research_phase_context(phase.key)
     try:
         prompt = "\n\n".join(
@@ -363,20 +363,34 @@ async def _run_sql_evidence_correction(
                 raise PhaseBudgetExceeded("llm_call_limit")
             if proposal_index:
                 repair_started = True
+                empty_result_repair_started = repair_trigger == "NO_EVIDENCE"
             remaining_seconds = phase_deadline - loop.time()
             if remaining_seconds <= 0:
                 raise TimeoutError
             if proposal_index:
-                system_instruction = (
-                    "The previous SQL proposal was rejected by the database. Return exactly one "
-                    "different read-only analytical SQL query through the required structured "
-                    "schema. Re-check every table and column against the supplied Evidence Ledger; "
-                    "do not invent a requested metric as a physical column."
-                )
-                user_prompt = (
-                    f"{prompt}\n\n【Rejected proposal】\n{previous_query}\n\n"
-                    "Repair only the SQL identifier or expression error."
-                )
+                if repair_trigger == "NO_EVIDENCE":
+                    system_instruction = (
+                        "The previous SQL proposal executed successfully but returned zero rows. "
+                        "Return exactly one different read-only analytical SQL query through the "
+                        "required structured schema. Preserve the requested entity and computation, "
+                        "but relax only filters that are unsupported by the supplied Evidence "
+                        "Ledger. Use exact schema identifiers and never fabricate values."
+                    )
+                    user_prompt = (
+                        f"{prompt}\n\n【Empty-result proposal】\n{previous_query}\n\n"
+                        "Repair only the over-constrained or unsupported filtering logic."
+                    )
+                else:
+                    system_instruction = (
+                        "The previous SQL proposal was rejected by the database. Return exactly one "
+                        "different read-only analytical SQL query through the required structured "
+                        "schema. Re-check every table and column against the supplied Evidence Ledger; "
+                        "do not invent a requested metric as a physical column."
+                    )
+                    user_prompt = (
+                        f"{prompt}\n\n【Rejected proposal】\n{previous_query}\n\n"
+                        "Repair only the SQL identifier or expression error."
+                    )
             else:
                 system_instruction = (
                     "You are a SQL correction planner. Return exactly one read-only analytical "
@@ -427,8 +441,9 @@ async def _run_sql_evidence_correction(
                 tool_status = str(json.loads(tool_result).get("status", ""))
             except (TypeError, ValueError, AttributeError):
                 tool_status = ""
-            if tool_status != "ERROR":
+            if tool_status not in {"ERROR", "NO_EVIDENCE"}:
                 break
+            repair_trigger = tool_status
         if not success:
             reason = "sql_correction_no_analytical_evidence"
     except asyncio.CancelledError:
@@ -457,6 +472,8 @@ async def _run_sql_evidence_correction(
         reset_research_phase_context(phase_token)
         if repair_started:
             run_trace.record_sql_correction_repair(success=success)
+            if empty_result_repair_started:
+                run_trace.record_sql_correction_empty_result_repair(success=success)
         run_trace.record_sql_correction(success=success)
         if reason:
             run_trace.record_failure(reason)
