@@ -206,3 +206,15 @@ formulas before Supervisor research, while Compression receives a newly rendered
 Claim-eligible IDs rather than raw Supervisor prose. The prefetch consumes no external-search or
 research-round budget. See
 [`docs/development/m3-16-deterministic-semantic-handoff.md`](../../docs/development/m3-16-deterministic-semantic-handoff.md).
+
+The post-M3.16 run authorized a 6/6 Tavily budget but issued no Web search. Both backend semantic
+prefetches ran and Compression submitted no unknown Evidence IDs, confirming the deterministic
+scheduling and Claim-safe handoff. Analytical SQL still failed because the exact top-level formula
+referenced two `children_knowledge` formulas that were not returned; unrelated lexical matches used
+the remaining semantic slots. M3.17 expands exact-match dependency graphs within the existing
+eight-record cap and grounds every formula identifier to physical SQLite `table.column` pairs. Each
+semantic record also carries the full physical columns for its relevant tables, so query construction
+does not depend on a distant or truncated schema record. A no-network check of the locked assets
+returned one parent and its two required dependencies with all inputs grounded across the relevant
+tables. See
+[`docs/development/m3-17-semantic-dependency-closure.md`](../../docs/development/m3-17-semantic-dependency-closure.md).

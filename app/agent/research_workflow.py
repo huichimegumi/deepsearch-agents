@@ -52,6 +52,7 @@ RESEARCH_PHASES = (
 3. SQL、本地文档和 Fee Engine 证据必须通过 collect_evidence 获取；公开网页必须由网络搜索助手抓取正文并返回 Web Evidence
    对 SQLite，编写查询前必须先调用 operation=describe_schema；只有需要确认值域时，才对相关表调用 operation=sample_table
    用户问题包含命名的派生指标、评分或领域公式时，在编写 SQL 前调用 operation=search_semantic_knowledge，query 使用该指标名称或原始问题
+   公式 Evidence 可能包含依赖公式、resolved_columns 和 relevant_table_columns；必须展开依赖并使用映射后的真实 table.column，禁止把指标名称当成物理字段
    SQL 查询失败后最多改写一次；禁止原样重复失败 SQL。第二次连续失败后停止查询，并把错误和证据缺口写入 Reflection
    describe_schema、list_tables、sample_table 和 search_semantic_knowledge 只用于发现结构、值域与公式，不能支撑最终分析结论；数据库任务必须至少有一次成功的 operation=query
 4. 每条关键结论绑定工具实际返回的稳定 evidence_id；CANDIDATE_ONLY 搜索结果不是证据，不得改写或自造 ID
@@ -124,6 +125,7 @@ SQL_EVIDENCE_CORRECTION_PHASE = ResearchPhase(
 2. 只返回一个符合 SQLCorrectionProposal schema 的完整 query，不要输出解释或工具调用
 3. 后端会把该 query 固定映射为一次 source=sql、operation=query 的 collect_evidence 调用
 4. 使用已经发现的真实表名、列名和值域；不要重复 schema 或 sample 调用
+5. 若 Evidence Ledger 包含公式依赖及 resolved_columns，必须把全部依赖展开为 SQL 表达式，并使用映射后的真实字段
 
 禁止：
 - 禁止网络搜索、子智能体、本地文档、Fee Engine 和文件工具

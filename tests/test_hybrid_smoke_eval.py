@@ -291,13 +291,24 @@ def test_sqlite_semantic_knowledge_search_returns_stable_discovery_evidence(
                         "id": 7,
                         "knowledge": "Verified Metric Score (VMS)",
                         "description": "A named derived metric.",
-                        "definition": "VMS = value * 2",
+                        "definition": "VMS = DMS + 1",
                         "type": "calculation_knowledge",
+                        "children_knowledge": [8],
                     }
                 ),
                 json.dumps(
                     {
                         "id": 8,
+                        "knowledge": "Derived Metric Score (DMS)",
+                        "description": "A dependency not named in the task.",
+                        "definition": "DMS = value * 2",
+                        "type": "calculation_knowledge",
+                        "children_knowledge": -1,
+                    }
+                ),
+                json.dumps(
+                    {
+                        "id": 9,
                         "knowledge": "Unrelated Index",
                         "description": "Does not match the query.",
                         "definition": "index = 1",
@@ -331,10 +342,27 @@ def test_sqlite_semantic_knowledge_search_returns_stable_discovery_evidence(
     )
 
     assert first["status"] == "OK"
-    assert len(first["records"]) == 1
+    assert len(first["records"]) == 2
     assert first["records"][0]["content"]["knowledge"] == "Verified Metric Score (VMS)"
-    assert first["records"][0]["metadata"]["evidence_kind"] == "database_semantics"
-    assert first["records"][0]["evidence_id"] == second["records"][0]["evidence_id"]
+    assert first["records"][1]["content"]["knowledge"] == "Derived Metric Score (DMS)"
+    assert first["records"][1]["content"]["resolved_columns"] == [
+        {
+            "column_name": "value",
+            "formula_identifier": "value",
+            "table_name": "metrics",
+        }
+    ]
+    assert first["records"][1]["content"]["relevant_table_columns"]["metrics"] == [
+        "name",
+        "value",
+        "group_id",
+    ]
+    assert all(
+        item["metadata"]["evidence_kind"] == "database_semantics" for item in first["records"]
+    )
+    assert [item["evidence_id"] for item in first["records"]] == [
+        item["evidence_id"] for item in second["records"]
+    ]
 
 
 def test_sqlite_query_repair_policy_blocks_duplicate_and_third_failure(tmp_path, monkeypatch):

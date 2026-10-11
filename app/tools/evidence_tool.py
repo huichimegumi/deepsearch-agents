@@ -218,6 +218,7 @@ def _configured_sqlite_semantic_knowledge() -> tuple[tuple[dict[str, object], ..
 
 def _sqlite_search_semantic_knowledge(
     *,
+    connection: sqlite3.Connection,
     query: str,
     database_identity: str,
 ) -> EvidenceBatch:
@@ -245,7 +246,72 @@ def _sqlite_search_semantic_knowledge(
         if overlap or exact_name:
             ranked.append((int(exact_name), overlap, name, entry))
     ranked.sort(key=lambda item: (-item[0], -item[1], item[2]))
-    selected = [item[3] for item in ranked[:SQLITE_SEMANTIC_KNOWLEDGE_LIMIT]]
+    exact_matches = [item[3] for item in ranked if item[0]]
+    primary_entries = exact_matches or [item[3] for item in ranked]
+    entries_by_id = {str(entry.get("id")): entry for entry in entries if "id" in entry}
+    selected: list[dict[str, object]] = []
+    selected_ids: set[str] = set()
+
+    def entry_key(entry: dict[str, object]) -> str:
+        if "id" in entry:
+            return f"id:{entry['id']}"
+        encoded = json.dumps(entry, ensure_ascii=False, sort_keys=True, default=str).encode("utf-8")
+        return f"content:{sha256(encoded).hexdigest()}"
+
+    def add_with_dependencies(entry: dict[str, object]) -> None:
+        queue = [entry]
+        while queue and len(selected) < SQLITE_SEMANTIC_KNOWLEDGE_LIMIT:
+            current = queue.pop(0)
+            entry_id = entry_key(current)
+            if entry_id in selected_ids:
+                continue
+            selected.append(current)
+            selected_ids.add(entry_id)
+            children = current.get("children_knowledge", ())
+            if not isinstance(children, list):
+                continue
+            for child_id in children:
+                child = entries_by_id.get(str(child_id))
+                if child is not None and entry_key(child) not in selected_ids:
+                    queue.append(child)
+
+    for entry in primary_entries:
+        if len(selected) >= SQLITE_SEMANTIC_KNOWLEDGE_LIMIT:
+            break
+        add_with_dependencies(entry)
+
+    column_catalog: dict[str, list[tuple[str, str]]] = {}
+    table_columns: dict[str, list[str]] = {}
+    for table_name in _sqlite_table_names(connection):
+        columns = [
+            str(row[1])
+            for row in connection.execute("SELECT * FROM pragma_table_xinfo(?)", (table_name,))
+        ]
+        table_columns[table_name] = columns
+        for column_name in columns:
+            column_catalog.setdefault(column_name.casefold(), []).append((table_name, column_name))
+
+    enriched_entries = []
+    for entry in selected:
+        content = dict(entry)
+        definition = str(entry.get("definition", ""))
+        identifiers = dict.fromkeys(re.findall(r"[A-Za-z][A-Za-z0-9_]*", definition))
+        resolved_columns = []
+        relevant_tables: dict[str, list[str]] = {}
+        for identifier in identifiers:
+            for table_name, column_name in column_catalog.get(identifier.casefold(), ()):
+                resolved_columns.append(
+                    {
+                        "formula_identifier": identifier,
+                        "table_name": table_name,
+                        "column_name": column_name,
+                    }
+                )
+                relevant_tables[table_name] = table_columns[table_name]
+        if resolved_columns:
+            content["resolved_columns"] = resolved_columns
+            content["relevant_table_columns"] = relevant_tables
+        enriched_entries.append(content)
     records = tuple(
         EvidenceRecord.create(
             source=EvidenceSource.SQL,
@@ -258,7 +324,7 @@ def _sqlite_search_semantic_knowledge(
             },
             metadata={"evidence_kind": "database_semantics"},
         )
-        for index, entry in enumerate(selected)
+        for index, entry in enumerate(enriched_entries)
     )
     return EvidenceBatch(
         source=EvidenceSource.SQL,
@@ -428,6 +494,7 @@ def _collect_sqlite(
             )
         if operation == "search_semantic_knowledge":
             return _sqlite_search_semantic_knowledge(
+                connection=connection,
                 query=query,
                 database_identity=database_identity,
             )

@@ -1396,8 +1396,10 @@ async def run_deep_agent(
                     phase_runtime_instructions = (
                         f"{phase_runtime_instructions}\n\n"
                         "【Backend SQL Semantic Context】\n"
-                        "Use these pinned metric definitions to construct SQL expressions. "
-                        "They are discovery-only and cannot directly support final Claims.\n\n"
+                        "Use these pinned metric definitions, dependency formulas, resolved_columns, "
+                        "and relevant_table_columns to construct SQL expressions. Never treat a "
+                        "metric name as a physical column. They are discovery-only and cannot "
+                        "directly support final Claims.\n\n"
                         f"{semantic_context}"
                     )
             prompt_phase_outputs = phase_outputs
