@@ -137,12 +137,16 @@ def sql_schema_to_evidence(
             continue
         content = json_safe(table)
         locator = f"sql://{database_identity}/schema/{quote(table_name, safe='')}"
+        identity = {"database": database_identity, "table": table_name}
+        semantic_schema_sha256 = str(table.get("semantic_schema_sha256", ""))
+        if semantic_schema_sha256:
+            identity["semantic_schema_sha256"] = semantic_schema_sha256
         records.append(
             EvidenceRecord.create(
                 source=EvidenceSource.SQL,
                 locator=locator,
                 content=content,
-                identity={"database": database_identity, "table": table_name},
+                identity=identity,
                 metadata={"evidence_kind": "database_schema"},
             )
         )

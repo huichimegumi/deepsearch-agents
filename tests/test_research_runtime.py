@@ -147,8 +147,14 @@ def test_trace_keeps_sql_discovery_evidence_out_of_claim_gate():
         source="sql",
         metadata={"evidence_kind": "database_sample"},
     )
+    semantics = SimpleNamespace(
+        evidence_id="ev1_sql_semantics",
+        source="sql",
+        metadata={"evidence_kind": "database_semantics"},
+    )
 
-    trace.record_evidence((schema, sample))
+    trace.record_sql_discovery("search_semantic_knowledge")
+    trace.record_evidence((schema, sample, semantics))
     payload = trace.finalize(status="completed", final_result="gap")
 
     assert trace.claim_eligible_evidence_ids == []
@@ -156,7 +162,9 @@ def test_trace_keeps_sql_discovery_evidence_out_of_claim_gate():
     assert payload["metrics"]["sql_evidence_by_kind"] == {
         "database_schema": 1,
         "database_sample": 1,
+        "database_semantics": 1,
     }
+    assert payload["metrics"]["sql_semantic_discovery_calls"] == 1
     assert payload["waste"]["evidence_never_used_in_claims"] == 0
 
 
@@ -224,7 +232,7 @@ def test_trace_reserves_one_correction_after_consecutive_sql_failures():
     trace.record_sql_correction(success=False)
 
     payload = trace.finalize(status="completed", final_result="gap")
-    assert payload["schema_version"] == 10
+    assert payload["schema_version"] == 11
     assert payload["metrics"]["sql_correction_admission_overrides"] == 1
     assert trace.can_attempt_sql_correction is False
 
@@ -374,7 +382,7 @@ def test_trace_bounds_sql_repair_and_keeps_query_text_private():
 
     payload = trace.finalize(status="completed", final_result="gap")
     serialized = json.dumps(payload)
-    assert payload["schema_version"] == 10
+    assert payload["schema_version"] == 11
     assert payload["metrics"]["sql_query_attempts"] == 2
     assert payload["metrics"]["sql_query_failures"] == 2
     assert payload["metrics"]["sql_query_blocked"] == 2

@@ -184,3 +184,14 @@ Timeout wrappers are now recovered as a degraded `upstream_timeout` phase so SQL
 compression, and writing can continue. Smoke output exposes `upstream_timeout_recoveries` per task
 and in aggregate. See
 [`docs/development/m3-14-upstream-timeout-recovery.md`](../../docs/development/m3-14-upstream-timeout-recovery.md).
+
+The post-M3.14 6/6 validation consumed six Tavily queries and six pages and completed every phase,
+but it still produced no analytical SQL Evidence: five of seven SQL attempts returned no rows and
+both correction proposals used an invented physical column for a named derived metric. M3.15 mounts
+the two semantic sidecars already covered by the dataset lock. `describe_schema` merges pinned
+business meanings into physical columns, while `search_semantic_knowledge` retrieves at most eight
+matching domain formulas. SQL correction prefetches those rules deterministically. These records
+remain discovery-only and cannot support final Claims without a successful analytical query. The
+runner reports whether both sidecars are mounted plus semantic columns, discovery calls, and record
+counts. See
+[`docs/development/m3-15-pinned-sql-semantics.md`](../../docs/development/m3-15-pinned-sql-semantics.md).

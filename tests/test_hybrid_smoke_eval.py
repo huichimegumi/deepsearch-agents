@@ -225,6 +225,118 @@ def test_sqlite_schema_and_samples_are_bounded_stable_evidence(tmp_path, monkeyp
     assert rejected["status"] == "ERROR"
 
 
+def test_sqlite_schema_merges_pinned_column_meanings_into_stable_evidence(
+    tmp_path,
+    monkeypatch,
+):
+    database = tmp_path / "semantic-schema.sqlite"
+    _sqlite_database(database)
+    sidecar = tmp_path / "column-meanings.json"
+    sidecar.write_text(
+        json.dumps(
+            {
+                "demo|Metrics|Value": (
+                    "Full name: 'Verified Metric'. Explanation: Approved numeric value."
+                )
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database))
+
+    physical_only = json.loads(
+        collect_evidence.invoke({"source": "sql", "operation": "describe_schema"})
+    )
+    monkeypatch.setenv("EVIDENCE_SQLITE_COLUMN_MEANINGS_PATH", str(sidecar))
+    semantic_first = json.loads(
+        collect_evidence.invoke({"source": "sql", "operation": "describe_schema"})
+    )
+    semantic_second = json.loads(
+        collect_evidence.invoke({"source": "sql", "operation": "describe_schema"})
+    )
+
+    physical_metrics = next(
+        item for item in physical_only["records"] if item["content"]["table_name"] == "metrics"
+    )
+    semantic_metrics = next(
+        item for item in semantic_first["records"] if item["content"]["table_name"] == "metrics"
+    )
+    value_column = next(
+        column for column in semantic_metrics["content"]["columns"] if column["name"] == "value"
+    )
+
+    assert "semantic_description" not in next(
+        column for column in physical_metrics["content"]["columns"] if column["name"] == "value"
+    )
+    assert "Verified Metric" in value_column["semantic_description"]
+    assert semantic_metrics["content"]["semantic_schema_sha256"]
+    assert semantic_metrics["evidence_id"] != physical_metrics["evidence_id"]
+    assert [item["evidence_id"] for item in semantic_first["records"]] == [
+        item["evidence_id"] for item in semantic_second["records"]
+    ]
+
+
+def test_sqlite_semantic_knowledge_search_returns_stable_discovery_evidence(
+    tmp_path,
+    monkeypatch,
+):
+    database = tmp_path / "semantic-knowledge.sqlite"
+    _sqlite_database(database)
+    sidecar = tmp_path / "semantic-knowledge.jsonl"
+    sidecar.write_text(
+        "\n".join(
+            (
+                json.dumps(
+                    {
+                        "id": 7,
+                        "knowledge": "Verified Metric Score (VMS)",
+                        "description": "A named derived metric.",
+                        "definition": "VMS = value * 2",
+                        "type": "calculation_knowledge",
+                    }
+                ),
+                json.dumps(
+                    {
+                        "id": 8,
+                        "knowledge": "Unrelated Index",
+                        "description": "Does not match the query.",
+                        "definition": "index = 1",
+                        "type": "calculation_knowledge",
+                    }
+                ),
+            )
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database))
+    monkeypatch.setenv("EVIDENCE_SQLITE_KNOWLEDGE_PATH", str(sidecar))
+
+    first = json.loads(
+        collect_evidence.invoke(
+            {
+                "source": "sql",
+                "operation": "search_semantic_knowledge",
+                "query": "Calculate Verified Metric Score (VMS).",
+            }
+        )
+    )
+    second = json.loads(
+        collect_evidence.invoke(
+            {
+                "source": "sql",
+                "operation": "search_semantic_knowledge",
+                "query": "Calculate Verified Metric Score (VMS).",
+            }
+        )
+    )
+
+    assert first["status"] == "OK"
+    assert len(first["records"]) == 1
+    assert first["records"][0]["content"]["knowledge"] == "Verified Metric Score (VMS)"
+    assert first["records"][0]["metadata"]["evidence_kind"] == "database_semantics"
+    assert first["records"][0]["evidence_id"] == second["records"][0]["evidence_id"]
+
+
 def test_sqlite_query_repair_policy_blocks_duplicate_and_third_failure(tmp_path, monkeypatch):
     database = tmp_path / "repair.sqlite"
     _sqlite_database(database)

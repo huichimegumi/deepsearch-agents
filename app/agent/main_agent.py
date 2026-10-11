@@ -338,6 +338,23 @@ async def _run_sql_evidence_correction(
     empty_result_repair_started = False
     phase_token = set_research_phase_context(phase.key)
     try:
+        loop = asyncio.get_running_loop()
+        phase_deadline = loop.time() + budget.timeout_seconds
+        if os.getenv("EVIDENCE_SQLITE_KNOWLEDGE_PATH", "").strip():
+            run_trace.record_tool_call(phase.key, collect_evidence.name)
+            remaining_seconds = phase_deadline - loop.time()
+            if remaining_seconds <= 0:
+                raise TimeoutError
+            await asyncio.wait_for(
+                collect_evidence.ainvoke(
+                    {
+                        "source": "sql",
+                        "operation": "search_semantic_knowledge",
+                        "query": task_query,
+                    }
+                ),
+                timeout=remaining_seconds,
+            )
         prompt = "\n\n".join(
             (
                 f"【用户原始问题】\n{task_query}",
@@ -354,8 +371,6 @@ async def _run_sql_evidence_correction(
             SQLCorrectionProposal,
             include_raw=True,
         )
-        loop = asyncio.get_running_loop()
-        phase_deadline = loop.time() + budget.timeout_seconds
         previous_query = ""
         proposed_queries: set[str] = set()
         for proposal_index in range(SQL_CORRECTION_MAX_PROPOSALS):

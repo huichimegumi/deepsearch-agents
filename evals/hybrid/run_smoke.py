@@ -187,6 +187,11 @@ def _score_task(
         "sql_query_failures": int(metrics.get("sql_query_failures", 0)),
         "sql_query_blocked": int(metrics.get("sql_query_blocked", 0)),
         "sql_schema_discovery_calls": int(metrics.get("sql_schema_discovery_calls", 0)),
+        "sql_semantic_schema_columns": int(metrics.get("sql_semantic_schema_columns", 0)),
+        "sql_semantic_discovery_calls": int(metrics.get("sql_semantic_discovery_calls", 0)),
+        "sql_semantic_evidence_records": int(
+            (metrics.get("sql_evidence_by_kind") or {}).get("database_semantics", 0)
+        ),
         "sql_correction_attempts": int(metrics.get("sql_correction_attempts", 0)),
         "sql_correction_successes": int(metrics.get("sql_correction_successes", 0)),
         "sql_correction_admission_overrides": int(
@@ -212,6 +217,8 @@ async def _execute_task(
     task: dict[str, Any],
     *,
     database_path: Path,
+    column_meanings_path: Path,
+    semantic_knowledge_path: Path,
     search_backend: str,
     max_search_queries: int,
     max_fetched_pages: int,
@@ -227,6 +234,8 @@ async def _execute_task(
     with _temporary_environment(
         {
             "EVIDENCE_SQLITE_PATH": str(database_path.resolve()),
+            "EVIDENCE_SQLITE_COLUMN_MEANINGS_PATH": str(column_meanings_path.resolve()),
+            "EVIDENCE_SQLITE_KNOWLEDGE_PATH": str(semantic_knowledge_path.resolve()),
             "SEARCH_BACKEND_LOCK": search_backend,
             "REQUIRE_ANALYTICAL_SQL_EVIDENCE": "1",
             "INCLUDE_EXECUTED_SQL_IN_REPORT": "1",
@@ -311,6 +320,8 @@ def run(
         max_fetched_pages_override=max_fetched_pages_override,
     )
     database_path = data_dir / "alien" / "alien_template.sqlite"
+    column_meanings_path = data_dir / "alien" / "alien_column_meaning_base.json"
+    semantic_knowledge_path = data_dir / "alien" / "alien_kb.jsonl"
 
     results: list[dict[str, Any]] = []
     if execute:
@@ -321,6 +332,8 @@ def run(
                         _execute_task(
                             task,
                             database_path=database_path,
+                            column_meanings_path=column_meanings_path,
+                            semantic_knowledge_path=semantic_knowledge_path,
                             search_backend=search_backend,
                             max_search_queries=max_search_queries,
                             max_fetched_pages=max_fetched_pages,
@@ -342,6 +355,12 @@ def run(
     total_sql_query_attempts = sum(int(row.get("sql_query_attempts", 0)) for row in results)
     total_sql_query_failures = sum(int(row.get("sql_query_failures", 0)) for row in results)
     total_sql_query_blocked = sum(int(row.get("sql_query_blocked", 0)) for row in results)
+    total_sql_semantic_discovery_calls = sum(
+        int(row.get("sql_semantic_discovery_calls", 0)) for row in results
+    )
+    total_sql_semantic_evidence_records = sum(
+        int(row.get("sql_semantic_evidence_records", 0)) for row in results
+    )
     total_sql_correction_attempts = sum(
         int(row.get("sql_correction_attempts", 0)) for row in results
     )
@@ -374,6 +393,8 @@ def run(
         "selected_task_ids": [task["id"] for task in tasks],
         "selected_modes": [task["hybrid_type"] for task in tasks],
         "database": "alien",
+        "semantic_schema_mounted": column_meanings_path.is_file(),
+        "semantic_knowledge_mounted": semantic_knowledge_path.is_file(),
         "research_budget_profile": HYBRID_BUDGET_PROFILE,
         "search_budget": {
             "backend": search_backend,
@@ -395,6 +416,8 @@ def run(
         "total_sql_query_attempts": total_sql_query_attempts,
         "total_sql_query_failures": total_sql_query_failures,
         "total_sql_query_blocked": total_sql_query_blocked,
+        "total_sql_semantic_discovery_calls": total_sql_semantic_discovery_calls,
+        "total_sql_semantic_evidence_records": total_sql_semantic_evidence_records,
         "total_sql_correction_attempts": total_sql_correction_attempts,
         "total_sql_correction_successes": total_sql_correction_successes,
         "total_sql_correction_admission_overrides": (total_sql_correction_admission_overrides),

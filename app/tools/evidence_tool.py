@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import re
 import sqlite3
@@ -20,6 +21,7 @@ from app.rag.retrieval import hybrid_search, hybrid_search_many
 from app.research.evidence import (
     EvidenceBatch,
     EvidenceBatchStatus,
+    EvidenceRecord,
     EvidenceRequest,
     EvidenceSource,
     fee_calculation_to_evidence,
@@ -43,6 +45,8 @@ MUTATING_SQL_PATTERN = re.compile(
 )
 SQLITE_SCHEMA_TABLE_LIMIT = 40
 SQLITE_SAMPLE_ROW_LIMIT = 3
+SQLITE_COLUMN_MEANINGS_MAX_BYTES = 2 * 1024 * 1024
+SQLITE_SEMANTIC_KNOWLEDGE_LIMIT = 8
 
 
 def _error_batch(source: EvidenceSource, query: str | None, exc: Exception) -> EvidenceBatch:
@@ -137,11 +141,141 @@ def _sqlite_table_names(connection: sqlite3.Connection) -> list[str]:
     ]
 
 
+@lru_cache(maxsize=8)
+def _load_sqlite_column_meanings(
+    path: str,
+    size: int,
+    modified_ns: int,
+) -> tuple[dict[tuple[str, str], str], str]:
+    del modified_ns
+    if size > SQLITE_COLUMN_MEANINGS_MAX_BYTES:
+        raise ValueError("SQLite column-meaning sidecar exceeds the 2 MiB metadata limit")
+    raw = Path(path).read_bytes()
+    payload = json.loads(raw)
+    if not isinstance(payload, dict):
+        raise ValueError("SQLite column-meaning sidecar must contain a JSON object")
+    meanings: dict[tuple[str, str], str] = {}
+    for key, description in payload.items():
+        if not isinstance(key, str) or not isinstance(description, str):
+            raise ValueError("SQLite column-meaning entries must map strings to strings")
+        parts = key.split("|", 2)
+        if len(parts) != 3 or not all(part.strip() for part in parts):
+            raise ValueError("SQLite column-meaning keys must use database|table|column")
+        meanings[(parts[1].casefold(), parts[2].casefold())] = description.strip()
+    return meanings, sha256(raw).hexdigest()
+
+
+def _configured_sqlite_column_meanings() -> tuple[dict[tuple[str, str], str], str]:
+    configured = os.getenv("EVIDENCE_SQLITE_COLUMN_MEANINGS_PATH", "").strip()
+    if not configured:
+        return {}, ""
+    resolved = Path(configured).expanduser().resolve(strict=True)
+    if not resolved.is_file():
+        raise ValueError("SQLite column-meaning sidecar must be a file")
+    stat = resolved.stat()
+    return _load_sqlite_column_meanings(
+        str(resolved),
+        stat.st_size,
+        stat.st_mtime_ns,
+    )
+
+
+@lru_cache(maxsize=8)
+def _load_sqlite_semantic_knowledge(
+    path: str,
+    size: int,
+    modified_ns: int,
+) -> tuple[tuple[dict[str, object], ...], str]:
+    del modified_ns
+    if size > SQLITE_COLUMN_MEANINGS_MAX_BYTES:
+        raise ValueError("SQLite semantic-knowledge sidecar exceeds the 2 MiB metadata limit")
+    raw = Path(path).read_bytes()
+    entries = []
+    for line_number, line in enumerate(raw.decode("utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        entry = json.loads(line)
+        if not isinstance(entry, dict) or not str(entry.get("knowledge", "")).strip():
+            raise ValueError(f"SQLite semantic-knowledge line {line_number} must define knowledge")
+        entries.append(entry)
+    return tuple(entries), sha256(raw).hexdigest()
+
+
+def _configured_sqlite_semantic_knowledge() -> tuple[tuple[dict[str, object], ...], str]:
+    configured = os.getenv("EVIDENCE_SQLITE_KNOWLEDGE_PATH", "").strip()
+    if not configured:
+        return (), ""
+    resolved = Path(configured).expanduser().resolve(strict=True)
+    if not resolved.is_file():
+        raise ValueError("SQLite semantic-knowledge sidecar must be a file")
+    stat = resolved.stat()
+    return _load_sqlite_semantic_knowledge(
+        str(resolved),
+        stat.st_size,
+        stat.st_mtime_ns,
+    )
+
+
+def _sqlite_search_semantic_knowledge(
+    *,
+    query: str,
+    database_identity: str,
+) -> EvidenceBatch:
+    normalized_query = " ".join(query.casefold().split())
+    if not normalized_query:
+        raise ValueError("query is required for search_semantic_knowledge")
+    entries, sidecar_identity = _configured_sqlite_semantic_knowledge()
+    if not entries:
+        return EvidenceBatch(
+            source=EvidenceSource.SQL,
+            status=EvidenceBatchStatus.NO_EVIDENCE,
+            warnings=("No SQLite semantic-knowledge sidecar is configured.",),
+            query=query,
+        )
+    query_tokens = set(re.findall(r"[a-z0-9_]{3,}", normalized_query))
+    ranked = []
+    for entry in entries:
+        name = str(entry.get("knowledge", "")).casefold()
+        searchable = " ".join(
+            str(entry.get(field, "")).casefold()
+            for field in ("knowledge", "description", "definition", "type")
+        )
+        overlap = len(query_tokens & set(re.findall(r"[a-z0-9_]{3,}", searchable)))
+        exact_name = bool(name and name in normalized_query)
+        if overlap or exact_name:
+            ranked.append((int(exact_name), overlap, name, entry))
+    ranked.sort(key=lambda item: (-item[0], -item[1], item[2]))
+    selected = [item[3] for item in ranked[:SQLITE_SEMANTIC_KNOWLEDGE_LIMIT]]
+    records = tuple(
+        EvidenceRecord.create(
+            source=EvidenceSource.SQL,
+            locator=f"sql://{database_identity}/semantics/{entry.get('id', index)}",
+            content=entry,
+            identity={
+                "database": database_identity,
+                "semantic_schema_sha256": sidecar_identity,
+                "entry_id": entry.get("id", index),
+            },
+            metadata={"evidence_kind": "database_semantics"},
+        )
+        for index, entry in enumerate(selected)
+    )
+    return EvidenceBatch(
+        source=EvidenceSource.SQL,
+        status=EvidenceBatchStatus.OK if records else EvidenceBatchStatus.NO_EVIDENCE,
+        records=records,
+        warnings=() if records else ("No matching database semantic knowledge was found.",),
+        query=query,
+    )
+
+
 def _sqlite_describe_schema(
     connection: sqlite3.Connection,
     *,
     database_identity: str,
     table_name: str,
+    column_meanings: dict[tuple[str, str], str],
+    column_meanings_identity: str,
 ) -> EvidenceBatch:
     available = _sqlite_table_names(connection)
     if table_name and table_name not in available:
@@ -149,8 +283,9 @@ def _sqlite_describe_schema(
     selected = [table_name] if table_name else available[:SQLITE_SCHEMA_TABLE_LIMIT]
     schemas = []
     for name in selected:
-        columns = [
-            {
+        columns = []
+        for row in connection.execute("SELECT * FROM pragma_table_xinfo(?)", (name,)):
+            column = {
                 "cid": row[0],
                 "name": row[1],
                 "declared_type": row[2],
@@ -159,8 +294,10 @@ def _sqlite_describe_schema(
                 "primary_key_position": row[5],
                 "hidden": row[6],
             }
-            for row in connection.execute("SELECT * FROM pragma_table_xinfo(?)", (name,))
-        ]
+            semantic_description = column_meanings.get((name.casefold(), str(row[1]).casefold()))
+            if semantic_description:
+                column["semantic_description"] = semantic_description
+            columns.append(column)
         foreign_keys = [
             {
                 "id": row[0],
@@ -197,6 +334,11 @@ def _sqlite_describe_schema(
                 "columns": columns,
                 "foreign_keys": foreign_keys,
                 "indexes": indexes,
+                **(
+                    {"semantic_schema_sha256": column_meanings_identity}
+                    if column_meanings_identity
+                    else {}
+                ),
             }
         )
 
@@ -270,16 +412,24 @@ def _collect_sqlite(
         connection.execute("PRAGMA query_only = ON")
         connection.set_progress_handler(lambda: int(monotonic() >= deadline), 10_000)
         if operation == "describe_schema":
+            column_meanings, column_meanings_identity = _configured_sqlite_column_meanings()
             return _sqlite_describe_schema(
                 connection,
                 database_identity=database_identity,
                 table_name=table_name,
+                column_meanings=column_meanings,
+                column_meanings_identity=column_meanings_identity,
             )
         if operation == "sample_table":
             return _sqlite_sample_table(
                 connection,
                 database_identity=database_identity,
                 table_name=table_name,
+            )
+        if operation == "search_semantic_knowledge":
+            return _sqlite_search_semantic_knowledge(
+                query=query,
+                database_identity=database_identity,
             )
         executed_query = (
             "SELECT name AS table_name FROM sqlite_master "
@@ -447,13 +597,21 @@ def collect_evidence(
     knowledge_base: str = "all",
     psp_reference: str = "",
     aci: str = "",
-    operation: Literal["query", "list_tables", "describe_schema", "sample_table"] = "query",
+    operation: Literal[
+        "query",
+        "list_tables",
+        "describe_schema",
+        "sample_table",
+        "search_semantic_knowledge",
+    ] = "query",
     table_name: str = "",
 ) -> str:
     """Collect bounded, traceable evidence with stable evidence_id values.
 
     Use source=sql with a read-only query. For SQLite, call operation=describe_schema
     before writing SQL and optionally operation=sample_table with an exact table_name.
+    For a named derived metric or domain formula, call operation=search_semantic_knowledge
+    with that metric or formula name in query.
     source=local_document with a retrieval query and optional knowledge-base name,
     or source=fee_engine with a PSP reference and optional ACI override.
     The returned JSON is the evidence ledger input; cite its evidence_id values unchanged.

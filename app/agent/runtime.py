@@ -173,6 +173,8 @@ class ResearchRunTrace:
     sql_query_failures: int = 0
     sql_query_blocked: int = 0
     sql_schema_discovery_calls: int = 0
+    sql_semantic_schema_columns: int = 0
+    sql_semantic_discovery_calls: int = 0
     sql_sample_calls: int = 0
     sql_correction_attempts: int = 0
     sql_correction_successes: int = 0
@@ -305,7 +307,18 @@ class ResearchRunTrace:
                 self.evidence_by_source[source_value] += 1
                 if source_value == "sql":
                     self.sql_evidence_by_kind[evidence_kind] += 1
-                if evidence_kind not in {"database_schema", "database_sample"}:
+                    if evidence_kind == "database_schema":
+                        content = getattr(record, "content", {}) or {}
+                        self.sql_semantic_schema_columns += sum(
+                            1
+                            for column in content.get("columns", ())
+                            if isinstance(column, dict) and column.get("semantic_description")
+                        )
+                if evidence_kind not in {
+                    "database_schema",
+                    "database_sample",
+                    "database_semantics",
+                }:
                     self.claim_eligible_evidence_ids.append(evidence_id)
                 self._evidence_records_by_id[evidence_id] = record
 
@@ -460,6 +473,8 @@ class ResearchRunTrace:
     def record_sql_discovery(self, operation: str) -> None:
         if operation == "describe_schema":
             self.sql_schema_discovery_calls += 1
+        elif operation == "search_semantic_knowledge":
+            self.sql_semantic_discovery_calls += 1
         elif operation == "sample_table":
             self.sql_sample_calls += 1
 
@@ -569,7 +584,7 @@ class ResearchRunTrace:
         result_urls = set(re.findall(r"https?://[^\s)>\]]+", final_result or ""))
         unused_fetched = self._fetched_sources - result_urls
         return {
-            "schema_version": 10,
+            "schema_version": 11,
             "run_id": self.run_id,
             "thread_id": self.thread_id,
             "started_at": self.started_at,
@@ -609,6 +624,8 @@ class ResearchRunTrace:
                 "sql_query_failures": self.sql_query_failures,
                 "sql_query_blocked": self.sql_query_blocked,
                 "sql_schema_discovery_calls": self.sql_schema_discovery_calls,
+                "sql_semantic_schema_columns": self.sql_semantic_schema_columns,
+                "sql_semantic_discovery_calls": self.sql_semantic_discovery_calls,
                 "sql_sample_calls": self.sql_sample_calls,
                 "sql_correction_attempts": self.sql_correction_attempts,
                 "sql_correction_successes": self.sql_correction_successes,

@@ -1,5 +1,6 @@
 """Regression tests for the M0.1 workflow stability boundaries."""
 
+import json
 import sqlite3
 from types import SimpleNamespace
 
@@ -226,6 +227,70 @@ async def test_sql_correction_executes_one_query_without_search(tmp_path, monkey
     assert trace.sql_correction_attempts == 1
     assert trace.sql_correction_successes == 1
     assert trace.tool_calls_by_name == {"collect_evidence": 1}
+    assert budget.search_queries_used == 0
+    assert budget.fetched_pages_used == 0
+    assert budget.research_rounds_used == 0
+
+
+async def test_sql_correction_prefetches_pinned_semantic_knowledge(tmp_path, monkeypatch):
+    database_path = tmp_path / "semantic-correction.sqlite"
+    with sqlite3.connect(database_path) as connection:
+        connection.execute("CREATE TABLE metrics (name TEXT, value INTEGER)")
+        connection.execute("INSERT INTO metrics VALUES ('verified', 42)")
+    knowledge_path = tmp_path / "semantic-knowledge.jsonl"
+    knowledge_path.write_text(
+        json.dumps(
+            {
+                "id": 1,
+                "knowledge": "Verified Metric Score (VMS)",
+                "description": "The approved derived score.",
+                "definition": "VMS = value * 2",
+                "type": "calculation_knowledge",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    class StructuredInvoker:
+        async def ainvoke(self, messages):
+            assert "Verified Metric Score (VMS)" in messages[-1]["content"]
+            assert "VMS = value * 2" in messages[-1]["content"]
+            return {
+                "raw": SimpleNamespace(usage_metadata={}),
+                "parsed": main_agent.SQLCorrectionProposal(
+                    query="SELECT name, value * 2 AS vms FROM metrics"
+                ),
+                "parsing_error": None,
+            }
+
+    class FakeModel:
+        def with_structured_output(self, schema, include_raw=False):
+            return StructuredInvoker()
+
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database_path))
+    monkeypatch.setenv("EVIDENCE_SQLITE_KNOWLEDGE_PATH", str(knowledge_path))
+    monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    budget, trace = make_runtime()
+    trace.record_sql_discovery("describe_schema")
+    tokens = set_research_runtime(budget, trace)
+    try:
+        success = await main_agent._run_sql_evidence_correction(
+            model=FakeModel(),
+            task_query="Calculate the Verified Metric Score (VMS).",
+            research_brief="Use the approved database formula.",
+            budget=AgentExecutionBudget(recursion_limit=2, timeout_seconds=5),
+            budget_profile="test",
+            research_budget=budget,
+            run_trace=trace,
+        )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert success is True
+    assert trace.sql_semantic_discovery_calls == 1
+    assert trace.sql_evidence_by_kind["database_semantics"] == 1
+    assert trace.tool_calls_by_name == {"collect_evidence": 2}
     assert budget.search_queries_used == 0
     assert budget.fetched_pages_used == 0
     assert budget.research_rounds_used == 0
