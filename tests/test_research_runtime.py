@@ -34,7 +34,7 @@ def test_phase_timeout_uses_run_allocation_and_writer_reserve():
 
     assert budget.phase_timeout("clarify_and_brief", 999) == 10
     assert budget.phase_timeout("supervisor_research", 999) == 50
-    assert budget.phase_timeout("sql_evidence_correction", 999) == 15
+    assert budget.phase_timeout("sql_evidence_correction", 999) == 20
     assert budget.phase_timeout("evidence_compression", 999) == 15
     assert budget.phase_timeout("final_report", 999) == 25
 
@@ -199,6 +199,30 @@ def test_trace_renders_bounded_backend_ledger_without_serializing_content():
     assert "[ev1_sql_abc]" in ledger
     assert "internal fact" in ledger
     assert "internal fact" not in json.dumps(payload)
+
+
+def test_trace_can_prioritize_web_context_for_sql_correction():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_sql_schema",
+                source="sql",
+                locator="sql://schema/table",
+                content={"table": "metrics"},
+            ),
+            SimpleNamespace(
+                evidence_id="ev1_web_target",
+                source="web",
+                locator="https://example.test/target",
+                content={"resolved_target": "observatory"},
+            ),
+        )
+    )
+
+    ledger = trace.render_evidence_ledger(source_priority=("web", "sql"))
+
+    assert ledger.index("ev1_web_target") < ledger.index("ev1_sql_schema")
 
 
 def test_trace_records_validated_claim_usage_and_report_citations():

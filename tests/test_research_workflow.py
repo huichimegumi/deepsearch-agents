@@ -128,8 +128,8 @@ def test_supervisor_phase_prompt_declares_research_boundary():
 def test_sql_correction_phase_is_query_only():
     instruction = SQL_EVIDENCE_CORRECTION_PHASE.instruction
 
+    assert "SQLCorrectionProposal schema" in instruction
     assert "source=sql、operation=query" in instruction
-    assert "只调用一次 collect_evidence" in instruction
     assert "禁止网络搜索" in instruction
     assert "禁止调用 describe_schema、sample_table 或 list_tables" in instruction
 

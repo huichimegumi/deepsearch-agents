@@ -134,27 +134,21 @@ async def test_sql_correction_executes_one_query_without_search(tmp_path, monkey
         connection.execute("CREATE TABLE metrics (name TEXT, value INTEGER)")
         connection.execute("INSERT INTO metrics VALUES ('verified', 42)")
 
-    class FakeBoundModel:
+    class StructuredInvoker:
         async def ainvoke(self, messages):
+            assert messages[0]["content"].startswith("You are a SQL correction planner")
             assert "Backend Evidence Ledger" in messages[-1]["content"]
-            return SimpleNamespace(
-                usage_metadata={"input_tokens": 20, "output_tokens": 8},
-                tool_calls=[
-                    {
-                        "name": main_agent.collect_evidence.name,
-                        "args": {
-                            "source": "sql",
-                            "operation": "query",
-                            "query": "SELECT name, value FROM metrics",
-                        },
-                    }
-                ],
-            )
+            return {
+                "raw": SimpleNamespace(usage_metadata={"input_tokens": 20, "output_tokens": 8}),
+                "parsed": main_agent.SQLCorrectionProposal(query="SELECT name, value FROM metrics"),
+                "parsing_error": None,
+            }
 
     class FakeModel:
-        def bind_tools(self, tools):
-            assert [tool.name for tool in tools] == ["collect_evidence"]
-            return FakeBoundModel()
+        def with_structured_output(self, schema, include_raw=False):
+            assert schema is main_agent.SQLCorrectionProposal
+            assert include_raw is True
+            return StructuredInvoker()
 
     monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database_path))
     monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
@@ -197,29 +191,31 @@ async def test_sql_correction_executes_one_query_without_search(tmp_path, monkey
     assert budget.research_rounds_used == 0
 
 
-async def test_sql_correction_rejects_non_sql_tool_arguments(monkeypatch):
-    class FakeBoundModel:
+async def test_sql_correction_maps_proposal_to_fixed_sql_tool_arguments(monkeypatch):
+    invoked_args = None
+
+    class StructuredInvoker:
         async def ainvoke(self, messages):
-            return SimpleNamespace(
-                usage_metadata={},
-                tool_calls=[
-                    {
-                        "name": main_agent.collect_evidence.name,
-                        "args": {
-                            "source": "local_document",
-                            "operation": "query",
-                            "query": "try to escape the SQL-only boundary",
-                        },
-                    }
-                ],
-            )
+            return {
+                "raw": SimpleNamespace(usage_metadata={}),
+                "parsed": main_agent.SQLCorrectionProposal(query="SELECT 1 AS verified"),
+                "parsing_error": None,
+            }
 
     class FakeModel:
-        def bind_tools(self, tools):
-            return FakeBoundModel()
+        def with_structured_output(self, schema, include_raw=False):
+            return StructuredInvoker()
+
+    class FakeEvidenceTool:
+        name = "collect_evidence"
+
+        async def ainvoke(self, args):
+            nonlocal invoked_args
+            invoked_args = args
 
     monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
     monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent, "collect_evidence", FakeEvidenceTool())
     budget, trace = make_runtime()
     trace.record_sql_discovery("describe_schema")
 
@@ -234,9 +230,14 @@ async def test_sql_correction_rejects_non_sql_tool_arguments(monkeypatch):
     )
 
     assert success is False
-    assert trace.tool_calls == 0
+    assert invoked_args == {
+        "source": "sql",
+        "operation": "query",
+        "query": "SELECT 1 AS verified",
+    }
+    assert trace.tool_calls_by_name == {"collect_evidence": 1}
     assert trace.sql_correction_attempts == 1
-    assert "sql_correction_tool_boundary" in trace.failure_reasons
+    assert "sql_correction_no_analytical_evidence" in trace.failure_reasons
 
 
 def test_backend_persists_requested_markdown_and_records_tool(tmp_path, monkeypatch):

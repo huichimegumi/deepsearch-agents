@@ -184,6 +184,15 @@ class CompressedEvidence(BaseModel):
         )
 
 
+class SQLCorrectionProposal(BaseModel):
+    """One read-only analytical query proposed for deterministic backend execution."""
+
+    query: str = Field(
+        min_length=1,
+        description="One complete read-only analytical SQL SELECT or WITH query.",
+    )
+
+
 def _render_validated_compression(
     parsed: CompressedEvidence,
     run_trace: ResearchRunTrace,
@@ -284,7 +293,7 @@ async def _run_sql_evidence_correction(
     research_budget: ResearchBudget,
     run_trace: ResearchRunTrace,
 ) -> bool:
-    """Offer one model call that can execute exactly one analytical SQL tool call."""
+    """Generate one structured SQL proposal and execute it through the Evidence Tool."""
     phase = SQL_EVIDENCE_CORRECTION_PHASE
     budget_data = _budget_payload(
         budget=budget,
@@ -301,6 +310,7 @@ async def _run_sql_evidence_correction(
     reason = None
     error = None
     success = False
+    llm_recorded = False
     phase_token = set_research_phase_context(phase.key)
     try:
         if not research_budget.take_llm_call(phase.key):
@@ -309,40 +319,52 @@ async def _run_sql_evidence_correction(
             (
                 f"【用户原始问题】\n{task_query}",
                 f"【Research Brief】\n{research_brief or 'No completed brief was captured.'}",
-                run_trace.render_evidence_ledger(),
+                run_trace.render_evidence_ledger(
+                    max_total_content_chars=32_000,
+                    max_record_content_chars=4_000,
+                    source_priority=("web", "sql"),
+                ),
                 phase.instruction,
             )
         )
-        bound_model = model.bind_tools([collect_evidence])
+        structured_model = model.with_structured_output(
+            SQLCorrectionProposal,
+            include_raw=True,
+        )
         response = await asyncio.wait_for(
-            bound_model.ainvoke(
+            structured_model.ainvoke(
                 [
-                    {"role": "system", "content": main_agent_content["system_prompt"]},
+                    {
+                        "role": "system",
+                        "content": (
+                            "You are a SQL correction planner. Return exactly one read-only "
+                            "analytical SQL query through the required structured schema. Use "
+                            "only table names and columns present in the supplied Evidence Ledger."
+                        ),
+                    },
                     {"role": "user", "content": prompt},
                 ]
             ),
             timeout=budget.timeout_seconds,
         )
-        run_trace.record_llm_call(phase.key, response)
-        tool_calls = list(getattr(response, "tool_calls", None) or ())
-        if len(tool_calls) != 1:
-            reason = "sql_correction_requires_one_tool_call"
-        else:
-            tool_call = tool_calls[0]
-            args = dict(tool_call.get("args") or {})
-            if (
-                tool_call.get("name") != collect_evidence.name
-                or args.get("source") != "sql"
-                or args.get("operation", "query") != "query"
-                or not str(args.get("query") or "").strip()
-            ):
-                reason = "sql_correction_tool_boundary"
-            else:
-                run_trace.record_tool_call(phase.key, collect_evidence.name)
-                await collect_evidence.ainvoke(args)
-                success = run_trace.has_analytical_sql_evidence
-                if not success:
-                    reason = "sql_correction_no_analytical_evidence"
+        raw = response.get("raw") if isinstance(response, dict) else None
+        proposal = response.get("parsed") if isinstance(response, dict) else response
+        parsing_error = response.get("parsing_error") if isinstance(response, dict) else None
+        run_trace.record_llm_call(phase.key, raw)
+        llm_recorded = True
+        if parsing_error or not isinstance(proposal, SQLCorrectionProposal):
+            raise ValueError(f"structured_output_error: {parsing_error!r}")
+        run_trace.record_tool_call(phase.key, collect_evidence.name)
+        await collect_evidence.ainvoke(
+            {
+                "source": "sql",
+                "operation": "query",
+                "query": proposal.query,
+            }
+        )
+        success = run_trace.has_analytical_sql_evidence
+        if not success:
+            reason = "sql_correction_no_analytical_evidence"
     except asyncio.CancelledError:
         phase_status = "cancelled"
         reason = "cancelled"
@@ -355,11 +377,17 @@ async def _run_sql_evidence_correction(
         phase_status = "budget_exceeded"
         reason = exc.reason
         error = repr(exc)
+    except ValueError as exc:
+        phase_status = "error"
+        reason = str(exc).split(":", 1)[0] or "ValueError"
+        error = repr(exc)
     except Exception as exc:  # noqa: BLE001 - correction failure degrades to an evidence gap
         phase_status = "error"
         reason = exc.__class__.__name__
         error = repr(exc)
     finally:
+        if not llm_recorded:
+            run_trace.record_llm_call(phase.key, None)
         reset_research_phase_context(phase_token)
         run_trace.record_sql_correction(success=success)
         if reason:

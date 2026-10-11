@@ -112,3 +112,12 @@ and cannot invoke Web search or consume a second research round. The existing tw
 external-search caps are unchanged. Smoke output includes `sql_correction_attempts` and
 `sql_correction_successes` per task and in aggregate. See
 [`docs/development/m3-7-sql-only-correction.md`](../../docs/development/m3-7-sql-only-correction.md).
+
+M3.8 replaces model-selected correction tool calls with a structured `SQLCorrectionProposal` that
+the backend deterministically maps to one read-only SQL Evidence call. This follows two live
+`s2sql_041` checks: the first used zero searches and produced no correction tool call; the second
+used exactly two Tavily queries and one fetched page, restored cross-source Evidence and citation
+validity, but exhausted the 45-second correction window. Web Evidence is now ordered first in the
+bounded correction ledger, the full frozen schema fits in the context allowance, and the single
+correction call has a 60-second cap. See
+[`docs/development/m3-8-structured-sql-correction.md`](../../docs/development/m3-8-structured-sql-correction.md).

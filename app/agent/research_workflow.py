@@ -120,8 +120,9 @@ SQL_EVIDENCE_CORRECTION_PHASE = ResearchPhase(
 
 必须执行：
 1. 根据用户问题、research brief 和 Backend Evidence Ledger 构造一条只读分析查询
-2. 只调用一次 collect_evidence，参数必须是 source=sql、operation=query
-3. 使用已经发现的真实表名、列名和值域；不要重复 schema 或 sample 调用
+2. 只返回一个符合 SQLCorrectionProposal schema 的完整 query，不要输出解释或工具调用
+3. 后端会把该 query 固定映射为一次 source=sql、operation=query 的 collect_evidence 调用
+4. 使用已经发现的真实表名、列名和值域；不要重复 schema 或 sample 调用
 
 禁止：
 - 禁止网络搜索、子智能体、本地文档、Fee Engine 和文件工具

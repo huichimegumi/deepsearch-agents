@@ -55,7 +55,7 @@ class ResearchBudget:
         shares = {
             "clarify_and_brief": 0.10,
             "supervisor_research": 0.50,
-            "sql_evidence_correction": 0.15,
+            "sql_evidence_correction": 0.20,
             "evidence_compression": 0.15,
             "final_report": 0.25,
         }
@@ -409,13 +409,35 @@ class ResearchRunTrace:
         max_records: int = 80,
         max_total_content_chars: int = 24_000,
         max_record_content_chars: int = 4_000,
+        source_priority: tuple[str, ...] = (),
     ) -> str:
         """Render a bounded in-memory ledger for synthesis without adding content to telemetry."""
         if not self._evidence_records_by_id:
             return ""
         lines = ["# Backend Evidence Ledger", ""]
         remaining = max_total_content_chars
-        records = list(self._evidence_records_by_id.values())[:max_records]
+        records = list(self._evidence_records_by_id.values())
+        if source_priority:
+            source_rank = {source: index for index, source in enumerate(source_priority)}
+            records = sorted(
+                enumerate(records),
+                key=lambda item: (
+                    source_rank.get(
+                        str(
+                            getattr(
+                                getattr(item[1], "source", "unknown"),
+                                "value",
+                                getattr(item[1], "source", "unknown"),
+                            )
+                        ),
+                        len(source_rank),
+                    ),
+                    item[0],
+                ),
+            )
+            records = [record for _index, record in records]
+        records = records[:max_records]
+        rendered_records = 0
         for record in records:
             evidence_id = str(getattr(record, "evidence_id", "") or "")
             source = getattr(record, "source", "unknown")
@@ -442,7 +464,8 @@ class ResearchRunTrace:
                     "",
                 ]
             )
-        omitted = len(self._evidence_records_by_id) - (len(lines) - 2) // 5
+            rendered_records += 1
+        omitted = len(self._evidence_records_by_id) - rendered_records
         if omitted > 0 or remaining <= 0:
             lines.append(
                 "- Ledger limit reached; additional collected records remain registered by ID."
