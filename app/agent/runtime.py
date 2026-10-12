@@ -297,6 +297,19 @@ class ResearchRunTrace:
             1 for count in new_sources_by_query.values() if count == 0
         )
 
+    @staticmethod
+    def _evidence_kind(record: Any) -> str:
+        """Return a canonical kind, including legacy Web records without an explicit marker."""
+        metadata = getattr(record, "metadata", {}) or {}
+        explicit_kind = str(metadata.get("evidence_kind", "")).strip()
+        if explicit_kind:
+            return explicit_kind
+        source = getattr(record, "source", "unknown")
+        source_value = str(getattr(source, "value", source))
+        if source_value == "web":
+            return "web_page"
+        return "query_result"
+
     def record_evidence(self, records: list[Any] | tuple[Any, ...]) -> None:
         """Record stable evidence identities without copying source content into the trace."""
         for record in records:
@@ -304,8 +317,7 @@ class ResearchRunTrace:
             source = getattr(record, "source", "unknown")
             source_value = str(getattr(source, "value", source))
             if evidence_id and evidence_id not in self.evidence_ids:
-                metadata = getattr(record, "metadata", {}) or {}
-                evidence_kind = str(metadata.get("evidence_kind", "query_result"))
+                evidence_kind = self._evidence_kind(record)
                 self.evidence_ids.append(evidence_id)
                 self.evidence_by_source[source_value] += 1
                 if source_value == "sql":
@@ -382,7 +394,7 @@ class ResearchRunTrace:
                 )
             )
             == "web"
-            and str((getattr(record, "metadata", {}) or {}).get("evidence_kind", "")) == "web_page"
+            and self._evidence_kind(record) == "web_page"
         )
 
     @property
@@ -565,12 +577,7 @@ class ResearchRunTrace:
             ]
         if evidence_kinds:
             allowed_kinds = set(evidence_kinds)
-            records = [
-                record
-                for record in records
-                if str((getattr(record, "metadata", {}) or {}).get("evidence_kind", ""))
-                in allowed_kinds
-            ]
+            records = [record for record in records if self._evidence_kind(record) in allowed_kinds]
         available_records = len(records)
         if not available_records:
             return ""

@@ -16,6 +16,8 @@ from app.agent.runtime import (
 )
 from app.api.context import reset_session_context, set_session_context
 from app.config import AgentExecutionBudget
+from app.research.evidence import web_results_to_evidence
+from app.search.models import SearchResult
 
 
 def make_runtime():
@@ -337,13 +339,13 @@ async def test_multiclue_sql_correction_requires_web_ids_and_unique_database_val
                         main_agent.EntityClueAssessment(
                             clue="clue one",
                             candidate="Thomasville",
-                            evidence_ids=["ev1_web_entity"],
+                            evidence_ids=[web_record.evidence_id],
                             supported=True,
                         ),
                         main_agent.EntityClueAssessment(
                             clue="clue two",
                             candidate="Thomasville",
-                            evidence_ids=["ev1_web_entity"],
+                            evidence_ids=[web_record.evidence_id],
                             supported=True,
                         ),
                     ],
@@ -371,17 +373,16 @@ async def test_multiclue_sql_correction_requires_web_ids_and_unique_database_val
     monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
     monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
     budget, trace = make_runtime()
-    trace.record_evidence(
-        (
-            SimpleNamespace(
-                evidence_id="ev1_web_entity",
-                source="web",
-                locator="https://example.test/entity",
-                content={"candidate": "Thomasville", "clues": ["one", "two"]},
-                metadata={"evidence_kind": "web_page"},
-            ),
-        )
-    )
+    web_record = web_results_to_evidence(
+        [
+            SearchResult(
+                title="Entity clues",
+                url="https://example.test/entity",
+                raw_content="Both clue one and clue two identify Thomasville.",
+            )
+        ]
+    )[0]
+    trace.record_evidence((web_record,))
     tokens = set_research_runtime(budget, trace)
     try:
         success = await main_agent._run_sql_evidence_correction(
@@ -428,7 +429,7 @@ async def test_multiclue_entity_resolution_rejects_unknown_web_evidence_id():
                         main_agent.EntityClueAssessment(
                             clue="clue two",
                             candidate="Thomasville",
-                            evidence_ids=["ev1_web_known"],
+                            evidence_ids=[web_record.evidence_id],
                             supported=True,
                         ),
                     ],
@@ -445,15 +446,18 @@ async def test_multiclue_entity_resolution_rejects_unknown_web_evidence_id():
             return StructuredInvoker()
 
     budget, trace = make_runtime()
+    web_record = web_results_to_evidence(
+        [
+            SearchResult(
+                title="Entity clues",
+                url="https://example.test/entity",
+                raw_content="The fetched page identifies Thomasville.",
+            )
+        ]
+    )[0]
     trace.record_evidence(
         (
-            SimpleNamespace(
-                evidence_id="ev1_web_known",
-                source="web",
-                locator="https://example.test/entity",
-                content={"candidate": "Thomasville"},
-                metadata={"evidence_kind": "web_page"},
-            ),
+            web_record,
             SimpleNamespace(
                 evidence_id="ev1_sql_semantics",
                 source="sql",
@@ -478,7 +482,41 @@ async def test_multiclue_entity_resolution_rejects_unknown_web_evidence_id():
     assert trace.sql_entity_resolution_successes == 0
     assert trace.sql_entity_value_match_successes == 0
     assert trace.tool_calls_by_name == {}
-    assert "sql_entity_resolution_unverified" in trace.failure_reasons
+    assert "sql_entity_resolution_web_evidence_unknown" in trace.failure_reasons
+
+
+def test_entity_resolution_rejection_reasons_do_not_expose_candidate_content():
+    proposal = main_agent.EntityResolutionProposal(
+        resolved_entity="Thomasville",
+        all_clues_supported=True,
+        clues=[
+            main_agent.EntityClueAssessment(
+                clue="first",
+                candidate="Thomasville",
+                evidence_ids=["ev1_web_known"],
+                supported=True,
+            ),
+            main_agent.EntityClueAssessment(
+                clue="second",
+                candidate="Different Place",
+                evidence_ids=["ev1_web_known"],
+                supported=True,
+            ),
+        ],
+        table_name="metrics",
+        column_name="name",
+    )
+
+    reason = main_agent._entity_resolution_rejection_reason(
+        proposal,
+        parsing_error=None,
+        web_evidence_ids=frozenset({"ev1_web_known"}),
+        semantic_catalog={"metrics": ("name",)},
+    )
+
+    assert reason == "candidate_conflict"
+    assert "Thomasville" not in reason
+    assert "Different Place" not in reason
 
 
 async def test_sql_correction_preflight_repairs_unknown_metric_without_sql_attempt(

@@ -181,7 +181,9 @@ def test_trace_exposes_grounding_catalog_and_entity_resolution_metrics():
             SimpleNamespace(
                 evidence_id="ev1_web_known",
                 source="web",
-                metadata={"evidence_kind": "web_page"},
+                locator="https://example.test/entity",
+                content="Fetched legacy Web Evidence.",
+                metadata={},
             ),
             SimpleNamespace(
                 evidence_id="ev1_sql_semantics",
@@ -198,6 +200,7 @@ def test_trace_exposes_grounding_catalog_and_entity_resolution_metrics():
     )
 
     assert trace.web_evidence_ids == frozenset({"ev1_web_known"})
+    assert "[ev1_web_known]" in trace.render_evidence_ledger(evidence_kinds=("web_page",))
     assert trace.semantic_table_columns == {
         "metrics": ("name", "value"),
         "places": ("name",),

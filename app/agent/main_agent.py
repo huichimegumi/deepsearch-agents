@@ -225,6 +225,42 @@ def _requires_multiclue_entity_resolution(task_query: str) -> bool:
     return bool(re.search(r"\bclues?\b|线索", task_query, flags=re.IGNORECASE))
 
 
+def _entity_resolution_rejection_reason(
+    proposal: object,
+    *,
+    parsing_error: object,
+    web_evidence_ids: frozenset[str],
+    semantic_catalog: dict[str, tuple[str, ...]],
+) -> str | None:
+    """Classify a proposal without exposing clue, candidate, or Evidence content."""
+    if parsing_error or not isinstance(proposal, EntityResolutionProposal):
+        return "output_invalid"
+    if not proposal.all_clues_supported or any(not item.supported for item in proposal.clues):
+        return "clues_unsupported"
+    normalized_entity = proposal.resolved_entity.strip().casefold()
+    if not normalized_entity:
+        return "entity_missing"
+    if len(proposal.clues) < 2:
+        return "clues_insufficient"
+    if any(not item.candidate.strip() for item in proposal.clues):
+        return "candidate_missing"
+    if any(item.candidate.strip().casefold() != normalized_entity for item in proposal.clues):
+        return "candidate_conflict"
+    if any(not item.evidence_ids for item in proposal.clues):
+        return "web_evidence_missing"
+    if any(
+        evidence_id not in web_evidence_ids
+        for item in proposal.clues
+        for evidence_id in item.evidence_ids
+    ):
+        return "web_evidence_unknown"
+    if proposal.table_name not in semantic_catalog:
+        return "table_unknown"
+    if proposal.column_name not in semantic_catalog.get(proposal.table_name, ()):
+        return "column_unknown"
+    return None
+
+
 async def _ground_multiclue_entity(
     *,
     model,
@@ -291,30 +327,15 @@ async def _ground_multiclue_entity(
     parsing_error = response.get("parsing_error") if isinstance(response, dict) else None
     run_trace.record_llm_call(phase_key, raw)
     web_ids = run_trace.web_evidence_ids
-    normalized_entity = (
-        proposal.resolved_entity.strip().casefold()
-        if isinstance(proposal, EntityResolutionProposal)
-        else ""
+    rejection_reason = _entity_resolution_rejection_reason(
+        proposal,
+        parsing_error=parsing_error,
+        web_evidence_ids=web_ids,
+        semantic_catalog=catalog,
     )
-    resolved = bool(
-        not parsing_error
-        and isinstance(proposal, EntityResolutionProposal)
-        and proposal.all_clues_supported
-        and bool(proposal.resolved_entity.strip())
-        and len(proposal.clues) >= 2
-        and all(item.supported for item in proposal.clues)
-        and all(item.candidate.strip() for item in proposal.clues)
-        and all(item.candidate.strip().casefold() == normalized_entity for item in proposal.clues)
-        and all(item.evidence_ids for item in proposal.clues)
-        and all(
-            evidence_id in web_ids for item in proposal.clues for evidence_id in item.evidence_ids
-        )
-        and proposal.table_name in catalog
-        and proposal.column_name in catalog.get(proposal.table_name, ())
-    )
-    if not resolved:
+    if rejection_reason:
         run_trace.record_sql_entity_resolution(resolved=False, value_matched=False)
-        run_trace.record_failure("sql_entity_resolution_unverified")
+        run_trace.record_failure(f"sql_entity_resolution_{rejection_reason}")
         return False
     run_trace.record_tool_call(phase_key, collect_evidence.name)
     remaining_seconds = phase_deadline - loop.time()

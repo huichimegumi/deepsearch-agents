@@ -46,6 +46,7 @@ def web_results_to_evidence(
                 content=content,
                 identity={"canonical_url": locator},
                 metadata={
+                    "evidence_kind": "web_page",
                     "title": result.title,
                     "published_date": result.published_date,
                     "source_backend": result.source_backend,

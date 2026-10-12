@@ -41,6 +41,7 @@ def test_web_evidence_is_stable_across_tracking_ranking_and_whitespace():
     assert first.locator == "https://example.com/report"
     assert first.evidence_id == second.evidence_id
     assert first.evidence_id.startswith("ev1_web_")
+    assert first.metadata["evidence_kind"] == "web_page"
 
 
 def test_search_snippets_are_candidates_not_evidence():
