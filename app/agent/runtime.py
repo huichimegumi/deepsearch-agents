@@ -183,6 +183,9 @@ class ResearchRunTrace:
     sql_correction_repair_successes: int = 0
     sql_correction_empty_result_repair_attempts: int = 0
     sql_correction_empty_result_repair_successes: int = 0
+    sql_entity_resolution_attempts: int = 0
+    sql_entity_resolution_successes: int = 0
+    sql_entity_value_match_successes: int = 0
     upstream_timeout_recoveries: int = 0
     sql_error_categories: Counter[str] = field(default_factory=Counter)
     _consecutive_sql_failures: int = field(default=0, repr=False)
@@ -367,6 +370,38 @@ class ResearchRunTrace:
         )
 
     @property
+    def web_evidence_ids(self) -> frozenset[str]:
+        return frozenset(
+            evidence_id
+            for evidence_id, record in self._evidence_records_by_id.items()
+            if str(
+                getattr(
+                    getattr(record, "source", "unknown"),
+                    "value",
+                    getattr(record, "source", "unknown"),
+                )
+            )
+            == "web"
+            and str((getattr(record, "metadata", {}) or {}).get("evidence_kind", "")) == "web_page"
+        )
+
+    @property
+    def semantic_table_columns(self) -> dict[str, tuple[str, ...]]:
+        catalog: dict[str, list[str]] = {}
+        for record in self._evidence_records_by_id.values():
+            metadata = getattr(record, "metadata", {}) or {}
+            if str(metadata.get("evidence_kind", "")) != "database_semantics":
+                continue
+            content = getattr(record, "content", {}) or {}
+            for table_name, columns in (content.get("relevant_table_columns") or {}).items():
+                values = catalog.setdefault(str(table_name), [])
+                for column_name in columns:
+                    normalized = str(column_name)
+                    if normalized not in values:
+                        values.append(normalized)
+        return {table: tuple(columns) for table, columns in catalog.items()}
+
+    @property
     def can_attempt_sql_correction(self) -> bool:
         """Return whether one bounded correction can still execute a useful SQL query."""
         grounded_semantics = any(
@@ -401,6 +436,13 @@ class ResearchRunTrace:
         self.sql_correction_empty_result_repair_attempts += 1
         if success:
             self.sql_correction_empty_result_repair_successes += 1
+
+    def record_sql_entity_resolution(self, *, resolved: bool, value_matched: bool) -> None:
+        self.sql_entity_resolution_attempts += 1
+        if resolved:
+            self.sql_entity_resolution_successes += 1
+        if value_matched:
+            self.sql_entity_value_match_successes += 1
 
     def record_upstream_timeout_recovery(self) -> None:
         self.upstream_timeout_recoveries += 1
@@ -624,7 +666,7 @@ class ResearchRunTrace:
         result_urls = set(re.findall(r"https?://[^\s)>\]]+", final_result or ""))
         unused_fetched = self._fetched_sources - result_urls
         return {
-            "schema_version": 11,
+            "schema_version": 12,
             "run_id": self.run_id,
             "thread_id": self.thread_id,
             "started_at": self.started_at,
@@ -678,6 +720,9 @@ class ResearchRunTrace:
                 "sql_correction_empty_result_repair_successes": (
                     self.sql_correction_empty_result_repair_successes
                 ),
+                "sql_entity_resolution_attempts": self.sql_entity_resolution_attempts,
+                "sql_entity_resolution_successes": self.sql_entity_resolution_successes,
+                "sql_entity_value_match_successes": self.sql_entity_value_match_successes,
                 "upstream_timeout_recoveries": self.upstream_timeout_recoveries,
                 "sql_error_categories": dict(self.sql_error_categories),
             },

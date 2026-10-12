@@ -126,12 +126,14 @@ SQL_EVIDENCE_CORRECTION_PHASE = ResearchPhase(
 1. 根据用户问题、research brief 和 Backend Evidence Ledger 构造一条只读分析查询
 2. 只返回一个符合 SQLCorrectionProposal schema 的完整 query，不要输出解释或工具调用
 3. 后端会把该 query 固定映射为一次 source=sql、operation=query 的 collect_evidence 调用
-4. 使用已经发现的真实表名、列名和值域；不要重复 schema 或 sample 调用
+4. 对包含 clue/线索 的跨源实体任务，后端会先逐条校验 Web Evidence ID，并要求该实体通过
+   match_column_value 唯一匹配数据库值；SQL 只能使用随后产生的 database_value_match，解析失败时不得猜测
+5. 使用已经发现的真实表名、列名和值域；不要重复 schema 或 sample 调用
    database_value_match 记录给出的 matched_value 是允许使用的精确过滤值；comparison_mode=trimmed_text 时必须使用
    TRIM(column)=matched_value，不得从网页名称臆造数据库键
-5. 若 Evidence Ledger 包含公式依赖及 resolved_columns，必须把全部依赖展开为 SQL 表达式，并使用映射后的真实字段
+6. 若 Evidence Ledger 包含公式依赖及 resolved_columns，必须把全部依赖展开为 SQL 表达式，并使用映射后的真实字段
    若记录包含 compiled_sql_expression，必须原样使用该后端编译表达式；不得把指标名、缩写或依赖公式名作为字段
-6. 后端会先以只读 SQLite preflight 编译提案；未通过的查询不会执行，唯一修复机会必须按 preflight 错误改正
+7. 后端会先以只读 SQLite preflight 编译提案；未通过的查询不会执行，唯一修复机会必须按 preflight 错误改正
 
 禁止：
 - 禁止网络搜索、子智能体、本地文档、Fee Engine 和文件工具

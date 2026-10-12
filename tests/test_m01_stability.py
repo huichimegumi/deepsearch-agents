@@ -1,5 +1,6 @@
 """Regression tests for the M0.1 workflow stability boundaries."""
 
+import asyncio
 import json
 import sqlite3
 from types import SimpleNamespace
@@ -299,6 +300,185 @@ async def test_sql_correction_prefetches_pinned_semantic_knowledge(tmp_path, mon
     assert budget.search_queries_used == 0
     assert budget.fetched_pages_used == 0
     assert budget.research_rounds_used == 0
+
+
+async def test_multiclue_sql_correction_requires_web_ids_and_unique_database_value(
+    tmp_path,
+    monkeypatch,
+):
+    database_path = tmp_path / "entity-correction.sqlite"
+    with sqlite3.connect(database_path) as connection:
+        connection.execute("CREATE TABLE metrics (name TEXT, value INTEGER)")
+        connection.execute("INSERT INTO metrics VALUES ('Thomasville', 42)")
+    knowledge_path = tmp_path / "entity-knowledge.jsonl"
+    knowledge_path.write_text(
+        json.dumps(
+            {
+                "id": 1,
+                "knowledge": "Verified Metric Score (VMS)",
+                "definition": "VMS = value * 2",
+            }
+        ),
+        encoding="utf-8",
+    )
+    calls = []
+
+    class StructuredInvoker:
+        def __init__(self, schema):
+            self.schema = schema
+
+        async def ainvoke(self, messages):
+            calls.append((self.schema, messages))
+            if self.schema is main_agent.EntityResolutionProposal:
+                parsed = main_agent.EntityResolutionProposal(
+                    resolved_entity="Thomasville",
+                    all_clues_supported=True,
+                    clues=[
+                        main_agent.EntityClueAssessment(
+                            clue="clue one",
+                            candidate="Thomasville",
+                            evidence_ids=["ev1_web_entity"],
+                            supported=True,
+                        ),
+                        main_agent.EntityClueAssessment(
+                            clue="clue two",
+                            candidate="Thomasville",
+                            evidence_ids=["ev1_web_entity"],
+                            supported=True,
+                        ),
+                    ],
+                    table_name="metrics",
+                    column_name="name",
+                )
+            else:
+                assert self.schema is main_agent.SQLCorrectionProposal
+                parsed = main_agent.SQLCorrectionProposal(
+                    query=("SELECT name, value * 2 AS vms FROM metrics WHERE name = 'Thomasville'")
+                )
+            return {
+                "raw": SimpleNamespace(usage_metadata={}),
+                "parsed": parsed,
+                "parsing_error": None,
+            }
+
+    class FakeModel:
+        def with_structured_output(self, schema, include_raw=False):
+            assert include_raw is True
+            return StructuredInvoker(schema)
+
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database_path))
+    monkeypatch.setenv("EVIDENCE_SQLITE_KNOWLEDGE_PATH", str(knowledge_path))
+    monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    budget, trace = make_runtime()
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_web_entity",
+                source="web",
+                locator="https://example.test/entity",
+                content={"candidate": "Thomasville", "clues": ["one", "two"]},
+                metadata={"evidence_kind": "web_page"},
+            ),
+        )
+    )
+    tokens = set_research_runtime(budget, trace)
+    try:
+        success = await main_agent._run_sql_evidence_correction(
+            model=FakeModel(),
+            task_query="Use both clues to identify the place and calculate VMS.",
+            research_brief="Resolve the clues before querying the database.",
+            budget=AgentExecutionBudget(recursion_limit=2, timeout_seconds=5),
+            budget_profile="test",
+            research_budget=budget,
+            run_trace=trace,
+        )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert success is True
+    assert [schema for schema, _messages in calls] == [
+        main_agent.EntityResolutionProposal,
+        main_agent.SQLCorrectionProposal,
+    ]
+    assert trace.sql_entity_resolution_attempts == 1
+    assert trace.sql_entity_resolution_successes == 1
+    assert trace.sql_entity_value_match_successes == 1
+    assert trace.sql_evidence_by_kind["database_value_match"] == 1
+    assert trace.sql_query_attempts == 1
+    assert trace.sql_correction_successes == 1
+    assert trace.tool_calls_by_name == {"collect_evidence": 4}
+
+
+async def test_multiclue_entity_resolution_rejects_unknown_web_evidence_id():
+    class StructuredInvoker:
+        async def ainvoke(self, messages):
+            return {
+                "raw": SimpleNamespace(usage_metadata={}),
+                "parsed": main_agent.EntityResolutionProposal(
+                    resolved_entity="Thomasville",
+                    all_clues_supported=True,
+                    clues=[
+                        main_agent.EntityClueAssessment(
+                            clue="clue one",
+                            candidate="Thomasville",
+                            evidence_ids=["ev1_web_unknown"],
+                            supported=True,
+                        ),
+                        main_agent.EntityClueAssessment(
+                            clue="clue two",
+                            candidate="Thomasville",
+                            evidence_ids=["ev1_web_known"],
+                            supported=True,
+                        ),
+                    ],
+                    table_name="metrics",
+                    column_name="name",
+                ),
+                "parsing_error": None,
+            }
+
+    class FakeModel:
+        def with_structured_output(self, schema, include_raw=False):
+            assert schema is main_agent.EntityResolutionProposal
+            assert include_raw is True
+            return StructuredInvoker()
+
+    budget, trace = make_runtime()
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_web_known",
+                source="web",
+                locator="https://example.test/entity",
+                content={"candidate": "Thomasville"},
+                metadata={"evidence_kind": "web_page"},
+            ),
+            SimpleNamespace(
+                evidence_id="ev1_sql_semantics",
+                source="sql",
+                locator="sql://semantics/vms",
+                content={"relevant_table_columns": {"metrics": ["name", "value"]}},
+                metadata={"evidence_kind": "database_semantics"},
+            ),
+        )
+    )
+
+    success = await main_agent._ground_multiclue_entity(
+        model=FakeModel(),
+        task_query="Use both clues to identify the place.",
+        phase_key="sql_evidence_correction",
+        phase_deadline=asyncio.get_running_loop().time() + 5,
+        research_budget=budget,
+        run_trace=trace,
+    )
+
+    assert success is False
+    assert trace.sql_entity_resolution_attempts == 1
+    assert trace.sql_entity_resolution_successes == 0
+    assert trace.sql_entity_value_match_successes == 0
+    assert trace.tool_calls_by_name == {}
+    assert "sql_entity_resolution_unverified" in trace.failure_reasons
 
 
 async def test_sql_correction_preflight_repairs_unknown_metric_without_sql_attempt(

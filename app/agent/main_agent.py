@@ -116,6 +116,10 @@ class PhaseBudgetExceeded(RuntimeError):
         self.reason = reason
 
 
+class EntityResolutionRejected(RuntimeError):
+    """Stop SQL correction when a multi-clue entity cannot be grounded."""
+
+
 class ResearchBrief(BaseModel):
     """Bounded, machine-readable output for the clarification phase."""
 
@@ -194,8 +198,149 @@ class SQLCorrectionProposal(BaseModel):
     )
 
 
+class EntityClueAssessment(BaseModel):
+    """One clue-to-candidate link backed by fetched Web Evidence."""
+
+    clue: str = Field(min_length=1)
+    candidate: str = ""
+    evidence_ids: list[str] = Field(default_factory=list)
+    supported: bool = False
+
+
+class EntityResolutionProposal(BaseModel):
+    """A cross-clue entity plus the physical database field that should contain it."""
+
+    resolved_entity: str = ""
+    all_clues_supported: bool = False
+    clues: list[EntityClueAssessment] = Field(default_factory=list)
+    table_name: str = ""
+    column_name: str = ""
+
+
 SQL_CORRECTION_MAX_PROPOSALS = 2
 SQL_FENCE_PATTERN = re.compile(r"```sql\s*.*?```", re.IGNORECASE | re.DOTALL)
+
+
+def _requires_multiclue_entity_resolution(task_query: str) -> bool:
+    return bool(re.search(r"\bclues?\b|线索", task_query, flags=re.IGNORECASE))
+
+
+async def _ground_multiclue_entity(
+    *,
+    model,
+    task_query: str,
+    phase_key: str,
+    phase_deadline: float,
+    research_budget: ResearchBudget,
+    run_trace: ResearchRunTrace,
+) -> bool:
+    """Resolve all task clues to one Web-backed entity and one unique database value."""
+    web_ledger = run_trace.render_evidence_ledger(
+        max_records=24,
+        max_total_content_chars=20_000,
+        max_record_content_chars=4_000,
+        evidence_kinds=("web_page",),
+    )
+    catalog = run_trace.semantic_table_columns
+    if not web_ledger or not catalog:
+        run_trace.record_sql_entity_resolution(resolved=False, value_matched=False)
+        run_trace.record_failure("sql_entity_resolution_context_missing")
+        return False
+    if not research_budget.take_llm_call(phase_key):
+        raise PhaseBudgetExceeded("llm_call_limit")
+    loop = asyncio.get_running_loop()
+    remaining_seconds = phase_deadline - loop.time()
+    if remaining_seconds <= 0:
+        raise TimeoutError
+    prompt = "\n\n".join(
+        (
+            f"【Original task】\n{task_query}",
+            "【Fetched Web Evidence】\n" + web_ledger,
+            "【Allowed database entity fields】\n"
+            + json.dumps(catalog, ensure_ascii=False, sort_keys=True),
+            (
+                "Resolve the single place/entity jointly supported by every clue. A country or "
+                "place mentioned by only one clue is not the answer. Bind every clue to one or "
+                "more fetched ev1_web evidence IDs. Set all_clues_supported=false if any clue is "
+                "unverified or contradictory. Select table_name and column_name exactly from the "
+                "allowed catalog; do not invent a database value or namespace prefix."
+            ),
+        )
+    )
+    structured_model = model.with_structured_output(
+        EntityResolutionProposal,
+        include_raw=True,
+    )
+    response = await asyncio.wait_for(
+        structured_model.ainvoke(
+            [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a conservative multi-clue entity resolver. Return only the "
+                        "required structured object and never guess an unsupported intersection."
+                    ),
+                },
+                {"role": "user", "content": prompt},
+            ]
+        ),
+        timeout=remaining_seconds,
+    )
+    raw = response.get("raw") if isinstance(response, dict) else None
+    proposal = response.get("parsed") if isinstance(response, dict) else response
+    parsing_error = response.get("parsing_error") if isinstance(response, dict) else None
+    run_trace.record_llm_call(phase_key, raw)
+    web_ids = run_trace.web_evidence_ids
+    normalized_entity = (
+        proposal.resolved_entity.strip().casefold()
+        if isinstance(proposal, EntityResolutionProposal)
+        else ""
+    )
+    resolved = bool(
+        not parsing_error
+        and isinstance(proposal, EntityResolutionProposal)
+        and proposal.all_clues_supported
+        and bool(proposal.resolved_entity.strip())
+        and len(proposal.clues) >= 2
+        and all(item.supported for item in proposal.clues)
+        and all(item.candidate.strip() for item in proposal.clues)
+        and all(item.candidate.strip().casefold() == normalized_entity for item in proposal.clues)
+        and all(item.evidence_ids for item in proposal.clues)
+        and all(
+            evidence_id in web_ids for item in proposal.clues for evidence_id in item.evidence_ids
+        )
+        and proposal.table_name in catalog
+        and proposal.column_name in catalog.get(proposal.table_name, ())
+    )
+    if not resolved:
+        run_trace.record_sql_entity_resolution(resolved=False, value_matched=False)
+        run_trace.record_failure("sql_entity_resolution_unverified")
+        return False
+    run_trace.record_tool_call(phase_key, collect_evidence.name)
+    remaining_seconds = phase_deadline - loop.time()
+    if remaining_seconds <= 0:
+        raise TimeoutError
+    tool_result = await asyncio.wait_for(
+        collect_evidence.ainvoke(
+            {
+                "source": "sql",
+                "operation": "match_column_value",
+                "query": proposal.resolved_entity,
+                "table_name": proposal.table_name,
+                "column_name": proposal.column_name,
+            }
+        ),
+        timeout=remaining_seconds,
+    )
+    try:
+        payload = json.loads(tool_result)
+        value_matched = payload.get("status") == "OK" and len(payload.get("records", ())) == 1
+    except (TypeError, ValueError, AttributeError):
+        value_matched = False
+    run_trace.record_sql_entity_resolution(resolved=True, value_matched=value_matched)
+    if not value_matched:
+        run_trace.record_failure("sql_entity_value_not_unique")
+    return value_matched
 
 
 def _render_validated_compression(
@@ -463,6 +608,22 @@ async def _run_sql_evidence_correction(
                 ),
                 timeout=remaining_seconds,
             )
+        if _requires_multiclue_entity_resolution(task_query):
+            llm_calls_before_entity_resolution = run_trace.llm_calls
+            entity_grounded = await _ground_multiclue_entity(
+                model=model,
+                task_query=task_query,
+                phase_key=phase.key,
+                phase_deadline=phase_deadline,
+                research_budget=research_budget,
+                run_trace=run_trace,
+            )
+            llm_recorded = run_trace.llm_calls > llm_calls_before_entity_resolution
+            if not entity_grounded:
+                # Context-only rejection does not make a model call and should not create a
+                # synthetic LLM usage record in the correction phase.
+                llm_recorded = True
+                raise EntityResolutionRejected
         prompt = "\n\n".join(
             (
                 f"【用户原始问题】\n{task_query}",
@@ -612,6 +773,8 @@ async def _run_sql_evidence_correction(
         phase_status = "budget_exceeded"
         reason = "timeout"
         error = repr(exc)
+    except EntityResolutionRejected:
+        reason = "sql_correction_entity_unresolved"
     except PhaseBudgetExceeded as exc:
         phase_status = "budget_exceeded"
         reason = exc.reason

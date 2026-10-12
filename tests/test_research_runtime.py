@@ -174,6 +174,43 @@ def test_trace_keeps_sql_discovery_evidence_out_of_claim_gate():
     assert payload["waste"]["evidence_never_used_in_claims"] == 0
 
 
+def test_trace_exposes_grounding_catalog_and_entity_resolution_metrics():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_web_known",
+                source="web",
+                metadata={"evidence_kind": "web_page"},
+            ),
+            SimpleNamespace(
+                evidence_id="ev1_sql_semantics",
+                source="sql",
+                content={
+                    "relevant_table_columns": {
+                        "metrics": ["name", "value"],
+                        "places": ["name"],
+                    }
+                },
+                metadata={"evidence_kind": "database_semantics"},
+            ),
+        )
+    )
+
+    assert trace.web_evidence_ids == frozenset({"ev1_web_known"})
+    assert trace.semantic_table_columns == {
+        "metrics": ("name", "value"),
+        "places": ("name",),
+    }
+    trace.record_sql_entity_resolution(resolved=True, value_matched=True)
+    payload = trace.finalize(status="completed", final_result="verified")
+
+    assert payload["schema_version"] == 12
+    assert payload["metrics"]["sql_entity_resolution_attempts"] == 1
+    assert payload["metrics"]["sql_entity_resolution_successes"] == 1
+    assert payload["metrics"]["sql_entity_value_match_successes"] == 1
+
+
 def test_trace_allows_one_sql_correction_after_discovery():
     trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
 
@@ -275,7 +312,7 @@ def test_trace_reserves_one_correction_after_consecutive_sql_failures():
     trace.record_sql_correction(success=False)
 
     payload = trace.finalize(status="completed", final_result="gap")
-    assert payload["schema_version"] == 11
+    assert payload["schema_version"] == 12
     assert payload["metrics"]["sql_correction_admission_overrides"] == 1
     assert trace.can_attempt_sql_correction is False
 
@@ -463,7 +500,7 @@ def test_trace_bounds_sql_repair_and_keeps_query_text_private():
 
     payload = trace.finalize(status="completed", final_result="gap")
     serialized = json.dumps(payload)
-    assert payload["schema_version"] == 11
+    assert payload["schema_version"] == 12
     assert payload["metrics"]["sql_query_attempts"] == 2
     assert payload["metrics"]["sql_query_failures"] == 2
     assert payload["metrics"]["sql_query_blocked"] == 2
