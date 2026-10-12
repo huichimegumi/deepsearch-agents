@@ -6,6 +6,7 @@ from app.agent.main_agent import (
     _compression_phase_outputs,
     _enforce_final_report_citations,
     _enforce_research_evidence_requirements,
+    _render_sql_correction_ledger,
     _render_validated_compression,
 )
 from app.agent.runtime import ResearchBudget, ResearchBudgetLimits, ResearchRunTrace
@@ -130,12 +131,29 @@ def test_invalid_writer_output_falls_back_to_validated_claim_package():
         run_trace=trace,
     )
 
-    assert validation.valid is False
+    assert validation.valid is True
     assert result.startswith("# Evidence-Validated Partial Result")
     assert f"Known fact [{KNOWN_EVIDENCE_ID}]" in result
     assert UNKNOWN_EVIDENCE_ID not in result
     assert trace.degraded is True
+    assert trace.report_citation_valid is True
     assert trace.failure_reasons == ["final_report_citation_validation_failed"]
+
+
+def test_invalid_writer_and_uncited_fallback_remain_invalid():
+    trace = _trace()
+    trace.record_evidence((SimpleNamespace(evidence_id=KNOWN_EVIDENCE_ID, source="sql"),))
+
+    result, validation = _enforce_final_report_citations(
+        report_markdown=f"Invented citation [{UNKNOWN_EVIDENCE_ID}]",
+        compressed_fallback="# Validated Claim Package\n\nNo validated claims were recorded.",
+        run_trace=trace,
+    )
+
+    assert result.startswith("# Evidence-Validated Partial Result")
+    assert validation.valid is False
+    assert validation.missing_required_citations is True
+    assert trace.report_citation_valid is False
 
 
 def test_valid_writer_output_is_preserved_after_citation_validation():
@@ -243,6 +261,47 @@ def test_compression_handoff_excludes_supervisor_text_and_discovery_evidence():
     assert KNOWN_EVIDENCE_ID in handoff["supervisor_research"]
     assert "ev1_sql_schema" not in handoff["supervisor_research"]
     assert "ev1_sql_semantics" not in handoff["supervisor_research"]
+
+
+def test_sql_correction_ledger_prefers_formula_and_claim_context_over_full_schema():
+    trace = _trace()
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_sql_schema",
+                source="sql",
+                locator="sql://test/schema/metrics",
+                content={"table_name": "metrics", "large_schema": "x" * 1000},
+                metadata={"evidence_kind": "database_schema"},
+            ),
+            SimpleNamespace(
+                evidence_id="ev1_sql_semantics",
+                source="sql",
+                locator="sql://test/semantics/1",
+                content={
+                    "definition": "score = value * 2",
+                    "resolved_columns": [{"table_name": "metrics", "column_name": "value"}],
+                },
+                metadata={"evidence_kind": "database_semantics"},
+            ),
+            SimpleNamespace(
+                evidence_id="ev1_web_entity",
+                source="web",
+                locator="https://example.test/entity",
+                content={"resolved_entity": "verified"},
+                metadata={"evidence_kind": "web_page"},
+            ),
+        )
+    )
+
+    ledger = _render_sql_correction_ledger(trace)
+
+    assert "SQL Correction Formula Context" in ledger
+    assert "ev1_sql_semantics" in ledger
+    assert "resolved_columns" in ledger
+    assert "Claim-Eligible Entity Context" in ledger
+    assert "ev1_web_entity" in ledger
+    assert "ev1_sql_schema" not in ledger
 
 
 def test_required_analytical_sql_rejects_discovery_only_evidence(monkeypatch):

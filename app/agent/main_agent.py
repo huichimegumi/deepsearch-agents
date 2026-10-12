@@ -238,8 +238,8 @@ def _enforce_final_report_citations(
         allowed_evidence_ids=run_trace.claim_evidence_ids,
         citations_required=bool(run_trace.claim_eligible_evidence_ids or run_trace.rejected_claims),
     )
-    run_trace.record_report_citation_validation(validation)
     if validation.valid:
+        run_trace.record_report_citation_validation(validation)
         return report_markdown, validation
 
     reasons: list[str] = []
@@ -253,13 +253,19 @@ def _enforce_final_report_citations(
     fallback = compressed_fallback or (
         "No validated claim package was available. The writer output was withheld."
     )
-    return (
+    fallback_report = (
         "# Evidence-Validated Partial Result\n\n"
         f"> The generated report failed citation validation ({reason}). "
         "The backend returned the validated claim package instead.\n\n"
-        f"{fallback}",
-        validation,
+        f"{fallback}"
     )
+    fallback_validation = validate_report_citations(
+        fallback_report,
+        allowed_evidence_ids=run_trace.claim_evidence_ids,
+        citations_required=bool(run_trace.claim_eligible_evidence_ids or run_trace.rejected_claims),
+    )
+    run_trace.record_report_citation_validation(fallback_validation)
+    return fallback_report, fallback_validation
 
 
 def _attach_backend_evidence_ledger(
@@ -370,6 +376,43 @@ def _should_attempt_sql_evidence_correction(run_trace: ResearchRunTrace) -> bool
     )
 
 
+def _render_sql_correction_ledger(run_trace: ResearchRunTrace) -> str:
+    """Prefer compact formula grounding plus claim context over a duplicated full schema."""
+    semantic_ledger = run_trace.render_evidence_ledger(
+        max_records=8,
+        max_total_content_chars=16_000,
+        evidence_kinds=("database_semantics",),
+    )
+    if not semantic_ledger:
+        return run_trace.render_evidence_ledger(
+            max_total_content_chars=32_000,
+            max_record_content_chars=4_000,
+            source_priority=("web", "sql"),
+        )
+    claim_context = run_trace.render_evidence_ledger(
+        max_records=24,
+        max_total_content_chars=16_000,
+        max_record_content_chars=4_000,
+        source_priority=("web", "sql"),
+        claim_eligible_only=True,
+    )
+    parts = [
+        "# SQL Correction Formula Context\n"
+        "The formula records include dependency definitions and the physical columns/tables "
+        "needed to construct the analytical expression.",
+        semantic_ledger,
+    ]
+    if claim_context:
+        parts.extend(
+            (
+                "# Claim-Eligible Entity Context\n"
+                "Use this context to resolve requested entities and filters.",
+                claim_context,
+            )
+        )
+    return "\n\n".join(parts)
+
+
 async def _run_sql_evidence_correction(
     *,
     model,
@@ -424,11 +467,7 @@ async def _run_sql_evidence_correction(
             (
                 f"【用户原始问题】\n{task_query}",
                 f"【Research Brief】\n{research_brief or 'No completed brief was captured.'}",
-                run_trace.render_evidence_ledger(
-                    max_total_content_chars=32_000,
-                    max_record_content_chars=4_000,
-                    source_priority=("web", "sql"),
-                ),
+                _render_sql_correction_ledger(run_trace),
                 phase.instruction,
             )
         )

@@ -218,3 +218,15 @@ does not depend on a distant or truncated schema record. A no-network check of t
 returned one parent and its two required dependencies with all inputs grounded across the relevant
 tables. See
 [`docs/development/m3-17-semantic-dependency-closure.md`](../../docs/development/m3-17-semantic-dependency-closure.md).
+
+The post-M3.17 run used six Tavily queries and five fetched pages. It restored five Web Evidence
+records and produced six accepted Claims with no rejections or unknown Evidence IDs, validating the
+Claim-safe handoff. Three SQL queries executed without errors but returned no rows, and structured
+SQL correction timed out after 60 seconds. The task used the metric's full name without its acronym,
+so semantic retrieval returned eight lexical matches; correction also replayed the large full schema.
+M3.18 treats the base name as an exact alias and, when formulas exist, replaces the full-schema
+correction ledger with a 16k semantic grounding section plus a 16k Web-first Claim context. It also
+revalidates the exact validated-Claim fallback returned after Writer citation failure, allowing trace
+citation validity to describe delivered content while the run remains degraded for the Writer error.
+See
+[`docs/development/m3-18-compact-sql-correction-and-citation-fallback.md`](../../docs/development/m3-18-compact-sql-correction-and-citation-fallback.md).

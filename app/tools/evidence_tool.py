@@ -237,12 +237,16 @@ def _sqlite_search_semantic_knowledge(
     ranked = []
     for entry in entries:
         name = str(entry.get("knowledge", "")).casefold()
+        base_name = re.sub(r"\s*\([^()]{2,16}\)\s*$", "", name).strip()
         searchable = " ".join(
             str(entry.get(field, "")).casefold()
             for field in ("knowledge", "description", "definition", "type")
         )
         overlap = len(query_tokens & set(re.findall(r"[a-z0-9_]{3,}", searchable)))
-        exact_name = bool(name and name in normalized_query)
+        exact_name = bool(
+            (name and name in normalized_query)
+            or (base_name and len(base_name) >= 4 and base_name in normalized_query)
+        )
         if overlap or exact_name:
             ranked.append((int(exact_name), overlap, name, entry))
     ranked.sort(key=lambda item: (-item[0], -item[1], item[2]))

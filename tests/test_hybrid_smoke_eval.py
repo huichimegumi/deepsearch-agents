@@ -327,7 +327,7 @@ def test_sqlite_semantic_knowledge_search_returns_stable_discovery_evidence(
             {
                 "source": "sql",
                 "operation": "search_semantic_knowledge",
-                "query": "Calculate Verified Metric Score (VMS).",
+                "query": "Calculate the Verified Metric Score.",
             }
         )
     )
@@ -336,7 +336,7 @@ def test_sqlite_semantic_knowledge_search_returns_stable_discovery_evidence(
             {
                 "source": "sql",
                 "operation": "search_semantic_knowledge",
-                "query": "Calculate Verified Metric Score (VMS).",
+                "query": "Calculate the Verified Metric Score.",
             }
         )
     )
