@@ -250,11 +250,11 @@ async def test_sql_correction_prefetches_pinned_semantic_knowledge(tmp_path, mon
         ),
         encoding="utf-8",
     )
+    calls = []
 
     class StructuredInvoker:
         async def ainvoke(self, messages):
-            assert "Verified Metric Score (VMS)" in messages[-1]["content"]
-            assert "VMS = value * 2" in messages[-1]["content"]
+            calls.append(messages)
             return {
                 "raw": SimpleNamespace(usage_metadata={}),
                 "parsed": main_agent.SQLCorrectionProposal(
@@ -288,12 +288,88 @@ async def test_sql_correction_prefetches_pinned_semantic_knowledge(tmp_path, mon
         reset_research_runtime(tokens)
 
     assert success is True
+    assert "Verified Metric Score (VMS)" in calls[0][-1]["content"]
+    assert "VMS = value * 2" in calls[0][-1]["content"]
+    assert "compiled_sql_expression" in calls[0][-1]["content"]
+    assert '\\"metrics\\".\\"value\\"' in calls[0][-1]["content"]
     assert trace.sql_semantic_discovery_calls == 1
     assert trace.sql_evidence_by_kind["database_semantics"] == 1
-    assert trace.tool_calls_by_name == {"collect_evidence": 2}
+    assert trace.sql_evidence_by_kind["database_query_validation"] == 1
+    assert trace.tool_calls_by_name == {"collect_evidence": 3}
     assert budget.search_queries_used == 0
     assert budget.fetched_pages_used == 0
     assert budget.research_rounds_used == 0
+
+
+async def test_sql_correction_preflight_repairs_unknown_metric_without_sql_attempt(
+    tmp_path,
+    monkeypatch,
+):
+    database_path = tmp_path / "semantic-preflight.sqlite"
+    with sqlite3.connect(database_path) as connection:
+        connection.execute("CREATE TABLE metrics (name TEXT, value INTEGER)")
+        connection.execute("INSERT INTO metrics VALUES ('verified', 42)")
+    knowledge_path = tmp_path / "semantic-preflight.jsonl"
+    knowledge_path.write_text(
+        json.dumps(
+            {
+                "id": 1,
+                "knowledge": "Verified Metric Score (VMS)",
+                "definition": "VMS = value * 2",
+            }
+        ),
+        encoding="utf-8",
+    )
+    proposals = iter(
+        (
+            "SELECT invented_metric FROM metrics",
+            "SELECT name, value * 2 AS verified_score FROM metrics",
+        )
+    )
+    calls = []
+
+    class StructuredInvoker:
+        async def ainvoke(self, messages):
+            calls.append(messages)
+            return {
+                "raw": SimpleNamespace(usage_metadata={}),
+                "parsed": main_agent.SQLCorrectionProposal(query=next(proposals)),
+                "parsing_error": None,
+            }
+
+    class FakeModel:
+        def with_structured_output(self, schema, include_raw=False):
+            return StructuredInvoker()
+
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database_path))
+    monkeypatch.setenv("EVIDENCE_SQLITE_KNOWLEDGE_PATH", str(knowledge_path))
+    monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    budget, trace = make_runtime()
+    tokens = set_research_runtime(budget, trace)
+    try:
+        success = await main_agent._run_sql_evidence_correction(
+            model=FakeModel(),
+            task_query="Calculate the Verified Metric Score (VMS).",
+            research_brief="Use the executable semantic formula.",
+            budget=AgentExecutionBudget(recursion_limit=2, timeout_seconds=5),
+            budget_profile="test",
+            research_budget=budget,
+            run_trace=trace,
+        )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert success is True
+    assert len(calls) == 2
+    assert "failed the backend's read-only SQLite preflight" in calls[1][0]["content"]
+    assert "no such column: invented_metric" in calls[1][1]["content"]
+    assert trace.sql_query_attempts == 1
+    assert trace.sql_query_failures == 0
+    assert trace.sql_correction_repair_attempts == 1
+    assert trace.sql_correction_repair_successes == 1
+    assert trace.sql_evidence_by_kind["database_query_validation"] == 1
+    assert trace.tool_calls_by_name == {"collect_evidence": 4}
 
 
 async def test_supervisor_prefetch_exposes_pinned_formula_without_web_budget(

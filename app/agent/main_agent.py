@@ -476,6 +476,7 @@ async def _run_sql_evidence_correction(
             include_raw=True,
         )
         previous_query = ""
+        validation_feedback = ""
         proposed_queries: set[str] = set()
         for proposal_index in range(SQL_CORRECTION_MAX_PROPOSALS):
             if not research_budget.take_llm_call(phase.key):
@@ -498,6 +499,19 @@ async def _run_sql_evidence_correction(
                     user_prompt = (
                         f"{prompt}\n\n【Empty-result proposal】\n{previous_query}\n\n"
                         "Repair only the over-constrained or unsupported filtering logic."
+                    )
+                elif repair_trigger == "VALIDATION_ERROR":
+                    system_instruction = (
+                        "The previous SQL proposal failed the backend's read-only SQLite preflight "
+                        "and was not executed. Return exactly one different query through the "
+                        "required structured schema. Copy the supplied compiled_sql_expression "
+                        "for every derived metric and use only its required_tables and physical "
+                        "columns. Never use a metric name or formula alias as a physical column."
+                    )
+                    user_prompt = (
+                        f"{prompt}\n\n【Preflight-rejected proposal】\n{previous_query}\n\n"
+                        f"【Preflight error】\n{validation_feedback}\n\n"
+                        "Repair the invalid identifiers before execution."
                     )
                 else:
                     system_instruction = (
@@ -539,6 +553,31 @@ async def _run_sql_evidence_correction(
                 raise ValueError("sql_correction_duplicate_proposal")
             proposed_queries.add(normalized_query)
             previous_query = proposal.query
+            if run_trace.has_executable_sql_semantics:
+                run_trace.record_tool_call(phase.key, collect_evidence.name)
+                remaining_seconds = phase_deadline - loop.time()
+                if remaining_seconds <= 0:
+                    raise TimeoutError
+                validation_result = await asyncio.wait_for(
+                    collect_evidence.ainvoke(
+                        {
+                            "source": "sql",
+                            "operation": "validate_query",
+                            "query": proposal.query,
+                        }
+                    ),
+                    timeout=remaining_seconds,
+                )
+                try:
+                    validation_payload = json.loads(validation_result)
+                    validation_status = str(validation_payload.get("status", ""))
+                    validation_feedback = "; ".join(validation_payload.get("warnings", ()))
+                except (TypeError, ValueError, AttributeError):
+                    validation_status = ""
+                    validation_feedback = "The backend returned an unreadable validation result."
+                if validation_status != "OK":
+                    repair_trigger = "VALIDATION_ERROR"
+                    continue
             run_trace.record_tool_call(phase.key, collect_evidence.name)
             remaining_seconds = phase_deadline - loop.time()
             if remaining_seconds <= 0:

@@ -267,6 +267,37 @@ def test_sqlite_value_matching_resolves_entity_keys_without_claim_evidence(
     assert invalid_column["status"] == "ERROR"
 
 
+def test_sqlite_query_preflight_validates_without_analytical_execution(tmp_path, monkeypatch):
+    database = tmp_path / "query-preflight.sqlite"
+    _sqlite_database(database)
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database))
+
+    valid = json.loads(
+        collect_evidence.invoke(
+            {
+                "source": "sql",
+                "operation": "validate_query",
+                "query": "SELECT name, value * 2 AS score FROM metrics",
+            }
+        )
+    )
+    invalid = json.loads(
+        collect_evidence.invoke(
+            {
+                "source": "sql",
+                "operation": "validate_query",
+                "query": "SELECT invented_metric FROM metrics",
+            }
+        )
+    )
+
+    assert valid["status"] == "OK"
+    assert valid["records"][0]["content"]["valid"] is True
+    assert valid["records"][0]["metadata"]["evidence_kind"] == ("database_query_validation")
+    assert invalid["status"] == "ERROR"
+    assert "no such column" in invalid["warnings"][0]
+
+
 def test_sqlite_schema_merges_pinned_column_meanings_into_stable_evidence(
     tmp_path,
     monkeypatch,
@@ -399,6 +430,10 @@ def test_sqlite_semantic_knowledge_search_returns_stable_discovery_evidence(
         "value",
         "group_id",
     ]
+    assert first["records"][0]["content"]["compiled_sql_expression"] == (
+        '(("metrics"."value" * 2) + 1)'
+    )
+    assert first["records"][0]["content"]["required_tables"] == ["metrics"]
     assert all(
         item["metadata"]["evidence_kind"] == "database_semantics" for item in first["records"]
     )

@@ -130,6 +130,8 @@ SQL_EVIDENCE_CORRECTION_PHASE = ResearchPhase(
    database_value_match 记录给出的 matched_value 是允许使用的精确过滤值；comparison_mode=trimmed_text 时必须使用
    TRIM(column)=matched_value，不得从网页名称臆造数据库键
 5. 若 Evidence Ledger 包含公式依赖及 resolved_columns，必须把全部依赖展开为 SQL 表达式，并使用映射后的真实字段
+   若记录包含 compiled_sql_expression，必须原样使用该后端编译表达式；不得把指标名、缩写或依赖公式名作为字段
+6. 后端会先以只读 SQLite preflight 编译提案；未通过的查询不会执行，唯一修复机会必须按 preflight 错误改正
 
 禁止：
 - 禁止网络搜索、子智能体、本地文档、Fee Engine 和文件工具

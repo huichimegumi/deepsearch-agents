@@ -319,6 +319,7 @@ class ResearchRunTrace:
                     "database_sample",
                     "database_semantics",
                     "database_value_match",
+                    "database_query_validation",
                 }:
                     self.claim_eligible_evidence_ids.append(evidence_id)
                 self._evidence_records_by_id[evidence_id] = record
@@ -354,6 +355,16 @@ class ResearchRunTrace:
     @property
     def has_analytical_sql_evidence(self) -> bool:
         return self.sql_evidence_by_kind.get("query_result", 0) > 0
+
+    @property
+    def has_executable_sql_semantics(self) -> bool:
+        """Return whether the trace contains a backend-compiled metric expression."""
+        return any(
+            str((getattr(record, "metadata", {}) or {}).get("evidence_kind", ""))
+            == "database_semantics"
+            and bool((getattr(record, "content", {}) or {}).get("compiled_sql_expression"))
+            for record in self._evidence_records_by_id.values()
+        )
 
     @property
     def can_attempt_sql_correction(self) -> bool:

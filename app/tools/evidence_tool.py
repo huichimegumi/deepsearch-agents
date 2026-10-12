@@ -30,6 +30,7 @@ from app.research.evidence import (
     sql_schema_to_evidence,
 )
 from app.research.fee_engine import FeeDataset
+from app.research.sql_semantics import compile_semantic_sql_expressions
 from app.tools.db_tools import _apply_query_timeout, _preview_sql_query, get_db_config
 from app.tools.local_rag_tools import (
     _limit_hits_for_answer,
@@ -318,6 +319,7 @@ def _sqlite_search_semantic_knowledge(
             content["resolved_columns"] = resolved_columns
             content["relevant_table_columns"] = relevant_tables
         enriched_entries.append(content)
+    executable_entries = compile_semantic_sql_expressions(enriched_entries)
     records = tuple(
         EvidenceRecord.create(
             source=EvidenceSource.SQL,
@@ -330,7 +332,7 @@ def _sqlite_search_semantic_knowledge(
             },
             metadata={"evidence_kind": "database_semantics"},
         )
-        for index, entry in enumerate(enriched_entries)
+        for index, entry in enumerate(executable_entries)
     )
     return EvidenceBatch(
         source=EvidenceSource.SQL,
@@ -577,6 +579,31 @@ def _sqlite_match_column_value(
     )
 
 
+def _sqlite_validate_query(
+    connection: sqlite3.Connection,
+    *,
+    database_identity: str,
+    query: str,
+) -> EvidenceBatch:
+    """Compile a read-only query without executing it or consuming an analytical SQL attempt."""
+    executed_query = _validate_read_only_sql(query)
+    connection.execute(f"EXPLAIN QUERY PLAN {executed_query}").fetchall()
+    query_digest = sha256(" ".join(executed_query.split()).encode("utf-8")).hexdigest()
+    record = EvidenceRecord.create(
+        source=EvidenceSource.SQL,
+        locator=f"sql://{database_identity}/validation/{query_digest}",
+        content={"query_sha256": query_digest, "valid": True},
+        identity={"database": database_identity, "query_sha256": query_digest},
+        metadata={"evidence_kind": "database_query_validation"},
+    )
+    return EvidenceBatch(
+        source=EvidenceSource.SQL,
+        status=EvidenceBatchStatus.OK,
+        records=(record,),
+        query=executed_query,
+    )
+
+
 def _collect_sqlite(
     query: str,
     operation: str,
@@ -616,6 +643,12 @@ def _collect_sqlite(
                 database_identity=database_identity,
                 table_name=table_name,
                 column_name=column_name,
+                query=query,
+            )
+        if operation == "validate_query":
+            return _sqlite_validate_query(
+                connection,
+                database_identity=database_identity,
                 query=query,
             )
         if operation == "search_semantic_knowledge":
@@ -796,6 +829,7 @@ def collect_evidence(
         "describe_schema",
         "sample_table",
         "match_column_value",
+        "validate_query",
         "search_semantic_knowledge",
     ] = "query",
     table_name: str = "",
@@ -808,6 +842,7 @@ def collect_evidence(
     Before filtering a text entity, use operation=match_column_value with exact table_name,
     column_name, and the human label in query; proceed only when it returns one exact value.
     A comparison_mode of trimmed_text requires TRIM(column)=matched_value in the analytical query.
+    Use operation=validate_query to compile a proposed SQLite query without executing it.
     For a named derived metric or domain formula, call operation=search_semantic_knowledge
     with that metric or formula name in query.
     source=local_document with a retrieval query and optional knowledge-base name,
