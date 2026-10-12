@@ -152,9 +152,14 @@ def test_trace_keeps_sql_discovery_evidence_out_of_claim_gate():
         source="sql",
         metadata={"evidence_kind": "database_semantics"},
     )
+    value_match = SimpleNamespace(
+        evidence_id="ev1_sql_value_match",
+        source="sql",
+        metadata={"evidence_kind": "database_value_match"},
+    )
 
     trace.record_sql_discovery("search_semantic_knowledge")
-    trace.record_evidence((schema, sample, semantics))
+    trace.record_evidence((schema, sample, semantics, value_match))
     payload = trace.finalize(status="completed", final_result="gap")
 
     assert trace.claim_eligible_evidence_ids == []
@@ -163,6 +168,7 @@ def test_trace_keeps_sql_discovery_evidence_out_of_claim_gate():
         "database_schema": 1,
         "database_sample": 1,
         "database_semantics": 1,
+        "database_value_match": 1,
     }
     assert payload["metrics"]["sql_semantic_discovery_calls"] == 1
     assert payload["waste"]["evidence_never_used_in_claims"] == 0

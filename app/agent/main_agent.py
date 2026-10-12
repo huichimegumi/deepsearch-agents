@@ -379,9 +379,9 @@ def _should_attempt_sql_evidence_correction(run_trace: ResearchRunTrace) -> bool
 def _render_sql_correction_ledger(run_trace: ResearchRunTrace) -> str:
     """Prefer compact formula grounding plus claim context over a duplicated full schema."""
     semantic_ledger = run_trace.render_evidence_ledger(
-        max_records=8,
+        max_records=16,
         max_total_content_chars=16_000,
-        evidence_kinds=("database_semantics",),
+        evidence_kinds=("database_semantics", "database_value_match"),
     )
     if not semantic_ledger:
         return run_trace.render_evidence_ledger(
@@ -398,8 +398,8 @@ def _render_sql_correction_ledger(run_trace: ResearchRunTrace) -> str:
     )
     parts = [
         "# SQL Correction Formula Context\n"
-        "The formula records include dependency definitions and the physical columns/tables "
-        "needed to construct the analytical expression.",
+        "The discovery records include formula dependencies, physical columns/tables, and any "
+        "validated database entity values needed to construct the analytical query.",
         semantic_ledger,
     ]
     if claim_context:

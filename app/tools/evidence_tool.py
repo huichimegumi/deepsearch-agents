@@ -45,6 +45,8 @@ MUTATING_SQL_PATTERN = re.compile(
 )
 SQLITE_SCHEMA_TABLE_LIMIT = 40
 SQLITE_SAMPLE_ROW_LIMIT = 3
+SQLITE_VALUE_MATCH_LIMIT = 8
+SQLITE_VALUE_MATCH_SCAN_LIMIT = 200
 SQLITE_COLUMN_MEANINGS_MAX_BYTES = 2 * 1024 * 1024
 SQLITE_SEMANTIC_KNOWLEDGE_LIMIT = 8
 
@@ -464,11 +466,123 @@ def _sqlite_sample_table(
     )
 
 
+def _normalize_entity_value(value: str) -> str:
+    """Normalize a human/entity label without erasing token boundaries."""
+    return " ".join(re.findall(r"\w+", value.casefold(), flags=re.UNICODE))
+
+
+def _sqlite_match_column_value(
+    connection: sqlite3.Connection,
+    *,
+    database_identity: str,
+    table_name: str,
+    column_name: str,
+    query: str,
+) -> EvidenceBatch:
+    """Resolve a human label to bounded, exact database values for later filtering."""
+    if not table_name:
+        raise ValueError("table_name is required for match_column_value")
+    if table_name not in _sqlite_table_names(connection):
+        raise ValueError(f"unknown SQLite table: {table_name}")
+    columns = [
+        str(row[1])
+        for row in connection.execute("SELECT * FROM pragma_table_xinfo(?)", (table_name,))
+    ]
+    if column_name not in columns:
+        raise ValueError(f"unknown SQLite column: {table_name}.{column_name}")
+    requested_value = query.strip()
+    normalized_query = _normalize_entity_value(requested_value)
+    if len(normalized_query) < 3:
+        raise ValueError(
+            "query for match_column_value must contain at least 3 normalized characters"
+        )
+
+    quoted_table = '"' + table_name.replace('"', '""') + '"'
+    quoted_column = '"' + column_name.replace('"', '""') + '"'
+    cursor = connection.execute(
+        f"SELECT DISTINCT CAST({quoted_column} AS TEXT) AS matched_value "
+        f"FROM {quoted_table} WHERE {quoted_column} IS NOT NULL "
+        f"AND instr(lower(CAST({quoted_column} AS TEXT)), lower(?)) > 0 "
+        f"ORDER BY matched_value LIMIT {SQLITE_VALUE_MATCH_SCAN_LIMIT + 1}",
+        (requested_value,),
+    )
+    raw_values = [str(row[0]) for row in cursor.fetchall()]
+    scan_truncated = len(raw_values) > SQLITE_VALUE_MATCH_SCAN_LIMIT
+    ranked: list[tuple[int, str, str]] = []
+    for value in raw_values[:SQLITE_VALUE_MATCH_SCAN_LIMIT]:
+        normalized_value = _normalize_entity_value(value)
+        if normalized_value == normalized_query:
+            match_type = "exact"
+            rank = 0
+        elif normalized_value.endswith(f" {normalized_query}"):
+            match_type = "suffix"
+            rank = 1
+        elif normalized_value.startswith(f"{normalized_query} "):
+            match_type = "prefix"
+            rank = 2
+        elif f" {normalized_query} " in f" {normalized_value} ":
+            match_type = "token_phrase"
+            rank = 3
+        else:
+            continue
+        ranked.append((rank, value, match_type))
+    ranked.sort(key=lambda item: (item[0], item[1].casefold(), item[1]))
+    limited = ranked[:SQLITE_VALUE_MATCH_LIMIT]
+    descriptor = f"match_column_value:{table_name}.{column_name}:{normalized_query}"
+    records = sql_rows_to_evidence(
+        query=descriptor,
+        columns=(
+            "table_name",
+            "column_name",
+            "requested_value",
+            "matched_value",
+            "match_type",
+            "comparison_mode",
+        ),
+        rows=[
+            (
+                table_name,
+                column_name,
+                requested_value,
+                value.strip(),
+                match_type,
+                "trimmed_text" if value != value.strip() else "exact_text",
+            )
+            for _, value, match_type in limited
+        ],
+        database_identity=database_identity,
+        evidence_kind="database_value_match",
+    )
+    warnings: list[str] = []
+    if not records:
+        warnings.append("No database value matched the requested entity label.")
+    if len(ranked) > SQLITE_VALUE_MATCH_LIMIT or scan_truncated:
+        warnings.append(
+            f"Database value matches were limited to {SQLITE_VALUE_MATCH_LIMIT}; refine the label."
+        )
+    elif len(records) > 1:
+        warnings.append("Multiple database values matched; resolve the ambiguity before filtering.")
+    return EvidenceBatch(
+        source=EvidenceSource.SQL,
+        status=(
+            EvidenceBatchStatus.PARTIAL
+            if records and warnings
+            else EvidenceBatchStatus.OK
+            if records
+            else EvidenceBatchStatus.NO_EVIDENCE
+        ),
+        records=records,
+        warnings=tuple(warnings),
+        query=descriptor,
+    )
+
+
 def _collect_sqlite(
     query: str,
     operation: str,
     database_path: Path,
     table_name: str = "",
+    column_name: str = "",
 ) -> EvidenceBatch:
     resolved = database_path.expanduser().resolve(strict=True)
     stat = resolved.stat()
@@ -495,6 +609,14 @@ def _collect_sqlite(
                 connection,
                 database_identity=database_identity,
                 table_name=table_name,
+            )
+        if operation == "match_column_value":
+            return _sqlite_match_column_value(
+                connection,
+                database_identity=database_identity,
+                table_name=table_name,
+                column_name=column_name,
+                query=query,
             )
         if operation == "search_semantic_knowledge":
             return _sqlite_search_semantic_knowledge(
@@ -673,14 +795,19 @@ def collect_evidence(
         "list_tables",
         "describe_schema",
         "sample_table",
+        "match_column_value",
         "search_semantic_knowledge",
     ] = "query",
     table_name: str = "",
+    column_name: str = "",
 ) -> str:
     """Collect bounded, traceable evidence with stable evidence_id values.
 
     Use source=sql with a read-only query. For SQLite, call operation=describe_schema
     before writing SQL and optionally operation=sample_table with an exact table_name.
+    Before filtering a text entity, use operation=match_column_value with exact table_name,
+    column_name, and the human label in query; proceed only when it returns one exact value.
+    A comparison_mode of trimmed_text requires TRIM(column)=matched_value in the analytical query.
     For a named derived metric or domain formula, call operation=search_semantic_knowledge
     with that metric or formula name in query.
     source=local_document with a retrieval query and optional knowledge-base name,
@@ -701,6 +828,7 @@ def collect_evidence(
             "aci": aci,
             "operation": operation,
             "table_name": table_name,
+            "column_name": column_name,
         },
     )
     try:
@@ -725,7 +853,13 @@ def collect_evidence(
             else:
                 sqlite_path = os.getenv("EVIDENCE_SQLITE_PATH", "").strip()
                 if sqlite_path:
-                    batch = _collect_sqlite(query, operation, Path(sqlite_path), table_name)
+                    batch = _collect_sqlite(
+                        query,
+                        operation,
+                        Path(sqlite_path),
+                        table_name,
+                        column_name,
+                    )
                 else:
                     batch = _collect_sql(query, operation)
         elif source_type is EvidenceSource.LOCAL_DOCUMENT:

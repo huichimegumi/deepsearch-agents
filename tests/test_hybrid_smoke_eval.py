@@ -225,6 +225,48 @@ def test_sqlite_schema_and_samples_are_bounded_stable_evidence(tmp_path, monkeyp
     assert rejected["status"] == "ERROR"
 
 
+def test_sqlite_value_matching_resolves_entity_keys_without_claim_evidence(
+    tmp_path,
+    monkeypatch,
+):
+    database = tmp_path / "entity-values.sqlite"
+    _sqlite_database(database)
+    with sqlite3.connect(database) as connection:
+        connection.execute("INSERT INTO groups VALUES (3, 'Observatory-Thomasville')")
+        connection.commit()
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database))
+
+    request = {
+        "source": "sql",
+        "operation": "match_column_value",
+        "table_name": "groups",
+        "column_name": "label",
+        "query": "Thomasville",
+    }
+    first = json.loads(collect_evidence.invoke(request))
+    second = json.loads(collect_evidence.invoke(request))
+    missing = json.loads(collect_evidence.invoke({**request, "query": "Kodiak"}))
+    invalid_column = json.loads(
+        collect_evidence.invoke({**request, "column_name": 'label"; DROP TABLE groups; --'})
+    )
+
+    assert first["status"] == "OK"
+    assert len(first["records"]) == 1
+    assert first["records"][0]["content"] == {
+        "column_name": "label",
+        "comparison_mode": "exact_text",
+        "match_type": "suffix",
+        "matched_value": "Observatory-Thomasville",
+        "requested_value": "Thomasville",
+        "table_name": "groups",
+    }
+    assert first["records"][0]["metadata"]["evidence_kind"] == "database_value_match"
+    assert first["records"][0]["evidence_id"] == second["records"][0]["evidence_id"]
+    assert missing["status"] == "NO_EVIDENCE"
+    assert missing["records"] == []
+    assert invalid_column["status"] == "ERROR"
+
+
 def test_sqlite_schema_merges_pinned_column_meanings_into_stable_evidence(
     tmp_path,
     monkeypatch,

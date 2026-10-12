@@ -291,6 +291,13 @@ def test_sql_correction_ledger_prefers_formula_and_claim_context_over_full_schem
                 content={"resolved_entity": "verified"},
                 metadata={"evidence_kind": "web_page"},
             ),
+            SimpleNamespace(
+                evidence_id="ev1_sql_value_match",
+                source="sql",
+                locator="sql://test/query/value-match#row=1",
+                content={"matched_value": "Observatory-Thomasville"},
+                metadata={"evidence_kind": "database_value_match"},
+            ),
         )
     )
 
@@ -299,6 +306,8 @@ def test_sql_correction_ledger_prefers_formula_and_claim_context_over_full_schem
     assert "SQL Correction Formula Context" in ledger
     assert "ev1_sql_semantics" in ledger
     assert "resolved_columns" in ledger
+    assert "ev1_sql_value_match" in ledger
+    assert "Observatory-Thomasville" in ledger
     assert "Claim-Eligible Entity Context" in ledger
     assert "ev1_web_entity" in ledger
     assert "ev1_sql_schema" not in ledger

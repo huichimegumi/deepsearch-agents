@@ -51,6 +51,8 @@ RESEARCH_PHASES = (
 2. 复杂问题至少覆盖 2 个互补角度；若证据不足，进行 1 次有针对性的追问/补检索
 3. SQL、本地文档和 Fee Engine 证据必须通过 collect_evidence 获取；公开网页必须由网络搜索助手抓取正文并返回 Web Evidence
    对 SQLite，编写查询前必须先调用 operation=describe_schema；只有需要确认值域时，才对相关表调用 operation=sample_table
+   当 SQL 需要按网页或用户给出的文本实体过滤时，必须先调用 operation=match_column_value，并提供真实 table_name、column_name
+   和已由全部线索共同支持的实体名。只有唯一匹配才能作为查询过滤值；零匹配时回到网页证据继续解析实体，多匹配时继续消歧
    用户问题包含命名的派生指标、评分或领域公式时，在编写 SQL 前调用 operation=search_semantic_knowledge，query 使用该指标名称或原始问题
    公式 Evidence 可能包含依赖公式、resolved_columns 和 relevant_table_columns；必须展开依赖并使用映射后的真实 table.column，禁止把指标名称当成物理字段
    SQL 查询失败后最多改写一次；禁止原样重复失败 SQL。第二次连续失败后停止查询，并把错误和证据缺口写入 Reflection
@@ -125,6 +127,8 @@ SQL_EVIDENCE_CORRECTION_PHASE = ResearchPhase(
 2. 只返回一个符合 SQLCorrectionProposal schema 的完整 query，不要输出解释或工具调用
 3. 后端会把该 query 固定映射为一次 source=sql、operation=query 的 collect_evidence 调用
 4. 使用已经发现的真实表名、列名和值域；不要重复 schema 或 sample 调用
+   database_value_match 记录给出的 matched_value 是允许使用的精确过滤值；comparison_mode=trimmed_text 时必须使用
+   TRIM(column)=matched_value，不得从网页名称臆造数据库键
 5. 若 Evidence Ledger 包含公式依赖及 resolved_columns，必须把全部依赖展开为 SQL 表达式，并使用映射后的真实字段
 
 禁止：

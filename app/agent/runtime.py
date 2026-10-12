@@ -318,6 +318,7 @@ class ResearchRunTrace:
                     "database_schema",
                     "database_sample",
                     "database_semantics",
+                    "database_value_match",
                 }:
                     self.claim_eligible_evidence_ids.append(evidence_id)
                 self._evidence_records_by_id[evidence_id] = record
