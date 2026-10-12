@@ -123,13 +123,67 @@ async def test_research_phase_rejects_unconfigured_builtin_subagent(monkeypatch)
         budget_profile="test",
         research_budget=budget,
         run_trace=trace,
-        allowed_subagent_names=frozenset({"网络搜索助手"}),
+        allowed_subagent_names=frozenset({"network_search"}),
     )
 
     assert result is None
     assert continued_after_rejection is False
     assert trace.failure_reasons == ["subagent_not_allowed:general-purpose"]
     assert trace.subagent_calls == 0
+
+
+async def test_research_phase_allows_configured_network_subagent(monkeypatch):
+    continued_after_dispatch = False
+
+    class FakeAgent:
+        async def astream(self, payload, config):
+            nonlocal continued_after_dispatch
+            yield {
+                "model": {
+                    "messages": [
+                        SimpleNamespace(
+                            content="",
+                            tool_calls=[
+                                {
+                                    "name": "task",
+                                    "args": {
+                                        "subagent_type": "network_search",
+                                        "description": "fetch public evidence",
+                                    },
+                                }
+                            ],
+                        )
+                    ]
+                }
+            }
+            continued_after_dispatch = True
+            yield {
+                "model": {"messages": [SimpleNamespace(content="Research complete", tool_calls=[])]}
+            }
+
+    monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_assistant", lambda *args, **kwargs: None)
+    budget, trace = make_runtime()
+
+    result = await main_agent._run_agent_phase(
+        agent=FakeAgent(),
+        phase=RESEARCH_PHASES[1],
+        prompt="Research",
+        config={},
+        budget=AgentExecutionBudget(recursion_limit=2, timeout_seconds=5),
+        budget_profile="test",
+        research_budget=budget,
+        run_trace=trace,
+        max_subagent_calls=1,
+        allowed_subagent_names=main_agent._configured_research_subagent_names(),
+    )
+
+    assert result == "Research complete"
+    assert continued_after_dispatch is True
+    assert trace.failure_reasons == []
+    assert trace.subagent_calls == 1
+    assert trace.tool_calls_by_name == {"task": 1}
 
 
 async def test_research_phase_recovers_from_provider_timeout(monkeypatch):

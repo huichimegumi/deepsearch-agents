@@ -1,6 +1,7 @@
 """Tests for backend-enforced phase capability routing."""
 
 from app.agent.main_agent import (
+    _configured_research_subagent_names,
     _max_subagent_calls_for_profile,
     _phase_agent_for,
     _research_tools,
@@ -34,6 +35,10 @@ def test_subagent_call_limits_scale_by_budget_profile():
     assert _max_subagent_calls_for_profile("quick") == 2
     assert _max_subagent_calls_for_profile("standard") == 4
     assert _max_subagent_calls_for_profile("deep_report") == 8
+
+
+def test_network_subagent_uses_stable_machine_route_name():
+    assert _configured_research_subagent_names() == frozenset({"network_search"})
 
 
 def test_research_phase_exposes_unified_evidence_tool():
