@@ -197,6 +197,43 @@ def test_trace_allows_one_sql_correction_after_discovery():
     assert payload["metrics"]["sql_correction_successes"] == 0
 
 
+def test_trace_allows_sql_correction_from_grounded_semantics_without_schema():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    trace.record_sql_discovery("search_semantic_knowledge")
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_sql_semantics",
+                source="sql",
+                content={
+                    "definition": "score = value * 2",
+                    "resolved_columns": [{"table_name": "metrics", "column_name": "value"}],
+                    "relevant_table_columns": {"metrics": ["name", "value"]},
+                },
+                metadata={"evidence_kind": "database_semantics"},
+            ),
+        )
+    )
+
+    assert trace.can_attempt_sql_correction is True
+
+
+def test_trace_does_not_open_sql_correction_for_ungrounded_semantics():
+    trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_sql_semantics",
+                source="sql",
+                content={"definition": "score = an unknown physical input * 2"},
+                metadata={"evidence_kind": "database_semantics"},
+            ),
+        )
+    )
+
+    assert trace.can_attempt_sql_correction is False
+
+
 def test_trace_reserves_one_correction_after_consecutive_sql_failures():
     trace = ResearchRunTrace("run-1", "thread-1", "test", make_budget())
     trace.record_evidence(

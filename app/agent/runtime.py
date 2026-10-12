@@ -358,9 +358,17 @@ class ResearchRunTrace:
     @property
     def can_attempt_sql_correction(self) -> bool:
         """Return whether one bounded correction can still execute a useful SQL query."""
+        grounded_semantics = any(
+            str((getattr(record, "metadata", {}) or {}).get("evidence_kind", ""))
+            == "database_semantics"
+            and bool((getattr(record, "content", {}) or {}).get("resolved_columns"))
+            and bool((getattr(record, "content", {}) or {}).get("relevant_table_columns"))
+            for record in self._evidence_records_by_id.values()
+        )
         discovered_database = bool(
             self.sql_evidence_by_kind.get("database_schema", 0)
             or self.sql_evidence_by_kind.get("database_sample", 0)
+            or grounded_semantics
         )
         return (
             discovered_database
