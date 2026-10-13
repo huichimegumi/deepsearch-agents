@@ -694,6 +694,7 @@ async def test_multiclue_entity_resolution_uses_reserved_search_then_retries(
             "topic": "general",
             "max_results": 3,
             "fetch_full_page": True,
+            "max_fetched_pages": 1,
         }
     ]
     assert budget.search_queries_used == 1

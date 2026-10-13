@@ -372,6 +372,7 @@ async def _ground_multiclue_entity(
                         "topic": "general",
                         "max_results": min(6, recovery_page_allowance * 3),
                         "fetch_full_page": True,
+                        "max_fetched_pages": recovery_page_allowance,
                     }
                 ),
                 timeout=remaining_seconds,

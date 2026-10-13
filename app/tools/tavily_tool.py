@@ -31,6 +31,7 @@ def research_search(
     topic: Literal["news", "finance", "general"] = "general",
     max_results: int | None = None,
     fetch_full_page: bool = False,
+    max_fetched_pages: int | None = None,
 ) -> dict:
     """从多个公开网络来源检索信息。
 
@@ -43,6 +44,7 @@ def research_search(
     :param topic: 搜索主题，可选 news、finance、general
     :param max_results: 去重后最多返回的结果数
     :param fetch_full_page: 是否抓取公开网页正文；只有成功抓取的正文会生成 Web Evidence
+    :param max_fetched_pages: 本次调用最多保留的成功正文页面；不能扩大运行级页面预算
     :return: 包含搜索候选和已抓取网页 Evidence 的统一结构
     """
     requested_backend = backend
@@ -78,10 +80,18 @@ def research_search(
         backend = configured_backend
 
     resolved_max_results = max_results or int(os.getenv("SEARCH_MAX_RESULTS", "8"))
-    max_fetched_pages = None
-    if fetch_full_page and budget is not None:
-        max_fetched_pages = budget.available_fetched_pages
-        if max_fetched_pages <= 0:
+    resolved_max_fetched_pages = None
+    if fetch_full_page:
+        if budget is not None:
+            resolved_max_fetched_pages = budget.available_fetched_pages
+            if max_fetched_pages is not None:
+                resolved_max_fetched_pages = min(
+                    resolved_max_fetched_pages,
+                    max(0, max_fetched_pages),
+                )
+        elif max_fetched_pages is not None:
+            resolved_max_fetched_pages = max(0, max_fetched_pages)
+        if resolved_max_fetched_pages == 0:
             fetch_full_page = False
     monitor.report_tool(
         tool_name="多源网络搜索工具",
@@ -93,7 +103,8 @@ def research_search(
             "topic": topic,
             "max_results": resolved_max_results,
             "fetch_full_page": fetch_full_page,
-            "max_fetched_pages": max_fetched_pages,
+            "requested_max_fetched_pages": max_fetched_pages,
+            "max_fetched_pages": resolved_max_fetched_pages,
         },
     )
     response = get_search_service().search(
@@ -103,7 +114,7 @@ def research_search(
             topic=topic,
             max_results=resolved_max_results,
             fetch_full_page=fetch_full_page,
-            max_fetched_pages=max_fetched_pages,
+            max_fetched_pages=resolved_max_fetched_pages,
         )
     )
     response_dict = response.to_dict()

@@ -602,3 +602,39 @@ def test_search_tool_hides_reserved_page_capacity_from_ordinary_fetches():
     assert requests[0].max_results == 8
     assert requests[0].fetch_full_page is True
     assert requests[0].max_fetched_pages == 1
+
+
+def test_search_tool_call_page_cap_can_only_tighten_run_budget():
+    budget = make_budget()
+    trace = ResearchRunTrace("run-1", "thread-1", "test", budget)
+    requests = []
+
+    def search(request):
+        requests.append(request)
+        return SearchResponse(queries=request.queries, backend=request.backend, results=[])
+
+    tokens = set_research_runtime(budget, trace)
+    try:
+        with patch(
+            "app.tools.tavily_tool.get_search_service",
+            return_value=SimpleNamespace(search=search),
+        ):
+            research_search.invoke(
+                {
+                    "queries": ["one clue"],
+                    "fetch_full_page": True,
+                    "max_fetched_pages": 1,
+                }
+            )
+            research_search.invoke(
+                {
+                    "queries": ["another clue"],
+                    "fetch_full_page": True,
+                    "max_fetched_pages": 99,
+                }
+            )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert requests[0].max_fetched_pages == 1
+    assert requests[1].max_fetched_pages == 2
