@@ -40,6 +40,7 @@ class SearchRequest:
     topic: SearchTopic = "general"
     max_results: int = 8
     fetch_full_page: bool = False
+    max_fetched_pages: int | None = None
 
 
 @dataclass(slots=True)

@@ -163,7 +163,7 @@ class SearchService:
 
         merged = self._merge_results(results, max_results)
         if request.fetch_full_page and merged:
-            self._fetch_full_pages(merged)
+            self._fetch_full_pages(merged, max_successes=request.max_fetched_pages)
 
         resolved_backend = "+".join(sorted(used_providers)) or request.backend
         monitor.report_search(
@@ -300,18 +300,32 @@ class SearchService:
                 break
         return selected
 
-    def _fetch_full_pages(self, results: list[SearchResult]) -> None:
-        with ThreadPoolExecutor(max_workers=min(5, len(results))) as executor:
-            future_map = {
-                executor.submit(self._fetch_page, result.url): result for result in results
-            }
-            for future in as_completed(future_map):
-                result = future_map[future]
-                try:
-                    result.raw_content = future.result()
-                except Exception:
-                    # 正文抓取属于增强能力，失败时仍保留搜索摘要。
-                    result.raw_content = ""
+    def _fetch_full_pages(
+        self,
+        results: list[SearchResult],
+        *,
+        max_successes: int | None = None,
+    ) -> None:
+        success_limit = len(results) if max_successes is None else max(0, max_successes)
+        successful = 0
+        cursor = 0
+        while cursor < len(results) and successful < success_limit:
+            remaining_slots = success_limit - successful
+            batch = results[cursor : cursor + min(5, remaining_slots)]
+            cursor += len(batch)
+            with ThreadPoolExecutor(max_workers=len(batch)) as executor:
+                future_map = {
+                    executor.submit(self._fetch_page, result.url): result for result in batch
+                }
+                for future in as_completed(future_map):
+                    result = future_map[future]
+                    try:
+                        result.raw_content = future.result()
+                    except Exception:
+                        # 正文抓取属于增强能力，失败时仍保留搜索摘要。
+                        result.raw_content = ""
+                    if result.raw_content:
+                        successful += 1
 
     def _fetch_page(self, url: str) -> str:
         current_url = url

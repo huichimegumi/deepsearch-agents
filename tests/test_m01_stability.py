@@ -692,7 +692,7 @@ async def test_multiclue_entity_resolution_uses_reserved_search_then_retries(
             "queries": ["distinctive second clue Thomasville"],
             "backend": "auto",
             "topic": "general",
-            "max_results": 1,
+            "max_results": 3,
             "fetch_full_page": True,
         }
     ]

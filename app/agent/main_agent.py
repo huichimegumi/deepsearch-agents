@@ -370,7 +370,7 @@ async def _ground_multiclue_entity(
                         "queries": recovery_queries[:recovery_allowance],
                         "backend": "auto",
                         "topic": "general",
-                        "max_results": min(recovery_allowance, recovery_page_allowance),
+                        "max_results": min(6, recovery_page_allowance * 3),
                         "fetch_full_page": True,
                     }
                 ),

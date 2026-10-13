@@ -183,6 +183,28 @@ class SearchServiceTests(unittest.TestCase):
 
         self.assertEqual(result.raw_content, "full page")
 
+    def test_fetch_full_pages_backfills_failures_within_success_cap(self):
+        service = SearchService({}, timeout=0.01)
+        results = [
+            make_result("https://one.example/page"),
+            make_result("https://two.example/page"),
+            make_result("https://three.example/page"),
+            make_result("https://four.example/page"),
+        ]
+
+        with patch.object(
+            service,
+            "_fetch_page",
+            side_effect=["", "second page", "third page"],
+        ) as fetch_page:
+            service._fetch_full_pages(results, max_successes=2)
+
+        self.assertEqual(fetch_page.call_count, 3)
+        self.assertEqual(results[0].raw_content, "")
+        self.assertEqual(results[1].raw_content, "second page")
+        self.assertEqual(results[2].raw_content, "third page")
+        self.assertEqual(results[3].raw_content, "")
+
     @patch("app.search.service.requests.get")
     def test_fetch_page_revalidates_redirect_target(self, get):
         redirect = Mock(

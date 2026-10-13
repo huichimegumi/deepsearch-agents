@@ -78,9 +78,10 @@ def research_search(
         backend = configured_backend
 
     resolved_max_results = max_results or int(os.getenv("SEARCH_MAX_RESULTS", "8"))
+    max_fetched_pages = None
     if fetch_full_page and budget is not None:
-        resolved_max_results = min(resolved_max_results, budget.available_fetched_pages)
-        if resolved_max_results <= 0:
+        max_fetched_pages = budget.available_fetched_pages
+        if max_fetched_pages <= 0:
             fetch_full_page = False
     monitor.report_tool(
         tool_name="多源网络搜索工具",
@@ -92,6 +93,7 @@ def research_search(
             "topic": topic,
             "max_results": resolved_max_results,
             "fetch_full_page": fetch_full_page,
+            "max_fetched_pages": max_fetched_pages,
         },
     )
     response = get_search_service().search(
@@ -101,6 +103,7 @@ def research_search(
             topic=topic,
             max_results=resolved_max_results,
             fetch_full_page=fetch_full_page,
+            max_fetched_pages=max_fetched_pages,
         )
     )
     response_dict = response.to_dict()

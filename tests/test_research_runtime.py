@@ -599,5 +599,6 @@ def test_search_tool_hides_reserved_page_capacity_from_ordinary_fetches():
     finally:
         reset_research_runtime(tokens)
 
-    assert requests[0].max_results == 1
+    assert requests[0].max_results == 8
     assert requests[0].fetch_full_page is True
+    assert requests[0].max_fetched_pages == 1
