@@ -131,6 +131,8 @@ SQL_EVIDENCE_CORRECTION_PHASE = ResearchPhase(
 3. 后端会把该 query 固定映射为一次 source=sql、operation=query 的 collect_evidence 调用
 4. 对包含 clue/线索 的跨源实体任务，后端会先逐条校验 Web Evidence ID，并要求该实体通过
    match_column_value 唯一匹配数据库值；SQL 只能使用随后产生的 database_value_match，解析失败时不得猜测
+   如果首次解析只因部分线索缺少正文证据而失败，后端可以使用预留的最多 2 次查询做一次定向恢复并重新解析；
+   恢复查询由后端执行且仍受总搜索硬上限约束，模型不得自行在本阶段调用网络工具
 5. 使用已经发现的真实表名、列名和值域；不要重复 schema 或 sample 调用
    database_value_match 记录给出的 matched_value 是允许使用的精确过滤值；comparison_mode=trimmed_text 时必须使用
    TRIM(column)=matched_value，不得从网页名称臆造数据库键

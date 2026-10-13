@@ -40,6 +40,8 @@ class ResearchBudget:
     fetched_pages_used: int = 0
     research_rounds_used: int = 0
     llm_calls_used: int = 0
+    _reserved_search_queries: int = field(default=0, repr=False)
+    _reserved_fetched_pages: int = field(default=0, repr=False)
 
     @property
     def remaining_seconds(self) -> float:
@@ -67,16 +69,54 @@ class ResearchBudget:
         return max(0.0, min(configured_timeout, allocation, available))
 
     def take_search_queries(self, requested: int) -> int:
-        remaining = max(0, self.limits.max_search_queries - self.search_queries_used)
+        remaining = max(
+            0,
+            self.limits.max_search_queries
+            - self.search_queries_used
+            - self._reserved_search_queries,
+        )
         accepted = min(max(0, requested), remaining)
         self.search_queries_used += accepted
         return accepted
 
+    def reserve_search_queries(self, requested: int) -> int:
+        """Keep a bounded part of the run budget for backend-directed recovery."""
+        available = max(0, self.limits.max_search_queries - self.search_queries_used)
+        self._reserved_search_queries = min(max(0, requested), available)
+        return self._reserved_search_queries
+
+    def release_search_query_reserve(self) -> int:
+        """Release and return the recovery allowance without consuming it."""
+        released = self._reserved_search_queries
+        self._reserved_search_queries = 0
+        return released
+
+    @property
+    def available_fetched_pages(self) -> int:
+        """Return pages available to ordinary retrieval after recovery reservation."""
+        return max(
+            0,
+            self.limits.max_fetched_pages
+            - self.fetched_pages_used
+            - self._reserved_fetched_pages,
+        )
+
     def take_fetched_pages(self, requested: int) -> int:
-        remaining = max(0, self.limits.max_fetched_pages - self.fetched_pages_used)
-        accepted = min(max(0, requested), remaining)
+        accepted = min(max(0, requested), self.available_fetched_pages)
         self.fetched_pages_used += accepted
         return accepted
+
+    def reserve_fetched_pages(self, requested: int) -> int:
+        """Keep fetched-page capacity for backend-directed entity recovery."""
+        available = max(0, self.limits.max_fetched_pages - self.fetched_pages_used)
+        self._reserved_fetched_pages = min(max(0, requested), available)
+        return self._reserved_fetched_pages
+
+    def release_fetched_page_reserve(self) -> int:
+        """Release and return reserved page capacity without consuming it."""
+        released = self._reserved_fetched_pages
+        self._reserved_fetched_pages = 0
+        return released
 
     def take_research_round(self) -> bool:
         if self.research_rounds_used >= self.limits.max_research_rounds:

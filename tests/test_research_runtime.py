@@ -50,6 +50,25 @@ def test_multidimensional_budget_refuses_excess_work():
     assert budget.take_research_round() is False
 
 
+def test_search_and_page_reserves_are_invisible_until_backend_recovery():
+    budget = make_budget()
+
+    assert budget.reserve_search_queries(2) == 2
+    assert budget.reserve_fetched_pages(1) == 1
+    assert budget.take_search_queries(3) == 1
+    assert budget.take_search_queries(1) == 0
+    assert budget.available_fetched_pages == 1
+    assert budget.take_fetched_pages(2) == 1
+    assert budget.take_fetched_pages(1) == 0
+    assert budget.release_search_query_reserve() == 2
+    assert budget.release_fetched_page_reserve() == 1
+    assert budget.take_search_queries(3) == 2
+    assert budget.available_fetched_pages == 1
+    assert budget.take_fetched_pages(2) == 1
+    assert budget.search_queries_used == 3
+    assert budget.fetched_pages_used == 2
+
+
 def test_llm_budget_preserves_compression_and_writer_calls():
     budget = make_budget()
 
@@ -552,3 +571,33 @@ def test_search_tool_enforces_query_budget_and_records_zero_result_waste():
     assert "搜索查询预算" in second["notices"][0]
     assert budget.search_queries_used == 3
     assert trace.queries_with_zero_new_sources == 3
+
+
+def test_search_tool_hides_reserved_page_capacity_from_ordinary_fetches():
+    budget = make_budget()
+    budget.reserve_fetched_pages(1)
+    trace = ResearchRunTrace("run-1", "thread-1", "test", budget)
+    requests = []
+
+    def search(request):
+        requests.append(request)
+        return SearchResponse(queries=request.queries, backend=request.backend, results=[])
+
+    tokens = set_research_runtime(budget, trace)
+    try:
+        with patch(
+            "app.tools.tavily_tool.get_search_service",
+            return_value=SimpleNamespace(search=search),
+        ):
+            research_search.invoke(
+                {
+                    "queries": ["one clue"],
+                    "max_results": 8,
+                    "fetch_full_page": True,
+                }
+            )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert requests[0].max_results == 1
+    assert requests[0].fetch_full_page is True

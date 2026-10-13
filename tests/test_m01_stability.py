@@ -539,6 +539,160 @@ async def test_multiclue_entity_resolution_rejects_unknown_web_evidence_id():
     assert "sql_entity_resolution_web_evidence_unknown" in trace.failure_reasons
 
 
+async def test_multiclue_entity_resolution_uses_reserved_search_then_retries(
+    tmp_path,
+    monkeypatch,
+):
+    database_path = tmp_path / "entity-recovery.sqlite"
+    with sqlite3.connect(database_path) as connection:
+        connection.execute("CREATE TABLE metrics (name TEXT, value INTEGER)")
+        connection.execute("INSERT INTO metrics VALUES ('Thomasville', 42)")
+    first_web_record, recovered_web_record = web_results_to_evidence(
+        [
+            SearchResult(
+                title="First clue",
+                url="https://example.test/clue-one",
+                raw_content="The first clue identifies Thomasville.",
+            ),
+            SearchResult(
+                title="Second clue",
+                url="https://example.test/clue-two",
+                raw_content="The second clue also identifies Thomasville.",
+            ),
+        ]
+    )
+    resolution_calls = 0
+
+    class StructuredInvoker:
+        async def ainvoke(self, messages):
+            nonlocal resolution_calls
+            resolution_calls += 1
+            if resolution_calls == 1:
+                parsed = main_agent.EntityResolutionProposal(
+                    resolved_entity="",
+                    all_clues_supported=False,
+                    clues=[
+                        main_agent.EntityClueAssessment(
+                            clue="clue one",
+                            candidate="Thomasville",
+                            evidence_ids=[first_web_record.evidence_id],
+                            supported=True,
+                        ),
+                        main_agent.EntityClueAssessment(
+                            clue="clue two",
+                            supported=False,
+                        ),
+                    ],
+                    table_name="metrics",
+                    column_name="name",
+                    recovery_queries=["distinctive second clue Thomasville"],
+                )
+            else:
+                assert recovered_web_record.evidence_id in messages[-1]["content"]
+                parsed = main_agent.EntityResolutionProposal(
+                    resolved_entity="Thomasville",
+                    all_clues_supported=True,
+                    clues=[
+                        main_agent.EntityClueAssessment(
+                            clue="clue one",
+                            candidate="Thomasville",
+                            evidence_ids=[first_web_record.evidence_id],
+                            supported=True,
+                        ),
+                        main_agent.EntityClueAssessment(
+                            clue="clue two",
+                            candidate="Thomasville",
+                            evidence_ids=[recovered_web_record.evidence_id],
+                            supported=True,
+                        ),
+                    ],
+                    table_name="metrics",
+                    column_name="name",
+                )
+            return {
+                "raw": SimpleNamespace(usage_metadata={}),
+                "parsed": parsed,
+                "parsing_error": None,
+            }
+
+    class FakeModel:
+        def with_structured_output(self, schema, include_raw=False):
+            assert schema is main_agent.EntityResolutionProposal
+            assert include_raw is True
+            return StructuredInvoker()
+
+    search_calls = []
+
+    async def recover_evidence(payload):
+        search_calls.append(payload)
+        assert budget.take_search_queries(len(payload["queries"])) == 1
+        trace.record_search(
+            payload["queries"],
+            [
+                {
+                    "url": recovered_web_record.locator,
+                    "matched_queries": payload["queries"],
+                    "raw_content": "fetched",
+                }
+            ],
+        )
+        trace.record_evidence((recovered_web_record,))
+        budget.take_fetched_pages(1)
+        return {"evidence_records": [recovered_web_record.to_dict()]}
+
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database_path))
+    monkeypatch.setattr(
+        main_agent,
+        "research_search",
+        SimpleNamespace(name="research_search", ainvoke=recover_evidence),
+    )
+    budget, trace = make_runtime()
+    budget.reserve_search_queries(1)
+    budget.reserve_fetched_pages(1)
+    trace.record_evidence(
+        (
+            first_web_record,
+            SimpleNamespace(
+                evidence_id="ev1_sql_semantics",
+                source="sql",
+                locator="sql://semantics/metrics",
+                content={"relevant_table_columns": {"metrics": ["name", "value"]}},
+                metadata={"evidence_kind": "database_semantics"},
+            ),
+        )
+    )
+    tokens = set_research_runtime(budget, trace)
+    try:
+        success = await main_agent._ground_multiclue_entity(
+            model=FakeModel(),
+            task_query="Use both clues to identify the place.",
+            phase_key="sql_evidence_correction",
+            phase_deadline=asyncio.get_running_loop().time() + 5,
+            research_budget=budget,
+            run_trace=trace,
+        )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert success is True
+    assert resolution_calls == 2
+    assert search_calls == [
+        {
+            "queries": ["distinctive second clue Thomasville"],
+            "backend": "auto",
+            "topic": "general",
+            "max_results": 1,
+            "fetch_full_page": True,
+        }
+    ]
+    assert budget.search_queries_used == 1
+    assert budget.fetched_pages_used == 1
+    assert trace.sql_entity_resolution_attempts == 2
+    assert trace.sql_entity_resolution_successes == 1
+    assert trace.sql_entity_value_match_successes == 1
+    assert trace.tool_calls_by_name == {"research_search": 1, "collect_evidence": 1}
+
+
 def test_entity_resolution_rejection_reasons_do_not_expose_candidate_content():
     proposal = main_agent.EntityResolutionProposal(
         resolved_entity="Thomasville",

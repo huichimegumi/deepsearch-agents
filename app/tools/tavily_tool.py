@@ -79,8 +79,7 @@ def research_search(
 
     resolved_max_results = max_results or int(os.getenv("SEARCH_MAX_RESULTS", "8"))
     if fetch_full_page and budget is not None:
-        remaining_pages = budget.limits.max_fetched_pages - budget.fetched_pages_used
-        resolved_max_results = min(resolved_max_results, max(0, remaining_pages))
+        resolved_max_results = min(resolved_max_results, budget.available_fetched_pages)
         if resolved_max_results <= 0:
             fetch_full_page = False
     monitor.report_tool(
