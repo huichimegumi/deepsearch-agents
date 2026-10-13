@@ -272,7 +272,7 @@ async def _ground_multiclue_entity(
 ) -> bool:
     """Resolve all task clues to one Web-backed entity and one unique database value."""
     catalog = run_trace.semantic_table_columns
-    if not run_trace.web_evidence_ids or not catalog:
+    if not catalog:
         run_trace.record_sql_entity_resolution(resolved=False, value_matched=False)
         run_trace.record_failure("sql_entity_resolution_context_missing")
         return False
@@ -285,6 +285,11 @@ async def _ground_multiclue_entity(
             max_record_content_chars=4_000,
             evidence_kinds=("web_page",),
         )
+        if not web_ledger:
+            web_ledger = (
+                "No fetched Web Evidence is available. Set all_clues_supported=false and provide "
+                "specific recovery_queries for the unsupported clues; do not infer an entity."
+            )
         if not research_budget.take_llm_call(phase_key):
             raise PhaseBudgetExceeded("llm_call_limit")
         remaining_seconds = phase_deadline - loop.time()

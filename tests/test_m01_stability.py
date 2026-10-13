@@ -5,6 +5,8 @@ import json
 import sqlite3
 from types import SimpleNamespace
 
+import pytest
+
 from app.agent import main_agent
 from app.agent.research_workflow import RESEARCH_PHASES
 from app.agent.runtime import (
@@ -539,9 +541,11 @@ async def test_multiclue_entity_resolution_rejects_unknown_web_evidence_id():
     assert "sql_entity_resolution_web_evidence_unknown" in trace.failure_reasons
 
 
+@pytest.mark.parametrize("seed_web_evidence", [True, False])
 async def test_multiclue_entity_resolution_uses_reserved_search_then_retries(
     tmp_path,
     monkeypatch,
+    seed_web_evidence,
 ):
     database_path = tmp_path / "entity-recovery.sqlite"
     with sqlite3.connect(database_path) as connection:
@@ -589,6 +593,11 @@ async def test_multiclue_entity_resolution_uses_reserved_search_then_retries(
                 )
             else:
                 assert recovered_web_record.evidence_id in messages[-1]["content"]
+                clue_one_evidence_id = (
+                    first_web_record.evidence_id
+                    if seed_web_evidence
+                    else recovered_web_record.evidence_id
+                )
                 parsed = main_agent.EntityResolutionProposal(
                     resolved_entity="Thomasville",
                     all_clues_supported=True,
@@ -596,7 +605,7 @@ async def test_multiclue_entity_resolution_uses_reserved_search_then_retries(
                         main_agent.EntityClueAssessment(
                             clue="clue one",
                             candidate="Thomasville",
-                            evidence_ids=[first_web_record.evidence_id],
+                            evidence_ids=[clue_one_evidence_id],
                             supported=True,
                         ),
                         main_agent.EntityClueAssessment(
@@ -649,17 +658,19 @@ async def test_multiclue_entity_resolution_uses_reserved_search_then_retries(
     budget, trace = make_runtime()
     budget.reserve_search_queries(1)
     budget.reserve_fetched_pages(1)
-    trace.record_evidence(
-        (
-            first_web_record,
-            SimpleNamespace(
-                evidence_id="ev1_sql_semantics",
-                source="sql",
-                locator="sql://semantics/metrics",
-                content={"relevant_table_columns": {"metrics": ["name", "value"]}},
-                metadata={"evidence_kind": "database_semantics"},
-            ),
+    seeded_records = [
+        SimpleNamespace(
+            evidence_id="ev1_sql_semantics",
+            source="sql",
+            locator="sql://semantics/metrics",
+            content={"relevant_table_columns": {"metrics": ["name", "value"]}},
+            metadata={"evidence_kind": "database_semantics"},
         )
+    ]
+    if seed_web_evidence:
+        seeded_records.insert(0, first_web_record)
+    trace.record_evidence(
+        tuple(seeded_records)
     )
     tokens = set_research_runtime(budget, trace)
     try:
