@@ -58,10 +58,13 @@ RESEARCH_PHASES = (
    SQL 查询失败后最多改写一次；禁止原样重复失败 SQL。第二次连续失败后停止查询，并把错误和证据缺口写入 Reflection
    describe_schema、list_tables、sample_table 和 search_semantic_knowledge 只用于发现结构、值域与公式，不能支撑最终分析结论；数据库任务必须至少有一次成功的 operation=query
 4. 每条关键结论绑定工具实际返回的稳定 evidence_id；CANDIDATE_ONLY 搜索结果不是证据，不得改写或自造 ID
-5. 明确列出证据缺口、冲突和可信度限制
+5. 若任务要求根据多条 clue/线索识别同一实体，派发给网络搜索助手的子任务必须要求逐线索独立查询和 Clue Coverage；
+   每条线索至少绑定一个真实抓取的 ev1_web_...，再进行候选交集。查询预算不足时先补未覆盖线索，不得用宽泛地域背景替代具体线索
+6. 明确列出证据缺口、冲突和可信度限制
 
 必须输出：
 - Evidence Ledger：按“结论候选 / evidence_id / 证据 / 来源定位符 / 可信度 / 缺口”整理
+- 多线索实体任务额外保留 Clue Coverage：原始线索 / 查询 / 候选 / Web Evidence ID / covered 状态
 - Reflection：还缺什么、是否需要补检索、为什么可以停止
 
 禁止：

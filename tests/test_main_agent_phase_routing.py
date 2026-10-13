@@ -52,3 +52,17 @@ def test_network_researcher_requires_fetched_web_evidence():
     assert "evidence_status=FETCHED" in prompt
     assert "CANDIDATE_ONLY" in prompt
     assert "ev1_web_..." in prompt
+
+
+def test_network_researcher_requires_clue_complete_retrieval():
+    prompt = sub_agents_content["search"]["system_prompt"]
+    research_phase = next(
+        phase for phase in RESEARCH_PHASES if phase.key == "supervisor_research"
+    )
+
+    assert "每条尚未覆盖的线索各准备一个独立查询" in prompt
+    assert "查询预算不足时优先覆盖尚无正文证据的线索" in prompt
+    assert "Clue Coverage" in prompt
+    assert "covered=true/false" in prompt
+    assert "逐线索独立查询和 Clue Coverage" in research_phase.instruction
+    assert "不得用宽泛地域背景替代具体线索" in research_phase.instruction
