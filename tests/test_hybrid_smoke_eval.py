@@ -2,6 +2,7 @@ import base64
 import hashlib
 import json
 import sqlite3
+from pathlib import Path
 
 import pytest
 
@@ -19,7 +20,9 @@ from evals.hybrid.common import CANARY, CANARY_NOTICE, SELECTION_PATH, decrypt_r
 from evals.hybrid.run_smoke import (
     HYBRID_BUDGET_PROFILE,
     MAX_EVALUATION_RETRIEVAL_PER_TASK,
+    _execute_task,
     _hybrid_research_limits,
+    _preflight_sql_evidence_assets,
     _resolve_evaluation_retrieval_budget,
     _sql_result_match,
     _strict_text_match,
@@ -182,6 +185,62 @@ def test_sqlite_evidence_backend_is_read_only_and_stable(tmp_path, monkeypatch):
     assert rejected["status"] == "ERROR"
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT SUM(value) FROM metrics").fetchone()[0] == 3
+
+
+def test_hybrid_sql_preflight_avoids_windows_strict_realpath(tmp_path, monkeypatch):
+    database = tmp_path / "preflight.sqlite"
+    _sqlite_database(database)
+    column_meanings = tmp_path / "column-meanings.json"
+    column_meanings.write_text("{}", encoding="utf-8")
+    semantic_knowledge = tmp_path / "semantic-knowledge.jsonl"
+    semantic_knowledge.write_text(
+        json.dumps({"knowledge": "Verified Metric", "definition": "value * 2"}) + "\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database))
+    monkeypatch.setenv("EVIDENCE_SQLITE_COLUMN_MEANINGS_PATH", str(column_meanings))
+    monkeypatch.setenv("EVIDENCE_SQLITE_KNOWLEDGE_PATH", str(semantic_knowledge))
+    original_resolve = Path.resolve
+
+    def resolve_without_strict(path, *args, **kwargs):
+        assert kwargs.get("strict") is not True
+        return original_resolve(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "resolve", resolve_without_strict)
+
+    _preflight_sql_evidence_assets(database, "Verified Metric")
+
+
+async def test_hybrid_sql_preflight_failure_stops_before_agent_and_web(tmp_path, monkeypatch):
+    agent_called = False
+
+    async def fake_run_deep_agent(*args, **kwargs):
+        nonlocal agent_called
+        agent_called = True
+
+    def fail_preflight(*args, **kwargs):
+        raise RuntimeError("SQL Evidence unavailable")
+
+    monkeypatch.setattr("evals.hybrid.run_smoke._reset_session", lambda _session_id: None)
+    monkeypatch.setattr("evals.hybrid.run_smoke.get_settings", lambda: object())
+    monkeypatch.setattr(
+        "evals.hybrid.run_smoke._hybrid_research_limits", lambda *args, **kwargs: object()
+    )
+    monkeypatch.setattr("evals.hybrid.run_smoke._preflight_sql_evidence_assets", fail_preflight)
+    monkeypatch.setattr("evals.hybrid.run_smoke.run_deep_agent", fake_run_deep_agent)
+
+    with pytest.raises(RuntimeError, match="SQL Evidence unavailable"):
+        await _execute_task(
+            {"id": "task", "final_question": "question", "db": "alien"},
+            database_path=tmp_path / "database.sqlite",
+            column_meanings_path=tmp_path / "columns.json",
+            semantic_knowledge_path=tmp_path / "knowledge.jsonl",
+            search_backend="tavily",
+            max_search_queries=6,
+            max_fetched_pages=6,
+        )
+
+    assert agent_called is False
 
 
 def test_sqlite_schema_and_samples_are_bounded_stable_evidence(tmp_path, monkeypatch):

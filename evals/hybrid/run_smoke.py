@@ -14,7 +14,8 @@ from typing import Any, Iterator
 
 from app.agent.main_agent import project_root_path, run_deep_agent
 from app.config import get_settings
-from app.tools.evidence_tool import _validate_read_only_sql
+from app.research.evidence import EvidenceBatchStatus
+from app.tools.evidence_tool import _collect_sqlite, _validate_read_only_sql
 from evals.hybrid.common import (
     SELECTION_PATH,
     default_data_dir,
@@ -57,6 +58,20 @@ def _load_trace(session_id: str) -> dict[str, Any] | None:
     if not path.is_file():
         return None
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _preflight_sql_evidence_assets(database_path: Path, task_query: str) -> None:
+    """Exercise the real SQLite Evidence path before any paid Web retrieval can start."""
+    checks = (
+        _collect_sqlite("", "describe_schema", database_path),
+        _collect_sqlite(task_query, "search_semantic_knowledge", database_path),
+    )
+    failed = [batch for batch in checks if batch.status is EvidenceBatchStatus.ERROR]
+    if failed:
+        warning = failed[0].warnings[0] if failed[0].warnings else "unknown error"
+        raise RuntimeError(f"Hybrid SQL Evidence preflight failed: {warning}")
+    if not checks[0].records:
+        raise RuntimeError("Hybrid SQL Evidence preflight found no database schema records")
 
 
 def _reset_session(session_id: str) -> None:
@@ -244,6 +259,7 @@ async def _execute_task(
             "INCLUDE_EXECUTED_SQL_IN_REPORT": "1",
         }
     ):
+        _preflight_sql_evidence_assets(database_path, str(task.get("final_question", "")))
         answer = await run_deep_agent(
             _task_prompt(task),
             session_id=session_id,

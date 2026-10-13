@@ -52,6 +52,14 @@ SQLITE_COLUMN_MEANINGS_MAX_BYTES = 2 * 1024 * 1024
 SQLITE_SEMANTIC_KNOWLEDGE_LIMIT = 8
 
 
+def _resolve_existing_file(path: Path, description: str) -> tuple[Path, os.stat_result]:
+    """Resolve a readable file without Windows strict-realpath permission probes."""
+    resolved = path.expanduser().resolve()
+    if not resolved.is_file():
+        raise ValueError(f"{description} must be a file")
+    return resolved, resolved.stat()
+
+
 def _error_batch(source: EvidenceSource, query: str | None, exc: Exception) -> EvidenceBatch:
     return EvidenceBatch(
         source=source,
@@ -172,10 +180,10 @@ def _configured_sqlite_column_meanings() -> tuple[dict[tuple[str, str], str], st
     configured = os.getenv("EVIDENCE_SQLITE_COLUMN_MEANINGS_PATH", "").strip()
     if not configured:
         return {}, ""
-    resolved = Path(configured).expanduser().resolve(strict=True)
-    if not resolved.is_file():
-        raise ValueError("SQLite column-meaning sidecar must be a file")
-    stat = resolved.stat()
+    resolved, stat = _resolve_existing_file(
+        Path(configured),
+        "SQLite column-meaning sidecar",
+    )
     return _load_sqlite_column_meanings(
         str(resolved),
         stat.st_size,
@@ -208,10 +216,10 @@ def _configured_sqlite_semantic_knowledge() -> tuple[tuple[dict[str, object], ..
     configured = os.getenv("EVIDENCE_SQLITE_KNOWLEDGE_PATH", "").strip()
     if not configured:
         return (), ""
-    resolved = Path(configured).expanduser().resolve(strict=True)
-    if not resolved.is_file():
-        raise ValueError("SQLite semantic-knowledge sidecar must be a file")
-    stat = resolved.stat()
+    resolved, stat = _resolve_existing_file(
+        Path(configured),
+        "SQLite semantic-knowledge sidecar",
+    )
     return _load_sqlite_semantic_knowledge(
         str(resolved),
         stat.st_size,
@@ -611,8 +619,7 @@ def _collect_sqlite(
     table_name: str = "",
     column_name: str = "",
 ) -> EvidenceBatch:
-    resolved = database_path.expanduser().resolve(strict=True)
-    stat = resolved.stat()
+    resolved, stat = _resolve_existing_file(database_path, "SQLite evidence database")
     database_identity = (
         f"sqlite/sha256/{_sqlite_fingerprint(str(resolved), stat.st_size, stat.st_mtime_ns)}"
     )
