@@ -188,6 +188,65 @@ async def test_research_phase_allows_configured_network_subagent(monkeypatch):
     assert trace.tool_calls_by_name == {"task": 1}
 
 
+@pytest.mark.parametrize("exhausted_dimension", ["queries", "pages"])
+async def test_research_phase_rejects_network_subagent_without_retrieval_capacity(
+    monkeypatch,
+    exhausted_dimension,
+):
+    continued_after_rejection = False
+
+    class FakeAgent:
+        async def astream(self, payload, config):
+            nonlocal continued_after_rejection
+            yield {
+                "model": {
+                    "messages": [
+                        SimpleNamespace(
+                            content="",
+                            tool_calls=[
+                                {
+                                    "name": "task",
+                                    "args": {
+                                        "subagent_type": "network_search",
+                                        "description": "retry after retrieval budget is empty",
+                                    },
+                                }
+                            ],
+                        )
+                    ]
+                }
+            }
+            continued_after_rejection = True
+
+    monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "report_research_phase", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main_agent.monitor, "_emit", lambda *args, **kwargs: None)
+    budget, trace = make_runtime()
+    if exhausted_dimension == "queries":
+        assert budget.take_search_queries(3) == 3
+    else:
+        assert budget.take_fetched_pages(2) == 2
+
+    result = await main_agent._run_agent_phase(
+        agent=FakeAgent(),
+        phase=RESEARCH_PHASES[1],
+        prompt="Research",
+        config={},
+        budget=AgentExecutionBudget(recursion_limit=2, timeout_seconds=5),
+        budget_profile="test",
+        research_budget=budget,
+        run_trace=trace,
+        max_subagent_calls=2,
+        allowed_subagent_names=main_agent._configured_research_subagent_names(),
+    )
+
+    assert result is None
+    assert continued_after_rejection is False
+    assert trace.failure_reasons == ["subagent_retrieval_budget_exhausted"]
+    assert trace.subagent_calls == 0
+    assert trace.tool_calls_by_name == {}
+
+
 async def test_research_phase_recovers_from_provider_timeout(monkeypatch):
     class APITimeoutError(Exception):
         pass

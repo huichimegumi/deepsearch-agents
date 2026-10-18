@@ -268,7 +268,10 @@ def build_phase_prompt(
             "SUBAGENT ROUTE CONTRACT: the only registered task route is "
             "subagent_type=network_search. Never request general-purpose or any other subagent "
             "type. Perform planning, evidence analysis, Reflection, and Evidence Ledger assembly "
-            "yourself after the network_search result returns."
+            "yourself after the network_search result returns. One network_search dispatch can "
+            "batch multiple complementary queries. When either the run's available search-query "
+            "or fetched-page capacity is exhausted, do not dispatch another researcher; return "
+            "the Evidence Ledger and remaining gaps immediately."
         )
     return "\n\n".join(
         part

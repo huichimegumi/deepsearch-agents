@@ -35,7 +35,10 @@ from app.agent.runtime import (
     reset_research_runtime,
     set_research_runtime,
 )
-from app.agent.subagents.network_search_agent import network_search_agent
+from app.agent.subagents.network_search_agent import (
+    NETWORK_SEARCH_SUBAGENT_NAME,
+    network_search_agent,
+)
 from app.api.audit import write_audit_event
 from app.api.context import (
     reset_research_phase_context,
@@ -1269,6 +1272,13 @@ async def _run_agent_phase(
                             ):
                                 raise PhaseBudgetExceeded(
                                     f"subagent_not_allowed:{subagent_type or 'missing'}"
+                                )
+                            if subagent_type == NETWORK_SEARCH_SUBAGENT_NAME and (
+                                research_budget.available_search_queries <= 0
+                                or research_budget.available_fetched_pages <= 0
+                            ):
+                                raise PhaseBudgetExceeded(
+                                    "subagent_retrieval_budget_exhausted"
                                 )
                             run_trace.record_tool_call(phase.key, tool_call["name"])
                             subagent_call_count += 1

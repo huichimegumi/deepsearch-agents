@@ -124,6 +124,8 @@ def test_supervisor_phase_prompt_declares_research_boundary():
     assert "subagent_type=network_search" in prompt
     assert "Never request general-purpose" in prompt
     assert "Evidence Ledger assembly yourself" in prompt
+    assert "One network_search dispatch can batch multiple complementary queries" in prompt
+    assert "do not dispatch another researcher" in prompt
     assert "collect_evidence" in prompt
     assert "evidence_id" in prompt
 
