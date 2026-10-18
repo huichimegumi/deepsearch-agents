@@ -57,6 +57,8 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 
 ## E1：评测运行基础
 
+E2 已贯通 5 条已有 RAG 开发题的真实 A/B/C 实验（4 条有答案、1 条无答案），并保存逐题分数与候选池哈希。三组均完成 5/5；锚点证据 Recall@5 为 A 0.25、B 1.00、C 0.25。BGE 确实执行，C 的劣化不是静默回退。标注尚待人工复核，这些数字不代表独立测试或答案正确率。运行命令、评分口径和后续扩展见 [RAG 实验说明](rag/README.md)、[结果记录](reports/e2-rag-pilot-2026-10-18.json) 与 [开发分析](../docs/development/e2-rag-pilot.md)。
+
 复杂 Hybrid 子集当前仅用作开发诊断。近期主实验为 RAG 证据级 A/B/C 对照，其次为约 10 条真实报告验收。
 上述旧 runner 的兼容字段保留，并新增 `measured_metric` 明确实际口径。
 

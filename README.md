@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E2 已完成首批 5 条 RAG 开发题的真实检索对照，4 条有答案题的锚点证据 Recall@5 为：向量 0.25、混合 RRF 1.00、混合+BGE 0.25；三组各 5 次运行均有效，重排模型实际执行。当前标注待人工审核、测试集尚未建立，数字仅用于开发诊断。具体命令、逐题结果、耗时和限制见 [RAG 实验](evals/rag/README.md)。
+
 M0 已完成运行级 Budget、结构化 Trace 和端到端 baseline 支持。每次执行都会在会话目录写入 `research_trace.json`，记录阶段耗时、LLM/工具调用、Token、搜索使用量、Waste 和失败原因。
 
 2026-08-17 的首轮 M0 baseline 执行了 5 个纯 Web 报告样本，另外 5 个 MySQL 样本因本地数据库未启动而阻塞。5 个实际执行的样本全部降级，且没有生成要求的 Markdown 文件。Trace 定位到三个直接原因：Clarify 阶段仍可调用 DeepAgents 内建工具并全部超时，Supervisor 声称生成了实际不存在的文件，以及全局 LLM 调用预算在 Compression/Writer 完成前耗尽。
@@ -497,7 +499,7 @@ DeepSearch Agents is a conversational multi-agent deep research system built on 
 Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real report acceptance set. Complex Hybrid recovery is frozen as a development diagnostic. E1 fixes zero-time phase admission and accidental SQL recovery reservations in ordinary Web tasks, exposes reranker inference/fallback status, and preserves separate report runs with configuration manifests. Legacy rule agreement, reference SQL executability, nonempty search, and filename hits are not Agent answer accuracy. See the [evaluation guide](evals/README.md) and [E1 development note](docs/development/e1-evaluation-foundation.md).
 
 - Staged deep research: the backend runs clarification and research brief, supervisor dispatch and researcher reflection, evidence compression, and final report in a fixed order. M0.1 moved clarification, compression, and writing to direct model calls. Only the research phase uses a DeepAgent.
-- Multi-agent research: the main agent dispatches, reflects, and synthesizes work, while dedicated sub-agents handle web search, database queries, and local knowledge-base retrieval.
+- Multi-agent research: the main agent dispatches, reflects, and synthesizes work, using a `network_search` subagent for public Web retrieval and the unified `collect_evidence` tool for SQL, local documents, and Fee Engine evidence.
 - Multi-source retrieval: supports Tavily, DuckDuckGo, Perplexity, SearXNG, MySQL, and local RAG based on PostgreSQL, Qdrant, MinIO, Redis, and FastEmbed.
 - Users and conversations: includes registration, login, JWT authentication, conversation lists, historical message recovery, conversation archiving, and user-isolated data directories.
 - Memory system: combines current conversation summaries, recent message context, LangGraph short-term checkpoints, and user-managed long-term memories.
@@ -511,6 +513,8 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+The first five-question real RAG development experiment is complete. Annotated-passage Recall@5 on four answerable cases is 0.25 for vector recall, 1.00 for hybrid RRF, and 0.25 for hybrid plus BGE. Each configuration completed 5/5 runs, with actual reranker inference. Labels await human review and no held-out test set has been established; these are development diagnostics. See [RAG experiments](evals/rag/README.md) for commands, individual results, timing, and limitations.
 
 M0 adds run-level budgets, structured traces, and baseline aggregation. Every executed task writes `research_trace.json` with phase timing, LLM and tool usage, token counts, search activity, waste counters, and failure reasons.
 

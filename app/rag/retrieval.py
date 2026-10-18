@@ -139,43 +139,66 @@ def _fused_candidate_ids(
     return [item[0] for item in sorted(fused.items(), key=lambda x: x[1], reverse=True)]
 
 
+@dataclass(frozen=True)
+class CandidatePool:
+    """Reusable recall stage: production and experiments share these exact candidates."""
+
+    vector_ids: list[str]
+    hybrid_ids: list[str]
+    rows: dict[str, tuple[Chunk, Document]]
+
+
+def collect_candidates(
+    query: str,
+    knowledge_base_ids: list[str],
+    query_vector: list[float] | None = None,
+    *,
+    include_lexical: bool = True,
+) -> CandidatePool:
+    settings = get_rag_settings()
+    if not knowledge_base_ids:
+        return CandidatePool([], [], {})
+    vector_query = query_vector if query_vector is not None else embed_query(query)
+    lexical_scores: dict[str, float] = {}
+    vector_scores: dict[str, float] = {}
+    for knowledge_base_id in sorted(set(knowledge_base_ids)):
+        if include_lexical:
+            for chunk_id, score in _lexical_search(
+                query, knowledge_base_id, settings.lexical_top_k
+            ):
+                lexical_scores[chunk_id] = max(lexical_scores.get(chunk_id, float("-inf")), score)
+        for chunk_id, score in search_vectors(
+            vector_query, knowledge_base_id, settings.vector_top_k
+        ):
+            vector_scores[chunk_id] = max(vector_scores.get(chunk_id, float("-inf")), score)
+
+    def ranked(scores, limit):
+        return sorted(scores.items(), key=lambda item: (-item[1], item[0]))[:limit]
+
+    lexical = ranked(lexical_scores, settings.lexical_top_k)
+    vector = ranked(vector_scores, settings.vector_top_k)
+    hybrid_ids = (
+        _fused_candidate_ids(lexical, vector)
+        if include_lexical
+        else [chunk_id for chunk_id, _ in vector]
+    )
+    rows = {chunk.id: (chunk, document) for chunk, document in _load_candidate_chunks(hybrid_ids)}
+    return CandidatePool(
+        [chunk_id for chunk_id, _ in vector if chunk_id in rows],
+        [chunk_id for chunk_id in hybrid_ids if chunk_id in rows],
+        rows,
+    )
+
+
 def hybrid_search(
     query: str,
     knowledge_base_id: str,
     query_vector: list[float] | None = None,
 ) -> list[RetrievedChunk]:
-    settings = get_rag_settings()
-    vector_query = query_vector if query_vector is not None else embed_query(query)
-    lexical = _lexical_search(query, knowledge_base_id, settings.lexical_top_k)
-    vector = search_vectors(vector_query, knowledge_base_id, settings.vector_top_k)
-
-    candidate_ids = _fused_candidate_ids(lexical, vector)
-    if not candidate_ids:
-        return []
-
-    return _rank_candidates(query, _load_candidate_chunks(candidate_ids))
+    pool = collect_candidates(query, [knowledge_base_id], query_vector)
+    return _rank_candidates(query, [pool.rows[chunk_id] for chunk_id in pool.hybrid_ids])
 
 
 def hybrid_search_many(query: str, knowledge_base_ids: list[str]) -> list[RetrievedChunk]:
-    settings = get_rag_settings()
-    if not knowledge_base_ids:
-        return []
-
-    query_vector = embed_query(query)
-    candidate_ids: list[str] = []
-    seen: set[str] = set()
-    per_base_limit = max(settings.rerank_top_k, settings.vector_top_k, settings.lexical_top_k)
-
-    for knowledge_base_id in knowledge_base_ids:
-        lexical = _lexical_search(query, knowledge_base_id, settings.lexical_top_k)
-        vector = search_vectors(query_vector, knowledge_base_id, settings.vector_top_k)
-        for chunk_id in _fused_candidate_ids(lexical, vector)[:per_base_limit]:
-            if chunk_id not in seen:
-                seen.add(chunk_id)
-                candidate_ids.append(chunk_id)
-
-    return _rank_candidates(
-        query,
-        _load_candidate_chunks(candidate_ids),
-        limit=settings.rerank_top_k,
-    )
+    pool = collect_candidates(query, knowledge_base_ids)
+    return _rank_candidates(query, [pool.rows[chunk_id] for chunk_id in pool.hybrid_ids])
