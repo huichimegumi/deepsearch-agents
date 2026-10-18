@@ -121,6 +121,9 @@ def test_supervisor_phase_prompt_declares_research_boundary():
 
     assert "RESEARCH PHASE BOUNDARY" in prompt
     assert "only phase where researcher subagents" in prompt
+    assert "subagent_type=network_search" in prompt
+    assert "Never request general-purpose" in prompt
+    assert "Evidence Ledger assembly yourself" in prompt
     assert "collect_evidence" in prompt
     assert "evidence_id" in prompt
 
@@ -130,6 +133,8 @@ def test_sql_correction_phase_is_query_only():
 
     assert "SQLCorrectionProposal schema" in instruction
     assert "source=sql、operation=query" in instruction
+    assert "最多 3 轮定向恢复" in instruction
+    assert "每轮最多 2 次查询" in instruction
     assert "禁止网络搜索" in instruction
     assert "禁止调用 describe_schema、sample_table 或 list_tables" in instruction
 

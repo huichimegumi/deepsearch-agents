@@ -47,7 +47,9 @@ RESEARCH_PHASES = (
 目标：根据 research brief 分派子智能体，完成检索、核验和反思。
 
 必须执行：
-1. 按 brief 调用合适的子智能体或文件读取工具获取证据
+1. 按 brief 调用合适的子智能体或文件读取工具获取证据。唯一注册的 researcher 路由是
+   task(subagent_type=network_search)；禁止使用 general-purpose 或任何其他 subagent_type。
+   Supervisor 必须自行完成规划、证据分析、Reflection 和 Evidence Ledger 整理，不得把这些工作再次委派给通用子智能体
 2. 复杂问题至少覆盖 2 个互补角度；若证据不足，进行 1 次有针对性的追问/补检索
 3. SQL、本地文档和 Fee Engine 证据必须通过 collect_evidence 获取；公开网页必须由网络搜索助手抓取正文并返回 Web Evidence
    对 SQLite，编写查询前必须先调用 operation=describe_schema；只有需要确认值域时，才对相关表调用 operation=sample_table
@@ -131,8 +133,9 @@ SQL_EVIDENCE_CORRECTION_PHASE = ResearchPhase(
 3. 后端会把该 query 固定映射为一次 source=sql、operation=query 的 collect_evidence 调用
 4. 对包含 clue/线索 的跨源实体任务，后端会先逐条校验 Web Evidence ID，并要求该实体通过
    match_column_value 唯一匹配数据库值；SQL 只能使用随后产生的 database_value_match，解析失败时不得猜测
-   如果首次解析只因部分线索缺少正文证据而失败，后端可以使用预留的最多 2 次查询做一次定向恢复并重新解析；
-   恢复查询由后端执行且仍受总搜索硬上限约束，模型不得自行在本阶段调用网络工具
+   如果解析只因部分线索缺少正文证据而失败，后端可以在总预算内执行最多 3 轮定向恢复；每轮最多 2 次查询和
+   2 个正文页面，并在确有新增 Web Evidence 时重新解析。恢复查询由后端执行且仍受总搜索硬上限约束，
+   模型不得自行在本阶段调用网络工具
 5. 使用已经发现的真实表名、列名和值域；不要重复 schema 或 sample 调用
    database_value_match 记录给出的 matched_value 是允许使用的精确过滤值；comparison_mode=trimmed_text 时必须使用
    TRIM(column)=matched_value，不得从网页名称臆造数据库键
@@ -261,7 +264,11 @@ def build_phase_prompt(
         tool_boundary = (
             "RESEARCH PHASE BOUNDARY: This is the only phase where researcher subagents and "
             "evidence-gathering tools are available. Gather enough evidence for the ledger, "
-            "then stop and return the ledger plus reflection instead of expanding indefinitely."
+            "then stop and return the ledger plus reflection instead of expanding indefinitely. "
+            "SUBAGENT ROUTE CONTRACT: the only registered task route is "
+            "subagent_type=network_search. Never request general-purpose or any other subagent "
+            "type. Perform planning, evidence analysis, Reflection, and Evidence Ledger assembly "
+            "yourself after the network_search result returns."
         )
     return "\n\n".join(
         part
