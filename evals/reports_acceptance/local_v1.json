@@ -1,0 +1,16 @@
+{
+  "version": "report_local_v1",
+  "reference_dataset": "evals/rag/suites/v2/development.jsonl",
+  "reference_sha256": "66bf37d47c6d8343418ed652f5eb1edf0ae22ec09d635a4b1c673c1eddb267d6",
+  "knowledge_bases": ["电商行业", "金融行业"],
+  "annotation_review": "source_verified_by_agent_pending_human_review",
+  "cases": [
+    {"id": "report_local_001", "reference_id": "rag_local_zh_001"},
+    {"id": "report_local_002", "reference_id": "rag_local_zh_002"},
+    {"id": "report_local_003", "reference_id": "rag_local_zh_007"},
+    {"id": "report_local_004", "reference_id": "rag_local_zh_012"},
+    {"id": "report_local_005", "reference_id": "rag_local_zh_018"},
+    {"id": "report_local_006", "reference_id": "rag_local_zh_020"}
+  ],
+  "prompt_template": "仅使用本地知识库（电商行业、金融行业），不要使用网络搜索、数据库或费用引擎。请针对以下问题生成一份简短的 Markdown 研究报告，包含结论、证据分析、局限性三个章节，并用 [evidence_id] 引用实际获取的证据。没有足够证据时请明确说明无法回答，不要编造结论。问题：{question}"
+}

@@ -102,9 +102,7 @@ class ResearchBudget:
         """Return pages available to ordinary retrieval after recovery reservation."""
         return max(
             0,
-            self.limits.max_fetched_pages
-            - self.fetched_pages_used
-            - self._reserved_fetched_pages,
+            self.limits.max_fetched_pages - self.fetched_pages_used - self._reserved_fetched_pages,
         )
 
     def take_fetched_pages(self, requested: int) -> int:
@@ -597,6 +595,14 @@ class ResearchRunTrace:
             self.sql_semantic_discovery_calls += 1
         elif operation == "sample_table":
             self.sql_sample_calls += 1
+
+    def export_evidence_snapshot(self) -> dict[str, Any]:
+        """Explicit content-bearing export for opt-in evaluation, never telemetry."""
+        return {
+            "schema_version": 1,
+            "run_id": self.run_id,
+            "records": [record.to_dict() for record in self._evidence_records_by_id.values()],
+        }
 
     def render_evidence_ledger(
         self,

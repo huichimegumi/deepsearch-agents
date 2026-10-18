@@ -1510,6 +1510,7 @@ async def run_deep_agent(
     budget_profile_override: str | None = None,
     research_limits_override: ResearchBudgetLimits | None = None,
     sql_entity_recovery_enabled: bool = False,
+    export_evaluation_evidence: bool = False,
 ):
     """
     异步流式执行主智能体
@@ -2001,6 +2002,11 @@ async def run_deep_agent(
         trace_path = session_dir / "research_trace.json"
         try:
             ResearchRunTrace.write(trace_path, trace_payload)
+            if export_evaluation_evidence:
+                ResearchRunTrace.write(
+                    session_dir / "evaluation_evidence.json",
+                    run_trace.export_evidence_snapshot(),
+                )
             monitor._emit(
                 "research_trace_complete",
                 "研究运行 Trace 已生成",

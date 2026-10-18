@@ -30,6 +30,10 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E3.1 新增 6 个真实本地报告开发任务，保存实际报告、完整 Evidence、引用 ID 核验、参考证据覆盖与人工复核表。报告验收不再以“生成文件”代替事实正确；答案要点、证据支持及无答案拒答仍待人工审核。此阶段搜索/抓取预算均为 0；2 个 Web 与 2 个简单跨源报告留待后续 E3。见 [报告验收](evals/reports_acceptance/README.md) 和 [开发记录](docs/development/e3-1-local-report-acceptance.md)。
+
+首轮 6 题均生成了非空文件和证据快照，但 5 题降级，唯一标为 `completed` 的跨文档题没有实际获取 Evidence。因此不能声称报告验收通过；下一步优先修复“未检索/检索失败被写成文档不存在”的边界。零 Tavily 查询，完整结果见 [基线摘要](evals/reports/e3-1-local-reports-2026-10-18.json)。
+
 E2 已建立 20 条 RAG 开发题与 10 条新查询测试题的 v2 标注草案及冻结协议。首轮五题曾因漏标等价段落低估 BGE；仅对同一批已保存片段重评分，C 的锚点 Recall@5 即从 0.25 变为 1.00，不能把该变化当作模型改善。原始记录保留，v2 固定数据、语料、模型文件及检索配置，标注仍待人工审核。命令、结果与限制见 [RAG 实验](evals/rag/README.md) 和 [v2 分析](docs/development/e2-rag-suite-v2.md)。
 
 v2 已完成全部 90 次配置运行：A/B/C 的证据 Recall@5 在 19 条有答案开发题上为 0.158/0.500/0.675，在 8 条有答案测试题上为 0.625/0.500/0.875。3 条无答案题单独记录；上述结果是待人工复核的段落检索指标，不代表答案正确率。多文档完整覆盖仍有缺口，下一阶段进入真实报告与证据支持验收。
@@ -515,6 +519,18 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E3.1 adds six real local-report development tasks with saved reports, full Evidence bodies,
+citation-ID checks, reference-evidence coverage, and unchecked human review worksheets.
+Artifact creation is not factual acceptance: keypoint correctness, entailment, and appropriate
+abstention remain pending human review. Search/page budgets are zero for this stage; two web
+and two simple cross-source reports remain subsequent E3 work. See [report acceptance](evals/reports_acceptance/README.md)
+and the [development record](docs/development/e3-1-local-report-acceptance.md).
+
+The first six-task run produced nonempty files and Evidence snapshots for every case, but five
+executions degraded and the only completed execution collected no Evidence. This is not report
+acceptance. The next priority is distinguishing skipped/failed retrieval from document absence.
+No Tavily queries were used. See the [baseline summary](evals/reports/e3-1-local-reports-2026-10-18.json).
 
 E2 now includes v2 annotation drafts for 20 development and 10 new query-test cases with a frozen execution contract. Missing equivalent passages in the first pilot underestimated BGE: rescoring the identical stored passages raises C's anchor Recall@5 from 0.25 to 1.00 without a model change. Original records are retained; v2 pins datasets, corpus, model files, and retrieval settings. Labels await human review. See [RAG experiments](evals/rag/README.md) and the [v2 analysis](docs/development/e2-rag-suite-v2.md) for commands, results, and limitations.
 

@@ -55,7 +55,11 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 - 报告产物与运行状态；现有 Judge 仅评文本表达与结构。
 - 文件名命中率 @8（不验证答案证据片段）。
 
-## E1：评测运行基础
+## E3.1：真实本地报告验收
+
+新增 `python -m evals.reports_acceptance.run --execute`，执行 6 个固定开发任务（4 个单文档、1 个跨文档、1 个无答案）。完整报告与 Evidence 正文、引用核验、参考要点、未勾选的人工复核表均保存到独立且被忽略的运行目录。提示不注入参考答案；搜索/抓取预算均为 0。ID 有效、参考证据取回和被引用分别统计，不据此自动判定事实正确；答案准确率保持空值，验收仍待人工复核。见 [使用说明](reports_acceptance/README.md) 与 [开发记录](../docs/development/e3-1-local-report-acceptance.md)。余下 2 个 Web、2 个简单跨源任务属于后续 E3 范围。
+
+## E1/E2：评测运行基础与 RAG 实验
 
 E2 保留了首轮 5 题 RAG 开发实验，并扩展为 v2 的 20 条开发题与 10 条新查询测试题。首轮 v1 锚点 Recall@5 为 A 0.25、B 1.00、C 0.25，但复核发现漏标的等价证据；仅用 v2 对同一批已保存片段重评分，C 即变为 1.00。这个变化来自标注修正，不是模型改善。v2 在实跑前冻结数据、语料、模型文件及检索配置；全部标注仍待人工复核。见 [RAG 实验说明](rag/README.md)、[首轮原始记录](reports/e2-rag-pilot-2026-10-18.json) 与 [v2 分析](../docs/development/e2-rag-suite-v2.md)。
 

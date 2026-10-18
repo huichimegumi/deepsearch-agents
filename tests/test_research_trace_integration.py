@@ -2,10 +2,13 @@
 
 import json
 
+import pytest
+
 from app.agent import main_agent
 
 
-async def test_run_deep_agent_writes_completed_trace(tmp_path, monkeypatch):
+@pytest.mark.parametrize("export_evidence", [False, True])
+async def test_run_deep_agent_writes_completed_trace(tmp_path, monkeypatch, export_evidence):
     async def fake_phase(**kwargs):
         phase = kwargs["phase"]
         trace = kwargs["run_trace"]
@@ -25,7 +28,9 @@ async def test_run_deep_agent_writes_completed_trace(tmp_path, monkeypatch):
     monkeypatch.setattr(main_agent, "write_audit_event", lambda *args, **kwargs: None)
     monkeypatch.setattr(main_agent.monitor, "_emit", lambda *args, **kwargs: None)
 
-    result = await main_agent.run_deep_agent("生成完整研究报告", "trace-test")
+    result = await main_agent.run_deep_agent(
+        "生成完整研究报告", "trace-test", export_evaluation_evidence=export_evidence
+    )
 
     trace_path = tmp_path / "output" / "session_trace-test" / "research_trace.json"
     trace = json.loads(trace_path.read_text(encoding="utf-8"))
@@ -35,3 +40,7 @@ async def test_run_deep_agent_writes_completed_trace(tmp_path, monkeypatch):
     assert trace["budget"]["limits"]["total_seconds"] == 300
     assert [phase["status"] for phase in trace["phases"]] == ["end"] * 4
     assert trace["schema_version"] == 12
+    snapshot_path = trace_path.with_name("evaluation_evidence.json")
+    assert snapshot_path.exists() is export_evidence
+    if export_evidence:
+        assert json.loads(snapshot_path.read_text(encoding="utf-8"))["records"] == []
