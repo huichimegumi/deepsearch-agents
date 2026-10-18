@@ -1,0 +1,1389 @@
+{
+  "run_id": "rag_20261018T104648Z_c989caa149",
+  "generated_at": "2026-10-18T10:51:30+00:00",
+  "manifest": {
+    "git_commit": "8cab3669a3dc7bd82092fc837ab417925fb85af5",
+    "git_dirty": true,
+    "source_sha256": "adc722b4568ccba44a1ceada3ad7bac2759900636b9834ea6a4ecedc1fc67697",
+    "dataset_sha256": "66bf37d47c6d8343418ed652f5eb1edf0ae22ec09d635a4b1c673c1eddb267d6",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "versions": {
+      "fastembed": "0.8.0",
+      "onnxruntime": "1.27.0",
+      "qdrant-client": "1.18.0",
+      "deepagents": "0.5.7"
+    },
+    "configuration": {
+      "embedding_model": "BAAI/bge-small-zh-v1.5",
+      "rerank_model": "BAAI/bge-reranker-base",
+      "chunk_size": 900,
+      "chunk_overlap": 150,
+      "vector_top_k": 24,
+      "lexical_top_k": 24,
+      "qdrant_collection": "knowledge_chunks",
+      "split": "dev",
+      "top_k": 5,
+      "knowledge_base_names": [
+        "电商行业",
+        "金融行业"
+      ],
+      "relevance_threshold": null,
+      "score_scope": "rank_only",
+      "legacy_index_embedding_provenance": "not_recorded_by_original_indexer",
+      "annotation_review": "source_verified_by_agent_pending_human_review",
+      "timing_scope": "warm_sequential_local_inference; C includes shared B recall time"
+    }
+  },
+  "dataset_canonical_sha256": "a9ee64ee8382e1649da3760d2be8aa34467da9b3958859ed7236aace55c59026",
+  "suite": {
+    "version": "rag_suite_v2",
+    "sha256": "5e548bfc8c607e9a820a5a559e2ff359434699d3f16f5f5b2764ef0b3a54bb06"
+  },
+  "corpus_sha256": "1af316b3cf65aa586e83fcda248305acbdbf0f6d4724f02822e7e3452e1f012b",
+  "corpus_chunks": 305,
+  "corpus_documents": 5,
+  "model_artifacts": [
+    {
+      "path": "models--BAAI--bge-reranker-base\\files_metadata.json",
+      "sha256": "003c2d114817c1fa0624ea68587cc6954efaad3a7bbd67904ed89ca2ff3cb998"
+    },
+    {
+      "path": "models--BAAI--bge-reranker-base\\snapshots\\2cfc18c9415c912f9d8155881c133215df768a70\\config.json",
+      "sha256": "289adf7ada1eb6b4afa7589a48a032d45a076cf2e46dcdb3b4cabc33be14f708"
+    },
+    {
+      "path": "models--BAAI--bge-reranker-base\\snapshots\\2cfc18c9415c912f9d8155881c133215df768a70\\onnx\\model.onnx",
+      "sha256": "15b9a8c3da82eddf263df571281166e00e9308fe19d077084b642ebfcaf06d2b"
+    },
+    {
+      "path": "models--BAAI--bge-reranker-base\\snapshots\\2cfc18c9415c912f9d8155881c133215df768a70\\special_tokens_map.json",
+      "sha256": "d5469a60db23249c7f8945013d78df30b44b6bf686c6bb4740f4223f77b1b535"
+    },
+    {
+      "path": "models--BAAI--bge-reranker-base\\snapshots\\2cfc18c9415c912f9d8155881c133215df768a70\\tokenizer.json",
+      "sha256": "9eb652ac4e40cc093272bbbe0f55d521cf67570060227109b5cdc20945a4489e"
+    },
+    {
+      "path": "models--BAAI--bge-reranker-base\\snapshots\\2cfc18c9415c912f9d8155881c133215df768a70\\tokenizer_config.json",
+      "sha256": "a1d6bc8734a6f635dc158508bef000f8e2e5a759c7d92f984b2c86e5ff53425b"
+    },
+    {
+      "path": "models--Qdrant--bge-small-zh-v1.5\\files_metadata.json",
+      "sha256": "8d9d1c049a8899162adb49565505f6723c51039a3fa9f77de082e550ec743782"
+    },
+    {
+      "path": "models--Qdrant--bge-small-zh-v1.5\\snapshots\\46fbe35fd4374a00fee7de77dfddaeb6dd6a2c59\\config.json",
+      "sha256": "9088751d39abbf86ec3d19ffca92ad62ad19075f7e59712e6c71217fa125d1d3"
+    },
+    {
+      "path": "models--Qdrant--bge-small-zh-v1.5\\snapshots\\46fbe35fd4374a00fee7de77dfddaeb6dd6a2c59\\model_optimized.onnx",
+      "sha256": "1294ea4b6331115a353d81f96b85e8c8d7fdcc284453d5b2fab5b016230aad38"
+    },
+    {
+      "path": "models--Qdrant--bge-small-zh-v1.5\\snapshots\\46fbe35fd4374a00fee7de77dfddaeb6dd6a2c59\\special_tokens_map.json",
+      "sha256": "b6d346be366a7d1d48332dbc9fdf3bf8960b5d879522b7799ddba59e76237ee3"
+    },
+    {
+      "path": "models--Qdrant--bge-small-zh-v1.5\\snapshots\\46fbe35fd4374a00fee7de77dfddaeb6dd6a2c59\\tokenizer.json",
+      "sha256": "48cea5d44424912a6fd1ea647bf4fe50b55ab8b1e5879c3275f80e339e8fae26"
+    },
+    {
+      "path": "models--Qdrant--bge-small-zh-v1.5\\snapshots\\46fbe35fd4374a00fee7de77dfddaeb6dd6a2c59\\tokenizer_config.json",
+      "sha256": "e6f3b96db926a37d4039995fbf5ad17de158dfb8f6343d607e4dbaad18d75f5a"
+    }
+  ],
+  "warmup_ms": 2606.624,
+  "reranker_warmup": {
+    "model": "BAAI/bge-reranker-base",
+    "applied": true,
+    "error_type": null
+  },
+  "summary": {
+    "A_vector": {
+      "scheduled": 20,
+      "valid": 20,
+      "blocked_or_invalid": 0,
+      "scored_answerable": 19,
+      "no_answer_cases": 1,
+      "recall_at_5": 0.15789473684210525,
+      "mrr_at_5": 0.0587719298245614,
+      "all_evidence_found_rate": 0.10526315789473684,
+      "median_elapsed_ms": 121.232
+    },
+    "B_hybrid": {
+      "scheduled": 20,
+      "valid": 20,
+      "blocked_or_invalid": 0,
+      "scored_answerable": 19,
+      "no_answer_cases": 1,
+      "recall_at_5": 0.5,
+      "mrr_at_5": 0.256140350877193,
+      "all_evidence_found_rate": 0.47368421052631576,
+      "median_elapsed_ms": 874.986
+    },
+    "C_hybrid_rerank": {
+      "scheduled": 20,
+      "valid": 20,
+      "blocked_or_invalid": 0,
+      "scored_answerable": 19,
+      "no_answer_cases": 1,
+      "recall_at_5": 0.6754385964912281,
+      "mrr_at_5": 0.47982456140350876,
+      "all_evidence_found_rate": 0.5789473684210527,
+      "median_elapsed_ms": 13723.3465
+    }
+  },
+  "paired": {
+    "case_ids": [
+      "rag_local_zh_001",
+      "rag_local_zh_002",
+      "rag_local_zh_003",
+      "rag_local_zh_004",
+      "rag_local_zh_005",
+      "rag_local_zh_006",
+      "rag_local_zh_007",
+      "rag_local_zh_008",
+      "rag_local_zh_009",
+      "rag_local_zh_010",
+      "rag_local_zh_011",
+      "rag_local_zh_012",
+      "rag_local_zh_013",
+      "rag_local_zh_014",
+      "rag_local_zh_015",
+      "rag_local_zh_016",
+      "rag_local_zh_017",
+      "rag_local_zh_018",
+      "rag_local_zh_019",
+      "rag_local_zh_020"
+    ],
+    "excluded_case_ids": [],
+    "summary": {
+      "A_vector": {
+        "scheduled": 20,
+        "valid": 20,
+        "blocked_or_invalid": 0,
+        "scored_answerable": 19,
+        "no_answer_cases": 1,
+        "recall_at_5": 0.15789473684210525,
+        "mrr_at_5": 0.0587719298245614,
+        "all_evidence_found_rate": 0.10526315789473684,
+        "median_elapsed_ms": 121.232
+      },
+      "B_hybrid": {
+        "scheduled": 20,
+        "valid": 20,
+        "blocked_or_invalid": 0,
+        "scored_answerable": 19,
+        "no_answer_cases": 1,
+        "recall_at_5": 0.5,
+        "mrr_at_5": 0.256140350877193,
+        "all_evidence_found_rate": 0.47368421052631576,
+        "median_elapsed_ms": 874.986
+      },
+      "C_hybrid_rerank": {
+        "scheduled": 20,
+        "valid": 20,
+        "blocked_or_invalid": 0,
+        "scored_answerable": 19,
+        "no_answer_cases": 1,
+        "recall_at_5": 0.6754385964912281,
+        "mrr_at_5": 0.47982456140350876,
+        "all_evidence_found_rate": 0.5789473684210527,
+        "median_elapsed_ms": 13723.3465
+      }
+    }
+  },
+  "scope": "Source-verified provisional labels pending human review. Same known corpus; no answer-generation or entailment measurement.",
+  "results": [
+    {
+      "case_id": "rag_local_zh_001",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "scenarios": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 102.865,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "a2d0b4dbac066ed1cfcab497a74711c873cda6f43de767bf57606ca21a2fd9ee",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_001",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.3333333333333333,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "scenarios": 3
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 744.498,
+      "candidate_count": 30,
+      "candidate_pool_sha256": "46e189f53b56efc0c94be1ebf25deb094ed855f918b63f4ef27479bf5b97b540",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_001",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "scenarios": 1
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 9602.354,
+      "candidate_count": 30,
+      "candidate_pool_sha256": "46e189f53b56efc0c94be1ebf25deb094ed855f918b63f4ef27479bf5b97b540",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_002",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.3333333333333333,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "benefits": 3
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 117.125,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "ceaa0f4cfc88f22f1a8cac4e386fbbc26c204f3275d6b8732effe4dce29fbc46",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_002",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.3333333333333333,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "benefits": 3
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 764.944,
+      "candidate_count": 32,
+      "candidate_pool_sha256": "1196e9c294ab804bb49fa96a1a8c1ba53ac2ce6c663f6dbe0955ae7cb7b65237",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_002",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "benefits": 1
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 10435.622,
+      "candidate_count": 32,
+      "candidate_pool_sha256": "1196e9c294ab804bb49fa96a1a8c1ba53ac2ce6c663f6dbe0955ae7cb7b65237",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_003",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "participants": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 120.981,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "faea78576f252ab082ee24df2d4e90dbc88ef3e485a593f3a00af6d40e258e82",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_003",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "participants": 1
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 925.199,
+      "candidate_count": 33,
+      "candidate_pool_sha256": "72db77efe865b63cc325cc6f5b64349c058c8337c8e6aa9da7095c3b38cc3edc",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_003",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "participants": 1
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 11593.177,
+      "candidate_count": 33,
+      "candidate_pool_sha256": "72db77efe865b63cc325cc6f5b64349c058c8337c8e6aa9da7095c3b38cc3edc",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_004",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "agent_future": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 124.553,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "44a0e1bbc29bd056211573537d7dc910df01a730c0d27aaf328be30c0d33e61c",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_004",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "agent_future": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 785.361,
+      "candidate_count": 32,
+      "candidate_pool_sha256": "a78a26d38e1d48daa762a680cc2bfaa1c7980435d2d0ffb6cba7fd775f9a759e",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_004",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.3333333333333333,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "agent_future": 3
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 11267.325,
+      "candidate_count": 32,
+      "candidate_pool_sha256": "a78a26d38e1d48daa762a680cc2bfaa1c7980435d2d0ffb6cba7fd775f9a759e",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_005",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "applications": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 46.928,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "83ff4c4051e484efd73dabe801a8578c6d12c7ddaf396a06f4040701fe09520a",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_005",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.2,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "applications": 5
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 770.995,
+      "candidate_count": 38,
+      "candidate_pool_sha256": "65543cf8e56647474c1f1f86342b0750a99d303265202a0a177a7b250f8c2448",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_005",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.3333333333333333,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "applications": 3
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 12549.23,
+      "candidate_count": 38,
+      "candidate_pool_sha256": "65543cf8e56647474c1f1f86342b0750a99d303265202a0a177a7b250f8c2448",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_006",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "marketing": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 40.99,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "327671a9c61d5629360c6b0daa3dedf3f82ab515e09b16bf5ee4aa036c4cf5f7",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_006",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.25,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "marketing": 4
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 779.647,
+      "candidate_count": 38,
+      "candidate_pool_sha256": "c3ad4bee55d6bbd5fd6886be21ac6c788a7b973e3fca87a49072f1b00d6dd087",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_006",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "marketing": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 13542.282,
+      "candidate_count": 38,
+      "candidate_pool_sha256": "c3ad4bee55d6bbd5fd6886be21ac6c788a7b973e3fca87a49072f1b00d6dd087",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_007",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "service": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 123.818,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "7128fe1d63ef66066f2e2b74db730fae61621443d091d944359f45ad64d54c74",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_007",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.5,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "service": 2
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 833.548,
+      "candidate_count": 38,
+      "candidate_pool_sha256": "dff2323860818921ba60c0eb7416d418a80e3ca5e87830510e51402917f7fcff",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_007",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.25,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "service": 4
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 13432.699,
+      "candidate_count": 38,
+      "candidate_pool_sha256": "dff2323860818921ba60c0eb7416d418a80e3ca5e87830510e51402917f7fcff",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_008",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "challenges": null,
+          "integration": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 141.314,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "b6b42937893b0212f674d5fa7fc39243357d504d259dc483545028787b548ff0",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_008",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "challenges": null,
+          "integration": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 825.629,
+      "candidate_count": 38,
+      "candidate_pool_sha256": "5e2a118f8862c607e555ba22874713706eec7b8d63a1cf15fc6c2fd89b055af6",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_008",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.5,
+        "mrr_at_5": 0.5,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "challenges": 2,
+          "integration": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 13496.756,
+      "candidate_count": 38,
+      "candidate_pool_sha256": "5e2a118f8862c607e555ba22874713706eec7b8d63a1cf15fc6c2fd89b055af6",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_009",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "macro": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 156.507,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "1ca31225ff4b883c51dc0fde0276a8659aa2933aef09e681168c6d9ae72ef0ad",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_009",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.25,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "macro": 4
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 878.643,
+      "candidate_count": 41,
+      "candidate_pool_sha256": "4fdc4a06b02f24a6f49d46908fe3b8967e0f5fbac35c087ed8f8be043a51235d",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_009",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.5,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "macro": 2
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 14362.699,
+      "candidate_count": 41,
+      "candidate_pool_sha256": "4fdc4a06b02f24a6f49d46908fe3b8967e0f5fbac35c087ed8f8be043a51235d",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_010",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.5,
+        "mrr_at_5": 0.2,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "macro": 5,
+          "ai_investment": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 121.483,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "6db22e32e98bd0bb49e738100330e85e38f09e9c3d596602ee28e3fdfc6d4de2",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_010",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.5,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "macro": 2,
+          "ai_investment": 4
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 852.348,
+      "candidate_count": 38,
+      "candidate_pool_sha256": "4ed0362a189a6d188008f0616286e9a19d349c8fe5f410ebe2152c17aada7a0b",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_010",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.5,
+        "mrr_at_5": 0.2,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "macro": 5,
+          "ai_investment": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 13904.411,
+      "candidate_count": 38,
+      "candidate_pool_sha256": "4ed0362a189a6d188008f0616286e9a19d349c8fe5f410ebe2152c17aada7a0b",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_011",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "stocks": null,
+          "bonds": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 55.978,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "6e7acf881ab6bdcd86f6cd29d757b1aad9ebdab8b65c2f0744c1cb1f11d71009",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_011",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "stocks": null,
+          "bonds": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 871.329,
+      "candidate_count": 40,
+      "candidate_pool_sha256": "4cba39a3497c92e32b1238a08bed133e0af5534d1f787981df5188cd0561ba8e",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_011",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.5,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "stocks": 2,
+          "bonds": 2
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 13914.054,
+      "candidate_count": 40,
+      "candidate_pool_sha256": "4cba39a3497c92e32b1238a08bed133e0af5534d1f787981df5188cd0561ba8e",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_012",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.3333333333333333,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "retrospective": 3,
+          "outlook": 5
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 104.033,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "b3497d27effbf8c0d6e30378e7190a84c6f452a9b0b2048d0c30eb5fe4a84763",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_012",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "retrospective": 1,
+          "outlook": 2
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 869.749,
+      "candidate_count": 36,
+      "candidate_pool_sha256": "d78fae762b8e348c2e9ddefedf351d1d6c2eda0d233fed6bc2e31334b4700855",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_012",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 1.0,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "retrospective": 1,
+          "outlook": 2
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 12590.319,
+      "candidate_count": 36,
+      "candidate_pool_sha256": "d78fae762b8e348c2e9ddefedf351d1d6c2eda0d233fed6bc2e31334b4700855",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_013",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "credit": null,
+          "funding": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 149.436,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "008af390829a25f0f38ba6b8392840b9049ef072c621f517c653ac59c4fc28ae",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_013",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "credit": null,
+          "funding": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 940.221,
+      "candidate_count": 35,
+      "candidate_pool_sha256": "2599a6d59564545dac17db9c74d52ab07d701b253d9f3410309f2fc2c7d240f6",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_013",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "credit": null,
+          "funding": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 11456.642,
+      "candidate_count": 35,
+      "candidate_pool_sha256": "2599a6d59564545dac17db9c74d52ab07d701b253d9f3410309f2fc2c7d240f6",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_014",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "prices": null,
+          "ppi": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 69.698,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "fbc4b9eb7d9b3925650aecaab0ccfd07961775cdcf3649715c1a9ebe17516a54",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_014",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "prices": null,
+          "ppi": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 963.469,
+      "candidate_count": 38,
+      "candidate_pool_sha256": "1ea9385c3d1dbb3fe0a13e3e6c35e3c9834fb1cf29238245b024914435087c52",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_014",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "prices": null,
+          "ppi": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 14000.487,
+      "candidate_count": 38,
+      "candidate_pool_sha256": "1ea9385c3d1dbb3fe0a13e3e6c35e3c9834fb1cf29238245b024914435087c52",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_015",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "stock_expectations": null,
+          "property_expectations": null,
+          "macro_expectations": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 168.173,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "ae91373ab4f23872870290c95b3b5e06331c86b0f1edcc94c1cbf0efc215fd4c",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_015",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "stock_expectations": null,
+          "property_expectations": null,
+          "macro_expectations": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 909.756,
+      "candidate_count": 44,
+      "candidate_pool_sha256": "67db78a8d7fdc56e39eb224cd2edfb8dc1115074f1ae6f7ba420cf25af296edf",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_015",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.3333333333333333,
+        "mrr_at_5": 0.5,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "stock_expectations": 2,
+          "property_expectations": null,
+          "macro_expectations": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 16523.988,
+      "candidate_count": 44,
+      "candidate_pool_sha256": "67db78a8d7fdc56e39eb224cd2edfb8dc1115074f1ae6f7ba420cf25af296edf",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_016",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "stock_expectations": null,
+          "returns": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 117.694,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "bc017c119cffef9459895c473cf78017a19b0191ef159f2785ead786a6da2b44",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_016",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "stock_expectations": null,
+          "returns": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 881.941,
+      "candidate_count": 46,
+      "candidate_pool_sha256": "65db1c9ee722fbee21c146c1594f2d64652b2ca705d96d9026849ffca6fb3f35",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_016",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.5,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "stock_expectations": 2,
+          "returns": 2
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 17808.366,
+      "candidate_count": 46,
+      "candidate_pool_sha256": "65db1c9ee722fbee21c146c1594f2d64652b2ca705d96d9026849ffca6fb3f35",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_017",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "sentiment": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 116.367,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "259bfe5178b113a186a35cffc764024e7e83d8838e141c29d13d2e8bd27e1606",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_017",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "sentiment": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 1005.449,
+      "candidate_count": 45,
+      "candidate_pool_sha256": "769b30b56d12fcaf4b8b7e5a3b0e48b24cabab58ba479f9fe832d92c85fc43fc",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_017",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 1.0,
+        "mrr_at_5": 0.5,
+        "all_evidence_found": true,
+        "evidence_unit_ranks": {
+          "sentiment": 2
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 15221.356,
+      "candidate_count": 45,
+      "candidate_pool_sha256": "769b30b56d12fcaf4b8b7e5a3b0e48b24cabab58ba479f9fe832d92c85fc43fc",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_018",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "macro": null,
+          "outlook": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 130.25,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "b90233c8596d024d2b8c716d7d225519506c454ee2325075ed77a3b09ffa9b6d",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_018",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "macro": null,
+          "outlook": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 897.265,
+      "candidate_count": 48,
+      "candidate_pool_sha256": "fb903012b47df5062ad6f47b95275ef6cef002f8c7c29d5554a7ec1bde47d219",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_018",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.0,
+        "mrr_at_5": 0.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "macro": null,
+          "outlook": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 17918.971,
+      "candidate_count": 48,
+      "candidate_pool_sha256": "fb903012b47df5062ad6f47b95275ef6cef002f8c7c29d5554a7ec1bde47d219",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_019",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.5,
+        "mrr_at_5": 0.25,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "scenarios": 4,
+          "applications": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 130.017,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "6dd5511ed9763f1e1882aac836b2554bb988ed4de0408f10ce717bb03128c987",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_019",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.5,
+        "mrr_at_5": 0.5,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "scenarios": 2,
+          "applications": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 937.887,
+      "candidate_count": 35,
+      "candidate_pool_sha256": "9fe1a6121e137bb46a571581e0ba2bdaf04107c39ecf2aa74b5d4701a26e563d",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_019",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": 0.5,
+        "mrr_at_5": 1.0,
+        "all_evidence_found": false,
+        "evidence_unit_ranks": {
+          "scenarios": 1,
+          "applications": null
+        },
+        "no_answer": false
+      },
+      "elapsed_ms": 14487.436,
+      "candidate_count": 35,
+      "candidate_pool_sha256": "9fe1a6121e137bb46a571581e0ba2bdaf04107c39ecf2aa74b5d4701a26e563d",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    },
+    {
+      "case_id": "rag_local_zh_020",
+      "mode": "A_vector",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": null,
+        "mrr_at_5": null,
+        "all_evidence_found": null,
+        "no_answer": true,
+        "retrieved_candidates": 5,
+        "abstention_evaluated": false
+      },
+      "elapsed_ms": 214.584,
+      "candidate_count": 24,
+      "candidate_pool_sha256": "d2c36864772974eabaf6269ccd003ad4eeea30acf5c2aff72d66fdd9a04e990f",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_020",
+      "mode": "B_hybrid",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": null,
+        "mrr_at_5": null,
+        "all_evidence_found": null,
+        "no_answer": true,
+        "retrieved_candidates": 5,
+        "abstention_evaluated": false
+      },
+      "elapsed_ms": 1011.864,
+      "candidate_count": 47,
+      "candidate_pool_sha256": "c13bee67944e1622d9fb1823d8e1bb74ad3efca9683bc006e706444040910165",
+      "reranker": null
+    },
+    {
+      "case_id": "rag_local_zh_020",
+      "mode": "C_hybrid_rerank",
+      "status": "ok",
+      "metrics": {
+        "recall_at_5": null,
+        "mrr_at_5": null,
+        "all_evidence_found": null,
+        "no_answer": true,
+        "retrieved_candidates": 5,
+        "abstention_evaluated": false
+      },
+      "elapsed_ms": 15489.63,
+      "candidate_count": 47,
+      "candidate_pool_sha256": "c13bee67944e1622d9fb1823d8e1bb74ad3efca9683bc006e706444040910165",
+      "reranker": {
+        "model": "BAAI/bge-reranker-base",
+        "applied": true,
+        "error_type": null
+      }
+    }
+  ]
+}

@@ -59,6 +59,8 @@ def validate_cases(cases: list[dict]) -> None:
         if len({unit["id"] for unit in units}) != len(units):
             raise ValueError("Duplicate evidence unit IDs")
         for unit in units:
+            if not unit["id"].strip():
+                raise ValueError("Empty evidence unit ID")
             if not unit["locations"]:
                 raise ValueError("Evidence unit needs at least one location")
             for location in unit["locations"]:

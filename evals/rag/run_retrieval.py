@@ -15,6 +15,7 @@ from app.rag.database import session_scope
 from app.rag.embeddings import embed_query, rerank_with_status
 from app.rag.models import Chunk, Document, KnowledgeBase
 from app.rag.retrieval import collect_candidates
+from evals.rag.protocol import MODES, canonical_sha256, check_dataset_files, check_lock
 from evals.rag.scoring import matches, normalized, passage_sha256, score_retrieval, validate_cases
 from evals.runners.common import RESULTS_DIR, load_jsonl, now_utc, write_json, write_markdown
 from evals.runners.experiment import build_manifest, file_sha256, new_run_id
@@ -63,8 +64,9 @@ def validate_annotations(cases: list[dict], snapshot: list[dict]) -> None:
     validate_cases(cases)
     for case in cases:
         for unit in case["evidence_units"]:
-            if not any(matches(unit, hit) for hit in snapshot):
-                raise ValueError(f"Unresolved evidence anchor: {case['id']}/{unit['id']}")
+            for location in unit["locations"]:
+                if not any(matches({"locations": [location]}, hit) for hit in snapshot):
+                    raise ValueError(f"Unresolved evidence anchor: {case['id']}/{unit['id']}")
         for term in case.get("absent_terms", []):
             if any(normalized(term) in normalized(hit["content"]) for hit in snapshot):
                 raise ValueError(f"No-answer literal absence check failed: {case['id']}")
@@ -78,7 +80,7 @@ def evaluate_case(case: dict, knowledge_base_ids: list[str]) -> list[dict]:
     rows = []
     hybrid_pool = None
     hybrid_ms = 0.0
-    for mode in ("A_vector", "B_hybrid", "C_hybrid_rerank"):
+    for mode in MODES:
         started = perf_counter()
         try:
             rerank_status = None
@@ -143,7 +145,7 @@ def evaluate_case(case: dict, knowledge_base_ids: list[str]) -> list[dict]:
 
 def summarize(rows: list[dict]) -> dict:
     summary = {}
-    for mode in ("A_vector", "B_hybrid", "C_hybrid_rerank"):
+    for mode in MODES:
         selected = [row for row in rows if row["mode"] == mode]
         valid = [row for row in selected if row["status"] == "ok"]
         answerable = [row for row in valid if not row["metrics"]["no_answer"]]
@@ -171,14 +173,35 @@ def summarize(rows: list[dict]) -> dict:
     return summary
 
 
+def paired_summary(rows: list[dict]) -> dict:
+    case_ids = sorted({row["case_id"] for row in rows})
+    paired_ids = [
+        case_id
+        for case_id in case_ids
+        if all(
+            sum(
+                row["case_id"] == case_id and row["mode"] == mode and row["status"] == "ok"
+                for row in rows
+            )
+            == 1
+            for mode in MODES
+        )
+    ]
+    return {
+        "case_ids": paired_ids,
+        "excluded_case_ids": sorted(set(case_ids) - set(paired_ids)),
+        "summary": summarize([row for row in rows if row["case_id"] in paired_ids]),
+    }
+
+
 def summary_markdown(report: dict) -> str:
     lines = [
-        "# RAG evidence retrieval pilot",
+        "# RAG evidence retrieval experiment",
         "",
         f"Run: `{report['run_id']}`; source: `{report['manifest']['git_commit']}`; "
         f"dirty: `{report['manifest']['git_dirty']}`.",
         "",
-        "Development diagnostic only. Source-verified draft labels have not been human reviewed.",
+        "Source-verified draft labels have not been human reviewed. Same-corpus query split only.",
         "No-answer cases do not enter Recall/MRR denominators; abstention is not evaluated.",
         "",
         "| Mode | Valid/scheduled | Answerable | Recall@5 | MRR@5 | All evidence | Median ms |",
@@ -201,11 +224,29 @@ def summary_markdown(report: dict) -> str:
             f"| {row['case_id']} | {row['mode']} | {row['status']} | "
             f"{metrics.get('recall_at_5')} | {metrics.get('mrr_at_5')} |"
         )
+    paired = report.get("paired")
+    if paired:
+        lines += [
+            "",
+            f"Paired valid cases: {len(paired['case_ids'])}; "
+            f"excluded: {', '.join(paired['excluded_case_ids']) or 'none'}.",
+        ]
     return "\n".join(lines) + "\n"
 
 
-def run(dataset: Path, knowledge_base_names: list[str], split: str = "dev") -> dict:
-    cases = [case for case in load_jsonl(dataset) if case["split"] == split]
+def run(
+    dataset: Path,
+    knowledge_base_names: list[str],
+    split: str = "dev",
+    *,
+    suite_lock: Path | None = None,
+    on_case=None,
+) -> dict:
+    if split == "test" and suite_lock is None:
+        raise ValueError("Test execution requires a frozen suite lock")
+    all_cases = load_jsonl(dataset)
+    validate_cases(all_cases)
+    cases = [case for case in all_cases if case["split"] == split]
     if not cases:
         raise ValueError("No cases in selected split")
     ids, snapshot = corpus_snapshot(knowledge_base_names)
@@ -235,19 +276,29 @@ def run(dataset: Path, knowledge_base_names: list[str], split: str = "dev") -> d
             "timing_scope": "warm_sequential_local_inference; C includes shared B recall time",
         }
     )
+    manifest = build_manifest(dataset, configuration)
+    dataset_fingerprint = canonical_sha256(all_cases)
+    corpus_ids = [
+        (hit["document_sha256"], hit["chunk_index"], hit["content_sha256"]) for hit in snapshot
+    ]
     model_files = []
     cache = Path(settings.fastembed_cache_path or ".fastembed_cache")
     for path in sorted(cache.rglob("*")):
         if path.is_file() and path.suffix in {".onnx", ".json"}:
             model_files.append({"path": str(path.relative_to(cache)), "sha256": file_sha256(path)})
+    lock = None
+    if suite_lock is not None:
+        check_dataset_files(suite_lock)
+        lock = check_lock(suite_lock, cases, split, configuration, digest(corpus_ids), model_files)
     started = perf_counter()
     embed_query("检索评测预热")
     warmup = rerank_with_status("检索评测预热", ["这是用于模型预热的文本。"])
     warmup_ms = round((perf_counter() - started) * 1000, 3)
-    corpus_ids = [
-        (hit["document_sha256"], hit["chunk_index"], hit["content_sha256"]) for hit in snapshot
-    ]
-    rows = [row for case in cases for row in evaluate_case(case, ids)]
+    rows = []
+    for case in cases:
+        rows.extend(evaluate_case(case, ids))
+        if on_case is not None:
+            on_case(case["id"], rows)
     final_ids, final_snapshot = corpus_snapshot(knowledge_base_names)
     corpus_changed = ids != final_ids or corpus_ids != [
         (hit["document_sha256"], hit["chunk_index"], hit["content_sha256"])
@@ -256,10 +307,19 @@ def run(dataset: Path, knowledge_base_names: list[str], split: str = "dev") -> d
     if corpus_changed:
         for row in rows:
             row.update(status="invalid_corpus_changed", metrics=None)
+    final_manifest = build_manifest(dataset, configuration)
+    inputs_changed = manifest["source_sha256"] != final_manifest[
+        "source_sha256"
+    ] or dataset_fingerprint != canonical_sha256(load_jsonl(dataset))
+    if inputs_changed:
+        for row in rows:
+            row.update(status="invalid_inputs_changed", metrics=None)
     return {
         "run_id": new_run_id("rag"),
         "generated_at": now_utc(),
-        "manifest": build_manifest(dataset, configuration),
+        "manifest": manifest,
+        "dataset_canonical_sha256": dataset_fingerprint,
+        "suite": {"version": lock["version"], "sha256": canonical_sha256(lock)} if lock else None,
         "corpus_sha256": digest(corpus_ids),
         "corpus_chunks": len(snapshot),
         "corpus_documents": len({hit["document_sha256"] for hit in snapshot}),
@@ -268,6 +328,7 @@ def run(dataset: Path, knowledge_base_names: list[str], split: str = "dev") -> d
         "reranker_warmup": {key: value for key, value in asdict(warmup).items() if key != "scores"},
         "annotation_snapshot": cases,
         "summary": summarize(rows),
+        "paired": paired_summary(rows),
         "results": rows,
     }
 
@@ -277,10 +338,35 @@ def main() -> int:
     parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
     parser.add_argument("--knowledge-base", action="append", required=True)
     parser.add_argument("--split", choices=("dev", "test"), default="dev")
+    parser.add_argument("--suite-lock", type=Path)
     args = parser.parse_args()
-    report = run(args.dataset, args.knowledge_base, args.split)
-    output = RESULTS_DIR / report["run_id"]
+    run_id = new_run_id("rag")
+    output = RESULTS_DIR / run_id
     output.mkdir(parents=True, exist_ok=False)
+
+    def checkpoint(case_id, rows):
+        write_json(
+            output / "partial_results.json",
+            {
+                "run_id": run_id,
+                "status": "in_progress",
+                "results": rows,
+            },
+        )
+        print(json.dumps({"completed_case": case_id, "rows": len(rows)}), flush=True)
+
+    try:
+        report = run(
+            args.dataset,
+            args.knowledge_base,
+            args.split,
+            suite_lock=args.suite_lock,
+            on_case=checkpoint,
+        )
+    except Exception as exc:
+        write_json(output / "error.json", {"run_id": run_id, "error_type": type(exc).__name__})
+        raise
+    report["run_id"] = run_id
     write_json(output / "results.json", report)
     write_markdown(output / "summary.md", summary_markdown(report))
     print(json.dumps({"output": str(output), "summary": report["summary"]}, ensure_ascii=False))

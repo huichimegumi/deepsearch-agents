@@ -57,7 +57,9 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 
 ## E1：评测运行基础
 
-E2 已贯通 5 条已有 RAG 开发题的真实 A/B/C 实验（4 条有答案、1 条无答案），并保存逐题分数与候选池哈希。三组均完成 5/5；锚点证据 Recall@5 为 A 0.25、B 1.00、C 0.25。BGE 确实执行，C 的劣化不是静默回退。标注尚待人工复核，这些数字不代表独立测试或答案正确率。运行命令、评分口径和后续扩展见 [RAG 实验说明](rag/README.md)、[结果记录](reports/e2-rag-pilot-2026-10-18.json) 与 [开发分析](../docs/development/e2-rag-pilot.md)。
+E2 保留了首轮 5 题 RAG 开发实验，并扩展为 v2 的 20 条开发题与 10 条新查询测试题。首轮 v1 锚点 Recall@5 为 A 0.25、B 1.00、C 0.25，但复核发现漏标的等价证据；仅用 v2 对同一批已保存片段重评分，C 即变为 1.00。这个变化来自标注修正，不是模型改善。v2 在实跑前冻结数据、语料、模型文件及检索配置；全部标注仍待人工复核。见 [RAG 实验说明](rag/README.md)、[首轮原始记录](reports/e2-rag-pilot-2026-10-18.json) 与 [v2 分析](../docs/development/e2-rag-suite-v2.md)。
+
+v2 的 90 次配置运行全部有效。19 条有答案开发题的 A/B/C Recall@5 为 0.158/0.500/0.675；8 条有答案测试题为 0.625/0.500/0.875。无答案题共 3 条，单独记录，不纳入 Recall/MRR。两个新测试多文档题在 C 中都只召回一半必需证据，后续报告验收应重点检查其证据缺口。逐题数据见 [开发集结果](reports/e2-v2-dev-2026-10-18.json)、[测试集结果](reports/e2-v2-test-2026-10-18.json)；人工复核见 [清单](rag/suites/v2/REVIEW.md)。
 
 复杂 Hybrid 子集当前仅用作开发诊断。近期主实验为 RAG 证据级 A/B/C 对照，其次为约 10 条真实报告验收。
 上述旧 runner 的兼容字段保留，并新增 `measured_metric` 明确实际口径。

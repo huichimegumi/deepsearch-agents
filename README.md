@@ -30,7 +30,9 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
-E2 已完成首批 5 条 RAG 开发题的真实检索对照，4 条有答案题的锚点证据 Recall@5 为：向量 0.25、混合 RRF 1.00、混合+BGE 0.25；三组各 5 次运行均有效，重排模型实际执行。当前标注待人工审核、测试集尚未建立，数字仅用于开发诊断。具体命令、逐题结果、耗时和限制见 [RAG 实验](evals/rag/README.md)。
+E2 已建立 20 条 RAG 开发题与 10 条新查询测试题的 v2 标注草案及冻结协议。首轮五题曾因漏标等价段落低估 BGE；仅对同一批已保存片段重评分，C 的锚点 Recall@5 即从 0.25 变为 1.00，不能把该变化当作模型改善。原始记录保留，v2 固定数据、语料、模型文件及检索配置，标注仍待人工审核。命令、结果与限制见 [RAG 实验](evals/rag/README.md) 和 [v2 分析](docs/development/e2-rag-suite-v2.md)。
+
+v2 已完成全部 90 次配置运行：A/B/C 的证据 Recall@5 在 19 条有答案开发题上为 0.158/0.500/0.675，在 8 条有答案测试题上为 0.625/0.500/0.875。3 条无答案题单独记录；上述结果是待人工复核的段落检索指标，不代表答案正确率。多文档完整覆盖仍有缺口，下一阶段进入真实报告与证据支持验收。
 
 M0 已完成运行级 Budget、结构化 Trace 和端到端 baseline 支持。每次执行都会在会话目录写入 `research_trace.json`，记录阶段耗时、LLM/工具调用、Token、搜索使用量、Waste 和失败原因。
 
@@ -514,7 +516,9 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 
 ### Research Core status
 
-The first five-question real RAG development experiment is complete. Annotated-passage Recall@5 on four answerable cases is 0.25 for vector recall, 1.00 for hybrid RRF, and 0.25 for hybrid plus BGE. Each configuration completed 5/5 runs, with actual reranker inference. Labels await human review and no held-out test set has been established; these are development diagnostics. See [RAG experiments](evals/rag/README.md) for commands, individual results, timing, and limitations.
+E2 now includes v2 annotation drafts for 20 development and 10 new query-test cases with a frozen execution contract. Missing equivalent passages in the first pilot underestimated BGE: rescoring the identical stored passages raises C's anchor Recall@5 from 0.25 to 1.00 without a model change. Original records are retained; v2 pins datasets, corpus, model files, and retrieval settings. Labels await human review. See [RAG experiments](evals/rag/README.md) and the [v2 analysis](docs/development/e2-rag-suite-v2.md) for commands, results, and limitations.
+
+All 90 v2 configurations completed successfully. A/B/C evidence Recall@5 is 0.158/0.500/0.675 on 19 answerable development queries and 0.625/0.500/0.875 on 8 answerable test queries. Three no-answer cases are reported separately. These are provisional passage-retrieval metrics, not answer accuracy. Multi-document coverage remains incomplete; real report and evidence-support acceptance is the next milestone.
 
 M0 adds run-level budgets, structured traces, and baseline aggregation. Every executed task writes `research_trace.json` with phase timing, LLM and tool usage, token counts, search activity, waste counters, and failure reasons.
 
