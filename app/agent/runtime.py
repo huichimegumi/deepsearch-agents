@@ -71,15 +71,19 @@ class ResearchBudget:
         return max(0.0, min(configured_timeout, allocation, available))
 
     def take_search_queries(self, requested: int) -> int:
-        remaining = max(
+        accepted = min(max(0, requested), self.available_search_queries)
+        self.search_queries_used += accepted
+        return accepted
+
+    @property
+    def available_search_queries(self) -> int:
+        """Return queries available to ordinary retrieval after recovery reservation."""
+        return max(
             0,
             self.limits.max_search_queries
             - self.search_queries_used
             - self._reserved_search_queries,
         )
-        accepted = min(max(0, requested), remaining)
-        self.search_queries_used += accepted
-        return accepted
 
     def reserve_search_queries(self, requested: int) -> int:
         """Keep a bounded part of the run budget for backend-directed recovery."""

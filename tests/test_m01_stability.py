@@ -705,6 +705,170 @@ async def test_multiclue_entity_resolution_uses_reserved_search_then_retries(
     assert trace.tool_calls_by_name == {"research_search": 1, "collect_evidence": 1}
 
 
+async def test_multiclue_entity_resolution_reclaims_unused_budget_for_second_recovery(
+    tmp_path,
+    monkeypatch,
+):
+    database_path = tmp_path / "iterative-entity-recovery.sqlite"
+    with sqlite3.connect(database_path) as connection:
+        connection.execute("CREATE TABLE metrics (name TEXT, value INTEGER)")
+        connection.execute("INSERT INTO metrics VALUES ('Thomasville', 42)")
+    recovered_records = web_results_to_evidence(
+        [
+            SearchResult(
+                title="First recovered clue",
+                url="https://example.test/recovery-one",
+                raw_content="The first recovered clue identifies Thomasville.",
+            ),
+            SearchResult(
+                title="Second recovered clue",
+                url="https://example.test/recovery-two",
+                raw_content="The second recovered clue also identifies Thomasville.",
+            ),
+        ]
+    )
+    resolution_calls = 0
+
+    class StructuredInvoker:
+        async def ainvoke(self, messages):
+            nonlocal resolution_calls
+            resolution_calls += 1
+            if resolution_calls < 3:
+                parsed = main_agent.EntityResolutionProposal(
+                    all_clues_supported=False,
+                    clues=[
+                        main_agent.EntityClueAssessment(
+                            clue="clue one",
+                            candidate="Thomasville" if resolution_calls == 2 else "",
+                            evidence_ids=(
+                                [recovered_records[0].evidence_id]
+                                if resolution_calls == 2
+                                else []
+                            ),
+                            supported=resolution_calls == 2,
+                        ),
+                        main_agent.EntityClueAssessment(clue="clue two", supported=False),
+                    ],
+                    table_name="metrics",
+                    column_name="name",
+                    recovery_queries=[f"targeted missing clue {resolution_calls}"],
+                )
+            else:
+                assert all(
+                    record.evidence_id in messages[-1]["content"]
+                    for record in recovered_records
+                )
+                parsed = main_agent.EntityResolutionProposal(
+                    resolved_entity="Thomasville",
+                    all_clues_supported=True,
+                    clues=[
+                        main_agent.EntityClueAssessment(
+                            clue="clue one",
+                            candidate="Thomasville",
+                            evidence_ids=[recovered_records[0].evidence_id],
+                            supported=True,
+                        ),
+                        main_agent.EntityClueAssessment(
+                            clue="clue two",
+                            candidate="Thomasville",
+                            evidence_ids=[recovered_records[1].evidence_id],
+                            supported=True,
+                        ),
+                    ],
+                    table_name="metrics",
+                    column_name="name",
+                )
+            return {
+                "raw": SimpleNamespace(usage_metadata={}),
+                "parsed": parsed,
+                "parsing_error": None,
+            }
+
+    class FakeModel:
+        def with_structured_output(self, schema, include_raw=False):
+            assert schema is main_agent.EntityResolutionProposal
+            assert include_raw is True
+            return StructuredInvoker()
+
+    search_calls = []
+
+    async def recover_evidence(payload):
+        search_calls.append(payload)
+        assert budget.take_search_queries(len(payload["queries"])) == 1
+        record = recovered_records[len(search_calls) - 1]
+        trace.record_search(
+            payload["queries"],
+            [
+                {
+                    "url": record.locator,
+                    "matched_queries": payload["queries"],
+                    "raw_content": "fetched",
+                }
+            ],
+        )
+        trace.record_evidence((record,))
+        assert budget.take_fetched_pages(1) == 1
+        return {"evidence_records": [record.to_dict()]}
+
+    monkeypatch.setenv("EVIDENCE_SQLITE_PATH", str(database_path))
+    monkeypatch.setattr(
+        main_agent,
+        "research_search",
+        SimpleNamespace(name="research_search", ainvoke=recover_evidence),
+    )
+    budget = ResearchBudget(
+        ResearchBudgetLimits(
+            profile="test",
+            total_seconds=100,
+            max_search_queries=4,
+            max_fetched_pages=4,
+            max_research_rounds=2,
+            max_llm_calls=8,
+            writer_reserved_seconds=25,
+        )
+    )
+    trace = ResearchRunTrace("run", "thread", "test", budget)
+    budget.reserve_search_queries(1)
+    budget.reserve_fetched_pages(1)
+    trace.record_evidence(
+        (
+            SimpleNamespace(
+                evidence_id="ev1_sql_semantics",
+                source="sql",
+                locator="sql://semantics/metrics",
+                content={"relevant_table_columns": {"metrics": ["name", "value"]}},
+                metadata={"evidence_kind": "database_semantics"},
+            ),
+        )
+    )
+    tokens = set_research_runtime(budget, trace)
+    try:
+        success = await main_agent._ground_multiclue_entity(
+            model=FakeModel(),
+            task_query="Use both clues to identify the place.",
+            phase_key="sql_evidence_correction",
+            phase_deadline=asyncio.get_running_loop().time() + 5,
+            research_budget=budget,
+            run_trace=trace,
+        )
+    finally:
+        reset_research_runtime(tokens)
+
+    assert success is True
+    assert resolution_calls == 3
+    assert [call["queries"] for call in search_calls] == [
+        ["targeted missing clue 1"],
+        ["targeted missing clue 2"],
+    ]
+    assert [call["max_fetched_pages"] for call in search_calls] == [1, 2]
+    assert budget.search_queries_used == 2
+    assert budget.fetched_pages_used == 2
+    assert trace.sql_entity_resolution_attempts == 3
+    assert trace.sql_entity_resolution_successes == 1
+    assert trace.sql_entity_value_match_successes == 1
+    assert trace.tool_calls_by_name == {"research_search": 2, "collect_evidence": 1}
+
+
 def test_entity_resolution_rejection_reasons_do_not_expose_candidate_content():
     proposal = main_agent.EntityResolutionProposal(
         resolved_entity="Thomasville",

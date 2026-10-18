@@ -64,6 +64,7 @@ def test_search_and_page_reserves_are_invisible_until_backend_recovery():
 
     assert budget.reserve_search_queries(2) == 2
     assert budget.reserve_fetched_pages(1) == 1
+    assert budget.available_search_queries == 1
     assert budget.take_search_queries(3) == 1
     assert budget.take_search_queries(1) == 0
     assert budget.available_fetched_pages == 1
@@ -71,6 +72,7 @@ def test_search_and_page_reserves_are_invisible_until_backend_recovery():
     assert budget.take_fetched_pages(1) == 0
     assert budget.release_search_query_reserve() == 2
     assert budget.release_fetched_page_reserve() == 1
+    assert budget.available_search_queries == 2
     assert budget.take_search_queries(3) == 2
     assert budget.available_fetched_pages == 1
     assert budget.take_fetched_pages(2) == 1

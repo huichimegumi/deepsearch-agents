@@ -218,6 +218,9 @@ class EntityResolutionProposal(BaseModel):
 
 
 SQL_CORRECTION_MAX_PROPOSALS = 2
+ENTITY_RESOLUTION_MAX_ATTEMPTS = 3
+ENTITY_RECOVERY_MAX_QUERIES_PER_ROUND = 2
+ENTITY_RECOVERY_MAX_PAGES_PER_ROUND = 2
 SQL_FENCE_PATTERN = re.compile(r"```sql\s*.*?```", re.IGNORECASE | re.DOTALL)
 
 
@@ -278,7 +281,7 @@ async def _ground_multiclue_entity(
         return False
     loop = asyncio.get_running_loop()
     proposal = None
-    for resolution_index in range(2):
+    for resolution_index in range(ENTITY_RESOLUTION_MAX_ATTEMPTS):
         web_ledger = run_trace.render_evidence_ledger(
             max_records=24,
             max_total_content_chars=20_000,
@@ -350,10 +353,20 @@ async def _ground_multiclue_entity(
             recovery_queries = list(
                 dict.fromkeys(query.strip() for query in proposal.recovery_queries if query.strip())
             )
-        recovery_allowance = research_budget.release_search_query_reserve()
-        recovery_page_allowance = research_budget.release_fetched_page_reserve()
+        if resolution_index == 0:
+            recovery_allowance = research_budget.release_search_query_reserve()
+            recovery_page_allowance = research_budget.release_fetched_page_reserve()
+        else:
+            recovery_allowance = min(
+                ENTITY_RECOVERY_MAX_QUERIES_PER_ROUND,
+                research_budget.available_search_queries,
+            )
+            recovery_page_allowance = min(
+                ENTITY_RECOVERY_MAX_PAGES_PER_ROUND,
+                research_budget.available_fetched_pages,
+            )
         if (
-            resolution_index == 0
+            resolution_index < ENTITY_RESOLUTION_MAX_ATTEMPTS - 1
             and rejection_reason == "clues_unsupported"
             and recovery_queries
             and recovery_allowance > 0
