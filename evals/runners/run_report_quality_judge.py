@@ -1,5 +1,8 @@
 """Lightweight LLM-as-a-judge scoring for generated report artifacts."""
 
+# The executable runner bootstraps the repository root before application imports.
+# ruff: noqa: E402
+
 from __future__ import annotations
 
 import argparse
@@ -16,7 +19,6 @@ if str(ROOT) not in sys.path:
 from app.agent.llm import get_model
 from app.agent.main_agent import project_root_path
 from evals.runners.common import DATASET_DIR, RESULTS_DIR, load_jsonl, now_utc, write_json
-
 
 DEFAULT_DATASET = DATASET_DIR / "end_to_end_report_zh.jsonl"
 MAX_REPORT_CHARS = 24000
@@ -149,12 +151,23 @@ def judge_report(sample: dict[str, Any], report_text: str) -> dict[str, Any]:
     return _normalize_judge_result(payload)
 
 
-def run(dataset: Path = DEFAULT_DATASET) -> dict[str, Any]:
+def run(dataset: Path = DEFAULT_DATASET, report_results: Path | None = None) -> dict[str, Any]:
     samples = load_jsonl(dataset)
+    execution = json.loads(report_results.read_text(encoding="utf-8")) if report_results else None
+    execution_rows = {row["id"]: row for row in execution["results"]} if execution else {}
     results: list[dict[str, Any]] = []
 
     for sample in samples:
-        artifacts = _find_report_artifacts(sample["id"])
+        if execution is not None:
+            artifacts = []
+            for relative_path in execution_rows.get(sample["id"], {}).get("artifacts", []):
+                path = (project_root_path / relative_path).resolve()
+                if not path.is_relative_to((project_root_path / "output").resolve()):
+                    raise ValueError("Report artifact is outside the application output directory")
+                if path.is_file():
+                    artifacts.append(path)
+        else:
+            artifacts = _find_report_artifacts(sample["id"])
         readable = _select_readable_artifact(artifacts)
         row = {
             "id": sample["id"],
@@ -209,6 +222,7 @@ def run(dataset: Path = DEFAULT_DATASET) -> dict[str, Any]:
 
     return {
         "name": "end_to_end_report_quality_judge_zh",
+        "execution_run_id": execution.get("run_id") if execution else None,
         "dataset": str(dataset),
         "generated_at": now_utc(),
         "total": len(results),
@@ -232,6 +246,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run lightweight report quality LLM judge.")
     parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
     parser.add_argument(
+        "--report-results", type=Path, help="Read artifacts from a specific run JSON."
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         default=RESULTS_DIR / "report_quality_judge_eval.json",
@@ -239,7 +256,7 @@ def main() -> int:
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
-    report = run(args.dataset)
+    report = run(args.dataset, args.report_results)
     write_json(args.output, report)
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))

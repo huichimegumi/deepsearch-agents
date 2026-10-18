@@ -232,6 +232,19 @@ def _requires_multiclue_entity_resolution(task_query: str) -> bool:
     return bool(re.search(r"\bclues?\b|线索", task_query, flags=re.IGNORECASE))
 
 
+def _create_research_budget(
+    task_query: str,
+    limits: ResearchBudgetLimits,
+    *,
+    sql_entity_recovery_enabled: bool,
+) -> ResearchBudget:
+    budget = ResearchBudget(limits)
+    if sql_entity_recovery_enabled and _requires_multiclue_entity_resolution(task_query):
+        budget.reserve_search_queries(2)
+        budget.reserve_fetched_pages(2)
+    return budget
+
+
 def _entity_resolution_rejection_reason(
     proposal: object,
     *,
@@ -915,9 +928,7 @@ async def _run_sql_evidence_correction(
 
 async def _astream_with_runtime_limit(agent, payload, config, timeout_seconds: float):
     if timeout_seconds <= 0:
-        async for chunk in agent.astream(payload, config=config):
-            yield chunk
-        return
+        raise PhaseBudgetExceeded("phase_time_exhausted")
 
     async with asyncio.timeout(timeout_seconds):
         async for chunk in agent.astream(payload, config=config):
@@ -980,10 +991,14 @@ async def _run_direct_phase(
     error = None
     result_text = None
     llm_recorded = False
+    llm_attempted = False
     phase_token = set_research_phase_context(phase.key)
     try:
+        if budget.timeout_seconds <= 0:
+            raise PhaseBudgetExceeded("phase_time_exhausted")
         if not research_budget.take_llm_call(phase.key):
             raise PhaseBudgetExceeded("llm_call_limit")
+        llm_attempted = True
         messages = [
             {"role": "system", "content": main_agent_content["system_prompt"]},
             {"role": "user", "content": prompt},
@@ -1041,7 +1056,7 @@ async def _run_direct_phase(
         reason = exc.__class__.__name__
         error = repr(exc)
     finally:
-        if not llm_recorded:
+        if llm_attempted and not llm_recorded:
             run_trace.record_llm_call(phase.key, None)
         reset_research_phase_context(phase_token)
         run_trace.finish_phase(
@@ -1277,9 +1292,7 @@ async def _run_agent_phase(
                                 research_budget.available_search_queries <= 0
                                 or research_budget.available_fetched_pages <= 0
                             ):
-                                raise PhaseBudgetExceeded(
-                                    "subagent_retrieval_budget_exhausted"
-                                )
+                                raise PhaseBudgetExceeded("subagent_retrieval_budget_exhausted")
                             run_trace.record_tool_call(phase.key, tool_call["name"])
                             subagent_call_count += 1
                             if (
@@ -1496,6 +1509,7 @@ async def run_deep_agent(
     conversation_memory: str = "",
     budget_profile_override: str | None = None,
     research_limits_override: ResearchBudgetLimits | None = None,
+    sql_entity_recovery_enabled: bool = False,
 ):
     """
     异步流式执行主智能体
@@ -1514,12 +1528,11 @@ async def run_deep_agent(
         else _classify_budget_profile(task_query)
     )
     workflow_run_id = uuid.uuid4().hex
-    research_budget = ResearchBudget(
-        research_limits_override or settings.research_budget_limits(budget_profile)
+    research_budget = _create_research_budget(
+        task_query,
+        research_limits_override or settings.research_budget_limits(budget_profile),
+        sql_entity_recovery_enabled=sql_entity_recovery_enabled,
     )
-    if _requires_multiclue_entity_resolution(task_query):
-        research_budget.reserve_search_queries(2)
-        research_budget.reserve_fetched_pages(2)
     run_trace = ResearchRunTrace(
         run_id=workflow_run_id,
         thread_id=event_thread_id,

@@ -88,6 +88,7 @@ def run(dataset: Path = DEFAULT_DATASET) -> dict[str, Any]:
     counts = status_counts(results)
     return {
         "name": "db_query_zh",
+        "measured_metric": "reference_sql_executability_not_agent_sql_accuracy",
         "dataset": str(dataset),
         "generated_at": now_utc(),
         "total": len(samples),

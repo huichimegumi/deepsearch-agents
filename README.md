@@ -12,8 +12,10 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### 主要功能
 
+评测当前优先推进 RAG 证据级 A/B/C 实验与少量真实报告验收；复杂 Hybrid 恢复策略冻结为开发诊断路径。E1 已修正零时间阶段启动和普通 Web 任务误占 SQL 恢复预留的问题，并披露重排执行/退化状态。报告评测使用独立 run/session 和配置清单，历史产物会保留。旧 90 题的规则一致性、参考 SQL 可执行性、搜索非空和文件名命中不代表 Agent 答案正确率。见 [评测说明](evals/README.md) 与 [E1 开发记录](docs/development/e1-evaluation-foundation.md)。
+
 - 阶段式深度研究：后端按固定顺序执行“澄清问题与研究简报 -> Supervisor 分派与 researcher 循环 -> 证据压缩 -> 最终报告”。M0.1 已将 Clarify、Compression 和 Writer 改为直接模型调用，只有 Research 阶段保留 DeepAgent。
-- 多智能体研究：主智能体负责分派、反思和汇总，网络搜索、数据库查询、本地知识库三个子智能体分别处理不同信息源。
+- 多智能体研究：主智能体负责分派、反思和汇总，通过 `network_search` 子智能体获取公开网页，通过统一 `collect_evidence` 工具获取 SQL、本地文档及 Fee Engine 证据。
 - 多源检索：支持 Tavily、DuckDuckGo、Perplexity、SearXNG、MySQL，以及基于 PostgreSQL、Qdrant、MinIO、Redis 和 FastEmbed 的本地 RAG。
 - 用户与会话：提供注册、登录、JWT 鉴权、会话列表、历史消息恢复、会话归档和按用户隔离的数据目录。
 - 记忆系统：包含当前会话摘要、最近消息上下文、LangGraph 短期 checkpoint，以及可由用户管理的长期记忆。
@@ -491,6 +493,8 @@ pnpm build
 DeepSearch Agents is a conversational multi-agent deep research system built on DeepAgents. It supports user authentication, conversation history, short-term execution memory, long-term user memory, knowledge-base management, attachment reading, and multi-source retrieval.
 
 ### Features
+
+Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real report acceptance set. Complex Hybrid recovery is frozen as a development diagnostic. E1 fixes zero-time phase admission and accidental SQL recovery reservations in ordinary Web tasks, exposes reranker inference/fallback status, and preserves separate report runs with configuration manifests. Legacy rule agreement, reference SQL executability, nonempty search, and filename hits are not Agent answer accuracy. See the [evaluation guide](evals/README.md) and [E1 development note](docs/development/e1-evaluation-foundation.md).
 
 - Staged deep research: the backend runs clarification and research brief, supervisor dispatch and researcher reflection, evidence compression, and final report in a fixed order. M0.1 moved clarification, compression, and writing to direct model calls. Only the research phase uses a DeepAgent.
 - Multi-agent research: the main agent dispatches, reflects, and synthesizes work, while dedicated sub-agents handle web search, database queries, and local knowledge-base retrieval.

@@ -49,12 +49,31 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 
 ## 当前指标
 
-- 路由准确率。
-- 禁用路由违规率。
-- 联网搜索结果覆盖和时效性。
-- DB 查询可执行性和结果正确性。
-- 报告章节覆盖和产物生成情况。
-- 本地知识库检索命中情况。
+- 规则路由一致率、规则基线的禁用路由违规率（不调用 Agent）。
+- 搜索结果非空率（不验证答案或时效性）。
+- 参考 SQL 可执行率（执行 gold_sql，不评估模型生成 SQL）。
+- 报告产物与运行状态；现有 Judge 仅评文本表达与结构。
+- 文件名命中率 @8（不验证答案证据片段）。
+
+## E1：评测运行基础
+
+复杂 Hybrid 子集当前仅用作开发诊断。近期主实验为 RAG 证据级 A/B/C 对照，其次为约 10 条真实报告验收。
+上述旧 runner 的兼容字段保留，并新增 `measured_metric` 明确实际口径。
+
+报告 runner 现在为每次调用生成唯一 `run_id`，每题也使用独立 session，不再清理上次报告和日志。
+CLI 默认输出到 `evals/results/<run_id>/report.json`；显式输出文件已存在会拒绝覆盖。
+manifest 记录代码版本/dirty 状态、数据和依赖锁哈希、模型、配置及依赖版本，不记录密钥。
+现有报告提示仍注入数据源约束，manifest 将此模式标为 `source_constrained_legacy_not_autonomous_routing`。
+Trace Token 仅代表当前被埋点的模型调用，不视为完整供应商计费统计。
+
+```powershell
+.venv\Scripts\python.exe -m evals.runners.run_report_eval --execute-ready
+.venv\Scripts\python.exe -m evals.runners.run_report_quality_judge --report-results evals/results/<run_id>/report.json --output evals/results/<run_id>/text_judge.json
+```
+
+未提供 `--report-results` 的 Judge 仍读取旧路径，仅用于兼容历史记录。新实验应始终指定运行结果。
+SQL 实体恢复预留现在由 `run_deep_agent(sql_entity_recovery_enabled=True)` 显式启用，Hybrid runner 已接入；普通 Web clue 任务不会预留额度。
+零时间的流式和直接模型阶段都不会发起模型调用。重排记录 `rerank_model`、`rerank_applied` 和 `rerank_error_type`，随本地 Evidence 传递；退化记录不能作为真实重排效果。
 
 ## 历史结果快照（M0 之前）
 

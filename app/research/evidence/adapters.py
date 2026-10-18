@@ -188,6 +188,9 @@ def retrieved_chunks_to_evidence(
                     "citation": hit.citation,
                     "score": hit.score,
                     "knowledge_base_ids": list(knowledge_base_ids),
+                    "rerank_model": hit.rerank_model,
+                    "rerank_applied": hit.rerank_applied,
+                    "rerank_error_type": hit.rerank_error_type,
                     "query": query,
                 },
             )

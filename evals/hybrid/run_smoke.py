@@ -262,6 +262,7 @@ async def _execute_task(
         _preflight_sql_evidence_assets(database_path, str(task.get("final_question", "")))
         answer = await run_deep_agent(
             _task_prompt(task),
+            sql_entity_recovery_enabled=True,
             session_id=session_id,
             user_id="evals",
             monitor_thread_id=session_id,

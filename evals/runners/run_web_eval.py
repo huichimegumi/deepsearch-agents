@@ -70,6 +70,7 @@ def run(dataset: Path = DEFAULT_DATASET, max_results: int = 5) -> dict[str, Any]
     counts = status_counts(results)
     return {
         "name": "web_research_zh",
+        "measured_metric": "nonempty_search_results_not_answer_correctness",
         "dataset": str(dataset),
         "generated_at": now_utc(),
         "total": len(samples),

@@ -1,5 +1,6 @@
 """Tests for local RAG retrieval ranking helpers."""
 
+from app.rag.embeddings import RerankResult
 from app.rag.retrieval import _filter_ranked_candidates, hybrid_search_many
 
 
@@ -50,11 +51,15 @@ def test_hybrid_search_many_reuses_query_embedding_and_reranks_globally(monkeypa
 
     def fake_rerank(query, documents):
         calls["rerank"] += 1
-        return [float(len(documents) - index) for index, _document in enumerate(documents)]
+        return RerankResult(
+            [float(len(documents) - index) for index, _document in enumerate(documents)],
+            "test-model",
+            True,
+        )
 
     monkeypatch.setattr("app.rag.retrieval.get_rag_settings", lambda: FakeSettings())
     monkeypatch.setattr("app.rag.retrieval.embed_query", fake_embed_query)
-    monkeypatch.setattr("app.rag.retrieval.rerank", fake_rerank)
+    monkeypatch.setattr("app.rag.retrieval.rerank_with_status", fake_rerank)
     monkeypatch.setattr(
         "app.rag.retrieval._lexical_search",
         lambda query, knowledge_base_id, limit: [(f"{knowledge_base_id}-lexical", 1.0)],

@@ -126,6 +126,7 @@ def run(dataset: Path = DEFAULT_DATASET) -> dict[str, Any]:
     passed_like = counts.get("passed", 0) + counts.get("partial", 0)
     return {
         "name": "rag_local_zh",
+        "measured_metric": "filename_hit_at_8_not_evidence_recall",
         "dataset": str(dataset),
         "generated_at": now_utc(),
         "total": len(samples),

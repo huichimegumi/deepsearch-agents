@@ -15,7 +15,6 @@ import asyncio
 import contextlib
 import json
 import math
-import shutil
 import sys
 from pathlib import Path
 from typing import Any
@@ -37,6 +36,7 @@ from evals.runners.common import (
     status_counts,
     write_json,
 )
+from evals.runners.experiment import build_manifest, new_run_id
 
 DEFAULT_DATASET = DATASET_DIR / "end_to_end_report_zh.jsonl"
 
@@ -89,18 +89,6 @@ def _artifact_matches_expectation(artifacts: list[str], expectation: str | None)
     if expectation == "markdown":
         return ".md" in suffixes and ".pdf" not in suffixes
     return bool(artifacts)
-
-
-def _reset_eval_session(session_id: str) -> None:
-    """Remove stale eval logs and artifacts for a deterministic rerun."""
-    log_path = project_root_path / "logs" / f"session_{session_id}.jsonl"
-    if log_path.exists():
-        log_path.unlink()
-
-    output_dir = project_root_path / "output" / "user_evals" / f"session_{session_id}"
-    expected_parent = project_root_path / "output" / "user_evals"
-    if output_dir.exists() and output_dir.parent == expected_parent:
-        shutil.rmtree(output_dir)
 
 
 def _db_tool_error_count(session_id: str) -> int:
@@ -179,9 +167,8 @@ async def _execute_report_sample(
     sample: dict[str, Any],
     timeout_seconds: int | None,
     max_db_errors: int,
+    session_id: str,
 ) -> dict[str, Any]:
-    session_id = f"eval_{sample['id']}"
-    _reset_eval_session(session_id)
     constrained_task = _task_with_eval_constraints(sample)
     if timeout_seconds is None:
         profile = _classify_budget_profile(constrained_task)
@@ -290,6 +277,18 @@ def run(
     max_db_errors: int = 2,
 ) -> dict[str, Any]:
     samples = load_jsonl(dataset)
+    run_id = new_run_id("report")
+    manifest = build_manifest(
+        dataset,
+        {
+            "llm_model": get_settings().llm_name,
+            "timeout_seconds": timeout_seconds,
+            "max_db_errors": max_db_errors,
+            "execution_enabled": execute_ready,
+            "prompt_mode": "source_constrained_legacy_not_autonomous_routing",
+            "token_scope": "existing_trace_instrumentation_not_total_provider_billing",
+        },
+    )
     llm_ok, llm_reason = _llm_available()
     db_ok, db_reason = _db_available()
     results: list[dict[str, Any]] = []
@@ -304,6 +303,7 @@ def run(
 
         row = {
             "id": sample["id"],
+            "session_id": f"{run_id}_{sample['id']}",
             "status": "ready" if not blockers else "blocked",
             "expected_route": sample["expected_route"],
             "artifact_expectation": sample.get("artifact_expectation"),
@@ -313,7 +313,9 @@ def run(
         if execute_ready and not blockers:
             try:
                 execution = asyncio.run(
-                    _execute_report_sample(sample, timeout_seconds, max_db_errors)
+                    _execute_report_sample(
+                        sample, timeout_seconds, max_db_errors, row["session_id"]
+                    )
                 )
                 row.update(execution)
                 trace_status = (execution.get("research_trace") or {}).get("status")
@@ -332,8 +334,8 @@ def run(
             except Exception as exc:  # noqa: BLE001 - report eval should record failures
                 row["status"] = "failed"
                 row["reason"] = repr(exc)
-                db_error_count = _db_tool_error_count(f"eval_{sample['id']}")
-                artifacts = _collect_artifacts(f"eval_{sample['id']}")
+                db_error_count = _db_tool_error_count(row["session_id"])
+                artifacts = _collect_artifacts(row["session_id"])
                 row.update(
                     {
                         "final_result_present": False,
@@ -342,7 +344,7 @@ def run(
                         "artifacts": artifacts,
                         "db_error_count": db_error_count,
                         "execution_timeout_seconds": timeout_seconds,
-                        "research_trace": _load_research_trace(f"eval_{sample['id']}"),
+                        "research_trace": _load_research_trace(row["session_id"]),
                     }
                 )
         row.update(_score_report_row(row))
@@ -372,13 +374,17 @@ def run(
         for reason in reasons:
             key = str(reason)
             failure_reasons[key] = failure_reasons.get(key, 0) + 1
-        for tool_name, count in ((trace.get("metrics") or {}).get("tool_calls_by_name") or {}).items():
+        for tool_name, count in (
+            (trace.get("metrics") or {}).get("tool_calls_by_name") or {}
+        ).items():
             tool_calls_by_name[str(tool_name)] = tool_calls_by_name.get(str(tool_name), 0) + int(
                 count
             )
 
     return {
         "name": "end_to_end_report_zh",
+        "run_id": run_id,
+        "manifest": manifest,
         "dataset": str(dataset),
         "generated_at": now_utc(),
         "total": len(samples),
@@ -432,7 +438,7 @@ def run(
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run report eval readiness checks.")
     parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
-    parser.add_argument("--output", type=Path, default=RESULTS_DIR / "report_eval.json")
+    parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--execute-ready", action="store_true")
     parser.add_argument(
         "--timeout-seconds",
@@ -443,6 +449,8 @@ def main() -> int:
     parser.add_argument("--max-db-errors", type=int, default=2)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
+    if args.output is not None and args.output.exists():
+        parser.error("Output already exists; use a new path to preserve earlier experiments.")
 
     report = run(
         args.dataset,
@@ -450,7 +458,10 @@ def main() -> int:
         timeout_seconds=args.timeout_seconds or None,
         max_db_errors=args.max_db_errors,
     )
-    write_json(args.output, report)
+    output = args.output or RESULTS_DIR / report["run_id"] / "report.json"
+    if output.exists():
+        parser.error("Output already exists; use a new path to preserve earlier experiments.")
+    write_json(output, report)
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
     else:
@@ -461,7 +472,7 @@ def main() -> int:
         print(f"Trace coverage: {report['baseline']['trace_coverage']:.1%}")
         print(f"P50 elapsed: {report['baseline']['p50_elapsed_ms']} ms")
         print(f"P95 elapsed: {report['baseline']['p95_elapsed_ms']} ms")
-        print(f"Wrote: {args.output}")
+        print(f"Wrote: {output}")
     return 0
 
 

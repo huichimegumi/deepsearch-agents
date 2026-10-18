@@ -148,6 +148,7 @@ def run(dataset: Path) -> dict:
         "total": len(results),
         "passed": passed,
         "route_accuracy": passed / len(results) if results else 0.0,
+        "measured_metric": "deterministic_rule_agreement_not_agent_routing_accuracy",
         "disallowed_route_violations": violations,
         "failures": [item for item in results if not item["passed"]],
     }

@@ -6,7 +6,7 @@ from sqlalchemy import text
 
 from app.rag.config import get_rag_settings
 from app.rag.database import session_scope
-from app.rag.embeddings import embed_query, rerank
+from app.rag.embeddings import embed_query, rerank_with_status
 from app.rag.models import Chunk, Document
 from app.rag.parsing import lexicalize
 from app.rag.vector_store import search_vectors
@@ -23,6 +23,9 @@ class RetrievedChunk:
     score: float
     document_sha256: str | None = None
     chunk_index: int | None = None
+    rerank_model: str | None = None
+    rerank_applied: bool | None = None
+    rerank_error_type: str | None = None
 
     @property
     def citation(self) -> str:
@@ -101,9 +104,9 @@ def _rank_candidates(
     if not candidates:
         return []
 
-    rerank_scores = rerank(query, [chunk.content for chunk, _document in candidates])
+    reranking = rerank_with_status(query, [chunk.content for chunk, _document in candidates])
     ranked = _filter_ranked_candidates(
-        sorted(zip(candidates, rerank_scores), key=lambda item: item[1], reverse=True),
+        sorted(zip(candidates, reranking.scores), key=lambda item: item[1], reverse=True),
         settings.min_relevance_score,
         limit or settings.rerank_top_k,
     )
@@ -118,6 +121,9 @@ def _rank_candidates(
             score=float(score),
             document_sha256=getattr(document, "sha256", None),
             chunk_index=getattr(chunk, "chunk_index", None),
+            rerank_model=reranking.model,
+            rerank_applied=reranking.applied,
+            rerank_error_type=reranking.error_type,
         )
         for ((chunk, document), score) in ranked
     ]
