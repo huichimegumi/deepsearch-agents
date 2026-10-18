@@ -57,7 +57,7 @@ class ResearchBudget:
         shares = {
             "clarify_and_brief": 0.10,
             "supervisor_research": 0.50,
-            "sql_evidence_correction": 0.20,
+            "sql_evidence_correction": 0.30,
             "evidence_compression": 0.15,
             "final_report": 0.25,
         }
@@ -66,6 +66,8 @@ class ResearchBudget:
         if phase_key != "final_report":
             available -= self.limits.writer_reserved_seconds
             available -= self.limits.verifier_reserved_seconds
+        if phase_key == "sql_evidence_correction":
+            available -= self.limits.total_seconds * shares["evidence_compression"]
         return max(0.0, min(configured_timeout, allocation, available))
 
     def take_search_queries(self, requested: int) -> int:

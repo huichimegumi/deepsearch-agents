@@ -34,9 +34,18 @@ def test_phase_timeout_uses_run_allocation_and_writer_reserve():
 
     assert budget.phase_timeout("clarify_and_brief", 999) == 10
     assert budget.phase_timeout("supervisor_research", 999) == 50
-    assert budget.phase_timeout("sql_evidence_correction", 999) == 20
+    assert budget.phase_timeout("sql_evidence_correction", 999) == 30
     assert budget.phase_timeout("evidence_compression", 999) == 15
     assert budget.phase_timeout("final_report", 999) == 25
+
+
+def test_sql_correction_preserves_compression_and_writer_time():
+    budget = make_budget()
+    budget.started_at -= 50
+
+    timeout = budget.phase_timeout("sql_evidence_correction", 999)
+
+    assert 9.9 <= timeout <= 10
 
 
 def test_multidimensional_budget_refuses_excess_work():
