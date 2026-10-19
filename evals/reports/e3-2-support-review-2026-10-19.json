@@ -1,0 +1,479 @@
+{
+  "stage": "E3.2 evidence-support review foundation",
+  "generation_execution_manifests": {
+    "report_acceptance_20261019T120234Z_bf87f1e46f": {
+      "git_commit": "094a85bc9564c4203705225b96575c61d78c2de6",
+      "git_dirty": true,
+      "source_sha256": "973148b96ee1f5c56748d8bf0d08dc7772430e9c2ce313763b0c4262866246d6",
+      "dataset_sha256": "e69275e9f0718f01b57b6317c0c1de6624b6f62a9a5fa916e6db99ce57299158",
+      "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+      "versions": {
+        "fastembed": "0.8.0",
+        "onnxruntime": "1.27.0",
+        "qdrant-client": "1.18.0",
+        "deepagents": "0.5.7"
+      },
+      "configuration": {
+        "model": "qwen-flash",
+        "selected_cases": [
+          "report_local_001",
+          "report_local_002"
+        ],
+        "prompt_mode": "user_local_scope_only_no_gold_or_hidden_routes",
+        "execution_enabled": true,
+        "timeout_seconds": 330,
+        "token_scope": "trace_instrumentation_not_total_provider_billing",
+        "knowledge_bases": [
+          "电商行业",
+          "金融行业"
+        ],
+        "limits": {
+          "profile": "deep_report",
+          "total_seconds": 300,
+          "max_search_queries": 0,
+          "max_fetched_pages": 0,
+          "max_research_rounds": 2,
+          "max_llm_calls": 12,
+          "writer_reserved_seconds": 75,
+          "verifier_reserved_seconds": 0
+        }
+      }
+    },
+    "report_acceptance_20261019T113653Z_fc86f635c0": {
+      "git_commit": "bfafdc27c23b3da2c3c549b6b092daf8f2b3f7a5",
+      "git_dirty": true,
+      "source_sha256": "06cff581c2b76580ea2faa86c6b83ce38188f4c057c6ad3ab9cbcabd06e6c8fe",
+      "dataset_sha256": "e69275e9f0718f01b57b6317c0c1de6624b6f62a9a5fa916e6db99ce57299158",
+      "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+      "versions": {
+        "fastembed": "0.8.0",
+        "onnxruntime": "1.27.0",
+        "qdrant-client": "1.18.0",
+        "deepagents": "0.5.7"
+      },
+      "configuration": {
+        "model": "qwen-flash",
+        "selected_cases": [
+          "report_local_001",
+          "report_local_002",
+          "report_local_003",
+          "report_local_004",
+          "report_local_005",
+          "report_local_006"
+        ],
+        "prompt_mode": "user_local_scope_only_no_gold_or_hidden_routes",
+        "execution_enabled": true,
+        "timeout_seconds": 330,
+        "token_scope": "trace_instrumentation_not_total_provider_billing",
+        "knowledge_bases": [
+          "电商行业",
+          "金融行业"
+        ],
+        "limits": {
+          "profile": "deep_report",
+          "total_seconds": 300,
+          "max_search_queries": 0,
+          "max_fetched_pages": 0,
+          "max_research_rounds": 2,
+          "max_llm_calls": 12,
+          "writer_reserved_seconds": 75,
+          "verifier_reserved_seconds": 0
+        }
+      }
+    }
+  },
+  "model_review_invocations": 6,
+  "regenerated_reports": 0,
+  "web_search_queries": 0,
+  "retrieval_inference_calls": 0,
+  "live_corpus_reads": "Selected PostgreSQL corpus read/fingerprinted for document-inventory verification; not a new retrieval run.",
+  "valid_model_reviews": 0,
+  "human_reviewed_reports": 0,
+  "semantic_acceptance": "pending_human_review",
+  "pilot_source_archive": {
+    "path": "evals/results/support_review_pilot_20261019/reviewer_source.py",
+    "sha256": "c44f9845c0cc7b30adcd11b7becf5764738b671ec1d7c574fd4d955f574590b4"
+  },
+  "results": [
+    {
+      "run_id": "support_review_20261019T121841Z_da57177c2c",
+      "original_run_id": "report_acceptance_20261019T120234Z_bf87f1e46f",
+      "case_id": "report_local_002",
+      "review_manifest": {
+        "git_commit": "2cae27519af27b8d17af725c6ab93e5299305706",
+        "git_dirty": true,
+        "source_sha256": "4818959a20fb1abf238e466dcd6970cc93d9a137e9441f87bb8751f0ad7c8711",
+        "dataset_sha256": "c4101aae5e0574ff994069599b3d0101dc64063a3915395aec9298e13c4b3ff2",
+        "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+        "versions": {
+          "fastembed": "0.8.0",
+          "onnxruntime": "1.27.0",
+          "qdrant-client": "1.18.0",
+          "deepagents": "0.5.7"
+        },
+        "configuration": {
+          "model": "qwen-flash",
+          "execute_judge": true,
+          "model_independence": "same_configured_generator_not_independent",
+          "quote_validation": "normalized_contiguous_substring_not_entailment"
+        }
+      },
+      "report_sha256": "d34dca8f804cb933e594d9b353fc5c0af501f365db79ad737b5e6a58c4595e05",
+      "evidence_sha256": "91d0bee18f384e22b25689b9fd8f4822b0c0ed55776f4b5e65acd18b1e77ef1c",
+      "review_input_sha256": "8e39229109ac21ab73753d53a2bbda8e0ebab7e86e91b7a9f18d9fad6e906ac7",
+      "segment_count": 15,
+      "filename_flag_count": 0,
+      "status": "invalid_review",
+      "human_review": "pending",
+      "semantic_acceptance": "pending_human_review",
+      "inputs_unchanged": true,
+      "error_type": "TimeoutError",
+      "grounding_error": null,
+      "review_scope": "whole_saved_report_body",
+      "unreviewed_segment_count": null,
+      "reviewer_source_sha256": null,
+      "results_sha256": "3926d27348c37c0e234f2d9e9fa414c8c5c06418199ce49826f05d0a1300a613",
+      "private_directory": "evals/results/support_review_20261019T121841Z_da57177c2c"
+    },
+    {
+      "run_id": "support_review_20261019T121854Z_331febffd2",
+      "original_run_id": "report_acceptance_20261019T113653Z_fc86f635c0",
+      "case_id": "report_local_005",
+      "review_manifest": {
+        "git_commit": "2cae27519af27b8d17af725c6ab93e5299305706",
+        "git_dirty": true,
+        "source_sha256": "4818959a20fb1abf238e466dcd6970cc93d9a137e9441f87bb8751f0ad7c8711",
+        "dataset_sha256": "5b14f83e83db45674222d08575f884c4d720afdd8f06c8fdd4605163e43d7b62",
+        "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+        "versions": {
+          "fastembed": "0.8.0",
+          "onnxruntime": "1.27.0",
+          "qdrant-client": "1.18.0",
+          "deepagents": "0.5.7"
+        },
+        "configuration": {
+          "model": "qwen-flash",
+          "execute_judge": true,
+          "model_independence": "same_configured_generator_not_independent",
+          "quote_validation": "normalized_contiguous_substring_not_entailment"
+        }
+      },
+      "report_sha256": "a7e8e90d482d9ae67f65e595aed263fef2605d2f419acb06274462d63cf365a6",
+      "evidence_sha256": "ae984902ba883e9b2215795a6f0c4077074f8b211c7422c68fb7d496e8d8e9e5",
+      "review_input_sha256": "3cf08f749efec637906067e4def2df334c567d093ebecb2b36fba67bd2c12365",
+      "segment_count": 4,
+      "filename_flag_count": 2,
+      "status": "invalid_review",
+      "human_review": "pending",
+      "semantic_acceptance": "pending_human_review",
+      "inputs_unchanged": true,
+      "error_type": "GroundingError",
+      "grounding_error": "Every report segment must be reviewed exactly once",
+      "review_scope": "whole_saved_report_body",
+      "unreviewed_segment_count": null,
+      "reviewer_source_sha256": null,
+      "results_sha256": "9a4c1c801c25785c85ab662fd5c7d65a3822cfa14031d6c39c3b1cd60c701b10",
+      "private_directory": "evals/results/support_review_20261019T121854Z_331febffd2"
+    },
+    {
+      "run_id": "support_review_20261019T121907Z_4f22a5f856",
+      "original_run_id": "report_acceptance_20261019T113653Z_fc86f635c0",
+      "case_id": "report_local_006",
+      "review_manifest": {
+        "git_commit": "2cae27519af27b8d17af725c6ab93e5299305706",
+        "git_dirty": true,
+        "source_sha256": "4818959a20fb1abf238e466dcd6970cc93d9a137e9441f87bb8751f0ad7c8711",
+        "dataset_sha256": "5b14f83e83db45674222d08575f884c4d720afdd8f06c8fdd4605163e43d7b62",
+        "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+        "versions": {
+          "fastembed": "0.8.0",
+          "onnxruntime": "1.27.0",
+          "qdrant-client": "1.18.0",
+          "deepagents": "0.5.7"
+        },
+        "configuration": {
+          "model": "qwen-flash",
+          "execute_judge": true,
+          "model_independence": "same_configured_generator_not_independent",
+          "quote_validation": "normalized_contiguous_substring_not_entailment"
+        }
+      },
+      "report_sha256": "75145d77413271e6dba0e728222d2e866d3de10102769911d4511756f8ce82d5",
+      "evidence_sha256": "d4c9753ed33e78e6bd3eb513086cc5033ed998b7e830f2f0635eac860435e224",
+      "review_input_sha256": "54d950ef79d5d442b2b4d83028e51719bbe6a59ba4622f85da1d8309e1955031",
+      "segment_count": 6,
+      "filename_flag_count": 5,
+      "status": "invalid_review",
+      "human_review": "pending",
+      "semantic_acceptance": "pending_human_review",
+      "inputs_unchanged": true,
+      "error_type": "TimeoutError",
+      "grounding_error": null,
+      "review_scope": "whole_saved_report_body",
+      "unreviewed_segment_count": null,
+      "reviewer_source_sha256": null,
+      "results_sha256": "e9b5cb7d7f019db802fb02b5fad2a136d3c67ba18c2c816673ec64f4fbdef1af",
+      "private_directory": "evals/results/support_review_20261019T121907Z_4f22a5f856"
+    },
+    {
+      "run_id": "support_review_20261019T122528Z_b5bacdad45",
+      "original_run_id": "report_acceptance_20261019T120234Z_bf87f1e46f",
+      "case_id": "report_local_002",
+      "review_manifest": {
+        "git_commit": "2cae27519af27b8d17af725c6ab93e5299305706",
+        "git_dirty": true,
+        "source_sha256": "b98fbcac76229fa09ab9dba1cb45d30f5fe49916ac6d57442caea581ccebe425",
+        "dataset_sha256": "c4101aae5e0574ff994069599b3d0101dc64063a3915395aec9298e13c4b3ff2",
+        "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+        "versions": {
+          "fastembed": "0.8.0",
+          "onnxruntime": "1.27.0",
+          "qdrant-client": "1.18.0",
+          "deepagents": "0.5.7"
+        },
+        "configuration": {
+          "model": "qwen-flash",
+          "execute_judge": true,
+          "model_independence": "same_configured_generator_not_independent",
+          "quote_validation": "normalized_contiguous_substring_not_entailment",
+          "review_protocol": "support_review_v2",
+          "review_scope": "selected_segments_only"
+        }
+      },
+      "report_sha256": "d34dca8f804cb933e594d9b353fc5c0af501f365db79ad737b5e6a58c4595e05",
+      "evidence_sha256": "91d0bee18f384e22b25689b9fd8f4822b0c0ed55776f4b5e65acd18b1e77ef1c",
+      "review_input_sha256": "73da2990f90a10a3e23e7cc6b583211f5cf94eab53d22328ac4bc73a3091c308",
+      "segment_count": 1,
+      "filename_flag_count": 0,
+      "status": "invalid_review",
+      "human_review": "pending",
+      "semantic_acceptance": "pending_human_review",
+      "inputs_unchanged": true,
+      "error_type": "GroundingError",
+      "grounding_error": "Invented report quote",
+      "review_scope": "selected_segments_only",
+      "unreviewed_segment_count": 14,
+      "reviewer_source_sha256": "f0dd7b09fc19e8be97381b7a23901dabb405f1f52fef9655916536e68eab25b2",
+      "results_sha256": "4b6b62ec22c5b57156f4a7caa5a3a8c31985832538a7033654862d9771cb97e5",
+      "private_directory": "evals/results/support_review_20261019T122528Z_b5bacdad45"
+    },
+    {
+      "run_id": "support_review_20261019T122542Z_8925bf3efd",
+      "original_run_id": "report_acceptance_20261019T113653Z_fc86f635c0",
+      "case_id": "report_local_005",
+      "review_manifest": {
+        "git_commit": "2cae27519af27b8d17af725c6ab93e5299305706",
+        "git_dirty": true,
+        "source_sha256": "b98fbcac76229fa09ab9dba1cb45d30f5fe49916ac6d57442caea581ccebe425",
+        "dataset_sha256": "5b14f83e83db45674222d08575f884c4d720afdd8f06c8fdd4605163e43d7b62",
+        "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+        "versions": {
+          "fastembed": "0.8.0",
+          "onnxruntime": "1.27.0",
+          "qdrant-client": "1.18.0",
+          "deepagents": "0.5.7"
+        },
+        "configuration": {
+          "model": "qwen-flash",
+          "execute_judge": true,
+          "model_independence": "same_configured_generator_not_independent",
+          "quote_validation": "normalized_contiguous_substring_not_entailment",
+          "review_protocol": "support_review_v2",
+          "review_scope": "selected_segments_only"
+        }
+      },
+      "report_sha256": "a7e8e90d482d9ae67f65e595aed263fef2605d2f419acb06274462d63cf365a6",
+      "evidence_sha256": "ae984902ba883e9b2215795a6f0c4077074f8b211c7422c68fb7d496e8d8e9e5",
+      "review_input_sha256": "8204fbb12972fcbd1319f1302225f6e4ff3a147b96a4613f8b55699399a5b92f",
+      "segment_count": 1,
+      "filename_flag_count": 0,
+      "status": "invalid_review",
+      "human_review": "pending",
+      "semantic_acceptance": "pending_human_review",
+      "inputs_unchanged": true,
+      "error_type": "GroundingError",
+      "grounding_error": "Invented report quote",
+      "review_scope": "selected_segments_only",
+      "unreviewed_segment_count": 3,
+      "reviewer_source_sha256": "f0dd7b09fc19e8be97381b7a23901dabb405f1f52fef9655916536e68eab25b2",
+      "results_sha256": "823bba02fda9def9cb59c72e4430ca939fe43b361d3aa93ba7b3fdd158449f5b",
+      "private_directory": "evals/results/support_review_20261019T122542Z_8925bf3efd"
+    },
+    {
+      "run_id": "support_review_20261019T122555Z_748ce4cb2c",
+      "original_run_id": "report_acceptance_20261019T113653Z_fc86f635c0",
+      "case_id": "report_local_006",
+      "review_manifest": {
+        "git_commit": "2cae27519af27b8d17af725c6ab93e5299305706",
+        "git_dirty": true,
+        "source_sha256": "b98fbcac76229fa09ab9dba1cb45d30f5fe49916ac6d57442caea581ccebe425",
+        "dataset_sha256": "5b14f83e83db45674222d08575f884c4d720afdd8f06c8fdd4605163e43d7b62",
+        "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+        "versions": {
+          "fastembed": "0.8.0",
+          "onnxruntime": "1.27.0",
+          "qdrant-client": "1.18.0",
+          "deepagents": "0.5.7"
+        },
+        "configuration": {
+          "model": "qwen-flash",
+          "execute_judge": true,
+          "model_independence": "same_configured_generator_not_independent",
+          "quote_validation": "normalized_contiguous_substring_not_entailment",
+          "review_protocol": "support_review_v2",
+          "review_scope": "selected_segments_only"
+        }
+      },
+      "report_sha256": "75145d77413271e6dba0e728222d2e866d3de10102769911d4511756f8ce82d5",
+      "evidence_sha256": "d4c9753ed33e78e6bd3eb513086cc5033ed998b7e830f2f0635eac860435e224",
+      "review_input_sha256": "dd8ed2a9f8f519a462165611b14a7774ad043e81981d00e09ceb2ace4c4d4547",
+      "segment_count": 1,
+      "filename_flag_count": 5,
+      "status": "invalid_review",
+      "human_review": "pending",
+      "semantic_acceptance": "pending_human_review",
+      "inputs_unchanged": true,
+      "error_type": "GroundingError",
+      "grounding_error": "Invented report quote",
+      "review_scope": "selected_segments_only",
+      "unreviewed_segment_count": 5,
+      "reviewer_source_sha256": "f0dd7b09fc19e8be97381b7a23901dabb405f1f52fef9655916536e68eab25b2",
+      "results_sha256": "08c6db418a022a07a9362b7df07f709f97e297be71f026ce6923665752a78a97",
+      "private_directory": "evals/results/support_review_20261019T122555Z_748ce4cb2c"
+    },
+    {
+      "run_id": "support_review_20261019T122801Z_294bdc4d98",
+      "original_run_id": "report_acceptance_20261019T120234Z_bf87f1e46f",
+      "case_id": "report_local_002",
+      "review_manifest": {
+        "git_commit": "2cae27519af27b8d17af725c6ab93e5299305706",
+        "git_dirty": true,
+        "source_sha256": "b98fbcac76229fa09ab9dba1cb45d30f5fe49916ac6d57442caea581ccebe425",
+        "dataset_sha256": "c4101aae5e0574ff994069599b3d0101dc64063a3915395aec9298e13c4b3ff2",
+        "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+        "versions": {
+          "fastembed": "0.8.0",
+          "onnxruntime": "1.27.0",
+          "qdrant-client": "1.18.0",
+          "deepagents": "0.5.7"
+        },
+        "configuration": {
+          "model": "qwen-flash",
+          "execute_judge": false,
+          "model_independence": "same_configured_generator_not_independent",
+          "quote_validation": "normalized_contiguous_substring_not_entailment",
+          "review_protocol": "support_review_v2",
+          "review_scope": "whole_saved_report_body"
+        }
+      },
+      "report_sha256": "d34dca8f804cb933e594d9b353fc5c0af501f365db79ad737b5e6a58c4595e05",
+      "evidence_sha256": "91d0bee18f384e22b25689b9fd8f4822b0c0ed55776f4b5e65acd18b1e77ef1c",
+      "review_input_sha256": "f5d0864789de61e04c6f5637ea194e347ef826e95547a86b8ac6e72016f8bf03",
+      "segment_count": 15,
+      "filename_flag_count": 0,
+      "status": "not_requested",
+      "human_review": "pending",
+      "semantic_acceptance": "pending_human_review",
+      "inputs_unchanged": true,
+      "error_type": null,
+      "grounding_error": null,
+      "review_scope": "whole_saved_report_body",
+      "unreviewed_segment_count": 0,
+      "reviewer_source_sha256": "f0dd7b09fc19e8be97381b7a23901dabb405f1f52fef9655916536e68eab25b2",
+      "results_sha256": "63ec3172e24c8169b54c8310bdb7ebb0ca3e90a07db6809c3235d80c87b9e7a0",
+      "private_directory": "evals/results/support_review_20261019T122801Z_294bdc4d98"
+    },
+    {
+      "run_id": "support_review_20261019T122812Z_7864221582",
+      "original_run_id": "report_acceptance_20261019T113653Z_fc86f635c0",
+      "case_id": "report_local_005",
+      "review_manifest": {
+        "git_commit": "2cae27519af27b8d17af725c6ab93e5299305706",
+        "git_dirty": true,
+        "source_sha256": "b98fbcac76229fa09ab9dba1cb45d30f5fe49916ac6d57442caea581ccebe425",
+        "dataset_sha256": "5b14f83e83db45674222d08575f884c4d720afdd8f06c8fdd4605163e43d7b62",
+        "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+        "versions": {
+          "fastembed": "0.8.0",
+          "onnxruntime": "1.27.0",
+          "qdrant-client": "1.18.0",
+          "deepagents": "0.5.7"
+        },
+        "configuration": {
+          "model": "qwen-flash",
+          "execute_judge": false,
+          "model_independence": "same_configured_generator_not_independent",
+          "quote_validation": "normalized_contiguous_substring_not_entailment",
+          "review_protocol": "support_review_v2",
+          "review_scope": "whole_saved_report_body"
+        }
+      },
+      "report_sha256": "a7e8e90d482d9ae67f65e595aed263fef2605d2f419acb06274462d63cf365a6",
+      "evidence_sha256": "ae984902ba883e9b2215795a6f0c4077074f8b211c7422c68fb7d496e8d8e9e5",
+      "review_input_sha256": "89919e3dc371b04fa85dbe130f35e4c00d885571851b5c674c2f6355e16e9772",
+      "segment_count": 4,
+      "filename_flag_count": 2,
+      "status": "not_requested",
+      "human_review": "pending",
+      "semantic_acceptance": "pending_human_review",
+      "inputs_unchanged": true,
+      "error_type": null,
+      "grounding_error": null,
+      "review_scope": "whole_saved_report_body",
+      "unreviewed_segment_count": 0,
+      "reviewer_source_sha256": "f0dd7b09fc19e8be97381b7a23901dabb405f1f52fef9655916536e68eab25b2",
+      "results_sha256": "812aca9205d9fedc20b353e8834f056aded302aa1f0175c64022e344fb9b7f22",
+      "private_directory": "evals/results/support_review_20261019T122812Z_7864221582"
+    },
+    {
+      "run_id": "support_review_20261019T122821Z_7989896c29",
+      "original_run_id": "report_acceptance_20261019T113653Z_fc86f635c0",
+      "case_id": "report_local_006",
+      "review_manifest": {
+        "git_commit": "2cae27519af27b8d17af725c6ab93e5299305706",
+        "git_dirty": true,
+        "source_sha256": "b98fbcac76229fa09ab9dba1cb45d30f5fe49916ac6d57442caea581ccebe425",
+        "dataset_sha256": "5b14f83e83db45674222d08575f884c4d720afdd8f06c8fdd4605163e43d7b62",
+        "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+        "versions": {
+          "fastembed": "0.8.0",
+          "onnxruntime": "1.27.0",
+          "qdrant-client": "1.18.0",
+          "deepagents": "0.5.7"
+        },
+        "configuration": {
+          "model": "qwen-flash",
+          "execute_judge": false,
+          "model_independence": "same_configured_generator_not_independent",
+          "quote_validation": "normalized_contiguous_substring_not_entailment",
+          "review_protocol": "support_review_v2",
+          "review_scope": "whole_saved_report_body"
+        }
+      },
+      "report_sha256": "75145d77413271e6dba0e728222d2e866d3de10102769911d4511756f8ce82d5",
+      "evidence_sha256": "d4c9753ed33e78e6bd3eb513086cc5033ed998b7e830f2f0635eac860435e224",
+      "review_input_sha256": "d4d0285411ba3b1cb98cfde3f1be5d2a3044b1241ed264bdace3b7dc1a25ee10",
+      "segment_count": 6,
+      "filename_flag_count": 5,
+      "status": "not_requested",
+      "human_review": "pending",
+      "semantic_acceptance": "pending_human_review",
+      "inputs_unchanged": true,
+      "error_type": null,
+      "grounding_error": null,
+      "review_scope": "whole_saved_report_body",
+      "unreviewed_segment_count": 0,
+      "reviewer_source_sha256": "f0dd7b09fc19e8be97381b7a23901dabb405f1f52fef9655916536e68eab25b2",
+      "results_sha256": "21bb5a921dc0a307f56786717d0c6a99d20ec7f90e93eaf88464e45d289f8f6d",
+      "private_directory": "evals/results/support_review_20261019T122821Z_7989896c29"
+    }
+  ],
+  "interpretation": "First three whole-report reviews: two timeouts and one coverage-contract failure. Three selected-segment reviews: fabricated/paraphrased report quotes, all rejected. No model verdict or support/abstention score is accepted. Three full human-review packets were generated without model calls.",
+  "limitations": [
+    "Same configured qwen-flash generator/reviewer; not independent evaluation.",
+    "Subset review disables whole-report keypoint and abstention grading.",
+    "Filename mismatches are review candidates, not automatic fabrication findings.",
+    "Normalized literal quote checks do not prove entailment.",
+    "Production Agent unchanged; known negative-case hallucinations and cross-document coverage remain unresolved."
+  ]
+}

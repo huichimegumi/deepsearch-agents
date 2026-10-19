@@ -1,5 +1,12 @@
 # E3.1: local report acceptance
 
+E3.2 adds `python -m evals.reports_acceptance.support_review --report-results ... --case-id ...`.
+Default output is a full readable human worksheet with actual report paragraphs and source
+passages, without a model call. Optional model suggestions fail closed on invented quotes,
+uncited sources, missing/duplicate units, or timeout. Selected-segment scope cannot grade whole
+report coverage/abstention. All six real model pilot invocations were invalid: do not use this
+configured judge for automatic acceptance. See the [contract, private packet paths, and pilot](../../docs/development/e3-2-evidence-support-review.md).
+
 E3.1b narrowly normalizes one bracket-wrapped, already eligible stable Claim ID. Evaluation
 snapshots now additionally retain original typed `claim_validation_batches` for offline
 exact-string versus canonical-policy replay. No semantic approval follows from either policy.

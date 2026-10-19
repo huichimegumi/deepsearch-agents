@@ -55,6 +55,10 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 - 报告产物与运行状态；现有 Judge 仅评文本表达与结构。
 - 文件名命中率 @8（不验证答案证据片段）。
 
+## E3.2：证据支持审核基础
+
+新增 `python -m evals.reports_acceptance.support_review --report-results ... --case-id ...`：默认不调用模型，生成完整报告／实际引用片段／文档目录候选项的人工复核包。可选 `--execute-judge` 意见需要通过逐字引文、实际引用绑定、逐段完整性校验；`--segment-id` 子集禁止全文覆盖和拒答评分。首轮 3 次整报告与 3 次逐段模型审核均无效或超时，没有可采信的自动支持率；人工语义验收仍待完成。见 [实测与限制](../docs/development/e3-2-evidence-support-review.md) 和 [无原文汇总](reports/e3-2-support-review-2026-10-19.json)。
+
 ## E3.1b：引用格式规范化与离线重放
 
 仅对完整的一层 `[ev1_…]` 且内部 ID 已在允许清单中的引用去除包装；未知 ID、多 ID、附带文本等仍拒绝。评测模式额外保存原始结构化 Claim 与当时允许清单，可用 `python -m evals.reports_acceptance.replay_claims --report-results ...` 在同一批输入上对照旧规则和新规则，不额外调用模型或检索。旧快照缺少结构化 Claim 时明确拒绝重建；结构校验通过不代表证据支持或报告正确。见 [开发记录](../docs/development/e3-1b-canonical-claim-references.md)。

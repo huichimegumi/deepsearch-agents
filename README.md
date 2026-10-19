@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E3.2 新增保存报告的证据审核入口：核验原报告／Evidence 哈希及语料指纹，生成逐段报告、真实引用片段、文档名待核验项的可读人工复核包；可选模型意见必须通过逐字引文与完整性校验。整报告及逐段试验共 6 次模型审核均超时或无效，未产生可信支持率，当前不建议自动事实验收。已生成 3 份完整人工审核材料，语义验收仍待人工完成，生产 Agent 不变。见 [审核基础与失败记录](docs/development/e3-2-evidence-support-review.md)。
+
 E3.1b 修复 Claim 数组中已知稳定 ID 被一层方括号包装时的误拒绝，保留未知 ID、缺证据及推断边界校验。评测快照额外保存原始结构化 Claim，支持不调用模型或检索的同输入旧规则／新规则重放。该改动只验证引用结构，不等于事实受支持；负样本幻觉与跨文档覆盖仍未解决。见 [策略与重放说明](docs/development/e3-1b-canonical-claim-references.md)。
 
 仅复测 001/002 两题：两题最终引用校验均通过，001 仍因调用预算降级、002 正常完成。对相同的 9 条已保存 Claim 离线重放，旧格式规则拒绝 9 条，新规则结构校验通过 9 条，涉及 14 个已知引用包装；不是答案正确率，也未更新六题总体结果。273 项测试通过、6 项跳过，Tavily 使用量为 0。见 [执行与重放记录](evals/reports/e3-1b-claim-reference-replay-2026-10-19.json)。
@@ -527,6 +529,13 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E3.2 adds saved-report evidence review: artifact/corpus verification, readable paragraph/source
+worksheets, filename review candidates, and optional quote-grounded model suggestions. All six
+whole-report/selected-segment model pilot invocations timed out or failed validation; no trusted
+support rate or automated acceptance is reported. Three full manual review packets are available,
+human semantic review remains pending, and the production Agent is unchanged. See the
+[review foundation and failed pilot](docs/development/e3-2-evidence-support-review.md).
 
 E3.1b repairs only a single bracket wrapper around an already eligible stable Claim reference;
 unknown IDs, missing evidence, and inference limitations remain enforced. Opt-in evaluation
