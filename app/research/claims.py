@@ -14,6 +14,13 @@ EVIDENCE_CITATION_PATTERN = re.compile(
     r"\[(ev1_[a-z0-9_-]+)\]",
     re.IGNORECASE,
 )
+KNOWN_WRAPPER_PATTERN = re.compile(r"\[(ev1_(?:sql|web|local_document|fee_engine)_[a-f0-9]{24})\]")
+
+
+def normalize_known_evidence_reference(value: str, available_ids: set[str]) -> str:
+    """Unwrap one exact citation only when its canonical ID is already eligible."""
+    match = KNOWN_WRAPPER_PATTERN.fullmatch(value)
+    return match.group(1) if match and match.group(1) in available_ids else value
 
 
 class ClaimKind(StrEnum):
@@ -78,6 +85,7 @@ class ClaimValidationReport:
     accepted: tuple[ValidatedClaim, ...]
     rejected: tuple[RejectedClaim, ...]
     available_evidence_ids: tuple[str, ...]
+    normalized_evidence_references: int = 0
 
     @property
     def referenced_evidence_ids(self) -> tuple[str, ...]:
@@ -136,15 +144,27 @@ def validate_claims(
     drafts: Iterable[ClaimDraft | Mapping[str, object]],
     *,
     available_evidence_ids: Iterable[str],
+    normalize_known_wrappers: bool = True,
 ) -> ClaimValidationReport:
     available = tuple(dict.fromkeys(str(item) for item in available_evidence_ids if item))
     available_set = set(available)
     accepted: list[ValidatedClaim] = []
     rejected: list[RejectedClaim] = []
     seen_claim_ids: set[str] = set()
+    normalized_references = 0
 
     for value in drafts:
         draft = value if isinstance(value, ClaimDraft) else ClaimDraft.model_validate(value)
+        canonical_ids = []
+        for evidence_id in draft.evidence_ids:
+            canonical = (
+                normalize_known_evidence_reference(evidence_id, available_set)
+                if normalize_known_wrappers
+                else evidence_id
+            )
+            normalized_references += canonical != evidence_id
+            if canonical not in canonical_ids:
+                canonical_ids.append(canonical)
         issues: list[ClaimIssue] = []
         if not draft.evidence_ids:
             issues.append(
@@ -153,7 +173,7 @@ def validate_claims(
                     "claim has no evidence_id",
                 )
             )
-        for evidence_id in draft.evidence_ids:
+        for evidence_id in canonical_ids:
             if evidence_id not in available_set:
                 issues.append(ClaimIssue(ClaimIssueCode.UNKNOWN_EVIDENCE, evidence_id))
         if draft.kind is ClaimKind.INFERENCE and not draft.limitations:
@@ -169,7 +189,7 @@ def validate_claims(
 
         claim_id = stable_claim_id(
             text=draft.text,
-            evidence_ids=draft.evidence_ids,
+            evidence_ids=canonical_ids,
             kind=draft.kind,
             limitations=draft.limitations,
         )
@@ -180,7 +200,7 @@ def validate_claims(
             ValidatedClaim(
                 claim_id=claim_id,
                 text=draft.text,
-                evidence_ids=tuple(draft.evidence_ids),
+                evidence_ids=tuple(canonical_ids),
                 kind=draft.kind,
                 limitations=tuple(draft.limitations),
             )
@@ -190,6 +210,7 @@ def validate_claims(
         accepted=tuple(accepted),
         rejected=tuple(rejected),
         available_evidence_ids=available,
+        normalized_evidence_references=normalized_references,
     )
 
 

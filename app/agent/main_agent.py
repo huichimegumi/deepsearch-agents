@@ -451,7 +451,7 @@ def _render_validated_compression(
         parsed.claims,
         available_evidence_ids=run_trace.claim_eligible_evidence_ids,
     )
-    run_trace.record_claim_validation(validation)
+    run_trace.record_claim_validation(validation, drafts=parsed.claims)
     return parsed.to_markdown(validation)
 
 
@@ -1542,6 +1542,7 @@ async def run_deep_agent(
         budget=research_budget,
     )
     run_trace.local_retrieval_required = _requires_local_knowledge_base_only(task_query)
+    run_trace.capture_claim_validation_inputs = export_evaluation_evidence
     print(f"[MainAgent] 开始执行会话，session_id={session_id}")
     write_audit_event(
         "task_started",

@@ -30,6 +30,10 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E3.1b 修复 Claim 数组中已知稳定 ID 被一层方括号包装时的误拒绝，保留未知 ID、缺证据及推断边界校验。评测快照额外保存原始结构化 Claim，支持不调用模型或检索的同输入旧规则／新规则重放。该改动只验证引用结构，不等于事实受支持；负样本幻觉与跨文档覆盖仍未解决。见 [策略与重放说明](docs/development/e3-1b-canonical-claim-references.md)。
+
+仅复测 001/002 两题：两题最终引用校验均通过，001 仍因调用预算降级、002 正常完成。对相同的 9 条已保存 Claim 离线重放，旧格式规则拒绝 9 条，新规则结构校验通过 9 条，涉及 14 个已知引用包装；不是答案正确率，也未更新六题总体结果。273 项测试通过、6 项跳过，Tavily 使用量为 0。见 [执行与重放记录](evals/reports/e3-1b-claim-reference-replay-2026-10-19.json)。
+
 E3.1a 已为本地限定任务增加后端强制检索与无证据输出边界：记录 `not_executed`、`error`、`no_evidence`、`evidence`，无本地证据时由后端说明具体状态，不能把未检索或执行失败写成“文档不存在”。检索占用原研究预算，不增加总时限；Agent、Claim 校验及检索参数保持不变。见 [开发记录](docs/development/e3-1a-required-local-retrieval.md)。
 
 同一组 6 题实跑后，有答案题零取证从 2/5 降到 0/5；仍有 3 题降级，跨文档证据覆盖不完整。无答案题补检索取得无关片段后仍出现无依据的文档目录描述，因此“有 Evidence／运行完成”不是报告合格。使用量为 0 次 Tavily；人工验收仍待完成。见 [前后对照](evals/reports/e3-1a-local-retrieval-2026-10-19.json)。
@@ -523,6 +527,18 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E3.1b repairs only a single bracket wrapper around an already eligible stable Claim reference;
+unknown IDs, missing evidence, and inference limitations remain enforced. Opt-in evaluation
+snapshots retain original typed Claims for offline exact-input policy replay without model or
+retrieval calls. Structural linkage is not entailment; negative-case hallucinations and
+cross-document coverage remain unresolved. See the [policy/replay record](docs/development/e3-1b-canonical-claim-references.md).
+
+Only tasks 001/002 were rerun: both passed final citation validation; 001 still degraded on the
+call budget while 002 completed. Offline replay of the identical nine saved Claims changes nine
+format-only rejections into structural acceptance by normalizing fourteen eligible references.
+This is not answer accuracy or an updated six-task pass rate. Regression: 273 passed, 6 skipped;
+zero Tavily queries. See the [execution/replay record](evals/reports/e3-1b-claim-reference-replay-2026-10-19.json).
 
 E3.1a adds a backend-required lookup and a zero-local-evidence output boundary for local-only
 requests. It distinguishes not-executed, error, bounded no-evidence, and returned-evidence states;

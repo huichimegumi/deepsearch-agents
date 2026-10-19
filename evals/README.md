@@ -55,6 +55,12 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 - 报告产物与运行状态；现有 Judge 仅评文本表达与结构。
 - 文件名命中率 @8（不验证答案证据片段）。
 
+## E3.1b：引用格式规范化与离线重放
+
+仅对完整的一层 `[ev1_…]` 且内部 ID 已在允许清单中的引用去除包装；未知 ID、多 ID、附带文本等仍拒绝。评测模式额外保存原始结构化 Claim 与当时允许清单，可用 `python -m evals.reports_acceptance.replay_claims --report-results ...` 在同一批输入上对照旧规则和新规则，不额外调用模型或检索。旧快照缺少结构化 Claim 时明确拒绝重建；结构校验通过不代表证据支持或报告正确。见 [开发记录](../docs/development/e3-1b-canonical-claim-references.md)。
+
+仅重跑 001/002，两个引用校验均通过；001 仍调用预算降级、002 正常完成。同输入离线重放中，旧格式规则拒绝全部 9 条，新规则结构通过 9 条（14 个已知包装引用）。这不代表语义验收，也不替换原六题结果。见 [独立记录](reports/e3-1b-claim-reference-replay-2026-10-19.json)。
+
 ## E3.1：真实本地报告验收
 
 E3.1a 增加强制本地取证和无证据报告边界，runner 保存新的 `local_retrieval` 状态。仍使用同一组 6 题开发任务作前后对照，不修改 gold、检索参数或模型；实际取回证据不等于回答正确。边界定义、预算与线程超时限制见 [开发记录](../docs/development/e3-1a-required-local-retrieval.md)。

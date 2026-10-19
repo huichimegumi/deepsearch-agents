@@ -211,6 +211,9 @@ class ResearchRunTrace:
     claim_evidence_ids: list[str] = field(default_factory=list)
     claims_by_kind: Counter[str] = field(default_factory=Counter)
     rejected_claims: int = 0
+    normalized_evidence_references: int = 0
+    capture_claim_validation_inputs: bool = False
+    _claim_validation_batches: list[dict[str, Any]] = field(default_factory=list, repr=False)
     unknown_claim_evidence_ids: list[str] = field(default_factory=list)
     report_cited_evidence_ids: list[str] = field(default_factory=list)
     report_citation_valid: bool | None = None
@@ -630,6 +633,7 @@ class ResearchRunTrace:
             "schema_version": 1,
             "run_id": self.run_id,
             "records": [record.to_dict() for record in self._evidence_records_by_id.values()],
+            "claim_validation_batches": self._claim_validation_batches,
         }
 
     def render_evidence_ledger(
@@ -716,8 +720,20 @@ class ResearchRunTrace:
             )
         return "\n".join(lines).strip()
 
-    def record_claim_validation(self, report: Any) -> None:
+    def record_claim_validation(self, report: Any, *, drafts: list[Any] | None = None) -> None:
         """Record backend-validated claim links without copying claim or evidence content."""
+        self.normalized_evidence_references += getattr(report, "normalized_evidence_references", 0)
+        if self.capture_claim_validation_inputs and drafts is not None:
+            self._claim_validation_batches.append(
+                {
+                    "policy": "known_single_bracket_v1",
+                    "drafts": [draft.model_dump(mode="json") for draft in drafts],
+                    "available_evidence_ids": list(report.available_evidence_ids),
+                    "accepted_count": len(report.accepted),
+                    "rejected_count": len(report.rejected),
+                    "normalized_evidence_references": report.normalized_evidence_references,
+                }
+            )
         for claim in getattr(report, "accepted", ()):
             claim_id = str(getattr(claim, "claim_id", "") or "")
             kind = getattr(claim, "kind", "unknown")
@@ -783,6 +799,7 @@ class ResearchRunTrace:
                 "sql_evidence_by_kind": dict(self.sql_evidence_by_kind),
                 "validated_claims": len(self.claim_ids),
                 "rejected_claims": self.rejected_claims,
+                "normalized_evidence_references": self.normalized_evidence_references,
                 "claims_by_kind": dict(self.claims_by_kind),
                 "claim_evidence_records": len(self.claim_evidence_ids),
                 "unknown_claim_evidence_ids": len(self.unknown_claim_evidence_ids),

@@ -1,0 +1,245 @@
+{
+  "run_id": "report_acceptance_20261019T120234Z_bf87f1e46f",
+  "suite_version": "report_local_v1",
+  "manifest": {
+    "git_commit": "094a85bc9564c4203705225b96575c61d78c2de6",
+    "git_dirty": true,
+    "source_sha256": "973148b96ee1f5c56748d8bf0d08dc7772430e9c2ce313763b0c4262866246d6",
+    "dataset_sha256": "e69275e9f0718f01b57b6317c0c1de6624b6f62a9a5fa916e6db99ce57299158",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "versions": {
+      "fastembed": "0.8.0",
+      "onnxruntime": "1.27.0",
+      "qdrant-client": "1.18.0",
+      "deepagents": "0.5.7"
+    },
+    "configuration": {
+      "model": "qwen-flash",
+      "selected_cases": [
+        "report_local_001",
+        "report_local_002"
+      ],
+      "prompt_mode": "user_local_scope_only_no_gold_or_hidden_routes",
+      "execution_enabled": true,
+      "timeout_seconds": 330,
+      "token_scope": "trace_instrumentation_not_total_provider_billing",
+      "knowledge_bases": [
+        "电商行业",
+        "金融行业"
+      ],
+      "limits": {
+        "profile": "deep_report",
+        "total_seconds": 300,
+        "max_search_queries": 0,
+        "max_fetched_pages": 0,
+        "max_research_rounds": 2,
+        "max_llm_calls": 12,
+        "writer_reserved_seconds": 75,
+        "verifier_reserved_seconds": 0
+      }
+    }
+  },
+  "corpus_sha256": "4bd56a51490ea32fe830fd39efa4dd8a97f14a9d4a8457dd8ce6221305f9eedc",
+  "inputs_unchanged": true,
+  "annotation_review": "source_verified_by_agent_pending_human_review",
+  "acceptance": "pending_human_review",
+  "generative_answer_accuracy": null,
+  "scheduled_subset": [
+    "report_local_001",
+    "report_local_002"
+  ],
+  "not_executed_this_stage": [
+    "report_local_003",
+    "report_local_004",
+    "report_local_005",
+    "report_local_006"
+  ],
+  "human_reviewed_cases": 0,
+  "total_search_queries": 0,
+  "total_fetched_pages": 0,
+  "rows": [
+    {
+      "id": "report_local_001",
+      "execution_status": "degraded",
+      "elapsed_seconds": 110.391,
+      "failure_reasons": [
+        "llm_call_limit"
+      ],
+      "local_retrieval": {
+        "required": true,
+        "state": "evidence",
+        "had_error": false,
+        "record_count": 11,
+        "required_lookup_elapsed_ms": 32781,
+        "attempts": [
+          {
+            "status": "PARTIAL",
+            "record_count": 6
+          },
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          },
+          {
+            "status": "PARTIAL",
+            "record_count": 6
+          }
+        ]
+      },
+      "report_sha256": "d5ecd0c9d53a587b218326fe30028a02c2826ae8f0626d86195d0bbe1a3a2a7c",
+      "evidence_sha256": "f112b43451762ad293f1deb16786fc9411c0e61f7f48c3412780f87e6aa086e1",
+      "normalized_evidence_references": 5,
+      "structurally_validated_claims": 4,
+      "rejected_claims": 0,
+      "report_citation_valid": true,
+      "all_reference_units_cited": true
+    },
+    {
+      "id": "report_local_002",
+      "execution_status": "completed",
+      "elapsed_seconds": 83.844,
+      "failure_reasons": [],
+      "local_retrieval": {
+        "required": true,
+        "state": "evidence",
+        "had_error": false,
+        "record_count": 12,
+        "required_lookup_elapsed_ms": 28234,
+        "attempts": [
+          {
+            "status": "PARTIAL",
+            "record_count": 6
+          },
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          },
+          {
+            "status": "PARTIAL",
+            "record_count": 6
+          }
+        ]
+      },
+      "report_sha256": "d34dca8f804cb933e594d9b353fc5c0af501f365db79ad737b5e6a58c4595e05",
+      "evidence_sha256": "91d0bee18f384e22b25689b9fd8f4822b0c0ed55776f4b5e65acd18b1e77ef1c",
+      "normalized_evidence_references": 9,
+      "structurally_validated_claims": 5,
+      "rejected_claims": 0,
+      "report_citation_valid": true,
+      "all_reference_units_cited": true
+    }
+  ],
+  "offline_replay": {
+    "run_id": "claim_replay_20261019T120630Z_c53c467ed6",
+    "original_run_id": "report_acceptance_20261019T120234Z_bf87f1e46f",
+    "execution_manifest": {
+      "git_commit": "094a85bc9564c4203705225b96575c61d78c2de6",
+      "git_dirty": true,
+      "source_sha256": "973148b96ee1f5c56748d8bf0d08dc7772430e9c2ce313763b0c4262866246d6",
+      "dataset_sha256": "e69275e9f0718f01b57b6317c0c1de6624b6f62a9a5fa916e6db99ce57299158",
+      "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+      "versions": {
+        "fastembed": "0.8.0",
+        "onnxruntime": "1.27.0",
+        "qdrant-client": "1.18.0",
+        "deepagents": "0.5.7"
+      },
+      "configuration": {
+        "model": "qwen-flash",
+        "selected_cases": [
+          "report_local_001",
+          "report_local_002"
+        ],
+        "prompt_mode": "user_local_scope_only_no_gold_or_hidden_routes",
+        "execution_enabled": true,
+        "timeout_seconds": 330,
+        "token_scope": "trace_instrumentation_not_total_provider_billing",
+        "knowledge_bases": [
+          "电商行业",
+          "金融行业"
+        ],
+        "limits": {
+          "profile": "deep_report",
+          "total_seconds": 300,
+          "max_search_queries": 0,
+          "max_fetched_pages": 0,
+          "max_research_rounds": 2,
+          "max_llm_calls": 12,
+          "writer_reserved_seconds": 75,
+          "verifier_reserved_seconds": 0
+        }
+      }
+    },
+    "replay_manifest": {
+      "git_commit": "094a85bc9564c4203705225b96575c61d78c2de6",
+      "git_dirty": true,
+      "source_sha256": "973148b96ee1f5c56748d8bf0d08dc7772430e9c2ce313763b0c4262866246d6",
+      "dataset_sha256": "c4101aae5e0574ff994069599b3d0101dc64063a3915395aec9298e13c4b3ff2",
+      "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+      "versions": {
+        "fastembed": "0.8.0",
+        "onnxruntime": "1.27.0",
+        "qdrant-client": "1.18.0",
+        "deepagents": "0.5.7"
+      },
+      "configuration": {
+        "mode": "offline_identical_drafts_exact_vs_known_single_bracket_v1",
+        "llm_calls": 0,
+        "retrieval_calls": 0
+      }
+    },
+    "results": [
+      {
+        "id": "report_local_001",
+        "evidence_sha256": "f112b43451762ad293f1deb16786fc9411c0e61f7f48c3412780f87e6aa086e1",
+        "status": "replayed",
+        "batches": [
+          {
+            "exact": {
+              "accepted": 0,
+              "rejected": 4,
+              "normalized_evidence_references": 0,
+              "issue_counts": {
+                "unknown_evidence": 5
+              }
+            },
+            "canonical": {
+              "accepted": 4,
+              "rejected": 0,
+              "normalized_evidence_references": 5,
+              "issue_counts": {}
+            }
+          }
+        ]
+      },
+      {
+        "id": "report_local_002",
+        "evidence_sha256": "91d0bee18f384e22b25689b9fd8f4822b0c0ed55776f4b5e65acd18b1e77ef1c",
+        "status": "replayed",
+        "batches": [
+          {
+            "exact": {
+              "accepted": 0,
+              "rejected": 5,
+              "normalized_evidence_references": 0,
+              "issue_counts": {
+                "unknown_evidence": 9
+              }
+            },
+            "canonical": {
+              "accepted": 5,
+              "rejected": 0,
+              "normalized_evidence_references": 9,
+              "issue_counts": {}
+            }
+          }
+        ]
+      }
+    ],
+    "semantic_acceptance": "pending_human_review",
+    "note": "Structural reference validation only; not claim entailment or report correctness."
+  },
+  "execution_results_sha256": "c4101aae5e0574ff994069599b3d0101dc64063a3915395aec9298e13c4b3ff2",
+  "offline_replay_results_sha256": "6629c4ad8e10edb050c3e2242b0ce327d1769f9417708619bcd900362980ea08",
+  "note": "Two fresh development reports only; offline old/new comparison uses identical saved Claim drafts and eligible IDs. Structural linkage is not semantic support or report accuracy. Legacy six-case runs are not rescored or overwritten."
+}

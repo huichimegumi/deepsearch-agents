@@ -1,5 +1,10 @@
 # E3.1: local report acceptance
 
+E3.1b narrowly normalizes one bracket-wrapped, already eligible stable Claim ID. Evaluation
+snapshots now additionally retain original typed `claim_validation_batches` for offline
+exact-string versus canonical-policy replay. No semantic approval follows from either policy.
+See the [policy and replay contract](../../docs/development/e3-1b-canonical-claim-references.md).
+
 E3.1a adds required production lookup for local-only requests and preserves `local_retrieval`
 states in each row. Zero-local-Evidence compression/writing is replaced with a deterministic
 not-executed/error/no-evidence report; a returned record still needs normal Claim/citation and
