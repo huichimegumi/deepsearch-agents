@@ -91,6 +91,7 @@ async def execute_case(case: dict, prompt: str, session_id: str, directory: Path
         "artifact_paths": artifacts,
         "trace_metrics": trace.get("metrics", {}),
         "failure_reasons": trace.get("failure_reasons", []),
+        "local_retrieval": trace.get("local_retrieval"),
         "audit": audit,
         "review_directory": str(directory.relative_to(ROOT)),
         "report_sha256": file_sha256(directory / "report.md"),

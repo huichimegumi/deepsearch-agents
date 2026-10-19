@@ -1,0 +1,379 @@
+{
+  "run_id": "report_acceptance_20261019T113653Z_fc86f635c0",
+  "suite_version": "report_local_v1",
+  "manifest": {
+    "git_commit": "bfafdc27c23b3da2c3c549b6b092daf8f2b3f7a5",
+    "git_dirty": true,
+    "source_sha256": "06cff581c2b76580ea2faa86c6b83ce38188f4c057c6ad3ab9cbcabd06e6c8fe",
+    "dataset_sha256": "e69275e9f0718f01b57b6317c0c1de6624b6f62a9a5fa916e6db99ce57299158",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "versions": {
+      "fastembed": "0.8.0",
+      "onnxruntime": "1.27.0",
+      "qdrant-client": "1.18.0",
+      "deepagents": "0.5.7"
+    },
+    "configuration": {
+      "model": "qwen-flash",
+      "selected_cases": [
+        "report_local_001",
+        "report_local_002",
+        "report_local_003",
+        "report_local_004",
+        "report_local_005",
+        "report_local_006"
+      ],
+      "prompt_mode": "user_local_scope_only_no_gold_or_hidden_routes",
+      "execution_enabled": true,
+      "timeout_seconds": 330,
+      "token_scope": "trace_instrumentation_not_total_provider_billing",
+      "knowledge_bases": [
+        "电商行业",
+        "金融行业"
+      ],
+      "limits": {
+        "profile": "deep_report",
+        "total_seconds": 300,
+        "max_search_queries": 0,
+        "max_fetched_pages": 0,
+        "max_research_rounds": 2,
+        "max_llm_calls": 12,
+        "writer_reserved_seconds": 75,
+        "verifier_reserved_seconds": 0
+      }
+    }
+  },
+  "corpus_sha256": "4bd56a51490ea32fe830fd39efa4dd8a97f14a9d4a8457dd8ce6221305f9eedc",
+  "inputs_unchanged": true,
+  "annotation_review": "source_verified_by_agent_pending_human_review",
+  "acceptance": "pending_human_review",
+  "generative_answer_accuracy": null,
+  "scheduled_cases": 6,
+  "executed_cases": 6,
+  "nonempty_reports": 6,
+  "evidence_snapshots_present": 6,
+  "human_reviewed_cases": 0,
+  "total_search_queries": 0,
+  "total_fetched_pages": 0,
+  "mandatory_collector_attempts": 12,
+  "baseline": {
+    "run_id": "report_acceptance_20261018T110328Z_58d089e350",
+    "summary_path": "evals/reports/e3-1-local-reports-2026-10-18.json",
+    "summary_sha256": "acfbc97f7d353f9fe6cadb1f60833a2b92c0797d15e49ba28cb4a53df13534f6"
+  },
+  "paired_summary": {
+    "before": {
+      "execution_status_counts": {
+        "degraded": 5,
+        "completed": 1
+      },
+      "cases_with_registered_local_evidence": 3,
+      "answerable_cases_without_local_evidence": 2,
+      "answerable_denominator": 5,
+      "answerable_all_reference_units_retrieved": 2,
+      "answerable_all_reference_units_cited": 2
+    },
+    "after": {
+      "execution_status_counts": {
+        "degraded": 3,
+        "completed": 3
+      },
+      "cases_with_registered_local_evidence": 6,
+      "answerable_cases_without_local_evidence": 0,
+      "answerable_denominator": 5,
+      "answerable_all_reference_units_retrieved": 3,
+      "answerable_all_reference_units_cited": 3
+    },
+    "same_dataset_corpus_configuration": true,
+    "semantic_acceptance_computed": false
+  },
+  "agent_source_audit_not_human_approval": {
+    "report_local_006": [
+      "Initial mandatory queries returned no evidence; later broader Agent queries retrieved two unrelated local records.",
+      "Report names documents absent from the selected five-document corpus; appropriate abstention has not passed acceptance.",
+      "All six final rows have local records; zero-evidence terminal override is covered by deterministic tests, not exercised by the final rows of this real run."
+    ]
+  },
+  "rows": [
+    {
+      "id": "report_local_001",
+      "answerable": true,
+      "execution_status": "degraded",
+      "elapsed_seconds": 105.047,
+      "failure_reasons": [
+        "llm_call_limit",
+        "final_report_citation_validation_failed"
+      ],
+      "local_retrieval": {
+        "required": true,
+        "state": "evidence",
+        "had_error": false,
+        "record_count": 8,
+        "required_lookup_elapsed_ms": 31985,
+        "attempts": [
+          {
+            "status": "PARTIAL",
+            "record_count": 6
+          },
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          },
+          {
+            "status": "PARTIAL",
+            "record_count": 6
+          }
+        ]
+      },
+      "evidence_count": 8,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": true,
+      "all_reference_units_cited": true,
+      "report_sha256": "2772fd69d23ce8c57e6e1c184c0257266f2432b0bf7e8cb6b2faad601217f066",
+      "evidence_sha256": "d2a262ec90f41883f2e56ac4293df37184368492b65a36998f0ed8f8ac230366",
+      "tool_calls_by_name": {
+        "collect_evidence_request": 2,
+        "write_todos": 5,
+        "read_file_content": 1,
+        "glob": 1,
+        "grep": 1,
+        "collect_evidence": 1,
+        "write_markdown_artifact": 1
+      },
+      "validated_claims": 0,
+      "rejected_claims": 5
+    },
+    {
+      "id": "report_local_002",
+      "answerable": true,
+      "execution_status": "degraded",
+      "elapsed_seconds": 98.234,
+      "failure_reasons": [
+        "final_report_citation_validation_failed"
+      ],
+      "local_retrieval": {
+        "required": true,
+        "state": "evidence",
+        "had_error": true,
+        "record_count": 10,
+        "required_lookup_elapsed_ms": 27922,
+        "attempts": [
+          {
+            "status": "PARTIAL",
+            "record_count": 6
+          },
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          },
+          {
+            "status": "ERROR",
+            "record_count": 0
+          },
+          {
+            "status": "PARTIAL",
+            "record_count": 6
+          }
+        ]
+      },
+      "evidence_count": 10,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": true,
+      "all_reference_units_cited": true,
+      "report_sha256": "b5c9221013c914e2f5d62c07115127f3193879c3c3015f705e85c4d499940fda",
+      "evidence_sha256": "316e1aab3ad72475117ac0eed0a5a9281d99956fc9f6733c1f52144a24f883e5",
+      "tool_calls_by_name": {
+        "collect_evidence_request": 2,
+        "collect_evidence": 2,
+        "write_todos": 4,
+        "write_markdown_artifact": 1
+      },
+      "validated_claims": 0,
+      "rejected_claims": 10
+    },
+    {
+      "id": "report_local_003",
+      "answerable": true,
+      "execution_status": "completed",
+      "elapsed_seconds": 70.891,
+      "failure_reasons": [],
+      "local_retrieval": {
+        "required": true,
+        "state": "evidence",
+        "had_error": false,
+        "record_count": 6,
+        "required_lookup_elapsed_ms": 26312,
+        "attempts": [
+          {
+            "status": "PARTIAL",
+            "record_count": 6
+          },
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          }
+        ]
+      },
+      "evidence_count": 6,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": true,
+      "all_reference_units_cited": true,
+      "report_sha256": "1f5e2a2f621c9829475a0a6177379cca85d7d846c0b44b55a6249f1b50cad2b2",
+      "evidence_sha256": "7144165bd3b87666b3ff19e4f6e90135bf4393f081a8e9cb64f1b25fc47cedd8",
+      "tool_calls_by_name": {
+        "collect_evidence_request": 2,
+        "read_file_content": 1,
+        "ls": 1,
+        "write_todos": 2,
+        "glob": 3,
+        "write_markdown_artifact": 1
+      },
+      "validated_claims": 8,
+      "rejected_claims": 0
+    },
+    {
+      "id": "report_local_004",
+      "answerable": true,
+      "execution_status": "completed",
+      "elapsed_seconds": 83.64,
+      "failure_reasons": [],
+      "local_retrieval": {
+        "required": true,
+        "state": "evidence",
+        "had_error": false,
+        "record_count": 10,
+        "required_lookup_elapsed_ms": 29204,
+        "attempts": [
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          },
+          {
+            "status": "PARTIAL",
+            "record_count": 6
+          },
+          {
+            "status": "PARTIAL",
+            "record_count": 6
+          }
+        ]
+      },
+      "evidence_count": 10,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": false,
+      "all_reference_units_cited": false,
+      "report_sha256": "e5176468c133a144ef402a6724c761d8524a04b59d42bbe005233851a6446fa4",
+      "evidence_sha256": "cec1349c8d16cd17931afadfe3fff25fc9625d9dd2af3e58c0a87f5c0c082143",
+      "tool_calls_by_name": {
+        "collect_evidence_request": 2,
+        "write_todos": 1,
+        "collect_evidence": 1,
+        "write_markdown_artifact": 1
+      },
+      "validated_claims": 5,
+      "rejected_claims": 0
+    },
+    {
+      "id": "report_local_005",
+      "answerable": true,
+      "execution_status": "degraded",
+      "elapsed_seconds": 180.047,
+      "failure_reasons": [
+        "timeout",
+        "final_report_citation_validation_failed"
+      ],
+      "local_retrieval": {
+        "required": true,
+        "state": "evidence",
+        "had_error": false,
+        "record_count": 2,
+        "required_lookup_elapsed_ms": 30500,
+        "attempts": [
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          },
+          {
+            "status": "OK",
+            "record_count": 2
+          }
+        ]
+      },
+      "evidence_count": 2,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": false,
+      "all_reference_units_cited": false,
+      "report_sha256": "a7e8e90d482d9ae67f65e595aed263fef2605d2f419acb06274462d63cf365a6",
+      "evidence_sha256": "ae984902ba883e9b2215795a6f0c4077074f8b211c7422c68fb7d496e8d8e9e5",
+      "tool_calls_by_name": {
+        "collect_evidence_request": 2,
+        "write_markdown_artifact": 1
+      },
+      "validated_claims": 4,
+      "rejected_claims": 0
+    },
+    {
+      "id": "report_local_006",
+      "answerable": false,
+      "execution_status": "completed",
+      "elapsed_seconds": 155.484,
+      "failure_reasons": [],
+      "local_retrieval": {
+        "required": true,
+        "state": "evidence",
+        "had_error": false,
+        "record_count": 2,
+        "required_lookup_elapsed_ms": 30531,
+        "attempts": [
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          },
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          },
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          },
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          },
+          {
+            "status": "OK",
+            "record_count": 1
+          },
+          {
+            "status": "OK",
+            "record_count": 1
+          },
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          },
+          {
+            "status": "NO_EVIDENCE",
+            "record_count": 0
+          }
+        ]
+      },
+      "evidence_count": 2,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": null,
+      "all_reference_units_cited": null,
+      "report_sha256": "75145d77413271e6dba0e728222d2e866d3de10102769911d4511756f8ce82d5",
+      "evidence_sha256": "d4c9753ed33e78e6bd3eb513086cc5033ed998b7e830f2f0635eac860435e224",
+      "tool_calls_by_name": {
+        "collect_evidence_request": 2,
+        "write_todos": 1,
+        "collect_evidence": 6,
+        "write_markdown_artifact": 1
+      },
+      "validated_claims": 2,
+      "rejected_claims": 0
+    }
+  ],
+  "note": "Citation/anchor presence includes degraded or rejected-claim text; record presence is not relevance, entailment, or answer accuracy. One stochastic paired development run is not a causal quality estimate."
+}

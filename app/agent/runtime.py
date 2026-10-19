@@ -182,6 +182,9 @@ class ResearchRunTrace:
     failure_reason: str | None = None
     failure_reasons: list[str] = field(default_factory=list)
     phases: list[dict[str, Any]] = field(default_factory=list)
+    local_retrieval_required: bool = False
+    local_retrieval_attempts: list[dict[str, Any]] = field(default_factory=list)
+    local_retrieval_required_elapsed_ms: int = 0
     llm_calls: int = 0
     tool_calls: int = 0
     tool_calls_by_name: Counter[str] = field(default_factory=Counter)
@@ -596,6 +599,31 @@ class ResearchRunTrace:
         elif operation == "sample_table":
             self.sql_sample_calls += 1
 
+    def record_local_retrieval(self, status: str, record_count: int) -> None:
+        self.local_retrieval_attempts.append({"status": status, "record_count": record_count})
+
+    def local_retrieval_summary(self) -> dict[str, Any]:
+        errors = any(
+            attempt["status"] in {"ERROR", "TIMEOUT"} for attempt in self.local_retrieval_attempts
+        )
+        records = self.evidence_by_source.get("local_document", 0)
+        if records:
+            state = "evidence"
+        elif errors:
+            state = "error"
+        elif any(attempt["status"] == "NO_EVIDENCE" for attempt in self.local_retrieval_attempts):
+            state = "no_evidence"
+        else:
+            state = "not_executed"
+        return {
+            "required": self.local_retrieval_required,
+            "state": state,
+            "had_error": errors,
+            "record_count": records,
+            "required_lookup_elapsed_ms": self.local_retrieval_required_elapsed_ms,
+            "attempts": list(self.local_retrieval_attempts),
+        }
+
     def export_evidence_snapshot(self) -> dict[str, Any]:
         """Explicit content-bearing export for opt-in evaluation, never telemetry."""
         return {
@@ -738,6 +766,7 @@ class ResearchRunTrace:
             "budget_profile": self.budget_profile,
             "budget": self.budget.snapshot(),
             "phases": self.phases,
+            "local_retrieval": self.local_retrieval_summary(),
             "metrics": {
                 "llm_calls": self.llm_calls,
                 "tool_calls": self.tool_calls,

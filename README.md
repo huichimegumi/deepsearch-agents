@@ -30,6 +30,10 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E3.1a 已为本地限定任务增加后端强制检索与无证据输出边界：记录 `not_executed`、`error`、`no_evidence`、`evidence`，无本地证据时由后端说明具体状态，不能把未检索或执行失败写成“文档不存在”。检索占用原研究预算，不增加总时限；Agent、Claim 校验及检索参数保持不变。见 [开发记录](docs/development/e3-1a-required-local-retrieval.md)。
+
+同一组 6 题实跑后，有答案题零取证从 2/5 降到 0/5；仍有 3 题降级，跨文档证据覆盖不完整。无答案题补检索取得无关片段后仍出现无依据的文档目录描述，因此“有 Evidence／运行完成”不是报告合格。使用量为 0 次 Tavily；人工验收仍待完成。见 [前后对照](evals/reports/e3-1a-local-retrieval-2026-10-19.json)。
+
 E3.1 新增 6 个真实本地报告开发任务，保存实际报告、完整 Evidence、引用 ID 核验、参考证据覆盖与人工复核表。报告验收不再以“生成文件”代替事实正确；答案要点、证据支持及无答案拒答仍待人工审核。此阶段搜索/抓取预算均为 0；2 个 Web 与 2 个简单跨源报告留待后续 E3。见 [报告验收](evals/reports_acceptance/README.md) 和 [开发记录](docs/development/e3-1-local-report-acceptance.md)。
 
 首轮 6 题均生成了非空文件和证据快照，但 5 题降级，唯一标为 `completed` 的跨文档题没有实际获取 Evidence。因此不能声称报告验收通过；下一步优先修复“未检索/检索失败被写成文档不存在”的边界。零 Tavily 查询，完整结果见 [基线摘要](evals/reports/e3-1-local-reports-2026-10-18.json)。
@@ -519,6 +523,18 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E3.1a adds a backend-required lookup and a zero-local-evidence output boundary for local-only
+requests. It distinguishes not-executed, error, bounded no-evidence, and returned-evidence states;
+failed or skipped retrieval cannot be rewritten as document absence when no local Evidence exists.
+Lookup consumes the existing research budget. Agent, Claim validation, and retrieval settings are
+unchanged. See the [development record](docs/development/e3-1a-required-local-retrieval.md).
+
+On the same six tasks, answerable cases with zero local Evidence fell from 2/5 to 0/5. Three
+executions still degraded and cross-document coverage remains incomplete. Broader queries on
+the negative task retrieved unrelated chunks and the report still invented a document inventory;
+record presence/completion is not acceptance. No Tavily queries were used; human review remains
+pending. See the [paired record](evals/reports/e3-1a-local-retrieval-2026-10-19.json).
 
 E3.1 adds six real local-report development tasks with saved reports, full Evidence bodies,
 citation-ID checks, reference-evidence coverage, and unchecked human review worksheets.

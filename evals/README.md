@@ -57,6 +57,10 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 
 ## E3.1：真实本地报告验收
 
+E3.1a 增加强制本地取证和无证据报告边界，runner 保存新的 `local_retrieval` 状态。仍使用同一组 6 题开发任务作前后对照，不修改 gold、检索参数或模型；实际取回证据不等于回答正确。边界定义、预算与线程超时限制见 [开发记录](../docs/development/e3-1a-required-local-retrieval.md)。
+
+实跑 12 次强制本地检索后，有答案题零取证从 2/5 降到 0/5，执行结果为 3 completed、3 degraded；这不是报告验收通过率。负样本补检索取得无关片段后仍输出无依据的文档目录，不能计为正确拒答。原始基线不覆盖；新 [前后对照](reports/e3-1a-local-retrieval-2026-10-19.json) 保留独立记录，人工语义复核仍待完成。
+
 新增 `python -m evals.reports_acceptance.run --execute`，执行 6 个固定开发任务（4 个单文档、1 个跨文档、1 个无答案）。完整报告与 Evidence 正文、引用核验、参考要点、未勾选的人工复核表均保存到独立且被忽略的运行目录。提示不注入参考答案；搜索/抓取预算均为 0。ID 有效、参考证据取回和被引用分别统计，不据此自动判定事实正确；答案准确率保持空值，验收仍待人工复核。见 [使用说明](reports_acceptance/README.md) 与 [开发记录](../docs/development/e3-1-local-report-acceptance.md)。余下 2 个 Web、2 个简单跨源任务属于后续 E3 范围。
 
 ## E1/E2：评测运行基础与 RAG 实验

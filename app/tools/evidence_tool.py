@@ -934,6 +934,8 @@ def collect_evidence(
     }
     if trace is not None:
         trace.record_evidence(batch.records)
+        if source_type is EvidenceSource.LOCAL_DOCUMENT:
+            trace.record_local_retrieval(batch.status.value, len(batch.records))
         if source_type is EvidenceSource.SQL and operation == "query":
             trace.record_sql_query_evidence(query, batch.records)
     write_audit_event("evidence_collected", event)

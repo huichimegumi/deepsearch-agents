@@ -59,6 +59,7 @@ from app.research.claims import (
     validate_claims,
     validate_report_citations,
 )
+from app.research.local_retrieval import local_evidence_boundary, require_local_retrieval
 from app.tools.evidence_tool import collect_evidence
 from app.tools.markdown_tools import write_markdown_artifact
 from app.tools.memory_tools import remember_user_memory, search_user_memory
@@ -1540,6 +1541,7 @@ async def run_deep_agent(
         budget_profile=budget_profile,
         budget=research_budget,
     )
+    run_trace.local_retrieval_required = _requires_local_knowledge_base_only(task_query)
     print(f"[MainAgent] 开始执行会话，session_id={session_id}")
     write_audit_event(
         "task_started",
@@ -1697,6 +1699,7 @@ async def run_deep_agent(
                     reason=reason,
                 )
                 if phase.key == "final_report":
+                    phase_result = local_evidence_boundary(run_trace) or phase_result
                     phase_result, citation_validation = _enforce_final_report_citations(
                         report_markdown=phase_result,
                         compressed_fallback=phase_outputs.get("evidence_compression", ""),
@@ -1738,6 +1741,25 @@ async def run_deep_agent(
             )
             phase_runtime_instructions = runtime_instructions
             if phase.key == "supervisor_research":
+                if run_trace.local_retrieval_required:
+                    lookup_started = asyncio.get_running_loop().time()
+                    await require_local_retrieval(
+                        task_query, run_trace, phase_budget.timeout_seconds
+                    )
+                    lookup_elapsed = asyncio.get_running_loop().time() - lookup_started
+                    phase_budget = AgentExecutionBudget(
+                        recursion_limit=phase_budget.recursion_limit,
+                        timeout_seconds=research_budget.phase_timeout(
+                            phase.key, max(0.0, phase_budget.timeout_seconds - lookup_elapsed)
+                        ),
+                    )
+                    phase_runtime_instructions += (
+                        "\n\n【后端本地取证状态】\n"
+                        + json.dumps(run_trace.local_retrieval_summary(), ensure_ascii=False)
+                        + "\n已有证据只代表检索返回片段，不代表足以回答所有子问题。"
+                        "不得由未检索、工具失败、超时或未命中推断文档不存在。\n"
+                        + run_trace.render_evidence_ledger()
+                    )
                 semantic_context = await _prefetch_sql_semantic_context(
                     task_query=task_query,
                     run_trace=run_trace,
@@ -1768,7 +1790,16 @@ async def run_deep_agent(
                 research_agent=research_agent,
                 writer_agent=writer_agent,
             )
-            if phase.requires_tools:
+            boundary = (
+                local_evidence_boundary(run_trace)
+                if phase.key in {"evidence_compression", "final_report"}
+                else None
+            )
+            if boundary is not None:
+                run_trace.start_phase(phase.key, phase.title)
+                run_trace.finish_phase(phase.key, "end", artifact_status="local_evidence_boundary")
+                phase_result = boundary
+            elif phase.requires_tools:
                 config = _phase_config(
                     event_thread_id,
                     phase.key,

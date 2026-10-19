@@ -1,5 +1,16 @@
 # E3.1: local report acceptance
 
+E3.1a adds required production lookup for local-only requests and preserves `local_retrieval`
+states in each row. Zero-local-Evidence compression/writing is replaced with a deterministic
+not-executed/error/no-evidence report; a returned record still needs normal Claim/citation and
+human semantic checks. See the [boundary contract](../../docs/development/e3-1a-required-local-retrieval.md).
+
+The real paired six-task run reduced answerable cases with zero local records from 2/5 to 0/5,
+but three tasks still degraded. Every final row had records: the negative task's later broader
+queries found unrelated passages, and its document-inventory statements were unsupported.
+The zero-record terminal override is verified by deterministic integration tests, not by treating
+this real negative report as a passing refusal. See the [paired summary](../reports/e3-1a-local-retrieval-2026-10-19.json).
+
 This runs the real research workflow, not a filename/routing baseline. Six development tasks
 reuse source-verified, still human-unapproved E2 references: four single-document tasks,
 one two-document task, and one unavailable-answer task. This is not a new held-out test.
