@@ -55,6 +55,12 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 - 报告产物与运行状态；现有 Judge 仅评文本表达与结构。
 - 文件名命中率 @8（不验证答案证据片段）。
 
+## E3.3：本地来源身份交付边界
+
+生产流程增加实际文件名来源清单与显式文件名校验；回退稿也会检查。新增 `python -m evals.reports_acceptance.replay_sources --report-results ... --case-id ...`，仅对保存材料重放同一身份规则，不调用模型／数据库／检索，不改写历史报告。旧负样本的 5 个未核验文件名会被拦截，正常对照原文不变；这不是语义验收、全面幻觉率或当前完整工作流的答案正确率。见 [实现与验证](../docs/development/e3-3-local-source-provenance.md)。
+
+新生成 002/006 均降级，没有新的文件名拦截；006 零取证触发既有 `no_evidence` 边界。身份拦截分支由历史材料重放及集成测试验证，不能算作在线拦截成功。独立 [记录](reports/e3-3-source-provenance-2026-10-24.json) 保留两类结果；人工语义验收仍未完成。
+
 ## E3.2：证据支持审核基础
 
 新增 `python -m evals.reports_acceptance.support_review --report-results ... --case-id ...`：默认不调用模型，生成完整报告／实际引用片段／文档目录候选项的人工复核包。可选 `--execute-judge` 意见需要通过逐字引文、实际引用绑定、逐段完整性校验；`--segment-id` 子集禁止全文覆盖和拒答评分。首轮 3 次整报告与 3 次逐段模型审核均无效或超时，没有可采信的自动支持率；人工语义验收仍待完成。见 [实测与限制](../docs/development/e3-2-evidence-support-review.md) 和 [无原文汇总](reports/e3-2-support-review-2026-10-19.json)。

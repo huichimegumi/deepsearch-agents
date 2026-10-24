@@ -214,6 +214,9 @@ class ResearchRunTrace:
     normalized_evidence_references: int = 0
     capture_claim_validation_inputs: bool = False
     _claim_validation_batches: list[dict[str, Any]] = field(default_factory=list, repr=False)
+    local_source_reference_checks: list[dict[str, Any]] = field(default_factory=list)
+    capture_report_source_checks: bool = False
+    _source_reference_checks_private: list[dict[str, Any]] = field(default_factory=list, repr=False)
     unknown_claim_evidence_ids: list[str] = field(default_factory=list)
     report_cited_evidence_ids: list[str] = field(default_factory=list)
     report_citation_valid: bool | None = None
@@ -634,7 +637,16 @@ class ResearchRunTrace:
             "run_id": self.run_id,
             "records": [record.to_dict() for record in self._evidence_records_by_id.values()],
             "claim_validation_batches": self._claim_validation_batches,
+            "source_reference_checks": self._source_reference_checks_private,
         }
+
+    def local_document_records(self) -> list[Any]:
+        return [
+            record
+            for record in self._evidence_records_by_id.values()
+            if str(getattr(getattr(record, "source", ""), "value", getattr(record, "source", "")))
+            == "local_document"
+        ]
 
     def render_evidence_ledger(
         self,
@@ -708,6 +720,18 @@ class ResearchRunTrace:
                     f"## [{evidence_id}]",
                     f"- Source: `{source_value}`",
                     f"- Locator: `{locator}`",
+                    *(
+                        [
+                            "- Local filename: "
+                            + json.dumps(
+                                (getattr(record, "metadata", {}) or {}).get("filename"),
+                                ensure_ascii=False,
+                            ),
+                            "- Coverage: retrieved excerpt only, not a full-document inventory audit",
+                        ]
+                        if source_value == "local_document"
+                        else []
+                    ),
                     f"- Content: {excerpt}{' [truncated]' if truncated else ''}",
                     "",
                 ]
@@ -721,7 +745,7 @@ class ResearchRunTrace:
         return "\n".join(lines).strip()
 
     def record_claim_validation(self, report: Any, *, drafts: list[Any] | None = None) -> None:
-        """Record backend-validated claim links without copying claim or evidence content."""
+        """Record structural links; retain typed Claim inputs only under explicit capture."""
         self.normalized_evidence_references += getattr(report, "normalized_evidence_references", 0)
         if self.capture_claim_validation_inputs and drafts is not None:
             self._claim_validation_batches.append(
@@ -783,6 +807,7 @@ class ResearchRunTrace:
             "budget": self.budget.snapshot(),
             "phases": self.phases,
             "local_retrieval": self.local_retrieval_summary(),
+            "local_source_reference_checks": self.local_source_reference_checks,
             "metrics": {
                 "llm_calls": self.llm_calls,
                 "tool_calls": self.tool_calls,

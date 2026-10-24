@@ -1,5 +1,11 @@
 # E3.1: local report acceptance
 
+E3.3 adds a production local-filename delivery boundary and saves independent
+`local_source_reference_checks`. `python -m evals.reports_acceptance.replay_sources
+--report-results ... --case-id ...` replays only filename identity over saved artifacts, without
+generation, database, retrieval, or web calls. Withheld notices are not supported answers or
+automatically correct refusals. See the [policy scope and validation](../../docs/development/e3-3-local-source-provenance.md).
+
 E3.2 adds `python -m evals.reports_acceptance.support_review --report-results ... --case-id ...`.
 Default output is a full readable human worksheet with actual report paragraphs and source
 passages, without a model call. Optional model suggestions fail closed on invented quotes,

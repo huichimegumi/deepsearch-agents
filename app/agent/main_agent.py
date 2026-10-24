@@ -60,6 +60,7 @@ from app.research.claims import (
     validate_report_citations,
 )
 from app.research.local_retrieval import local_evidence_boundary, require_local_retrieval
+from app.research.source_provenance import document_catalog, enforce_local_source_references
 from app.tools.evidence_tool import collect_evidence
 from app.tools.markdown_tools import write_markdown_artifact
 from app.tools.memory_tools import remember_user_memory, search_user_memory
@@ -478,6 +479,16 @@ def _enforce_final_report_citations(
     compressed_fallback: str,
     run_trace: ResearchRunTrace,
 ) -> tuple[str, ReportCitationValidation]:
+    source_boundary = enforce_local_source_references(
+        report_markdown, run_trace, candidate_kind="final_candidate"
+    )
+    if source_boundary is not None:
+        # This is a backend status notice, not a factual answer requiring Claim citations.
+        validation = validate_report_citations(
+            source_boundary, allowed_evidence_ids=(), citations_required=False
+        )
+        run_trace.record_report_citation_validation(validation)
+        return source_boundary, validation
     validation = validate_report_citations(
         report_markdown,
         allowed_evidence_ids=run_trace.claim_evidence_ids,
@@ -504,6 +515,15 @@ def _enforce_final_report_citations(
         "The backend returned the validated claim package instead.\n\n"
         f"{fallback}"
     )
+    source_boundary = enforce_local_source_references(
+        fallback_report, run_trace, candidate_kind="citation_fallback"
+    )
+    if source_boundary is not None:
+        fallback_validation = validate_report_citations(
+            source_boundary, allowed_evidence_ids=(), citations_required=False
+        )
+        run_trace.record_report_citation_validation(fallback_validation)
+        return source_boundary, fallback_validation
     fallback_validation = validate_report_citations(
         fallback_report,
         allowed_evidence_ids=run_trace.claim_evidence_ids,
@@ -1543,6 +1563,7 @@ async def run_deep_agent(
     )
     run_trace.local_retrieval_required = _requires_local_knowledge_base_only(task_query)
     run_trace.capture_claim_validation_inputs = export_evaluation_evidence
+    run_trace.capture_report_source_checks = export_evaluation_evidence
     print(f"[MainAgent] 开始执行会话，session_id={session_id}")
     write_audit_event(
         "task_started",
@@ -1785,6 +1806,16 @@ async def run_deep_agent(
                 phase_outputs=prompt_phase_outputs,
                 runtime_instructions=phase_runtime_instructions,
             )
+            if run_trace.local_retrieval_required and phase.key == "final_report":
+                # Writer intentionally receives no general runtime/tool instructions.
+                prompt += (
+                    "\n\n【已登记本地片段来源清单：仅为来源标签，不代表全文核查】\n"
+                    + json.dumps(
+                        document_catalog(run_trace.local_document_records()), ensure_ascii=False
+                    )
+                    + "\n仅使用上述真实文件名，不得编造或缩写成新的文件名；证据不足时只说明边界。"
+                    "不能据片段或检索未命中声称已逐项核查全文、全部文档或全库不存在内容。"
+                )
             phase_agent = _phase_agent_for(
                 phase=phase,
                 planner_agent=planner_agent,
@@ -1936,7 +1967,11 @@ async def run_deep_agent(
                     requested_formats = _requested_artifact_formats(task_query)
                     if requested_formats and not created_artifacts:
                         raise RuntimeError("requested_artifact_not_created")
-                    if citation_validation.valid:
+                    if any(item["withheld"] for item in run_trace.local_source_reference_checks):
+                        artifact_status = (
+                            "source_withheld_persisted" if requested_formats else "source_withheld"
+                        )
+                    elif citation_validation.valid:
                         artifact_status = "persisted" if requested_formats else "usable"
                     else:
                         artifact_status = (
@@ -1967,6 +2002,11 @@ async def run_deep_agent(
                 final_result = (
                     "本轮研究已达到当前执行预算，以下是基于已完成阶段整理的可用结果。\n\n"
                     + fallback_result
+                )
+                final_result, _ = _enforce_final_report_citations(
+                    report_markdown=final_result,
+                    compressed_fallback="",
+                    run_trace=run_trace,
                 )
                 monitor.report_task_result(final_result)
                 write_audit_event(

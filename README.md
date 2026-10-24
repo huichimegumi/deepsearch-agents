@@ -30,6 +30,10 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E3.3 已将真实本地文件名补入证据账本与 Writer 专用来源清单，并在交付前检查显式 `《文件名.扩展名》`。无法映射到已取回本地证据的文件名会导致正文被拦截，返回来源核验不足说明；引用失败回退稿也不能绕过检查。该规则只验证文件名身份，不证明事实支持、全文核查或文件不存在，别名也可能保守拦截。见 [实现与边界](docs/development/e3-3-local-source-provenance.md)。
+
+旧负样本离线重放中 5 个未核验文件名被拦截，正常对照原文不变；新生成的 002/006 均仍降级，没有触发新的文件名拦截。006 实际触发了此前的零证据边界，返回透明的检索未命中说明，不等于完成拒答语义验收。329 项测试通过、6 项跳过，Tavily 使用量为 0。见 [独立记录](evals/reports/e3-3-source-provenance-2026-10-24.json)。
+
 E3.2 新增保存报告的证据审核入口：核验原报告／Evidence 哈希及语料指纹，生成逐段报告、真实引用片段、文档名待核验项的可读人工复核包；可选模型意见必须通过逐字引文与完整性校验。整报告及逐段试验共 6 次模型审核均超时或无效，未产生可信支持率，当前不建议自动事实验收。已生成 3 份完整人工审核材料，语义验收仍待人工完成，生产 Agent 不变。见 [审核基础与失败记录](docs/development/e3-2-evidence-support-review.md)。
 
 E3.1b 修复 Claim 数组中已知稳定 ID 被一层方括号包装时的误拒绝，保留未知 ID、缺证据及推断边界校验。评测快照额外保存原始结构化 Claim，支持不调用模型或检索的同输入旧规则／新规则重放。该改动只验证引用结构，不等于事实受支持；负样本幻觉与跨文档覆盖仍未解决。见 [策略与重放说明](docs/development/e3-1b-canonical-claim-references.md)。
@@ -529,6 +533,18 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E3.3 adds actual local filenames to the ledger and dedicated Writer catalog, then gates explicit
+quoted filenames before delivery and on citation fallbacks. Unregistered names withhold the body
+and return a deterministic source-verification notice. This is filename identity only, not
+entailment, full-document auditing, or proof of absence; aliases can be withheld conservatively.
+See the [implementation and boundaries](docs/development/e3-3-local-source-provenance.md).
+
+Offline replay withholds five unverified filenames in the historical negative and leaves the
+control unchanged. Fresh 002/006 both still degraded and did not trigger filename withholding;
+006 exercised the earlier zero-Evidence boundary instead. This is not semantic refusal acceptance
+or overall hallucination accuracy. Regression: 329 passed, 6 skipped; zero Tavily queries.
+See the [separate replay/execution record](evals/reports/e3-3-source-provenance-2026-10-24.json).
 
 E3.2 adds saved-report evidence review: artifact/corpus verification, readable paragraph/source
 worksheets, filename review candidates, and optional quote-grounded model suggestions. All six
