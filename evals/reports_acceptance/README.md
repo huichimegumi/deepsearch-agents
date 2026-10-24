@@ -1,5 +1,11 @@
 # E3.1: local report acceptance
 
+E3.4 exposes the **default-off** `--indexed-local` experiment: no researcher filesystem/todo/
+memory/delegation tools, a local-only wrapper retaining the `collect_evidence` name, and two
+supplemental tool requests. Both bounded tasks degraded and the negative still overclaimed corpus
+absence; do not promote timing or valid IDs into quality acceptance. Default generation, attachments,
+and other source routes remain on the prior researcher. See the [pilots and release gate](../../docs/development/e3-4-indexed-local-agent.md).
+
 E3.3 adds a production local-filename delivery boundary and saves independent
 `local_source_reference_checks`. `python -m evals.reports_acceptance.replay_sources
 --report-results ... --case-id ...` replays only filename identity over saved artifacts, without

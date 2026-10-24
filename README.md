@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E3.4 新增默认关闭的本地索引专用研究路由（评测加 `--indexed-local`）：只声明本地 `collect_evidence`，不提供文件、待办、记忆或子智能体工具，最多接受 2 次补检索。两题对照中不相关工具请求从 13 次变为 0，限额试验耗时约 56／53 秒，但均触发限额降级，负样本仍有无依据的全库断言，因此未替换生产默认。见 [实验与上线门槛](docs/development/e3-4-indexed-local-agent.md)。
+
 E3.3 已将真实本地文件名补入证据账本与 Writer 专用来源清单，并在交付前检查显式 `《文件名.扩展名》`。无法映射到已取回本地证据的文件名会导致正文被拦截，返回来源核验不足说明；引用失败回退稿也不能绕过检查。该规则只验证文件名身份，不证明事实支持、全文核查或文件不存在，别名也可能保守拦截。见 [实现与边界](docs/development/e3-3-local-source-provenance.md)。
 
 旧负样本离线重放中 5 个未核验文件名被拦截，正常对照原文不变；新生成的 002/006 均仍降级，没有触发新的文件名拦截。006 实际触发了此前的零证据边界，返回透明的检索未命中说明，不等于完成拒答语义验收。329 项测试通过、6 项跳过，Tavily 使用量为 0。见 [独立记录](evals/reports/e3-3-source-provenance-2026-10-24.json)。
@@ -533,6 +535,12 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E3.4 adds a default-off indexed-local researcher (`--indexed-local` in evals) with only a fixed-source
+Evidence tool and two supplemental requests. Unwanted tool requests fell from 13 to 0 on two
+development tasks; the bounded pilot took about 56/53 seconds but both runs degraded on its cap,
+and the negative still made unsupported corpus-absence claims. The quality gate did not pass;
+production defaults remain unchanged. See the [experiment and release gate](docs/development/e3-4-indexed-local-agent.md).
 
 E3.3 adds actual local filenames to the ledger and dedicated Writer catalog, then gates explicit
 quoted filenames before delivery and on citation fallbacks. Unregistered names withhold the body

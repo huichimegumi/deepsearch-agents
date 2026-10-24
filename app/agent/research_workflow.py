@@ -233,6 +233,7 @@ def build_phase_prompt(
     phase: ResearchPhase,
     phase_outputs: dict[str, str],
     runtime_instructions: str,
+    indexed_local_only: bool = False,
 ) -> str:
     """Build the user message for one enforced workflow phase."""
     prompt_outputs = phase_outputs
@@ -260,6 +261,15 @@ def build_phase_prompt(
             "Use only the user request and completed phase artifacts. If evidence is missing, "
             "record it as a gap for the supervisor research phase instead of trying to fetch it."
         )
+    elif indexed_local_only:
+        tool_boundary = (
+            "INDEXED LOCAL RESEARCH BOUNDARY: The sole tool is collect_evidence(query, knowledge_base). "
+            "The backend fixes its source to local documents; no source/operation/SQL/Fee fields "
+            "are exposed. No task, filesystem, todo, memory, or web tools exist. Do not request "
+            "tools mentioned in older briefs. Use the backend Evidence first and query locally "
+            "only for genuine gaps; bounded non-matches are not proof of corpus absence."
+            " At most two supplemental local tool requests are admitted; stop when sufficient."
+        )
     else:
         tool_boundary = (
             "RESEARCH PHASE BOUNDARY: This is the only phase where researcher subagents and "
@@ -282,7 +292,14 @@ def build_phase_prompt(
             if phase.requires_tools or phase.key == "clarify_and_brief"
             else "",
             tool_boundary,
-            phase.instruction,
+            (
+                "【本地索引研究】基于后端实际取回的证据整理候选结论、稳定 evidence_id、来源及局限性。"
+                "确有缺口时仅调用 collect_evidence(query, knowledge_base) 补充本地检索；工具参数不包含 source。"
+                "证据已足够时停止检索。不得扫描文件、维护待办、读取附件、管理记忆或调用子智能体。"
+                "返回 Evidence Ledger 与缺口，不能假装已核查全文或全库，也不生成交付文件。"
+                if indexed_local_only and phase.requires_tools
+                else phase.instruction
+            ),
         )
         if part
     )

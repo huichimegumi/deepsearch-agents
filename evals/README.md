@@ -55,6 +55,10 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 - 报告产物与运行状态；现有 Judge 仅评文本表达与结构。
 - 文件名命中率 @8（不验证答案证据片段）。
 
+## E3.4：本地研究能力与补检索预算实验
+
+报告 runner 的 `--indexed-local` 显式启用默认关闭的专用路由：只有固定本地来源的 Evidence 工具，最多 2 次补检索，保留原有首次取证及全局预算。两个试验分别记录“只移除无关工具仍查询 9 次并超时”和“增加上限后约 56／53 秒但均限额降级”。负样本仍有未支持的全库断言，因此没有默认启用、没有语义通过率。见 [完整门槛与限制](../docs/development/e3-4-indexed-local-agent.md) 和 [独立记录](reports/e3-4-indexed-local-agent-2026-10-24.json)。
+
 ## E3.3：本地来源身份交付边界
 
 生产流程增加实际文件名来源清单与显式文件名校验；回退稿也会检查。新增 `python -m evals.reports_acceptance.replay_sources --report-results ... --case-id ...`，仅对保存材料重放同一身份规则，不调用模型／数据库／检索，不改写历史报告。旧负样本的 5 个未核验文件名会被拦截，正常对照原文不变；这不是语义验收、全面幻觉率或当前完整工作流的答案正确率。见 [实现与验证](../docs/development/e3-3-local-source-provenance.md)。

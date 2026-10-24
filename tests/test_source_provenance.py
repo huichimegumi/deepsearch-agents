@@ -191,7 +191,12 @@ async def test_main_workflow_persists_only_the_source_boundary(tmp_path, monkeyp
         return "phase output"
 
     monkeypatch.setattr(main_agent, "project_root_path", tmp_path)
-    for name in ("get_planner_agent", "get_research_agent", "get_writer_agent"):
+    for name in (
+        "get_planner_agent",
+        "get_research_agent",
+        "get_indexed_local_research_agent",
+        "get_writer_agent",
+    ):
         monkeypatch.setattr(main_agent, name, lambda: object())
     monkeypatch.setattr(main_agent, "require_local_retrieval", lookup)
     monkeypatch.setattr(main_agent, "_run_agent_phase", phase)

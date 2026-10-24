@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from deepagents import create_deep_agent
+from langchain.agents import create_agent
 from pydantic import BaseModel, Field
 
 from app.agent.llm import get_model
@@ -62,6 +63,7 @@ from app.research.claims import (
 from app.research.local_retrieval import local_evidence_boundary, require_local_retrieval
 from app.research.source_provenance import document_catalog, enforce_local_source_references
 from app.tools.evidence_tool import collect_evidence
+from app.tools.local_research_tool import collect_local_evidence
 from app.tools.markdown_tools import write_markdown_artifact
 from app.tools.memory_tools import remember_user_memory, search_user_memory
 from app.tools.pdf_tools import convert_md_to_pdf
@@ -84,6 +86,26 @@ def get_research_agent():
         tools=list(_research_tools()),
         checkpointer=get_short_term_checkpointer(),
         subagents=[network_search_agent],
+    )
+
+
+@lru_cache(maxsize=1)
+def get_indexed_local_research_agent():
+    """No DeepAgents filesystem, planning, memory, or delegation middleware."""
+    return create_agent(
+        model=get_model(),
+        tools=[collect_local_evidence],
+        system_prompt=(
+            "You research already indexed local documents only. Your sole tool is collect_evidence, "
+            "whose source is fixed to local documents by the backend. Use the prefetched Evidence "
+            "when sufficient; otherwise make focused local queries within the remaining budget. "
+            "At most two supplemental tool requests are admitted for this phase. "
+            "Earlier briefs may name unavailable tools: do not call them. Do not list/read/write "
+            "files, maintain todos, manage memory, delegate tasks, search the web, or query SQL. "
+            "Return an Evidence ledger and limitations, not a file or final report. Never infer "
+            "full-document or corpus absence from bounded retrieval."
+        ),
+        checkpointer=get_short_term_checkpointer(),
     )
 
 
@@ -1249,6 +1271,8 @@ async def _run_agent_phase(
     remaining_workflow_seconds: float | None = None,
     max_subagent_calls: int | None = None,
     allowed_subagent_names: frozenset[str] | None = None,
+    allowed_direct_tool_names: frozenset[str] | None = None,
+    max_direct_tool_calls: int | None = None,
     emit_final_result: bool = False,
 ) -> str | None:
     """Run one enforced research phase and return the latest model text."""
@@ -1272,6 +1296,7 @@ async def _run_agent_phase(
     phase_error = None
     budget_reason = None
     subagent_call_count = 0
+    direct_tool_call_count = 0
     phase_token = set_research_phase_context(phase.key)
     try:
         async for chunk in _astream_with_runtime_limit(
@@ -1297,8 +1322,22 @@ async def _run_agent_phase(
 
                 tool_calls = getattr(last_msg, "tool_calls", None)
                 if tool_calls:
+                    if (
+                        max_direct_tool_calls is not None
+                        and direct_tool_call_count + len(tool_calls) > max_direct_tool_calls
+                    ):
+                        # Reject the whole over-limit model batch before the tool step advances.
+                        run_trace.blocked_research_tool_calls += len(tool_calls)
+                        raise PhaseBudgetExceeded("local_research_query_limit")
+                    direct_tool_call_count += len(tool_calls)
                     # DeepAgents 调用子智能体时，本质上会产生名为 task 的工具调用
                     for tool_call in tool_calls:
+                        if (
+                            allowed_direct_tool_names is not None
+                            and tool_call["name"] not in allowed_direct_tool_names
+                        ):
+                            run_trace.blocked_research_tool_calls += 1
+                            raise PhaseBudgetExceeded("research_tool_not_allowed")
                         if tool_call["name"] == "task":
                             args = tool_call.get("args") or {}
                             subagent_type = str(args.get("subagent_type") or "")
@@ -1506,6 +1545,11 @@ def _requires_knowledge_base_first(task_query: str) -> bool:
 def _requires_local_knowledge_base_only(task_query: str) -> bool:
     """Return True when the user explicitly restricts the task to local knowledge."""
     local_markers = ("本地知识库", "知识库助手", "RAG", "rag")
+    local = r"(?:本地知识库|知识库助手|rag)"
+    other = r"(?:数据库|sql|费用引擎|fee|网络|网页)"
+    join = r"\s*(?:和|与|及|以及|、|\+|and|并结合|结合)\s*"
+    if re.search(f"{local}{join}{other}|{other}{join}{local}", task_query, re.I):
+        return False  # Explicit positive source combinations are not local-document-only.
     exclusivity_markers = (
         "只使用",
         "仅使用",
@@ -1532,6 +1576,7 @@ async def run_deep_agent(
     research_limits_override: ResearchBudgetLimits | None = None,
     sql_entity_recovery_enabled: bool = False,
     export_evaluation_evidence: bool = False,
+    indexed_local_research_enabled: bool = False,
 ):
     """
     异步流式执行主智能体
@@ -1672,9 +1717,20 @@ async def run_deep_agent(
     run_status = "completed"
     run_failure_reason = None
     runtime_tokens = set_research_runtime(research_budget, run_trace)
+    indexed_local_only = (
+        indexed_local_research_enabled
+        and run_trace.local_retrieval_required
+        and not updated_info_prompt
+    )
+    run_trace.research_tool_mode = (
+        "indexed_local_only" if indexed_local_only else "deepagents_default"
+    )
+    run_trace.research_tool_call_limit = 2 if indexed_local_only else None
     try:
         planner_agent = get_planner_agent()
-        research_agent = get_research_agent()
+        research_agent = (
+            get_indexed_local_research_agent() if indexed_local_only else get_research_agent()
+        )
         writer_agent = get_writer_agent()
         runtime_instructions = (
             path_instruction
@@ -1762,6 +1818,9 @@ async def run_deep_agent(
                 ),
             )
             phase_runtime_instructions = runtime_instructions
+            if indexed_local_only and phase.key == "supervisor_research":
+                # Do not ask the restricted researcher to obey filesystem/delegation instructions.
+                phase_runtime_instructions = ""
             if phase.key == "supervisor_research":
                 if run_trace.local_retrieval_required:
                     lookup_started = asyncio.get_running_loop().time()
@@ -1782,10 +1841,14 @@ async def run_deep_agent(
                         "不得由未检索、工具失败、超时或未命中推断文档不存在。\n"
                         + run_trace.render_evidence_ledger()
                     )
-                semantic_context = await _prefetch_sql_semantic_context(
-                    task_query=task_query,
-                    run_trace=run_trace,
-                    timeout_seconds=remaining_workflow_seconds,
+                semantic_context = (
+                    ""
+                    if indexed_local_only
+                    else await _prefetch_sql_semantic_context(
+                        task_query=task_query,
+                        run_trace=run_trace,
+                        timeout_seconds=remaining_workflow_seconds,
+                    )
                 )
                 if semantic_context:
                     phase_runtime_instructions = (
@@ -1805,6 +1868,7 @@ async def run_deep_agent(
                 phase=phase,
                 phase_outputs=prompt_phase_outputs,
                 runtime_instructions=phase_runtime_instructions,
+                indexed_local_only=indexed_local_only,
             )
             if run_trace.local_retrieval_required and phase.key == "final_report":
                 # Writer intentionally receives no general runtime/tool instructions.
@@ -1849,7 +1913,13 @@ async def run_deep_agent(
                     run_trace=run_trace,
                     remaining_workflow_seconds=remaining_workflow_seconds,
                     max_subagent_calls=max_subagent_calls,
-                    allowed_subagent_names=_configured_research_subagent_names(),
+                    allowed_subagent_names=frozenset()
+                    if indexed_local_only
+                    else _configured_research_subagent_names(),
+                    allowed_direct_tool_names=frozenset({collect_local_evidence.name})
+                    if indexed_local_only
+                    else None,
+                    max_direct_tool_calls=run_trace.research_tool_call_limit,
                 )
             else:
                 schema = None
@@ -1875,7 +1945,7 @@ async def run_deep_agent(
                     emit_final_result=False,
                 )
             if phase.key == "supervisor_research":
-                if _should_attempt_sql_evidence_correction(run_trace):
+                if not indexed_local_only and _should_attempt_sql_evidence_correction(run_trace):
                     correction_config = settings.agent_phase_budget(
                         SQL_EVIDENCE_CORRECTION_PHASE.key,
                         budget_profile,
@@ -1898,7 +1968,8 @@ async def run_deep_agent(
                             run_trace=run_trace,
                         )
                 phase_result = _attach_backend_evidence_ledger(phase_result, run_trace)
-                phase_result = _enforce_research_evidence_requirements(phase_result, run_trace)
+                if not indexed_local_only:
+                    phase_result = _enforce_research_evidence_requirements(phase_result, run_trace)
             if not phase_result:
                 run_trace.degraded = True
                 phase_result = build_degraded_phase_output(

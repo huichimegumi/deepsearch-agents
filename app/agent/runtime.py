@@ -183,6 +183,9 @@ class ResearchRunTrace:
     failure_reasons: list[str] = field(default_factory=list)
     phases: list[dict[str, Any]] = field(default_factory=list)
     local_retrieval_required: bool = False
+    research_tool_mode: str = "deepagents_default"
+    research_tool_call_limit: int | None = None
+    blocked_research_tool_calls: int = 0
     local_retrieval_attempts: list[dict[str, Any]] = field(default_factory=list)
     local_retrieval_required_elapsed_ms: int = 0
     llm_calls: int = 0
@@ -807,12 +810,15 @@ class ResearchRunTrace:
             "budget": self.budget.snapshot(),
             "phases": self.phases,
             "local_retrieval": self.local_retrieval_summary(),
+            "research_tool_mode": self.research_tool_mode,
+            "research_tool_call_limit": self.research_tool_call_limit,
             "local_source_reference_checks": self.local_source_reference_checks,
             "metrics": {
                 "llm_calls": self.llm_calls,
                 "tool_calls": self.tool_calls,
                 "tool_calls_by_name": dict(self.tool_calls_by_name),
                 "subagent_calls": self.subagent_calls,
+                "blocked_research_tool_calls": self.blocked_research_tool_calls,
                 "input_tokens": self.input_tokens,
                 "output_tokens": self.output_tokens,
                 "search_queries": len(self.search_queries),

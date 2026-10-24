@@ -157,7 +157,12 @@ async def test_workflow_withholds_model_absence_claims_without_evidence(
         return "ASSERTION THAT DOCUMENT IS ABSENT"
 
     monkeypatch.setattr(main_agent, "project_root_path", tmp_path)
-    for name in ("get_planner_agent", "get_research_agent", "get_writer_agent"):
+    for name in (
+        "get_planner_agent",
+        "get_research_agent",
+        "get_indexed_local_research_agent",
+        "get_writer_agent",
+    ):
         monkeypatch.setattr(main_agent, name, lambda: object())
     monkeypatch.setattr(main_agent, "require_local_retrieval", lookup)
     monkeypatch.setattr(main_agent, "_run_agent_phase", phase)
@@ -203,7 +208,12 @@ async def test_positive_workflow_looks_up_before_agent_and_charges_phase_time(
         return f"report [{evidence_id}]"
 
     monkeypatch.setattr(main_agent, "project_root_path", tmp_path)
-    for name in ("get_planner_agent", "get_research_agent", "get_writer_agent"):
+    for name in (
+        "get_planner_agent",
+        "get_research_agent",
+        "get_indexed_local_research_agent",
+        "get_writer_agent",
+    ):
         monkeypatch.setattr(main_agent, name, lambda: object())
     monkeypatch.setattr(main_agent, "require_local_retrieval", lookup)
     monkeypatch.setattr(main_agent, "_run_agent_phase", phase)
@@ -228,7 +238,12 @@ async def test_exhausted_run_uses_unexecuted_boundary_without_starting_models(
         raise AssertionError("exhausted run must not start a phase")
 
     monkeypatch.setattr(main_agent, "project_root_path", tmp_path)
-    for name in ("get_planner_agent", "get_research_agent", "get_writer_agent"):
+    for name in (
+        "get_planner_agent",
+        "get_research_agent",
+        "get_indexed_local_research_agent",
+        "get_writer_agent",
+    ):
         monkeypatch.setattr(main_agent, name, lambda: object())
     monkeypatch.setattr(main_agent, "_run_agent_phase", forbidden)
     monkeypatch.setattr(main_agent, "_run_direct_phase", forbidden)

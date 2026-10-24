@@ -35,7 +35,15 @@ def load_cases(dataset: Path) -> tuple[dict, list[dict]]:
     return suite, cases
 
 
-async def execute_case(case: dict, prompt: str, session_id: str, directory: Path, timeout: int):
+async def execute_case(
+    case: dict,
+    prompt: str,
+    session_id: str,
+    directory: Path,
+    timeout: int,
+    *,
+    indexed_local: bool = False,
+):
     started = time.monotonic()
     error_type = None
     report = ""
@@ -52,6 +60,7 @@ async def execute_case(case: dict, prompt: str, session_id: str, directory: Path
                 user_id="evals",
                 monitor_thread_id=session_id,
                 export_evaluation_evidence=True,
+                indexed_local_research_enabled=indexed_local,
                 budget_profile_override="deep_report",
                 research_limits_override=limits,
             ),
@@ -92,6 +101,8 @@ async def execute_case(case: dict, prompt: str, session_id: str, directory: Path
         "trace_metrics": trace.get("metrics", {}),
         "failure_reasons": trace.get("failure_reasons", []),
         "local_retrieval": trace.get("local_retrieval"),
+        "research_tool_mode": trace.get("research_tool_mode"),
+        "research_tool_call_limit": trace.get("research_tool_call_limit"),
         "local_source_reference_checks": trace.get("local_source_reference_checks"),
         "audit": audit,
         "review_directory": str(directory.relative_to(ROOT)),
@@ -104,6 +115,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", type=Path, default=DEFAULT_DATASET)
     parser.add_argument("--execute", action="store_true", help="Make real configured LLM calls")
+    parser.add_argument(
+        "--indexed-local",
+        action="store_true",
+        help="Opt into the experimental indexed-only researcher; semantic acceptance is not established",
+    )
     parser.add_argument("--case-id", action="append", help="Explicit subset, recorded in manifest")
     parser.add_argument("--timeout-seconds", type=int, default=330)
     args = parser.parse_args()
@@ -125,6 +141,7 @@ def main() -> int:
             "selected_cases": [case["id"] for case in cases],
             "prompt_mode": "user_local_scope_only_no_gold_or_hidden_routes",
             "execution_enabled": args.execute,
+            "indexed_local_research_enabled": args.indexed_local,
             "timeout_seconds": args.timeout_seconds,
             "token_scope": "trace_instrumentation_not_total_provider_billing",
             "knowledge_bases": suite["knowledge_bases"],
@@ -163,6 +180,7 @@ def main() -> int:
                     f"{run_id}_{case['id']}",
                     directory / case["id"],
                     args.timeout_seconds,
+                    indexed_local=args.indexed_local,
                 )
             )
             result["results"].append(row)
