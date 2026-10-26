@@ -1,0 +1,116 @@
+{
+  "stage": "E3.6",
+  "date": "2026-10-26",
+  "manifest": {
+    "git_commit": "ffd6b6227b5e0bc5cfd6706e5fd4dc497cf25666",
+    "git_dirty": true,
+    "source_sha256": "692c2e1138200482211d56a90c2d23244af509a1241018b85a860ca9dbffcbd2",
+    "dataset_sha256": "18e97da63f2fbc4c0f05ecc9f59591c91e31eec6d84a3136ea247824100f5b46",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "versions": {
+      "fastembed": "0.8.0",
+      "onnxruntime": "1.27.0",
+      "qdrant-client": "1.18.0",
+      "deepagents": "0.5.7"
+    },
+    "configuration": {
+      "protocol": "human_adjudication_v1",
+      "mode": "offline_pending_preparation",
+      "human_annotations": 0,
+      "human_adjudications": 0
+    }
+  },
+  "batch_path": "evals/results/human_review_20261026T072426Z_36b41f3c43/batch.json",
+  "batch_artifact_sha256": {
+    "annotation.schema.json": "7a6dc29b8f6c8ba5f7521af3d77640efba45bd3ab408d2f382d8f0e83e2a1ea1",
+    "annotation.template.json": "e508f278e6f45c932272110d8dc72ad897b47fd155e5759336c381a876aac0b6",
+    "batch.json": "18e97da63f2fbc4c0f05ecc9f59591c91e31eec6d84a3136ea247824100f5b46",
+    "INSTRUCTIONS.md": "55fc6a082da827d647a513923274e7c8a30218d04e3dc0a646c655796b8b1e23"
+  },
+  "summary_path": "evals/results/human_summary_20261026T072444Z_9d46113aa9/results.json",
+  "summary_sha256": "561036592740d5bc5c069842f1965f719154f50ed348bd36b475fb9049185290",
+  "summary_markdown_sha256": "24375c3337ecf47f339284300bcdd821bf5aa625650755979ea451b681f115e0",
+  "packets_verified_and_reconstructed": true,
+  "items": [
+    {
+      "item_id": "item_001",
+      "packet_path": "evals/results/support_review_20261019T122801Z_294bdc4d98/results.json",
+      "packet_sha256": "63ec3172e24c8169b54c8310bdb7ebb0ca3e90a07db6809c3235d80c87b9e7a0",
+      "original_run_id": "report_acceptance_20261019T120234Z_bf87f1e46f",
+      "case_id": "report_local_002",
+      "review_scope": "whole_saved_report_body",
+      "report_sha256": "d34dca8f804cb933e594d9b353fc5c0af501f365db79ad737b5e6a58c4595e05",
+      "evidence_sha256": "91d0bee18f384e22b25689b9fd8f4822b0c0ed55776f4b5e65acd18b1e77ef1c",
+      "review_input_sha256": "f5d0864789de61e04c6f5637ea194e347ef826e95547a86b8ac6e72016f8bf03",
+      "segment_count": 15,
+      "keypoint_count": 1,
+      "human_status": "pending"
+    },
+    {
+      "item_id": "item_002",
+      "packet_path": "evals/results/support_review_20261019T122812Z_7864221582/results.json",
+      "packet_sha256": "812aca9205d9fedc20b353e8834f056aded302aa1f0175c64022e344fb9b7f22",
+      "original_run_id": "report_acceptance_20261019T113653Z_fc86f635c0",
+      "case_id": "report_local_005",
+      "review_scope": "whole_saved_report_body",
+      "report_sha256": "a7e8e90d482d9ae67f65e595aed263fef2605d2f419acb06274462d63cf365a6",
+      "evidence_sha256": "ae984902ba883e9b2215795a6f0c4077074f8b211c7422c68fb7d496e8d8e9e5",
+      "review_input_sha256": "89919e3dc371b04fa85dbe130f35e4c00d885571851b5c674c2f6355e16e9772",
+      "segment_count": 4,
+      "keypoint_count": 2,
+      "human_status": "pending"
+    },
+    {
+      "item_id": "item_003",
+      "packet_path": "evals/results/support_review_20261024T144244Z_1963e7f860/results.json",
+      "packet_sha256": "c86681017730759743f48d22dd7877db9394639b24ecaaed6e782b8211efc223",
+      "original_run_id": "report_acceptance_20261024T142538Z_6a32b9cb59",
+      "case_id": "report_local_006",
+      "review_scope": "whole_saved_report_body",
+      "report_sha256": "88f6534ce9c4fca4522caf21b473b08dc61c91c7534029c26026a7f74a72b8a1",
+      "evidence_sha256": "477e7d85d4421940c44051d409681fe7f6d4c1073f52afd73efde2bc5eb317c3",
+      "review_input_sha256": "d443c14718a583b8053dce18c4c0bbe2cb86a38791a941a6678aa21dafc5c701",
+      "segment_count": 7,
+      "keypoint_count": 0,
+      "human_status": "pending"
+    }
+  ],
+  "pending_summary": {
+    "schema_version": 1,
+    "batch_sha256": "18e97da63f2fbc4c0f05ecc9f59591c91e31eec6d84a3136ea247824100f5b46",
+    "adjudication_sha256": null,
+    "review_status": "pending_human_review",
+    "expected_report_scopes": 3,
+    "unique_case_count": 3,
+    "original_execution_count": 3,
+    "adjudicated_report_scopes": 0,
+    "pending_report_scopes": 3,
+    "prior_annotation_count": 0,
+    "prior_final_decision_disagreement_items": 0,
+    "same_reviewer_prior_count": 0,
+    "decision_counts": {},
+    "segment_verdict_counts": {},
+    "segment_error_tag_counts": {},
+    "acceptance_numerator": 0,
+    "acceptance_denominator": 0,
+    "excluded_from_acceptance_denominator": 3,
+    "acceptance_rate": null,
+    "note": "Self-attested human decisions on saved report scopes, not authenticated or necessarily independent; paragraph units are not atomic claims. No population accuracy estimate. Uncertain, selected-scope and unconfirmed-reference items are excluded from the acceptance denominator."
+  },
+  "template_validation_expected_exit_code": 1,
+  "synthetic_tests_are_not_human_labels": true,
+  "calls": {
+    "model": 0,
+    "judge": 0,
+    "retrieval": 0,
+    "database": 0,
+    "web_queries": 0,
+    "fetched_pages": 0
+  },
+  "regression": {
+    "passed": 418,
+    "skipped": 6
+  },
+  "semantic_acceptance": "pending_human_review",
+  "indexed_local_default_enabled": false
+}

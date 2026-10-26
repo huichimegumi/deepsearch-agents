@@ -55,6 +55,10 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 - 报告产物与运行状态；现有 Judge 仅评文本表达与结构。
 - 文件名命中率 @8（不验证答案证据片段）。
 
+## E3.6：人工标注、裁定与结果汇总
+
+`python -m evals.reports_acceptance.adjudication` 提供 `init`／`validate`／`summarize`：从保存审核包生成待填模板，校验逐段真实引文、错误标签和修正建议，显式裁定需绑定并重新校验初始标注。汇总区分待审、裁定、分歧、参考标签不确定及分母排除项，无有效裁定时通过率为 `null`。已准备三份真实报告的待审批次，未代填人工结论；418 项测试通过、6 项跳过，无模型／检索调用。见 [操作步骤与统计边界](../docs/development/e3-6-human-adjudication.md)。
+
 ## E3.5：本地缺失结论措辞检查与离线回放
 
 `replay_sources --policy absence_scope` 在核验保存报告／Evidence 哈希后单独回放新交付检查，不重新检索或生成。八份历史报告中，上一轮负样本的两处明确全库缺失表达被拦截，正样本不变；旧负样本的另一类表达仍漏检。未命中不表示支持，拦截说明也不计为语义正确拒答。380 项回归通过、6 项跳过，无模型／搜索调用，实验路由仍默认关闭。见 [规则与已知漏检](../docs/development/e3-5-local-absence-scope.md)。

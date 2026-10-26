@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E3.6 新增离线人工标注与最终裁定流程：从已有审核包生成待填 JSON 模板，校验逐段引文、错误类型和修正建议，绑定原报告／Evidence 哈希，再汇总显式裁定。已准备 002／005／006 三份报告的待审批次；当前人工裁定为 0，通过率为空，不将模型意见或待填模板计为验收结果。418 项测试通过、6 项跳过，无模型／搜索调用。见 [操作步骤与统计口径](docs/development/e3-6-human-adjudication.md)。
+
 E3.5 增加本地报告交付前的缺失结论措辞检查：识别到从有限片段扩大为全库／全文不存在内容的明确表达时，拦截正文及引用失败回退稿，返回证据不足说明并标记降级。八份保存报告离线回放中，上一轮负样本的两处表达被拦截，正样本不变；更早负样本仍有措辞漏检。这不是语义验证或通过率，实验路由继续默认关闭。380 项测试通过、6 项跳过，无模型／搜索调用。见 [范围、漏检与回放记录](docs/development/e3-5-local-absence-scope.md)。
 
 E3.4 新增默认关闭的本地索引专用研究路由（评测加 `--indexed-local`）：只声明本地 `collect_evidence`，不提供文件、待办、记忆或子智能体工具，最多接受 2 次补检索。两题对照中不相关工具请求从 13 次变为 0，限额试验耗时约 56／53 秒，但均触发限额降级，负样本仍有无依据的全库断言，因此未替换生产默认。见 [实验与上线门槛](docs/development/e3-4-indexed-local-agent.md)。
@@ -537,6 +539,12 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E3.6 adds offline human annotation and explicit adjudication of saved support packets, with
+pending JSON templates, quote/error/correction validation, original artifact hashes and final
+result aggregation. A three-report batch (002/005/006) is ready; adjudications remain zero and
+the acceptance rate is unavailable. Model proposals and templates do not count as human reviews.
+Regression: 418 passed, 6 skipped; no model/search calls. See the [workflow and denominators](docs/development/e3-6-human-adjudication.md).
 
 E3.5 adds a bounded local-absence wording check before report delivery, including citation
 fallbacks. Matched corpus/full-document absence assertions withhold the body and mark the run

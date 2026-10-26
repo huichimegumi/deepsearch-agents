@@ -1,5 +1,11 @@
 # E3.1: local report acceptance
 
+E3.6 adds `python -m evals.reports_acceptance.adjudication` with `init`, `validate`, and
+`summarize` commands. It creates pending templates from immutable support packets, validates
+personal annotations, and requires explicit hash-bound adjudication before reporting an
+acceptance rate. No eligible adjudications means `null`, not a measured score. A three-report
+batch is prepared but not human-labeled. See the [commands, review rules and denominator](../../docs/development/e3-6-human-adjudication.md).
+
 E3.5 adds a bounded local-absence delivery check on final candidates and citation fallbacks.
 `python -m evals.reports_acceptance.replay_sources --policy absence_scope --report-results ...`
 replays only this wording policy over hash-verified saved reports. The default policy remains
