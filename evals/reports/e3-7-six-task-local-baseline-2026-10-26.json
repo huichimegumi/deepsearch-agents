@@ -1,0 +1,413 @@
+{
+  "stage": "E3.7",
+  "date": "2026-10-26",
+  "first_phase_status": "six_task_baseline_and_ai_triage_complete",
+  "execution_results_path": "evals/results/report_acceptance_20261026T080816Z_d82eaa1862/results.json",
+  "execution_results_sha256": "14880a24a67f57f2adda189eaa79f49dac5b5e1ac2ab28e4f60aa610323f288a",
+  "preflight_results_path": "evals/results/report_acceptance_20261026T080753Z_4561a0772c/results.json",
+  "preflight_results_sha256": "a388f32001ebaf538b15be0b5d805e2ab34aef5805482e6b47850e761fc94fd4",
+  "ai_review_path": "evals/results/e3-7-ai-triage-20261026/ai_review_v2.json",
+  "ai_review_sha256": "a9e3465edaa1c6ca8862ee4428dbca432adb11efccb59cd1e592ac1f6ee53a2f",
+  "ai_review_worksheet_sha256": "fee093270c1d153755ab9d18114490db9f7f128a3e6e527b5834563f6288ae1d",
+  "summary_path": "evals/results/local_baseline_summary_20261026T082324Z_e7872e3bb2/results.json",
+  "summary_sha256": "832d6c4829cffaec102f1c61d6085d39ba40c4c4f3028950e323a6d9a166c3f9",
+  "summary_markdown_sha256": "4715f6e54873bb5597c1495d9d93de717680b65618bbb1627158a07f8133ac47",
+  "clean_execution_source_fingerprint_reconstructed": true,
+  "summary_recomputed_and_all_artifact_hashes_verified": true,
+  "mechanical_counts": {
+    "scheduled": 6,
+    "executed": 6,
+    "nonempty_report_files": 6,
+    "tasks_with_requested_artifact": 6,
+    "answerable_tasks": 5,
+    "answerable_with_any_evidence": 5,
+    "answerable_all_reference_units_retrieved": 3,
+    "answerable_all_reference_units_cited": 3,
+    "instrumented_llm_calls": 57,
+    "instrumented_input_tokens": 698119,
+    "instrumented_output_tokens": 16497,
+    "search_queries": 0,
+    "fetched_pages": 0,
+    "original_writer_citation_failures": 3
+  },
+  "summary": {
+    "original_run_id": "report_acceptance_20261026T080816Z_d82eaa1862",
+    "execution_manifest": {
+      "git_commit": "33e91f08439318376a16756a8806036a49ef5773",
+      "git_dirty": false,
+      "source_sha256": "692c2e1138200482211d56a90c2d23244af509a1241018b85a860ca9dbffcbd2",
+      "dataset_sha256": "e69275e9f0718f01b57b6317c0c1de6624b6f62a9a5fa916e6db99ce57299158",
+      "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+      "versions": {
+        "fastembed": "0.8.0",
+        "onnxruntime": "1.27.0",
+        "qdrant-client": "1.18.0",
+        "deepagents": "0.5.7"
+      },
+      "configuration": {
+        "model": "qwen-flash",
+        "selected_cases": [
+          "report_local_001",
+          "report_local_002",
+          "report_local_003",
+          "report_local_004",
+          "report_local_005",
+          "report_local_006"
+        ],
+        "prompt_mode": "user_local_scope_only_no_gold_or_hidden_routes",
+        "execution_enabled": true,
+        "indexed_local_research_enabled": false,
+        "timeout_seconds": 330,
+        "token_scope": "trace_instrumentation_not_total_provider_billing",
+        "knowledge_bases": [
+          "电商行业",
+          "金融行业"
+        ],
+        "limits": {
+          "profile": "deep_report",
+          "total_seconds": 300.0,
+          "max_search_queries": 0,
+          "max_fetched_pages": 0,
+          "max_research_rounds": 2,
+          "max_llm_calls": 12,
+          "writer_reserved_seconds": 75,
+          "verifier_reserved_seconds": 0.0
+        }
+      }
+    },
+    "execution_results_sha256": "14880a24a67f57f2adda189eaa79f49dac5b5e1ac2ab28e4f60aa610323f288a",
+    "ai_review_sha256": "a9e3465edaa1c6ca8862ee4428dbca432adb11efccb59cd1e592ac1f6ee53a2f",
+    "corpus_sha256": "4bd56a51490ea32fe830fd39efa4dd8a97f14a9d4a8457dd8ce6221305f9eedc",
+    "rows": [
+      {
+        "id": "report_local_001",
+        "execution_status": "completed",
+        "error_type": null,
+        "elapsed_seconds": 68.422,
+        "failure_reasons": [],
+        "delivery": "report",
+        "llm_calls": 6,
+        "tool_calls": 5,
+        "tool_calls_by_name": {
+          "collect_evidence_request": 2,
+          "write_todos": 1,
+          "ls": 1,
+          "write_markdown_artifact": 1
+        },
+        "input_tokens": 43836,
+        "output_tokens": 2404,
+        "evidence_count": 6,
+        "report_nonempty": true,
+        "artifact_count": 1,
+        "all_reference_units_retrieved": true,
+        "all_reference_units_cited": true,
+        "final_citation_ids_resolve": true,
+        "ai_answer_status": "substantive",
+        "ai_summary": "核心应用场景已回答；夹带无依据的金融营销联想，需复核。",
+        "ai_keypoint_coverage": [
+          {
+            "unit_id": "scenarios",
+            "coverage": "covered"
+          }
+        ],
+        "ai_finding_categories": [
+          "unsupported_writing"
+        ],
+        "ai_abstention": "not_applicable",
+        "artifact_sha256": {
+          "report": "30a9c97928d1a682e18c3d76e68165f6d7d729b9167fcd7ee50233152876f764",
+          "evidence": "b48b7c0e215e744f3ef8e6c7653ca15b031c7e53d62b5d30eec7533c1407f225",
+          "trace": "3c47178bca2b133a29e198c865d600673ea1e66d652559e816ba72efa20c4dde"
+        }
+      },
+      {
+        "id": "report_local_002",
+        "execution_status": "degraded",
+        "error_type": null,
+        "elapsed_seconds": 123.0,
+        "failure_reasons": [
+          "llm_call_limit"
+        ],
+        "delivery": "report",
+        "llm_calls": 13,
+        "tool_calls": 12,
+        "tool_calls_by_name": {
+          "collect_evidence_request": 2,
+          "collect_evidence": 3,
+          "write_todos": 3,
+          "read_file": 1,
+          "glob": 1,
+          "ls": 1,
+          "write_markdown_artifact": 1
+        },
+        "input_tokens": 184107,
+        "output_tokens": 3470,
+        "evidence_count": 10,
+        "report_nonempty": true,
+        "artifact_count": 1,
+        "all_reference_units_retrieved": true,
+        "all_reference_units_cited": true,
+        "final_citation_ids_resolve": true,
+        "ai_answer_status": "partial",
+        "ai_summary": "成本与全天候运营要点已覆盖；客服响应单位被改错，案例数据周期被省略。",
+        "ai_keypoint_coverage": [
+          {
+            "unit_id": "benefits",
+            "coverage": "covered"
+          }
+        ],
+        "ai_finding_categories": [
+          "evidence_misread",
+          "unsupported_writing"
+        ],
+        "ai_abstention": "not_applicable",
+        "artifact_sha256": {
+          "report": "b2c1cd0a0f031e6894de42f4665a64440c961f2220e2be31a852c9a4bdd301b0",
+          "evidence": "3b2ed1ef21baf7003f99537cdc877187054a73f5fd1f64fa8e2e3dae71fbe026",
+          "trace": "22d5f03870d2dd2bff07d0313211739275b2ffd32df25f63507d0ae1ae5d954a"
+        }
+      },
+      {
+        "id": "report_local_003",
+        "execution_status": "degraded",
+        "error_type": null,
+        "elapsed_seconds": 181.547,
+        "failure_reasons": [
+          "timeout",
+          "final_report_citation_validation_failed"
+        ],
+        "delivery": "claim_fallback",
+        "llm_calls": 12,
+        "tool_calls": 12,
+        "tool_calls_by_name": {
+          "collect_evidence_request": 2,
+          "collect_evidence": 6,
+          "write_todos": 3,
+          "write_markdown_artifact": 1
+        },
+        "input_tokens": 231784,
+        "output_tokens": 3503,
+        "evidence_count": 12,
+        "report_nonempty": true,
+        "artifact_count": 1,
+        "all_reference_units_retrieved": true,
+        "all_reference_units_cited": true,
+        "final_citation_ids_resolve": true,
+        "ai_answer_status": "partial",
+        "ai_summary": "客服核心参考要点已覆盖；引用失败后交付回退包，仍混入跨文档能力归因。",
+        "ai_keypoint_coverage": [
+          {
+            "unit_id": "service",
+            "coverage": "covered"
+          }
+        ],
+        "ai_finding_categories": [
+          "source_misattribution"
+        ],
+        "ai_abstention": "not_applicable",
+        "artifact_sha256": {
+          "report": "4ffb48b1921cb62e19b4ad4729d2ddccdd4a671e5dcccc6d33e0519d962d65a0",
+          "evidence": "f49735dcc3d036d0972061d63c34c1fedb16bead00e3d38410627799f4e7588f",
+          "trace": "a6feb17da782d358b642edde70b3246b0f778f566e0fd804d661067e4f67aa9f"
+        }
+      },
+      {
+        "id": "report_local_004",
+        "execution_status": "degraded",
+        "error_type": null,
+        "elapsed_seconds": 84.891,
+        "failure_reasons": [
+          "llm_call_limit",
+          "final_report_citation_validation_failed"
+        ],
+        "delivery": "claim_fallback",
+        "llm_calls": 13,
+        "tool_calls": 12,
+        "tool_calls_by_name": {
+          "collect_evidence_request": 2,
+          "write_todos": 2,
+          "glob": 3,
+          "read_file": 3,
+          "collect_evidence": 1,
+          "write_markdown_artifact": 1
+        },
+        "input_tokens": 130836,
+        "output_tokens": 1965,
+        "evidence_count": 9,
+        "report_nonempty": true,
+        "artifact_count": 1,
+        "all_reference_units_retrieved": false,
+        "all_reference_units_cited": false,
+        "final_citation_ids_resolve": true,
+        "ai_answer_status": "partial",
+        "ai_summary": "回退包回答2025年政策基调；漏答后续增长与物价取向，并误述片段页码范围。",
+        "ai_keypoint_coverage": [
+          {
+            "unit_id": "retrospective",
+            "coverage": "covered"
+          },
+          {
+            "unit_id": "outlook",
+            "coverage": "missing"
+          }
+        ],
+        "ai_finding_categories": [
+          "evidence_misread",
+          "retrieval_gap"
+        ],
+        "ai_abstention": "not_applicable",
+        "artifact_sha256": {
+          "report": "d7f3ad04e7386a34da2811a08f4834b2aa08d2a87689ed963e03931d6d16461a",
+          "evidence": "60bec25846494e88936b592cdfee9fa10d9b6119ad70617b7524cd6dd017fd34",
+          "trace": "d014892edc42a5fe598296353bef8d3f8f8d67bed33f68d8ae66ae30e198d2ad"
+        }
+      },
+      {
+        "id": "report_local_005",
+        "execution_status": "degraded",
+        "error_type": null,
+        "elapsed_seconds": 106.812,
+        "failure_reasons": [
+          "final_report_citation_validation_failed"
+        ],
+        "delivery": "claim_fallback",
+        "llm_calls": 8,
+        "tool_calls": 7,
+        "tool_calls_by_name": {
+          "collect_evidence_request": 2,
+          "ls": 1,
+          "glob": 1,
+          "write_todos": 1,
+          "collect_evidence": 1,
+          "write_markdown_artifact": 1
+        },
+        "input_tokens": 69589,
+        "output_tokens": 4466,
+        "evidence_count": 7,
+        "report_nonempty": true,
+        "artifact_count": 1,
+        "all_reference_units_retrieved": false,
+        "all_reference_units_cited": false,
+        "final_citation_ids_resolve": true,
+        "ai_answer_status": "partial",
+        "ai_summary": "两份报告均有片段，但交付为逐条Claim列表，未完成宏观异同综合且缺中国政策展望。",
+        "ai_keypoint_coverage": [
+          {
+            "unit_id": "macro",
+            "coverage": "partial"
+          },
+          {
+            "unit_id": "outlook",
+            "coverage": "missing"
+          }
+        ],
+        "ai_finding_categories": [
+          "answer_omission",
+          "citation_support_mismatch",
+          "retrieval_gap"
+        ],
+        "ai_abstention": "not_applicable",
+        "artifact_sha256": {
+          "report": "6108adfbe849e4eb59259ff97e30e5267ecb7c2e3659b5463bc452893d8fbd29",
+          "evidence": "4d0d8ce2359eafb26e9d5b98dc740ebc6127bb2d8ac97488eb9bf20f6fa83c4e",
+          "trace": "9faec1b6e991867c32bb47ee5fb3279e9b8384c38dd232f9e1dd325ddbaa69c2"
+        }
+      },
+      {
+        "id": "report_local_006",
+        "execution_status": "degraded",
+        "error_type": null,
+        "elapsed_seconds": 41.485,
+        "failure_reasons": [],
+        "delivery": "no_evidence_notice",
+        "llm_calls": 5,
+        "tool_calls": 6,
+        "tool_calls_by_name": {
+          "collect_evidence_request": 2,
+          "ls": 2,
+          "write_todos": 1,
+          "write_markdown_artifact": 1
+        },
+        "input_tokens": 37967,
+        "output_tokens": 689,
+        "evidence_count": 0,
+        "report_nonempty": true,
+        "artifact_count": 1,
+        "all_reference_units_retrieved": null,
+        "all_reference_units_cited": null,
+        "final_citation_ids_resolve": true,
+        "ai_answer_status": "no_answer",
+        "ai_summary": "透明返回有界检索无证据说明，没有把未命中扩大为全库不存在。",
+        "ai_keypoint_coverage": [],
+        "ai_finding_categories": [],
+        "ai_abstention": "insufficient_evidence_notice",
+        "artifact_sha256": {
+          "report": "87fad1e8cb808880953f97af25036d97b42284c969103ddd83a0ce22cff344b4",
+          "evidence": "6385b96a33e6487ea5240aad19d059e7e0014ed6c25145b748a3402406eb6de4",
+          "trace": "1c41c62ea32276527381ec47011e495ce60f5445ed31cacd83feea2fe16f8175"
+        }
+      }
+    ],
+    "execution_status_counts": {
+      "completed": 1,
+      "degraded": 5
+    },
+    "delivery_counts": {
+      "report": 2,
+      "claim_fallback": 3,
+      "no_evidence_notice": 1
+    },
+    "latency_seconds": {
+      "median": 95.8515,
+      "min": 41.485,
+      "max": 181.547
+    },
+    "ai_finding_report_counts": {
+      "unsupported_writing": 2,
+      "evidence_misread": 2,
+      "source_misattribution": 1,
+      "retrieval_gap": 2,
+      "answer_omission": 1,
+      "citation_support_mismatch": 1
+    },
+    "human_review": "pending",
+    "human_accuracy": null,
+    "claim_support_rate": null,
+    "note": "AI keypoint/salient-error triage is provisional and non-exhaustive. Literal quotation checks are not entailment. Final delivered citations include fallback/notice behavior. Token/call instrumentation is not total provider billing; one run per development case is not a service benchmark.",
+    "summary_manifest": {
+      "git_commit": "33e91f08439318376a16756a8806036a49ef5773",
+      "git_dirty": true,
+      "source_sha256": "596018d37f8ea33445df197c22c28f6fb2ac3b8c87644e50250c985274918e46",
+      "dataset_sha256": "14880a24a67f57f2adda189eaa79f49dac5b5e1ac2ab28e4f60aa610323f288a",
+      "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+      "versions": {
+        "fastembed": "0.8.0",
+        "onnxruntime": "1.27.0",
+        "qdrant-client": "1.18.0",
+        "deepagents": "0.5.7"
+      },
+      "configuration": {
+        "mode": "offline_ai_preliminary_baseline_summary",
+        "ai_review_sha256": "a9e3465edaa1c6ca8862ee4428dbca432adb11efccb59cd1e592ac1f6ee53a2f"
+      }
+    }
+  },
+  "reviewer_type": "ai_assistant_preliminary",
+  "review_scope": "reference_keypoints_and_salient_errors_not_exhaustive_claim_review",
+  "human_reviews": 0,
+  "human_accuracy": null,
+  "claim_support_rate": null,
+  "additional_project_judge_or_generator_calls_for_review": 0,
+  "indexed_local_default_enabled": false,
+  "regression": {
+    "passed": 430,
+    "skipped": 6
+  },
+  "limitations": [
+    "Single run per exposed development question; no independent test accuracy or stable service latency claim.",
+    "004 has a supported equivalent retrospective passage outside the frozen literal citation anchor; labels were not changed.",
+    "AI findings overlap and are non-exhaustive; quote validation does not establish entailment.",
+    "Final citation validity includes three repaired Claim fallbacks and one zero-citation notice.",
+    "Observed 13 instrumented calls on two tasks must not be described as a strict 12-call total provider cap."
+  ]
+}

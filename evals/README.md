@@ -55,6 +55,10 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 - 报告产物与运行状态；现有 Judge 仅评文本表达与结构。
 - 文件名命中率 @8（不验证答案证据片段）。
 
+## E3.7：统一版本的六题本地报告基线
+
+已在干净 `33e91f08`、默认研究路由与固定配置下完整执行六题，每题一次，保留所有降级：1 completed、5 degraded，中位耗时 95.852 秒；2 份报告、3 份 Claim 回退包、1 份零证据说明。离线 `baseline_summary` 将机械指标与带真实报告／证据／Claim 引文的 AI 初审并列，拒绝漏题或篡改材料，人工正确率保持为空。430 项测试通过、6 项跳过；无 Tavily 查询。见 [完整结果表、错误归因及锚点漏标限制](../docs/development/e3-7-six-task-local-baseline.md)。下一阶段补四个 Web／简单跨源任务，不再以人工全量裁定作为实跑前置条件。
+
 ## E3.6：人工标注、裁定与结果汇总
 
 `python -m evals.reports_acceptance.adjudication` 提供 `init`／`validate`／`summarize`：从保存审核包生成待填模板，校验逐段真实引文、错误标签和修正建议，显式裁定需绑定并重新校验初始标注。汇总区分待审、裁定、分歧、参考标签不确定及分母排除项，无有效裁定时通过率为 `null`。已准备三份真实报告的待审批次，未代填人工结论；418 项测试通过、6 项跳过，无模型／检索调用。见 [操作步骤与统计边界](../docs/development/e3-6-human-adjudication.md)。

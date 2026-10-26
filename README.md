@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E3.7 已在同一干净版本 `33e91f08` 上完成六题本地报告基线：1 正常完成、5 降级；交付为 2 份报告、3 份 Claim 回退包和 1 份零证据说明，中位耗时 95.852 秒。已完成带真实引文的 AI 初审，定位到响应单位误读、跨文档归因、错绑证据片段和政策展望遗漏；人工正确率仍为空。430 项测试通过、6 项跳过，Tavily 为 0。见 [六题结果表与逐题归因](docs/development/e3-7-six-task-local-baseline.md)。
+
 E3.6 新增离线人工标注与最终裁定流程：从已有审核包生成待填 JSON 模板，校验逐段引文、错误类型和修正建议，绑定原报告／Evidence 哈希，再汇总显式裁定。已准备 002／005／006 三份报告的待审批次；当前人工裁定为 0，通过率为空，不将模型意见或待填模板计为验收结果。418 项测试通过、6 项跳过，无模型／搜索调用。见 [操作步骤与统计口径](docs/development/e3-6-human-adjudication.md)。
 
 E3.5 增加本地报告交付前的缺失结论措辞检查：识别到从有限片段扩大为全库／全文不存在内容的明确表达时，拦截正文及引用失败回退稿，返回证据不足说明并标记降级。八份保存报告离线回放中，上一轮负样本的两处表达被拦截，正样本不变；更早负样本仍有措辞漏检。这不是语义验证或通过率，实验路由继续默认关闭。380 项测试通过、6 项跳过，无模型／搜索调用。见 [范围、漏检与回放记录](docs/development/e3-5-local-absence-scope.md)。
@@ -539,6 +541,12 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E3.7 completes one six-task local baseline on clean commit `33e91f08`: 1 completed, 5 degraded;
+delivery contains 2 reports, 3 Claim fallbacks and 1 no-evidence notice. Median latency is 95.852s.
+Quote-checked AI initial findings locate unit misreading, document attribution, wrong supporting
+chunks and missing policy outlook; human accuracy remains unavailable. Regression: 430 passed,
+6 skipped; zero Tavily calls. See the [result table and attribution](docs/development/e3-7-six-task-local-baseline.md).
 
 E3.6 adds offline human annotation and explicit adjudication of saved support packets, with
 pending JSON templates, quote/error/correction validation, original artifact hashes and final

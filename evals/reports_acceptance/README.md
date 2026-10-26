@@ -1,5 +1,11 @@
 # E3.1: local report acceptance
 
+E3.7 completes the six-case default-route baseline on one clean execution commit: 1 completed,
+5 degraded; 2 reports, 3 Claim fallbacks and 1 no-evidence notice. The offline
+`python -m evals.reports_acceptance.baseline_summary --report-results ... --ai-review ...`
+binds an explicitly AI preliminary review to all six saved rows, checks literal quotations and
+keeps failures and human-score nulls visible. See the [table, commands and actual error attribution](../../docs/development/e3-7-six-task-local-baseline.md).
+
 E3.6 adds `python -m evals.reports_acceptance.adjudication` with `init`, `validate`, and
 `summarize` commands. It creates pending templates from immutable support packets, validates
 personal annotations, and requires explicit hash-bound adjudication before reporting an
