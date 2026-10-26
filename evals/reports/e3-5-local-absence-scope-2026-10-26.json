@@ -1,0 +1,140 @@
+{
+  "stage": "E3.5",
+  "date": "2026-10-26",
+  "policy": "local_absence_wording_v1",
+  "mode": "offline_saved_report_wording_replay",
+  "indexed_local_default_enabled": false,
+  "semantic_acceptance": "pending_human_review",
+  "human_reviews": 0,
+  "calls": {
+    "model": 0,
+    "judge": 0,
+    "retrieval": 0,
+    "web_queries": 0,
+    "fetched_pages": 0
+  },
+  "regression": {
+    "passed": 380,
+    "skipped": 6
+  },
+  "replays": [
+    {
+      "run_id": "scope_replay_20261026T071035Z_a8ee4dda5c",
+      "original_run_id": "report_acceptance_20261024T142538Z_6a32b9cb59",
+      "results_path": "evals/results/scope_replay_20261026T071035Z_a8ee4dda5c/results.json",
+      "results_sha256": "6c015292819251cf3422a4d00bcb3282a6eb5ed202ed407507e543d2f98e0946",
+      "original_results_sha256": "ddf509f804a3b62125b524bc201fe679b871ecc163d4b06acc805c72501d586f",
+      "source_sha256": "583df123ee379fd0a4d4e5832874911abe1d67ee6b0a659c986f44a13b4cd3d4",
+      "frozen_suite_sha256": "e69275e9f0718f01b57b6317c0c1de6624b6f62a9a5fa916e6db99ce57299158",
+      "inputs_and_outputs_verified": true,
+      "results": [
+        {
+          "id": "report_local_002",
+          "status": "not_flagged",
+          "original_report_sha256": "482a106511d6c7905bb8693fdadaeda3896d28423aa57e4bc5bf9a759cef627d",
+          "evidence_sha256": "e3863905ebb4f19ba0f498a59bf056c27f1b338f259ea2839a423cc7171e72c1",
+          "delivered_report_sha256": "482a106511d6c7905bb8693fdadaeda3896d28423aa57e4bc5bf9a759cef627d",
+          "before_scope_matches": 0,
+          "after_scope_matches": 0,
+          "source_filename_count": 1,
+          "candidate_unchanged": true
+        },
+        {
+          "id": "report_local_006",
+          "status": "withheld",
+          "original_report_sha256": "88f6534ce9c4fca4522caf21b473b08dc61c91c7534029c26026a7f74a72b8a1",
+          "evidence_sha256": "477e7d85d4421940c44051d409681fe7f6d4c1073f52afd73efde2bc5eb317c3",
+          "delivered_report_sha256": "5f4aac720a91739ce16d7f87c85cde269efc0884613487dfa8a800214ce39bfb",
+          "before_scope_matches": 2,
+          "after_scope_matches": 0,
+          "source_filename_count": 1,
+          "candidate_unchanged": false
+        }
+      ]
+    },
+    {
+      "run_id": "scope_replay_20261026T071043Z_d32dde8f71",
+      "original_run_id": "report_acceptance_20261019T113653Z_fc86f635c0",
+      "results_path": "evals/results/scope_replay_20261026T071043Z_d32dde8f71/results.json",
+      "results_sha256": "82c03cc382dc8497cfea65478b78f36af8d6d60fea87a4fb3d1fc99be784351e",
+      "original_results_sha256": "5b14f83e83db45674222d08575f884c4d720afdd8f06c8fdd4605163e43d7b62",
+      "source_sha256": "583df123ee379fd0a4d4e5832874911abe1d67ee6b0a659c986f44a13b4cd3d4",
+      "frozen_suite_sha256": "e69275e9f0718f01b57b6317c0c1de6624b6f62a9a5fa916e6db99ce57299158",
+      "inputs_and_outputs_verified": true,
+      "results": [
+        {
+          "id": "report_local_001",
+          "status": "not_flagged",
+          "original_report_sha256": "2772fd69d23ce8c57e6e1c184c0257266f2432b0bf7e8cb6b2faad601217f066",
+          "evidence_sha256": "d2a262ec90f41883f2e56ac4293df37184368492b65a36998f0ed8f8ac230366",
+          "delivered_report_sha256": "2772fd69d23ce8c57e6e1c184c0257266f2432b0bf7e8cb6b2faad601217f066",
+          "before_scope_matches": 0,
+          "after_scope_matches": 0,
+          "source_filename_count": 1,
+          "candidate_unchanged": true
+        },
+        {
+          "id": "report_local_002",
+          "status": "not_flagged",
+          "original_report_sha256": "b5c9221013c914e2f5d62c07115127f3193879c3c3015f705e85c4d499940fda",
+          "evidence_sha256": "316e1aab3ad72475117ac0eed0a5a9281d99956fc9f6733c1f52144a24f883e5",
+          "delivered_report_sha256": "b5c9221013c914e2f5d62c07115127f3193879c3c3015f705e85c4d499940fda",
+          "before_scope_matches": 0,
+          "after_scope_matches": 0,
+          "source_filename_count": 1,
+          "candidate_unchanged": true
+        },
+        {
+          "id": "report_local_003",
+          "status": "not_flagged",
+          "original_report_sha256": "1f5e2a2f621c9829475a0a6177379cca85d7d846c0b44b55a6249f1b50cad2b2",
+          "evidence_sha256": "7144165bd3b87666b3ff19e4f6e90135bf4393f081a8e9cb64f1b25fc47cedd8",
+          "delivered_report_sha256": "1f5e2a2f621c9829475a0a6177379cca85d7d846c0b44b55a6249f1b50cad2b2",
+          "before_scope_matches": 0,
+          "after_scope_matches": 0,
+          "source_filename_count": 2,
+          "candidate_unchanged": true
+        },
+        {
+          "id": "report_local_004",
+          "status": "not_flagged",
+          "original_report_sha256": "e5176468c133a144ef402a6724c761d8524a04b59d42bbe005233851a6446fa4",
+          "evidence_sha256": "cec1349c8d16cd17931afadfe3fff25fc9625d9dd2af3e58c0a87f5c0c082143",
+          "delivered_report_sha256": "e5176468c133a144ef402a6724c761d8524a04b59d42bbe005233851a6446fa4",
+          "before_scope_matches": 0,
+          "after_scope_matches": 0,
+          "source_filename_count": 1,
+          "candidate_unchanged": true
+        },
+        {
+          "id": "report_local_005",
+          "status": "not_flagged",
+          "original_report_sha256": "a7e8e90d482d9ae67f65e595aed263fef2605d2f419acb06274462d63cf365a6",
+          "evidence_sha256": "ae984902ba883e9b2215795a6f0c4077074f8b211c7422c68fb7d496e8d8e9e5",
+          "delivered_report_sha256": "a7e8e90d482d9ae67f65e595aed263fef2605d2f419acb06274462d63cf365a6",
+          "before_scope_matches": 0,
+          "after_scope_matches": 0,
+          "source_filename_count": 2,
+          "candidate_unchanged": true
+        },
+        {
+          "id": "report_local_006",
+          "status": "not_flagged",
+          "original_report_sha256": "75145d77413271e6dba0e728222d2e866d3de10102769911d4511756f8ce82d5",
+          "evidence_sha256": "d4c9753ed33e78e6bd3eb513086cc5033ed998b7e830f2f0635eac860435e224",
+          "delivered_report_sha256": "75145d77413271e6dba0e728222d2e866d3de10102769911d4511756f8ce82d5",
+          "before_scope_matches": 0,
+          "after_scope_matches": 0,
+          "source_filename_count": 1,
+          "candidate_unchanged": true
+        }
+      ]
+    }
+  ],
+  "known_limits": [
+    "Older six-task negative is a known absence-wording miss; its filename defects belong to the separate filename policy.",
+    "Eight saved reports include repeated task IDs and are not independent questions.",
+    "Unmatched reports are unreviewed, not supported. Withheld notices are not accepted answers.",
+    "No new generation measures the prompt change; no entailment, full-corpus coverage, answer accuracy or refusal-quality score is claimed."
+  ]
+}

@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E3.5 增加本地报告交付前的缺失结论措辞检查：识别到从有限片段扩大为全库／全文不存在内容的明确表达时，拦截正文及引用失败回退稿，返回证据不足说明并标记降级。八份保存报告离线回放中，上一轮负样本的两处表达被拦截，正样本不变；更早负样本仍有措辞漏检。这不是语义验证或通过率，实验路由继续默认关闭。380 项测试通过、6 项跳过，无模型／搜索调用。见 [范围、漏检与回放记录](docs/development/e3-5-local-absence-scope.md)。
+
 E3.4 新增默认关闭的本地索引专用研究路由（评测加 `--indexed-local`）：只声明本地 `collect_evidence`，不提供文件、待办、记忆或子智能体工具，最多接受 2 次补检索。两题对照中不相关工具请求从 13 次变为 0，限额试验耗时约 56／53 秒，但均触发限额降级，负样本仍有无依据的全库断言，因此未替换生产默认。见 [实验与上线门槛](docs/development/e3-4-indexed-local-agent.md)。
 
 E3.3 已将真实本地文件名补入证据账本与 Writer 专用来源清单，并在交付前检查显式 `《文件名.扩展名》`。无法映射到已取回本地证据的文件名会导致正文被拦截，返回来源核验不足说明；引用失败回退稿也不能绕过检查。该规则只验证文件名身份，不证明事实支持、全文核查或文件不存在，别名也可能保守拦截。见 [实现与边界](docs/development/e3-3-local-source-provenance.md)。
@@ -535,6 +537,13 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E3.5 adds a bounded local-absence wording check before report delivery, including citation
+fallbacks. Matched corpus/full-document absence assertions withhold the body and mark the run
+degraded. Offline replay over eight saved reports withholds two explicit matches in the recent
+negative and preserves its positive control; an older negative remains a known wording miss.
+This is not semantic acceptance. The indexed-local route remains default-off. Regression:
+380 passed, 6 skipped; no model/search calls. See the [policy, miss and replay](docs/development/e3-5-local-absence-scope.md).
 
 E3.4 adds a default-off indexed-local researcher (`--indexed-local` in evals) with only a fixed-source
 Evidence tool and two supplemental requests. Unwanted tool requests fell from 13 to 0 on two

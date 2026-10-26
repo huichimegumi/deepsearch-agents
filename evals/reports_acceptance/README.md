@@ -1,5 +1,12 @@
 # E3.1: local report acceptance
 
+E3.5 adds a bounded local-absence delivery check on final candidates and citation fallbacks.
+`python -m evals.reports_acceptance.replay_sources --policy absence_scope --report-results ...`
+replays only this wording policy over hash-verified saved reports. The default policy remains
+filename-only. Recent negative: two matches withheld; older negative: known wording miss.
+Neither non-matches nor boundary notices grant semantic acceptance. See the
+[scope, replay results and limits](../../docs/development/e3-5-local-absence-scope.md).
+
 E3.4 exposes the **default-off** `--indexed-local` experiment: no researcher filesystem/todo/
 memory/delegation tools, a local-only wrapper retaining the `collect_evidence` name, and two
 supplemental tool requests. Both bounded tasks degraded and the negative still overclaimed corpus

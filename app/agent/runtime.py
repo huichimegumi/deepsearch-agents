@@ -218,6 +218,8 @@ class ResearchRunTrace:
     capture_claim_validation_inputs: bool = False
     _claim_validation_batches: list[dict[str, Any]] = field(default_factory=list, repr=False)
     local_source_reference_checks: list[dict[str, Any]] = field(default_factory=list)
+    local_scope_checks: list[dict[str, Any]] = field(default_factory=list)
+    _local_scope_checks_private: list[dict[str, Any]] = field(default_factory=list, repr=False)
     capture_report_source_checks: bool = False
     _source_reference_checks_private: list[dict[str, Any]] = field(default_factory=list, repr=False)
     unknown_claim_evidence_ids: list[str] = field(default_factory=list)
@@ -641,6 +643,7 @@ class ResearchRunTrace:
             "records": [record.to_dict() for record in self._evidence_records_by_id.values()],
             "claim_validation_batches": self._claim_validation_batches,
             "source_reference_checks": self._source_reference_checks_private,
+            "local_scope_checks": self._local_scope_checks_private,
         }
 
     def local_document_records(self) -> list[Any]:
@@ -813,6 +816,7 @@ class ResearchRunTrace:
             "research_tool_mode": self.research_tool_mode,
             "research_tool_call_limit": self.research_tool_call_limit,
             "local_source_reference_checks": self.local_source_reference_checks,
+            "local_scope_checks": self.local_scope_checks,
             "metrics": {
                 "llm_calls": self.llm_calls,
                 "tool_calls": self.tool_calls,

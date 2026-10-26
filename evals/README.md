@@ -55,6 +55,10 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 - 报告产物与运行状态；现有 Judge 仅评文本表达与结构。
 - 文件名命中率 @8（不验证答案证据片段）。
 
+## E3.5：本地缺失结论措辞检查与离线回放
+
+`replay_sources --policy absence_scope` 在核验保存报告／Evidence 哈希后单独回放新交付检查，不重新检索或生成。八份历史报告中，上一轮负样本的两处明确全库缺失表达被拦截，正样本不变；旧负样本的另一类表达仍漏检。未命中不表示支持，拦截说明也不计为语义正确拒答。380 项回归通过、6 项跳过，无模型／搜索调用，实验路由仍默认关闭。见 [规则与已知漏检](../docs/development/e3-5-local-absence-scope.md)。
+
 ## E3.4：本地研究能力与补检索预算实验
 
 报告 runner 的 `--indexed-local` 显式启用默认关闭的专用路由：只有固定本地来源的 Evidence 工具，最多 2 次补检索，保留原有首次取证及全局预算。两个试验分别记录“只移除无关工具仍查询 9 次并超时”和“增加上限后约 56／53 秒但均限额降级”。负样本仍有未支持的全库断言，因此没有默认启用、没有语义通过率。见 [完整门槛与限制](../docs/development/e3-4-indexed-local-agent.md) 和 [独立记录](reports/e3-4-indexed-local-agent-2026-10-24.json)。

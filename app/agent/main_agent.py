@@ -61,6 +61,7 @@ from app.research.claims import (
     validate_report_citations,
 )
 from app.research.local_retrieval import local_evidence_boundary, require_local_retrieval
+from app.research.local_scope import enforce_local_absence_scope
 from app.research.source_provenance import document_catalog, enforce_local_source_references
 from app.tools.evidence_tool import collect_evidence
 from app.tools.local_research_tool import collect_local_evidence
@@ -495,13 +496,19 @@ def _attach_required_executed_sql(
     )
 
 
+def _local_report_boundary(report: str, run_trace: ResearchRunTrace, *, candidate_kind: str):
+    return enforce_local_source_references(
+        report, run_trace, candidate_kind=candidate_kind
+    ) or enforce_local_absence_scope(report, run_trace, candidate_kind=candidate_kind)
+
+
 def _enforce_final_report_citations(
     *,
     report_markdown: str,
     compressed_fallback: str,
     run_trace: ResearchRunTrace,
 ) -> tuple[str, ReportCitationValidation]:
-    source_boundary = enforce_local_source_references(
+    source_boundary = _local_report_boundary(
         report_markdown, run_trace, candidate_kind="final_candidate"
     )
     if source_boundary is not None:
@@ -537,7 +544,7 @@ def _enforce_final_report_citations(
         "The backend returned the validated claim package instead.\n\n"
         f"{fallback}"
     )
-    source_boundary = enforce_local_source_references(
+    source_boundary = _local_report_boundary(
         fallback_report, run_trace, candidate_kind="citation_fallback"
     )
     if source_boundary is not None:
@@ -2038,7 +2045,11 @@ async def run_deep_agent(
                     requested_formats = _requested_artifact_formats(task_query)
                     if requested_formats and not created_artifacts:
                         raise RuntimeError("requested_artifact_not_created")
-                    if any(item["withheld"] for item in run_trace.local_source_reference_checks):
+                    if any(item["withheld"] for item in run_trace.local_scope_checks):
+                        artifact_status = (
+                            "scope_withheld_persisted" if requested_formats else "scope_withheld"
+                        )
+                    elif any(item["withheld"] for item in run_trace.local_source_reference_checks):
                         artifact_status = (
                             "source_withheld_persisted" if requested_formats else "source_withheld"
                         )

@@ -173,7 +173,16 @@ def test_source_replay_rejects_invalid_inputs(tmp_path, monkeypatch, failure):
         replay_sources.replay(path, ["report_local_001"] if failure == "unexecuted" else None)
 
 
-async def test_main_workflow_persists_only_the_source_boundary(tmp_path, monkeypatch):
+@pytest.mark.parametrize(
+    ("candidate", "artifact_status"),
+    [
+        ("《Invented.pdf》 claim", "source_withheld_persisted"),
+        ("所有可访问的文档均未提及 private-topic", "scope_withheld_persisted"),
+    ],
+)
+async def test_main_workflow_persists_only_the_source_boundary(
+    tmp_path, monkeypatch, candidate, artifact_status
+):
     async def lookup(query, current, timeout):
         current.record_evidence((evidence(),))
         current.record_local_retrieval("OK", 1)
@@ -187,7 +196,7 @@ async def test_main_workflow_persists_only_the_source_boundary(tmp_path, monkeyp
             current.claim_evidence_ids = [evidence().evidence_id]
         if key == "final_report":
             assert "Known.pdf" in kwargs["prompt"]
-            return f"《Invented.pdf》 claim [{evidence().evidence_id}]"
+            return f"{candidate} [{evidence().evidence_id}]"
         return "phase output"
 
     monkeypatch.setattr(main_agent, "project_root_path", tmp_path)
@@ -206,7 +215,8 @@ async def test_main_workflow_persists_only_the_source_boundary(tmp_path, monkeyp
     result = await main_agent.run_deep_agent("仅使用本地知识库，生成 Markdown 报告", "source-guard")
     directory = tmp_path / "output/session_source-guard"
     assert "Invented.pdf" not in result
+    assert "private-topic" not in result
     assert (directory / "report.md").read_text(encoding="utf-8") == result
     saved = json.loads((directory / "research_trace.json").read_text(encoding="utf-8"))
     assert saved["status"] == "degraded"
-    assert saved["phases"][-1]["artifact_status"] == "source_withheld_persisted"
+    assert saved["phases"][-1]["artifact_status"] == artifact_status
