@@ -2,6 +2,8 @@
 
 本目录包含 DeepSearch Agents 第一阶段的项目内中文评测集，覆盖路由、联网搜索、数据库查询、本地知识库检索和端到端报告生成。
 
+E4.4 增加 `python -m evals.reports_acceptance.coverage <保存摘录运行目录>`：默认生成逐问题槽位模板，显式 `--execute` 最多两次模型调用、零检索；遗漏／重复槽位与无效引文不能算候选回答。另提供 `coverage_review.diagnose_review` 对显式离线审阅核验原文、区分选段缺口与已有证据未使用，保留模型原始失败结果。本轮模型七项全部弃答，后续离线恢复的官方摘录不计为模型成绩。见 [E4.4 记录](../docs/development/e4-4-question-coverage.md)。
+
 E4.3 增加 `python -m evals.reports_acceptance.writer_fidelity <保存摘录运行目录>`：默认核验哈希并生成原文基线，显式 `--execute` 才调用两次 Writer，不重新检索或压缩。两种输出共享经过官方来源过滤的摘录，改写逐条关联稳定 `quote_id`；机械关联检查与语义／完整性审阅分开记录，未修改生产默认。两题仍未完整作答，见 [E4.3 记录与运行命令](../docs/development/e4-3-writer-fidelity.md)。
 
 E4.2 增加仅用于评测的保存证据原文摘取试验：`python -m evals.reports_acceptance.extractive <历史运行目录>` 默认仅建清单，显式 `--execute` 才调用模型，两题最多四次逻辑调用，不执行搜索。引文必须是实际 Web Evidence 的逐字连续子串；这不验证语义支持或官方来源要求。两题试验仍有 Writer 扩大结论范围等问题，未替换生产压缩策略。另完成结构化 Claim 交付边界修复和十份历史文档的引用回放；见 [E4.2 记录](../docs/development/e4-2-claim-delivery.md)。
