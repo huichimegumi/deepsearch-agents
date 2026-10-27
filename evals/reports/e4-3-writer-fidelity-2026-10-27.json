@@ -1,0 +1,129 @@
+{
+  "stage": "E4.3",
+  "date": "2026-10-27",
+  "experiment_run": "writer_fidelity_20261027T064246Z_a6fbc6623d",
+  "manifest": {
+    "git_commit": "e670bf160806dc0bd2607c1aa68361a340ccfd56",
+    "git_dirty": true,
+    "source_sha256": "a953c1b5c3e9b8f36665d88417d3c32a77196f4ceeaa28c8f6de5a3866138024",
+    "dataset_sha256": "8a6c9d1d679ae126a59f9062fb3efe6c9ec2d88160b93804c5ae0e6bc1b107f3",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "versions": {
+      "fastembed": "0.8.0",
+      "onnxruntime": "1.27.0",
+      "qdrant-client": "1.18.0",
+      "deepagents": "0.5.7"
+    },
+    "configuration": {
+      "execute": true,
+      "max_logical_calls": 2,
+      "timeout_seconds_per_call": 90,
+      "provider_retries": 0,
+      "search_queries": 0,
+      "fetched_pages": 0,
+      "source_authority": "official_hosts_only_both_arms",
+      "writer_instruction_sha256": "d956ac42357d3ae0037de80ae63b4d109a8e66b207adc4003fd05bb97eadc438"
+    }
+  },
+  "source_run": "extractive_compression_20261027T062414Z_925eced641",
+  "input_sha256": {
+    "evals/results/extractive_compression_20261027T062414Z_925eced641/results.json": "a271fe6b5e67978550677ded7d6db17af958f212f2abbb6edf01db7fc8f87734",
+    "evals/results/extractive_compression_20261027T062414Z_925eced641/report_web_001/inputs.json": "f079409eb0357dce68f4f10bf1a94c664a216e845aee6d8c63fe51b63fe3796b",
+    "evals/results/extractive_compression_20261027T062414Z_925eced641/report_web_001/quotes.json": "57f584d4d61718c5fce8537e2b64957cac99a45a46dfd3423dfb16badbf56ece",
+    "evals/results/extractive_compression_20261027T062414Z_925eced641/report_web_002/inputs.json": "02cfb18771452bd1f2988dc61a2fdd322002c6738fbfad24ddd6a8691a73fbe8",
+    "evals/results/extractive_compression_20261027T062414Z_925eced641/report_web_002/quotes.json": "9413378be2d498df1846c0a3e8f82e3e56a3ddebf62ca6e7196ed231082fa07c"
+  },
+  "model": "qwen-flash",
+  "logical_model_calls": 2,
+  "search_queries": 0,
+  "fetched_pages": 0,
+  "cases": [
+    {
+      "id": "report_web_001",
+      "extracts": 3,
+      "excluded_non_official": 0,
+      "logical_calls": 1,
+      "status": "generated_pending_semantic_review",
+      "usage": {
+        "input_tokens": 576,
+        "output_tokens": 363,
+        "total_tokens": 939,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {}
+      },
+      "structurally_accepted": 4,
+      "rejected": 0,
+      "unanswered_topics": 0,
+      "artifact_sha256": {
+        "assertions.json": "7dc2cbdaf8d48e110a6f2210392f7452a2cd1646d13ea843679155ebf0fa8d10",
+        "candidate.md": "3db6e95090a70a2454f2754a0944d5f00c21bd1a331448b3534f21dc5f6d89ad",
+        "extract_baseline.md": "d5b938c52f42ccedd48a397d27b6e38bdf4cc8f8107a12afbbed782ba5836e58",
+        "inputs.json": "092e5759d87ee2bd049631bdb5e407a28f1c44f373ce697cf2f5687b9c210b1a",
+        "raw_response.json": "6f9de216b69d4e24ecb2ac0e281d96a50573dacff366a16b9141274933d5633c"
+      }
+    },
+    {
+      "id": "report_web_002",
+      "extracts": 2,
+      "excluded_non_official": 1,
+      "logical_calls": 1,
+      "status": "generated_pending_semantic_review",
+      "usage": {
+        "input_tokens": 437,
+        "output_tokens": 165,
+        "total_tokens": 602,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {}
+      },
+      "structurally_accepted": 2,
+      "rejected": 0,
+      "unanswered_topics": 2,
+      "artifact_sha256": {
+        "assertions.json": "9317d08fdf40b03377d77c202e06f5865131370573808e3120b459cfd225a792",
+        "candidate.md": "d2fa085f2fba54937c99e0e94627aaad8f37cfb040879b4c62f628883356cdf9",
+        "extract_baseline.md": "c3937e837dd93a5b3b8bb8cc7c99892f0e2407443da2887eedb765368cc90e9b",
+        "inputs.json": "7b159f1f2fef7695858eb4cec1aa09b2ac18133ba44cd09b113aaa1f59288fc6",
+        "raw_response.json": "af0ffad3cc3869a33996da4169728433aaa597f9eac766b94c659acfc4413b9e"
+      }
+    }
+  ],
+  "inputs_unchanged": true,
+  "source_unchanged": true,
+  "ai_review": {
+    "reviewer": "AI initial review; not human acceptance",
+    "assertion_entries_reviewed": 6,
+    "sub_assertion_units_reviewed": 10,
+    "compound_assertion_entries": 2,
+    "case_assessments": [
+      {
+        "id": "report_web_001",
+        "assessment": "partial"
+      },
+      {
+        "id": "report_web_002",
+        "assessment": "partial"
+      }
+    ],
+    "ai_review_sha256": "512aa4a537dd6ea173e163305839aec3e535e411eecf779388876b09ebd2c66b",
+    "worksheet_sha256": "860838cec7feead7e673e4ee710a4913484dbcad4702139d998314a394b7d4d2"
+  },
+  "production_change": false,
+  "regression": {
+    "passed": 506,
+    "skipped": 6
+  },
+  "human_accuracy": null,
+  "human_claim_support_rate": null,
+  "limitations": [
+    "Two exposed development cases with one sample each; targeted prompt, not holdout evidence.",
+    "Exact-extract baseline and structured candidate share official-host-filtered extracts. Prior E4.2 writer used different inputs/prompts; no causal accuracy claim.",
+    "All six structured links pass mechanically; semantic and completeness judgements are provisional AI work.",
+    "No answer-completeness improvement demonstrated: Python leaves installation choice unreported as a gap; PostgreSQL omits backup details.",
+    "No new retrieval or compression. Saved official PostgreSQL incremental-backup text remains outside selected extracts.",
+    "Production Writer is unchanged. Experiment remains evaluation-only."
+  ]
+}
