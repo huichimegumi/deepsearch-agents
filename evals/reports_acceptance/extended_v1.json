@@ -1,0 +1,46 @@
+{
+  "version": "report_extended_v1",
+  "knowledge_bases": ["电商行业", "金融行业"],
+  "max_batch_search_queries": 10,
+  "annotation_review": "source_verified_by_agent_pending_human_review",
+  "cases": [
+    {
+      "id": "report_web_001", "required_sources": ["web"], "search_queries": 3, "fetched_pages": 3,
+      "question": "仅使用公开网络，优先 Python 官方网站，写一份简短 Markdown 报告：Python 3.13.0 正式版何时发布？该版本 free-threaded 构建的实验状态和安装选择是什么？请区分 3.13.0 发布时的信息与后续版本，引用实际获取的网页证据。不要查询本地知识库或数据库。",
+      "answer_keypoints": ["2024-10-07发布", "free-threaded模式在3.13为实验功能", "可选构建而非所有默认安装均关闭GIL"],
+      "units": [
+        {"id": "release", "source": "web", "domains": ["python.org"], "alternatives": [["Oct. 7, 2024"], ["October 7, 2024"], ["2024-10-07"]]},
+        {"id": "experimental", "source": "web", "domains": ["python.org"], "alternatives": [["experimental", "free-threaded"], ["experimental", "free threading"]]},
+        {"id": "optional", "source": "web", "domains": ["python.org"], "alternatives": [["optionally", "free-threaded"], ["experimental feature", "installers"], ["--disable-gil"]]}
+      ]
+    },
+    {
+      "id": "report_web_002", "required_sources": ["web"], "search_queries": 3, "fetched_pages": 3,
+      "question": "仅使用公开网络和 PostgreSQL 官方资料，写一份简短 Markdown 报告：PostgreSQL 17.0 的发布日期是什么？JSON_TABLE、增量备份及 pg_combinebackup 各提供什么能力？限定讨论 17.0 发布时的新增能力，引用实际网页证据。不要查询本地知识库或数据库。",
+      "answer_keypoints": ["2024-09-26发布", "JSON_TABLE将JSON转换为表表示", "pg_basebackup支持增量备份，pg_combinebackup重建完整备份"],
+      "units": [
+        {"id": "release", "source": "web", "domains": ["postgresql.org"], "alternatives": [["2024-09-26"]]},
+        {"id": "json_table", "source": "web", "domains": ["postgresql.org"], "alternatives": [["JSON_TABLE", "table representation"], ["JSON_TABLE", "SQL/JSON"]]},
+        {"id": "backup", "source": "web", "domains": ["postgresql.org"], "alternatives": [["incremental", "pg_combinebackup"]]}
+      ]
+    },
+    {
+      "id": "report_cross_001", "required_sources": ["local_document", "web"], "search_queries": 4, "fetched_pages": 4,
+      "question": "使用本地知识库和网络网页交叉核验：金融行业知识库中的《中国人民银行2025年第四季度中国货币政策执行报告》如何描述2025年5月的7天期逆回购利率调整？再从中国人民银行官网核实生效日期、调整前后利率和降幅。写简短 Markdown 报告，分别引用本地片段和网页证据；资料不全就说明缺口。不要使用数据库。",
+      "answer_keypoints": ["本地报告记载1.5%降至1.4%", "央行官网确认2025-05-08生效", "降幅0.1个百分点即10基点，不是0.1%的相对降幅"],
+      "units": [
+        {"id": "local_change", "source": "local_document", "document_sha256": "4cad3f2ced2a9a5b8813f81c6d293b90c77fd7f9e142df11d14fd3900e8633c6", "alternatives": [["1.5%", "1.4%", "2025年5月"]]},
+        {"id": "official_change", "source": "web", "domains": ["pbc.gov.cn"], "alternatives": [["5月8日", "1.50%", "1.40%"], ["2025年5月8日", "1.5%", "1.4%"]]}
+      ]
+    },
+    {
+      "id": "report_cross_002", "required_sources": ["sql", "local_document"], "search_queries": 0, "fetched_pages": 0,
+      "question": "使用本地知识库和数据库完成一份知识库覆盖说明：先从只读数据库的 document_inventory 表查询《2026数字人电商直播白皮书.pdf》已索引片段数量，再从电商行业本地知识库概括其中两类具体应用场景。分别引用实际 SQL 结果与文档片段，并说明片段数量不能证明全文覆盖或答案正确。不要使用网络。",
+      "answer_keypoints": ["通过实际SQL查询得到索引片段数", "从本地证据概括两类数字人直播应用场景", "索引数量不等于全文覆盖或事实正确性"],
+      "units": [
+        {"id": "inventory_count", "source": "sql", "column": "indexed_chunk_count"},
+        {"id": "scenarios", "source": "local_document", "document_sha256": "61803158d2af3f9913fffe612463789dc6fa46a97fe28dae199be216120a2d2c", "alternatives": [["品牌自播间"], ["真人主播数字分身", "双IP"]]}
+      ]
+    }
+  ]
+}

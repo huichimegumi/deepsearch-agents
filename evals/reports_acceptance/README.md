@@ -1,5 +1,13 @@
 # E3.1: local report acceptance
 
+E3.8 adds the frozen `extended_v1.json` suite and `python -m evals.reports_acceptance.extended`.
+Prepare assets with `--prepare`, inspect with `--lock <lock.json>`, then deliberately execute with
+`--execute --allow-paid-search`. Four disjoint allowances sum to ten queries. Actual usage: 9
+admitted queries/7 pages; all four runs degraded. The evaluation exposes a Web-only/local-gate
+misclassification and preserves missing-source/citation failures. It completes ten distinct tasks
+with the earlier six local reports, without claiming pooled accuracy. See the
+[commands, results and next fix](../../docs/development/e3-8-web-cross-source-reports.md).
+
 E3.7 completes the six-case default-route baseline on one clean execution commit: 1 completed,
 5 degraded; 2 reports, 3 Claim fallbacks and 1 no-evidence notice. The offline
 `python -m evals.reports_acceptance.baseline_summary --report-results ... --ai-review ...`

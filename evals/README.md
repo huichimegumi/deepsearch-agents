@@ -55,6 +55,10 @@ Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckG
 - 报告产物与运行状态；现有 Judge 仅评文本表达与结构。
 - 文件名命中率 @8（不验证答案证据片段）。
 
+## E3.8：Web 与简单跨源四题扩展
+
+`python -m evals.reports_acceptance.extended` 提供独立准备、预检和显式付费实跑入口。固定 3／3／4／0 次查询额度，冻结官方网页参考、本地语料和真实索引清单 SQLite 快照。四题均降级，记录 9 次已准入 Tavily 查询、7 个抓取页面；两道 Web 题暴露否定本地约束误触发本地专用边界。SQL 查询成功核验 59 个片段，但场景参考未完整覆盖。与 E3.7 一起已有十题结果，人工正确率仍为空；448 项测试通过、6 项跳过。见 [逐题实跑与十题覆盖表](../docs/development/e3-8-web-cross-source-reports.md)。下一轮只选来源判定问题做固定任务对照。
+
 ## E3.7：统一版本的六题本地报告基线
 
 已在干净 `33e91f08`、默认研究路由与固定配置下完整执行六题，每题一次，保留所有降级：1 completed、5 degraded，中位耗时 95.852 秒；2 份报告、3 份 Claim 回退包、1 份零证据说明。离线 `baseline_summary` 将机械指标与带真实报告／证据／Claim 引文的 AI 初审并列，拒绝漏题或篡改材料，人工正确率保持为空。430 项测试通过、6 项跳过；无 Tavily 查询。见 [完整结果表、错误归因及锚点漏标限制](../docs/development/e3-7-six-task-local-baseline.md)。下一阶段补四个 Web／简单跨源任务，不再以人工全量裁定作为实跑前置条件。

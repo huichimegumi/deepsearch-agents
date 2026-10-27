@@ -43,12 +43,14 @@ async def execute_case(
     timeout: int,
     *,
     indexed_local: bool = False,
+    research_limits=None,
+    audit_function=None,
 ):
     started = time.monotonic()
     error_type = None
     report = ""
     try:
-        limits = replace(
+        limits = research_limits or replace(
             get_settings().research_budget_limits("deep_report"),
             max_search_queries=0,
             max_fetched_pages=0,
@@ -82,12 +84,13 @@ async def execute_case(
     write_json(directory / "evidence.json", payloads["snapshot"] or {"records": []})
     write_json(directory / "trace.json", payloads["trace"] or {})
     write_json(directory / "reference.json", case)
-    audit = audit_report(report, payloads["snapshot"], case)
-    audit["local_source_scope_met"] = (
-        all(source == "local_document" for source in audit["observed_sources"])
-        if payloads["snapshot"] is not None
-        else None
-    )
+    audit = (audit_function or audit_report)(report, payloads["snapshot"], case)
+    if audit_function is None:
+        audit["local_source_scope_met"] = (
+            all(source == "local_document" for source in audit["observed_sources"])
+            if payloads["snapshot"] is not None
+            else None
+        )
     write_markdown(directory / "REVIEW.md", review_worksheet(case, audit))
     artifacts = sorted(str(path.relative_to(ROOT)) for path in session_dir.glob("*.md"))
     trace = payloads["trace"] or {}

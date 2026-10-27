@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E3.8 已补齐 2 个 Web 与 2 个简单跨源任务，连同 E3.7 共覆盖十个不同开发问题。四题均降级，记录 9 次已准入 Tavily 查询、7 个抓取页面；定位到纯 Web 请求中的否定本地约束被误判为本地专用，导致已有网页证据无法进入正常写作。SQL＋本地题实际查询到 59 个片段，但应用场景回答仍不完整。448 项测试通过、6 项跳过；人工正确率为空。见 [四题实跑、十题总表与下一项改进](docs/development/e3-8-web-cross-source-reports.md)。
+
 E3.7 已在同一干净版本 `33e91f08` 上完成六题本地报告基线：1 正常完成、5 降级；交付为 2 份报告、3 份 Claim 回退包和 1 份零证据说明，中位耗时 95.852 秒。已完成带真实引文的 AI 初审，定位到响应单位误读、跨文档归因、错绑证据片段和政策展望遗漏；人工正确率仍为空。430 项测试通过、6 项跳过，Tavily 为 0。见 [六题结果表与逐题归因](docs/development/e3-7-six-task-local-baseline.md)。
 
 E3.6 新增离线人工标注与最终裁定流程：从已有审核包生成待填 JSON 模板，校验逐段引文、错误类型和修正建议，绑定原报告／Evidence 哈希，再汇总显式裁定。已准备 002／005／006 三份报告的待审批次；当前人工裁定为 0，通过率为空，不将模型意见或待填模板计为验收结果。418 项测试通过、6 项跳过，无模型／搜索调用。见 [操作步骤与统计口径](docs/development/e3-6-human-adjudication.md)。
@@ -541,6 +543,13 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E3.8 adds two Web and two simple cross-source executions, completing ten distinct development
+questions across the preserved E3.7/E3.8 batches. All four new runs degraded, with 9 admitted Tavily
+queries and 7 fetched pages. Web-only negative local constraints incorrectly activate a local-only
+gate despite available Web Evidence. SQL/local retrieval verifies 59 chunks but incompletely answers
+the scenario request. Regression: 448 passed, 6 skipped; human accuracy remains null. See the
+[results, ten-task inventory and next bounded improvement](docs/development/e3-8-web-cross-source-reports.md).
 
 E3.7 completes one six-task local baseline on clean commit `33e91f08`: 1 completed, 5 degraded;
 delivery contains 2 reports, 3 Claim fallbacks and 1 no-evidence notice. Median latency is 95.852s.
