@@ -277,10 +277,20 @@ def environment(values):
                 os.environ[key] = value
 
 
-def run(lock_path: Path, execute=False, allow_paid=False) -> Path:
+def select_cases(suite: dict, case_ids: list[str] | None) -> list[dict]:
+    if case_ids is None:
+        return suite["cases"]
+    known = {case["id"] for case in suite["cases"]}
+    if not case_ids or len(set(case_ids)) != len(case_ids) or not set(case_ids) <= known:
+        raise ValueError("Selected case IDs must be nonempty, unique and known")
+    return [case for case in suite["cases"] if case["id"] in case_ids]
+
+
+def run(lock_path: Path, execute=False, allow_paid=False, *, case_ids=None) -> Path:
     if execute and not allow_paid:
         raise ValueError("Live Tavily execution requires --allow-paid-search")
     suite = load_suite()
+    cases = select_cases(suite, case_ids)
     lock, _ = validate_lock(lock_path)
     settings = get_settings()
     if execute:
@@ -299,6 +309,8 @@ def run(lock_path: Path, execute=False, allow_paid=False) -> Path:
             "lock_sha256": file_sha256(lock_path),
             "profile": "deep_report",
             "default_researcher": True,
+            "selected_cases": [case["id"] for case in cases],
+            "scheduled_search_query_ceiling": sum(case["search_queries"] for case in cases),
             "outer_timeout_seconds": 330,
             "limits_by_case": {
                 case["id"]: asdict(
@@ -308,7 +320,7 @@ def run(lock_path: Path, execute=False, allow_paid=False) -> Path:
                         max_fetched_pages=case["fetched_pages"],
                     )
                 )
-                for case in suite["cases"]
+                for case in cases
             },
         },
     )
@@ -324,7 +336,7 @@ def run(lock_path: Path, execute=False, allow_paid=False) -> Path:
     # Fixed disjoint per-case allowances sum to ten, including requests that finish late.
     # No transfer of an interrupted case's unobserved remainder to another case.
     if execute:
-        for original_case in suite["cases"]:
+        for original_case in cases:
             case = {
                 **original_case,
                 "answerable": True,
@@ -378,7 +390,7 @@ def run(lock_path: Path, execute=False, allow_paid=False) -> Path:
         and file_sha256(lock_path) == manifest["configuration"]["lock_sha256"]
     )
     result["scheduled_search_query_ceiling"] = (
-        sum(case["search_queries"] for case in suite["cases"]) if execute else 0
+        sum(case["search_queries"] for case in cases) if execute else 0
     )
     result["reported_admitted_search_queries"] = sum(
         row["admitted_search_queries"] or 0 for row in result["results"]
@@ -393,15 +405,18 @@ def main() -> int:
     parser.add_argument("--lock", type=Path)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--allow-paid-search", action="store_true")
+    parser.add_argument(
+        "--case-id", action="append", help="Explicit frozen subset; limits remain unchanged"
+    )
     args = parser.parse_args()
     if args.prepare:
-        if args.execute or args.lock:
+        if args.execute or args.lock or args.case_id:
             parser.error("Preparation is separate from execution")
         print(prepare())
         return 0
     if not args.lock:
         parser.error("--lock is required")
-    path = run(args.lock, args.execute, args.allow_paid_search)
+    path = run(args.lock, args.execute, args.allow_paid_search, case_ids=args.case_id)
     print(path)
     result = json.loads(path.read_text(encoding="utf-8"))
     return int(

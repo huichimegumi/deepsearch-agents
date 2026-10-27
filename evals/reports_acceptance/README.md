@@ -1,5 +1,11 @@
 # E3.1: local report acceptance
 
+E4.1 adds repeated `--case-id` selection to the extended runner. The subset retains frozen order,
+tasks and per-case limits; empty/duplicate/unknown IDs fail. The original Web-only pair is rerun
+with 6 total query/page allowances after source-intent correction. Wrong local-only activations
+fall 2→0 and both invoke compression/Writer, but both remain degraded with partial AI answers.
+See the [paired execution, source/citation distinctions and remaining errors](../../docs/development/e4-1-source-intent.md).
+
 E3.8 adds the frozen `extended_v1.json` suite and `python -m evals.reports_acceptance.extended`.
 Prepare assets with `--prepare`, inspect with `--lock <lock.json>`, then deliberately execute with
 `--execute --allow-paid-search`. Four disjoint allowances sum to ten queries. Actual usage: 9

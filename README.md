@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.1 修复否定本地来源约束误触发本地专用判定的问题，并用原两道 Web 题做同预算对照：误触发 2→0，两题均实际进入压缩与 Writer，分别交付 Claim 回退包和报告正文。本轮 6 次查询／6 页，两个运行仍降级且内容初审均为部分回答，安装选择与官方缺失断言仍存在错误。最终代码另补主题／来源区分回归，试跑源码已归档，十题分类分支一致；487 项测试通过、6 项跳过。见 [固定条件对照与剩余问题](docs/development/e4-1-source-intent.md)。
+
 E3.8 已补齐 2 个 Web 与 2 个简单跨源任务，连同 E3.7 共覆盖十个不同开发问题。四题均降级，记录 9 次已准入 Tavily 查询、7 个抓取页面；定位到纯 Web 请求中的否定本地约束被误判为本地专用，导致已有网页证据无法进入正常写作。SQL＋本地题实际查询到 59 个片段，但应用场景回答仍不完整。448 项测试通过、6 项跳过；人工正确率为空。见 [四题实跑、十题总表与下一项改进](docs/development/e3-8-web-cross-source-reports.md)。
 
 E3.7 已在同一干净版本 `33e91f08` 上完成六题本地报告基线：1 正常完成、5 降级；交付为 2 份报告、3 份 Claim 回退包和 1 份零证据说明，中位耗时 95.852 秒。已完成带真实引文的 AI 初审，定位到响应单位误读、跨文档归因、错绑证据片段和政策展望遗漏；人工正确率仍为空。430 项测试通过、6 项跳过，Tavily 为 0。见 [六题结果表与逐题归因](docs/development/e3-7-six-task-local-baseline.md)。
@@ -543,6 +545,14 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.1 fixes negative local-source constraints activating the local-only gate. On the original two
+Web tasks with equal budgets, erroneous activations fall from 2 to 0 and both now invoke compression
+and Writer, delivering a Claim fallback and a report. This batch uses 6 queries/6 pages. Both runs
+remain degraded with partial AI assessments and unresolved factual/citation errors. Regression:
+487 passed, 6 skipped. The final topic/source regression refinement preserves all ten frozen
+classification branches; the live pilot source is archived separately. See the
+[fixed-condition comparison and limits](docs/development/e4-1-source-intent.md).
 
 E3.8 adds two Web and two simple cross-source executions, completing ten distinct development
 questions across the preserved E3.7/E3.8 batches. All four new runs degraded, with 9 admitted Tavily

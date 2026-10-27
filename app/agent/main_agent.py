@@ -63,6 +63,7 @@ from app.research.claims import (
 from app.research.local_retrieval import local_evidence_boundary, require_local_retrieval
 from app.research.local_scope import enforce_local_absence_scope
 from app.research.source_provenance import document_catalog, enforce_local_source_references
+from app.research.source_scope import requires_local_only
 from app.tools.evidence_tool import collect_evidence
 from app.tools.local_research_tool import collect_local_evidence
 from app.tools.markdown_tools import write_markdown_artifact
@@ -1550,27 +1551,8 @@ def _requires_knowledge_base_first(task_query: str) -> bool:
 
 
 def _requires_local_knowledge_base_only(task_query: str) -> bool:
-    """Return True when the user explicitly restricts the task to local knowledge."""
-    local_markers = ("本地知识库", "知识库助手", "RAG", "rag")
-    local = r"(?:本地知识库|知识库助手|rag)"
-    other = r"(?:数据库|sql|费用引擎|fee|网络|网页)"
-    join = r"\s*(?:和|与|及|以及|、|\+|and|并结合|结合)\s*"
-    if re.search(f"{local}{join}{other}|{other}{join}{local}", task_query, re.I):
-        return False  # Explicit positive source combinations are not local-document-only.
-    exclusivity_markers = (
-        "只使用",
-        "仅使用",
-        "只能使用",
-        "不要使用网络",
-        "不要网络搜索",
-        "不要联网",
-        "不使用网络",
-        "不联网",
-        "禁止网络搜索",
-    )
-    return any(marker in task_query for marker in local_markers) and any(
-        marker in task_query for marker in exclusivity_markers
-    )
+    """Return True only for affirmative local-only source intent."""
+    return requires_local_only(task_query)
 
 
 async def run_deep_agent(

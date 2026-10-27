@@ -94,6 +94,20 @@ def test_paid_execution_requires_explicit_operator_opt_in():
         extended.run(None, execute=True)
 
 
+@pytest.mark.parametrize("ids", [[], ["unknown"], ["report_web_001", "report_web_001"]])
+def test_invalid_explicit_subset_is_rejected(ids):
+    with pytest.raises(ValueError):
+        extended.select_cases(extended.load_suite(), ids)
+
+
+def test_web_subset_keeps_frozen_order_and_equal_per_case_limits():
+    suite = extended.load_suite()
+    subset = extended.select_cases(suite, ["report_web_002", "report_web_001"])
+    assert [case["id"] for case in subset] == ["report_web_001", "report_web_002"]
+    assert [case["search_queries"] for case in subset] == [3, 3]
+    assert sum(case["fetched_pages"] for case in subset) == 6
+
+
 @pytest.fixture
 def frozen(tmp_path, monkeypatch):
     monkeypatch.setattr(extended, "ROOT", tmp_path)
