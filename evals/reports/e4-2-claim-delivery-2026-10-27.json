@@ -1,0 +1,265 @@
+{
+  "stage": "E4.2",
+  "date": "2026-10-27",
+  "scope": "citation delivery fix and saved-Web extractive compression pilot",
+  "production_policy": "accepted Claims only in Writer handoff and fallback; fail closed on invalid fallback",
+  "experiment_default": "offline evaluation CLI only; production compression schema unchanged",
+  "manifest": {
+    "git_commit": "aa15b431b655133dab3a21000fa83bcafd4de187",
+    "git_dirty": true,
+    "source_sha256": "e531aa4479068296be4960df990ff0479fc4259e81d12c68a9bdcef994b6abec",
+    "dataset_sha256": "8a6c9d1d679ae126a59f9062fb3efe6c9ec2d88160b93804c5ae0e6bc1b107f3",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "versions": {
+      "fastembed": "0.8.0",
+      "onnxruntime": "1.27.0",
+      "qdrant-client": "1.18.0",
+      "deepagents": "0.5.7"
+    },
+    "configuration": {
+      "execute": true,
+      "search_queries": 0,
+      "fetched_pages": 0
+    }
+  },
+  "experiment_run": "extractive_compression_20261027T062414Z_925eced641",
+  "source_run": "extended_reports_20261027T055936Z_09f89e8bc9",
+  "snapshot_sha256": {
+    "report_web_001": "8ec10749d528858c2ae2a0a9e6a880495060a545cf9abeeca77056eea394ab51",
+    "report_web_002": "973feb8909317534017864d052f64311b54675ffc63cc4aefe95953ad4d4dae9"
+  },
+  "model": "qwen-flash",
+  "search_queries": 0,
+  "fetched_pages": 0,
+  "logical_model_calls": 4,
+  "provider_retries": 0,
+  "case_timeout_seconds_per_call": 90,
+  "inputs_unchanged": true,
+  "source_unchanged": true,
+  "cases": [
+    {
+      "id": "report_web_001",
+      "logical_calls": 2,
+      "status": "generated_pending_content_review",
+      "usage": [
+        {
+          "input_tokens": 2041,
+          "output_tokens": 207,
+          "total_tokens": 2248,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {}
+        },
+        {
+          "input_tokens": 338,
+          "output_tokens": 506,
+          "total_tokens": 844,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {}
+        }
+      ],
+      "accepted_quotes": 3,
+      "rejected_quotes": 0,
+      "citation_valid": true,
+      "artifact_sha256": {
+        "handoff.md": "71a82ad52896d4fa19efe568f0b6f2e8d70f9554ac14edeb406e07e1c0c5b2ee",
+        "inputs.json": "f079409eb0357dce68f4f10bf1a94c664a216e845aee6d8c63fe51b63fe3796b",
+        "quotes.json": "57f584d4d61718c5fce8537e2b64957cac99a45a46dfd3423dfb16badbf56ece",
+        "report.md": "4991603009f12d026a5fdbaffdf12da3e6ac3f14e448221f245a3d60f566d58c"
+      }
+    },
+    {
+      "id": "report_web_002",
+      "logical_calls": 2,
+      "status": "generated_pending_content_review",
+      "usage": [
+        {
+          "input_tokens": 8702,
+          "output_tokens": 320,
+          "total_tokens": 9022,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {}
+        },
+        {
+          "input_tokens": 339,
+          "output_tokens": 352,
+          "total_tokens": 691,
+          "input_token_details": {
+            "cache_read": 0
+          },
+          "output_token_details": {}
+        }
+      ],
+      "accepted_quotes": 3,
+      "rejected_quotes": 1,
+      "citation_valid": true,
+      "artifact_sha256": {
+        "handoff.md": "886c8ec9f565943240e66f805a90c4b967b080ef8509fbeca9a9f35fc60fab6f",
+        "inputs.json": "02cfb18771452bd1f2988dc61a2fdd322002c6738fbfad24ddd6a8691a73fbe8",
+        "quotes.json": "9413378be2d498df1846c0a3e8f82e3e56a3ddebf62ca6e7196ed231082fa07c",
+        "report.md": "0b06bed040e203e3ef4ec9ef80adba69719dc03f15b4a686ff8a48733211a9a3"
+      }
+    }
+  ],
+  "citation_only_replays": [
+    {
+      "id": "report_cross_001",
+      "source_run": "extended_reports_20261027T053213Z_967bc25670",
+      "evidence_sha256": "19c64644aa957726987abd3cd900d024921d373bbf732e6c7cfb8dd00a323743",
+      "original_report_sha256": "dcf6c7d6e58f6e6110c9416caca778bb022754b91a9d8811b1c2437904c2a7f2",
+      "trace_sha256": "581874a91fed00f3972cdd17d75ff94001c712f108d192882abe7f3cfc7ac42a",
+      "original_backend_citation_valid": true,
+      "replayed_delivery_citation_valid": true,
+      "withheld": false,
+      "used_typed_fallback": false,
+      "output_sha256": "dcf6c7d6e58f6e6110c9416caca778bb022754b91a9d8811b1c2437904c2a7f2",
+      "accepted_claims": 1
+    },
+    {
+      "id": "report_cross_002",
+      "source_run": "extended_reports_20261027T053213Z_967bc25670",
+      "evidence_sha256": "5c2bcecfb82af4fcd8f48c84e959a88a43524b2df99e1c4209d3d4e62d1f0c4c",
+      "original_report_sha256": "bbc9667349693914f834587f299169559f82a4520219342bd75810694e8beab5",
+      "trace_sha256": "9d4bc9f0091725bca1237a37eea24ff80d3f5657ff6e6ff43819343e1e5e1d6e",
+      "original_backend_citation_valid": true,
+      "replayed_delivery_citation_valid": true,
+      "withheld": false,
+      "used_typed_fallback": false,
+      "output_sha256": "bbc9667349693914f834587f299169559f82a4520219342bd75810694e8beab5",
+      "accepted_claims": 5
+    },
+    {
+      "id": "report_local_001",
+      "source_run": "report_acceptance_20261026T080816Z_d82eaa1862",
+      "evidence_sha256": "b48b7c0e215e744f3ef8e6c7653ca15b031c7e53d62b5d30eec7533c1407f225",
+      "original_report_sha256": "30a9c97928d1a682e18c3d76e68165f6d7d729b9167fcd7ee50233152876f764",
+      "trace_sha256": "3c47178bca2b133a29e198c865d600673ea1e66d652559e816ba72efa20c4dde",
+      "original_backend_citation_valid": true,
+      "replayed_delivery_citation_valid": true,
+      "withheld": false,
+      "used_typed_fallback": false,
+      "output_sha256": "30a9c97928d1a682e18c3d76e68165f6d7d729b9167fcd7ee50233152876f764",
+      "accepted_claims": 4
+    },
+    {
+      "id": "report_local_002",
+      "source_run": "report_acceptance_20261026T080816Z_d82eaa1862",
+      "evidence_sha256": "3b2ed1ef21baf7003f99537cdc877187054a73f5fd1f64fa8e2e3dae71fbe026",
+      "original_report_sha256": "b2c1cd0a0f031e6894de42f4665a64440c961f2220e2be31a852c9a4bdd301b0",
+      "trace_sha256": "22d5f03870d2dd2bff07d0313211739275b2ffd32df25f63507d0ae1ae5d954a",
+      "original_backend_citation_valid": true,
+      "replayed_delivery_citation_valid": true,
+      "withheld": false,
+      "used_typed_fallback": false,
+      "output_sha256": "b2c1cd0a0f031e6894de42f4665a64440c961f2220e2be31a852c9a4bdd301b0",
+      "accepted_claims": 6
+    },
+    {
+      "id": "report_local_003",
+      "source_run": "report_acceptance_20261026T080816Z_d82eaa1862",
+      "evidence_sha256": "f49735dcc3d036d0972061d63c34c1fedb16bead00e3d38410627799f4e7588f",
+      "original_report_sha256": "4ffb48b1921cb62e19b4ad4729d2ddccdd4a671e5dcccc6d33e0519d962d65a0",
+      "trace_sha256": "a6feb17da782d358b642edde70b3246b0f778f566e0fd804d661067e4f67aa9f",
+      "original_backend_citation_valid": true,
+      "replayed_delivery_citation_valid": true,
+      "withheld": false,
+      "used_typed_fallback": false,
+      "output_sha256": "4ffb48b1921cb62e19b4ad4729d2ddccdd4a671e5dcccc6d33e0519d962d65a0",
+      "accepted_claims": 4
+    },
+    {
+      "id": "report_local_004",
+      "source_run": "report_acceptance_20261026T080816Z_d82eaa1862",
+      "evidence_sha256": "60bec25846494e88936b592cdfee9fa10d9b6119ad70617b7524cd6dd017fd34",
+      "original_report_sha256": "d7f3ad04e7386a34da2811a08f4834b2aa08d2a87689ed963e03931d6d16461a",
+      "trace_sha256": "d014892edc42a5fe598296353bef8d3f8f8d67bed33f68d8ae66ae30e198d2ad",
+      "original_backend_citation_valid": true,
+      "replayed_delivery_citation_valid": true,
+      "withheld": false,
+      "used_typed_fallback": false,
+      "output_sha256": "d7f3ad04e7386a34da2811a08f4834b2aa08d2a87689ed963e03931d6d16461a",
+      "accepted_claims": 2
+    },
+    {
+      "id": "report_local_005",
+      "source_run": "report_acceptance_20261026T080816Z_d82eaa1862",
+      "evidence_sha256": "4d0d8ce2359eafb26e9d5b98dc740ebc6127bb2d8ac97488eb9bf20f6fa83c4e",
+      "original_report_sha256": "6108adfbe849e4eb59259ff97e30e5267ecb7c2e3659b5463bc452893d8fbd29",
+      "trace_sha256": "9faec1b6e991867c32bb47ee5fb3279e9b8384c38dd232f9e1dd325ddbaa69c2",
+      "original_backend_citation_valid": true,
+      "replayed_delivery_citation_valid": true,
+      "withheld": false,
+      "used_typed_fallback": false,
+      "output_sha256": "6108adfbe849e4eb59259ff97e30e5267ecb7c2e3659b5463bc452893d8fbd29",
+      "accepted_claims": 12
+    },
+    {
+      "id": "report_local_006",
+      "source_run": "report_acceptance_20261026T080816Z_d82eaa1862",
+      "evidence_sha256": "6385b96a33e6487ea5240aad19d059e7e0014ed6c25145b748a3402406eb6de4",
+      "original_report_sha256": "87fad1e8cb808880953f97af25036d97b42284c969103ddd83a0ce22cff344b4",
+      "trace_sha256": "1c41c62ea32276527381ec47011e495ce60f5445ed31cacd83feea2fe16f8175",
+      "original_backend_citation_valid": true,
+      "replayed_delivery_citation_valid": true,
+      "withheld": false,
+      "used_typed_fallback": false,
+      "output_sha256": "87fad1e8cb808880953f97af25036d97b42284c969103ddd83a0ce22cff344b4",
+      "accepted_claims": 0
+    },
+    {
+      "id": "report_web_001",
+      "source_run": "extended_reports_20261027T055936Z_09f89e8bc9",
+      "evidence_sha256": "8ec10749d528858c2ae2a0a9e6a880495060a545cf9abeeca77056eea394ab51",
+      "original_report_sha256": "73c2e6d086dc6f1e199d835f50a04b6e2988c706358d1c47832e9900ba5b89ff",
+      "trace_sha256": "597a192840e437d5a7998a5f3b50b6369508f082687fa3c4ca43a21e3b095f9e",
+      "original_backend_citation_valid": false,
+      "replayed_delivery_citation_valid": true,
+      "withheld": false,
+      "used_typed_fallback": true,
+      "output_sha256": "659cd2fb847138f2b0cc301b188e09639794ed277741a9a79f37c21ad26c5968",
+      "accepted_claims": 7
+    },
+    {
+      "id": "report_web_002",
+      "source_run": "extended_reports_20261027T055936Z_09f89e8bc9",
+      "evidence_sha256": "973feb8909317534017864d052f64311b54675ffc63cc4aefe95953ad4d4dae9",
+      "original_report_sha256": "3299267e3569a839c88dc878dd104205f72c334cb6005845fba9d2ceb820e906",
+      "trace_sha256": "ab41dc5250b3fdbf1e8feafdc593981d9738a1d7d6d1858c46a0a542d3f97f72",
+      "original_backend_citation_valid": true,
+      "replayed_delivery_citation_valid": true,
+      "withheld": false,
+      "used_typed_fallback": false,
+      "output_sha256": "3299267e3569a839c88dc878dd104205f72c334cb6005845fba9d2ceb820e906",
+      "accepted_claims": 4
+    }
+  ],
+  "ai_initial_assessments": [
+    {
+      "id": "report_web_001",
+      "assessment": "partial_with_unsupported_platform_exclusivity"
+    },
+    {
+      "id": "report_web_002",
+      "assessment": "partial_with_bounded_backup_gap_and_source_requirement_failure"
+    }
+  ],
+  "ai_review_sha256": "2d9c640b16e9c3af33e02757d66cb55adbd8c83cbe8b67e520f48259e39b53d8",
+  "human_accuracy": null,
+  "human_claim_support_rate": null,
+  "regression": {
+    "passed": 495,
+    "skipped": 6
+  },
+  "limitations": [
+    "Two exposed development tasks, one sample each; changed compression and Writer prompts jointly.",
+    "No end-to-end rerun or general accuracy/latency claim.",
+    "Verbatim source membership does not prove source authority, relevance, completeness or correct interpretation.",
+    "Citation-only replay disables local intent gates; it is not regeneration or semantic review.",
+    "A citation-valid technical notice is withheld delivery, not a successful answer."
+  ]
+}

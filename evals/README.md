@@ -2,6 +2,8 @@
 
 本目录包含 DeepSearch Agents 第一阶段的项目内中文评测集，覆盖路由、联网搜索、数据库查询、本地知识库检索和端到端报告生成。
 
+E4.2 增加仅用于评测的保存证据原文摘取试验：`python -m evals.reports_acceptance.extractive <历史运行目录>` 默认仅建清单，显式 `--execute` 才调用模型，两题最多四次逻辑调用，不执行搜索。引文必须是实际 Web Evidence 的逐字连续子串；这不验证语义支持或官方来源要求。两题试验仍有 Writer 扩大结论范围等问题，未替换生产压缩策略。另完成结构化 Claim 交付边界修复和十份历史文档的引用回放；见 [E4.2 记录](../docs/development/e4-2-claim-delivery.md)。
+
 此外，`hybrid/` 提供固定版本的 HybridDeepResearch 三题 smoke 子集，分别覆盖
 Search-to-SQL、SQL-to-Search 和 Parallel Fusion。它默认只使用 DuckDuckGo，每题最多两个
 搜索查询和两个抓取页面；Tavily、Perplexity、auto 或 advanced 模式必须显式传入

@@ -3,6 +3,7 @@ import json
 import pytest
 
 from app.agent import main_agent
+from app.research.claims import ClaimDraft, validate_claims
 from app.research.local_scope import check_local_absence_scope, enforce_local_absence_scope
 from evals.reports_acceptance import replay_sources
 from tests.test_source_provenance import evidence, replay_fixture, trace
@@ -69,6 +70,16 @@ def test_gate_has_count_only_telemetry_and_opt_in_private_inputs(capture):
 
 def test_citation_fallback_cannot_republish_absence_claim():
     current = trace()
+    current.record_claim_validation(
+        validate_claims(
+            [
+                ClaimDraft(
+                    text="所有文档均未提及 private-topic", evidence_ids=[evidence().evidence_id]
+                )
+            ],
+            available_evidence_ids=current.claim_eligible_evidence_ids,
+        )
+    )
     result, _ = main_agent._enforce_final_report_citations(
         report_markdown="no citations",
         compressed_fallback=f"所有文档均未提及 private-topic [{evidence().evidence_id}]",

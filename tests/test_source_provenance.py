@@ -4,6 +4,7 @@ import pytest
 
 from app.agent import main_agent
 from app.agent.runtime import ResearchBudget, ResearchBudgetLimits, ResearchRunTrace
+from app.research.claims import ClaimDraft, validate_claims
 from app.research.evidence import EvidenceRecord, EvidenceSource
 from app.research.source_provenance import (
     check_source_filenames,
@@ -97,6 +98,12 @@ def test_unknown_source_withheld_without_promoting_the_fallback_or_absence(captu
 
 def test_citation_fallback_is_checked_instead_of_republishing_contaminated_claims():
     current = trace()
+    current.record_claim_validation(
+        validate_claims(
+            [ClaimDraft(text="《Invented.pdf》 fact", evidence_ids=[evidence().evidence_id])],
+            available_evidence_ids=current.claim_eligible_evidence_ids,
+        )
+    )
     safe, _ = main_agent._enforce_final_report_citations(
         report_markdown="no citations",
         compressed_fallback="《Invented.pdf》 fact",

@@ -477,7 +477,8 @@ def _render_validated_compression(
         available_evidence_ids=run_trace.claim_eligible_evidence_ids,
     )
     run_trace.record_claim_validation(validation, drafts=parsed.claims)
-    return parsed.to_markdown(validation)
+    # Unchecked outlines, rejected drafts and free-text gaps must not become Writer facts.
+    return run_trace.render_accepted_claim_package()
 
 
 def _attach_required_executed_sql(
@@ -536,13 +537,13 @@ def _enforce_final_report_citations(
     reason = "; ".join(reasons)
     run_trace.degraded = True
     run_trace.record_failure("final_report_citation_validation_failed")
-    fallback = compressed_fallback or (
-        "No validated claim package was available. The writer output was withheld."
-    )
+    # Never trust caller-supplied compression Markdown as a validated fallback.
+    # Keep the argument for existing callers; delivery comes from the typed registry.
+    fallback = run_trace.render_accepted_claim_package()
     fallback_report = (
         "# Evidence-Validated Partial Result\n\n"
         f"> The generated report failed citation validation ({reason}). "
-        "The backend returned the validated claim package instead.\n\n"
+        "The backend returned structurally accepted Claims; factual support is not verified.\n\n"
         f"{fallback}"
     )
     source_boundary = _local_report_boundary(
@@ -559,8 +560,23 @@ def _enforce_final_report_citations(
         allowed_evidence_ids=run_trace.claim_evidence_ids,
         citations_required=bool(run_trace.claim_eligible_evidence_ids or run_trace.rejected_claims),
     )
-    run_trace.record_report_citation_validation(fallback_validation)
-    return fallback_report, fallback_validation
+    if fallback_validation.valid and run_trace.claim_ids:
+        run_trace.report_used_claim_fallback = True
+        run_trace.record_report_citation_validation(fallback_validation)
+        return fallback_report, fallback_validation
+
+    run_trace.report_citation_withheld = True
+    run_trace.record_failure("claim_fallback_citation_validation_failed")
+    notice = (
+        "# Report delivery withheld\n\n"
+        "The generated report failed evidence citation validation, and no usable "
+        "Claim fallback passed the delivery checks. No research answer is delivered."
+    )
+    notice_validation = validate_report_citations(
+        notice, allowed_evidence_ids=(), citations_required=False
+    )
+    run_trace.record_report_citation_validation(notice_validation)
+    return notice, notice_validation
 
 
 def _attach_backend_evidence_ledger(
@@ -2034,6 +2050,18 @@ async def run_deep_agent(
                     elif any(item["withheld"] for item in run_trace.local_source_reference_checks):
                         artifact_status = (
                             "source_withheld_persisted" if requested_formats else "source_withheld"
+                        )
+                    elif run_trace.report_citation_withheld:
+                        artifact_status = (
+                            "citation_withheld_persisted"
+                            if requested_formats
+                            else "citation_withheld"
+                        )
+                    elif run_trace.report_used_claim_fallback:
+                        artifact_status = (
+                            "validated_fallback_persisted"
+                            if requested_formats
+                            else "validated_fallback"
                         )
                     elif citation_validation.valid:
                         artifact_status = "persisted" if requested_formats else "usable"

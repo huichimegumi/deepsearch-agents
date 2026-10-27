@@ -74,6 +74,26 @@ class ValidatedClaim:
     schema_version: str = CLAIM_SCHEMA_VERSION
 
 
+def render_accepted_claims(claims: Iterable[ValidatedClaim]) -> str:
+    """Render structurally accepted Claims, without unchecked compression side channels.
+
+    Evidence membership is not an entailment or factual-correctness guarantee.
+    """
+    lines = [
+        "# Validated Claim Package",
+        "",
+        "> Validation checks evidence IDs and Claim structure, not factual support.",
+        "",
+    ]
+    for claim in claims:
+        citations = " ".join(f"[{item}]" for item in claim.evidence_ids)
+        lines.append(f"- ({claim.kind.value}) {claim.text} {citations}")
+        lines.append(f"  - Claim: {claim.claim_id}")
+        if claim.limitations:
+            lines.append("  - Limitations: " + "; ".join(claim.limitations))
+    return "\n".join(lines)
+
+
 @dataclass(frozen=True)
 class RejectedClaim:
     draft: ClaimDraft

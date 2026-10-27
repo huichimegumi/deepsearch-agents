@@ -140,7 +140,7 @@ def test_invalid_writer_output_falls_back_to_validated_claim_package():
     assert trace.failure_reasons == ["final_report_citation_validation_failed"]
 
 
-def test_invalid_writer_and_uncited_fallback_remain_invalid():
+def test_invalid_writer_without_typed_claims_withholds_answer():
     trace = _trace()
     trace.record_evidence((SimpleNamespace(evidence_id=KNOWN_EVIDENCE_ID, source="sql"),))
 
@@ -150,10 +150,12 @@ def test_invalid_writer_and_uncited_fallback_remain_invalid():
         run_trace=trace,
     )
 
-    assert result.startswith("# Evidence-Validated Partial Result")
-    assert validation.valid is False
-    assert validation.missing_required_citations is True
-    assert trace.report_citation_valid is False
+    assert result.startswith("# Report delivery withheld")
+    assert validation.valid is True  # Only the technical notice is citation-valid.
+    assert trace.report_citation_withheld is True
+    assert trace.report_used_claim_fallback is False
+    assert trace.degraded is True
+    assert "claim_fallback_citation_validation_failed" in trace.failure_reasons
 
 
 def test_valid_writer_output_is_preserved_after_citation_validation():
@@ -194,12 +196,60 @@ def test_compression_renderer_records_only_backend_validated_claims():
 
     assert "# Validated Claim Package" in markdown
     assert "Known fact" in markdown
-    assert "Invented fact" in markdown
-    assert "unknown_evidence" in markdown
+    assert "Invented fact" not in markdown
+    assert "Recommended report outline" not in markdown
     assert len(trace.claim_ids) == 1
     assert trace.claim_evidence_ids == [KNOWN_EVIDENCE_ID]
     assert trace.rejected_claims == 1
     assert trace.unknown_claim_evidence_ids == [UNKNOWN_EVIDENCE_ID]
+
+
+def test_unchecked_compression_fields_do_not_reenter_writer_or_fallback():
+    trace = _trace()
+    trace.record_evidence((SimpleNamespace(evidence_id=KNOWN_EVIDENCE_ID, source="sql"),))
+    compressed = CompressedEvidence(
+        claims=[ClaimDraft(text="Known fact", evidence_ids=[KNOWN_EVIDENCE_ID])],
+        conflicts=["UNTRUSTED CONFLICT"],
+        uncertainties=["UNTRUSTED GAP"],
+        report_outline=[f"UNTRUSTED OUTLINE [{UNKNOWN_EVIDENCE_ID}]"],
+    )
+    handoff = _render_validated_compression(compressed, trace)
+    result, validation = _enforce_final_report_citations(
+        report_markdown=f"Bad [{UNKNOWN_EVIDENCE_ID}]",
+        compressed_fallback=f"UNTRUSTED CALLER [{UNKNOWN_EVIDENCE_ID}]",
+        run_trace=trace,
+    )
+    assert "UNTRUSTED" not in handoff + result
+    assert "Known fact" in result
+    assert validation.valid
+    assert trace.report_used_claim_fallback
+    assert not trace.report_citation_withheld
+    summary = trace.finalize(status="completed", final_result=result)
+    assert summary["report_used_claim_fallback"] is True
+    assert "Known fact" not in str(summary)
+
+
+def test_unknown_inline_citation_inside_accepted_claim_fails_closed():
+    trace = _trace()
+    trace.record_evidence((SimpleNamespace(evidence_id=KNOWN_EVIDENCE_ID, source="sql"),))
+    _render_validated_compression(
+        CompressedEvidence(
+            claims=[
+                ClaimDraft(
+                    text=f"Contaminated text [{UNKNOWN_EVIDENCE_ID}]",
+                    evidence_ids=[KNOWN_EVIDENCE_ID],
+                )
+            ]
+        ),
+        trace,
+    )
+    result, validation = _enforce_final_report_citations(
+        report_markdown="No citations", compressed_fallback="", run_trace=trace
+    )
+    assert validation.valid
+    assert trace.report_citation_withheld
+    assert "Contaminated" not in result
+    assert UNKNOWN_EVIDENCE_ID not in result
 
 
 def test_backend_ledger_survives_missing_supervisor_summary():
@@ -333,7 +383,7 @@ def test_required_analytical_sql_rejects_discovery_only_evidence(monkeypatch):
     markdown = _render_validated_compression(compressed, trace)
     result = _enforce_research_evidence_requirements("Supervisor summary", trace)
 
-    assert "unknown_evidence" in markdown
+    assert "Sample-based claim" not in markdown
     assert trace.rejected_claims == 1
     assert "Analytical SQL Evidence is missing" in result
     assert trace.degraded is True

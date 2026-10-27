@@ -212,6 +212,9 @@ class ResearchRunTrace:
     _successful_analytical_sql_queries: list[str] = field(default_factory=list, repr=False)
     claim_ids: list[str] = field(default_factory=list)
     claim_evidence_ids: list[str] = field(default_factory=list)
+    _accepted_claims_by_id: dict[str, Any] = field(default_factory=dict, repr=False)
+    report_citation_withheld: bool = False
+    report_used_claim_fallback: bool = False
     claims_by_kind: Counter[str] = field(default_factory=Counter)
     rejected_claims: int = 0
     normalized_evidence_references: int = 0
@@ -769,6 +772,7 @@ class ResearchRunTrace:
             kind = getattr(claim, "kind", "unknown")
             kind_value = str(getattr(kind, "value", kind))
             if claim_id and claim_id not in self.claim_ids:
+                self._accepted_claims_by_id[claim_id] = claim
                 self.claim_ids.append(claim_id)
                 self.claims_by_kind[kind_value] += 1
             for evidence_id in getattr(claim, "evidence_ids", ()):
@@ -779,6 +783,12 @@ class ResearchRunTrace:
         for evidence_id in getattr(report, "unknown_evidence_ids", ()):
             if evidence_id not in self.unknown_claim_evidence_ids:
                 self.unknown_claim_evidence_ids.append(evidence_id)
+
+    def render_accepted_claim_package(self) -> str:
+        """Keep private Claim text available for delivery, outside ordinary telemetry."""
+        from app.research.claims import render_accepted_claims
+
+        return render_accepted_claims(self._accepted_claims_by_id.values())
 
     def record_report_citation_validation(self, validation: Any) -> None:
         self.report_citation_valid = bool(getattr(validation, "valid", False))
@@ -800,6 +810,8 @@ class ResearchRunTrace:
         unused_fetched = self._fetched_sources - result_urls
         return {
             "schema_version": 12,
+            "report_citation_withheld": self.report_citation_withheld,
+            "report_used_claim_fallback": self.report_used_claim_fallback,
             "run_id": self.run_id,
             "thread_id": self.thread_id,
             "started_at": self.started_at,
