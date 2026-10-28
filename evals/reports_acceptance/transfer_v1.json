@@ -1,0 +1,30 @@
+{
+  "version": "fixed_pool_transfer_v1",
+  "status": "exposed_development_questions_on_previously_exposed_corpus",
+  "cases": [
+    {
+      "id": "transfer_local_001",
+      "question": "仅依据提供的《2026数字人电商直播白皮书》片段，分别列出目录第一、二章与第三、四章的标题。不要据目录推断章节正文。",
+      "parts": {"first_two": "第一、二章标题", "last_two": "第三、四章标题"},
+      "snapshot": "evals/results/report_acceptance_20261026T080816Z_d82eaa1862/report_local_001/evidence.json",
+      "snapshot_sha256": "b48b7c0e215e744f3ef8e6c7653ca15b031c7e53d62b5d30eec7533c1407f225",
+      "record_ids": ["ev1_local_document_2c66d65e655834d197285fa7", "ev1_local_document_4072a8b1a934c6f323e8aed5"]
+    },
+    {
+      "id": "transfer_local_002",
+      "question": "仅依据提供的《全球电商行业AI应用研究报告2025》片段，说明其中引用的零售行业调查发生在哪一年，以及所有零售商与大型零售商使用某种形式AI的比例。不要把调查年份改成报告年份，也不要把大型零售商比例当成总体比例。",
+      "parts": {"survey_year": "被引用调查的年份", "adoption_rates": "总体与大型零售商的AI使用比例"},
+      "snapshot": "evals/results/report_acceptance_20261026T080816Z_d82eaa1862/report_local_003/evidence.json",
+      "snapshot_sha256": "f49735dcc3d036d0972061d63c34c1fedb16bead00e3d38410627799f4e7588f",
+      "record_ids": ["ev1_local_document_33124c6985a61183e34ca2b0", "ev1_local_document_681e3eaf9e999d1f58a33b05"]
+    },
+    {
+      "id": "transfer_local_003",
+      "question": "仅依据提供的《全球电商行业AI应用研究报告2025》片段，报告2025年生成式AI对单店营收的实测提升百分比与该实测的受试门店样本量。材料未给出就明确未解决；不得把行业价值预估或AI使用比例当成实测营收提升，也不能断言全库没有相关研究。",
+      "parts": {"measured_uplift": "2025年单店营收实测提升百分比", "sample_size": "该实测的受试门店样本量"},
+      "snapshot": "evals/results/report_acceptance_20261026T080816Z_d82eaa1862/report_local_003/evidence.json",
+      "snapshot_sha256": "f49735dcc3d036d0972061d63c34c1fedb16bead00e3d38410627799f4e7588f",
+      "record_ids": ["ev1_local_document_33124c6985a61183e34ca2b0", "ev1_local_document_681e3eaf9e999d1f58a33b05"]
+    }
+  ]
+}

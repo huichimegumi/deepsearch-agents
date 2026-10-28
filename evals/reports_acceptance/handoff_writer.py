@@ -99,12 +99,15 @@ def audit_handoff(proposal: StructuredWriter, case: dict) -> dict:
                 "reason": "linked_candidate"
                 if assertions
                 else "reviewed_evidence_gap"
+                if not part["quote_ids"] and case.get("assisted_source_selection", True)
+                else "no_valid_selected_quote"
                 if not part["quote_ids"]
                 else "writer_omission",
                 "semantic_support": "pending_review",
             }
         )
     return {
+        "assisted_source_selection": case.get("assisted_source_selection", True),
         "parts": parts,
         "rejected": audit["rejected"],
         "model_unanswered_topics": audit["unanswered_topics"],
@@ -115,9 +118,11 @@ def audit_handoff(proposal: StructuredWriter, case: dict) -> dict:
 
 def render_candidate(audit: dict) -> str:
     lines = [
-        "# Assisted Writer candidate",
+        "# Assisted Writer candidate"
+        if audit["assisted_source_selection"]
+        else "# Fixed-pool Writer candidate",
         "",
-        "基于 AI 初审选段；关联已核验，语义与完整性待审阅。",
+        "关联已核验；选段方式见运行清单，语义与完整性待审阅。",
     ]
     for part in audit["parts"]:
         lines += ["", "## " + part["label"]]
@@ -131,19 +136,28 @@ def render_candidate(audit: dict) -> str:
 
 async def run(source_run: Path, *, execute: bool = False) -> Path:
     inputs, hashes = load_handoffs(safe_path(source_run))
-    output = safe_path(Path("evals/results") / new_run_id("handoff_writer"))
+    return await execute_handoffs(inputs, hashes, execute=execute)
+
+
+async def execute_handoffs(
+    inputs, hashes, *, execute=False, dataset=None, prefix="handoff_writer", selector=None
+):
+    """Shared bounded execution for reviewed handoffs and automatic fixed-pool selection."""
+    dataset = DATASET if dataset is None else dataset
+    output = safe_path(Path("evals/results") / new_run_id(prefix))
     output.mkdir(parents=True, exist_ok=False)
     manifest = build_manifest(
-        DATASET,
+        dataset,
         {
             "execute": execute,
-            "assisted_source_selection": True,
-            "max_logical_calls": 2,
+            "assisted_source_selection": selector is None,
+            "max_logical_calls": len(inputs) * (2 if selector else 1),
             "search_queries": 0,
             "fetched_pages": 0,
             "provider_retries": 0,
             "timeout_seconds_per_call": 90,
             "writer_instruction_sha256": hashlib.sha256(WRITER_INSTRUCTION.encode()).hexdigest(),
+            "selector": selector.__name__ if selector else None,
         },
     )
     results = {
@@ -167,8 +181,12 @@ async def run(source_run: Path, *, execute: bool = False) -> Path:
         results["cases"].append(row)
         try:
             proposal = StructuredWriter()
-            if execute:
-                row["logical_calls"] = 1
+            if execute and selector is not None:
+                case = await selector(model, case, folder, row)
+                write_json(folder / "writer_inputs.json", case)
+                row["status"] = "no_valid_selected_quotes"
+            if execute and (selector is None or case["extracts"]):
+                row["logical_calls"] += 1
                 response = await asyncio.wait_for(
                     model.with_structured_output(StructuredWriter, include_raw=True).ainvoke(
                         [
@@ -200,7 +218,7 @@ async def run(source_run: Path, *, execute: bool = False) -> Path:
             write_json(output / "results.json", results)
     results["inputs_unchanged"] = all(file_sha256(Path(p)) == h for p, h in hashes.items())
     results["source_unchanged"] = (
-        manifest["source_sha256"] == build_manifest(DATASET, {})["source_sha256"]
+        manifest["source_sha256"] == build_manifest(dataset, {})["source_sha256"]
     )
     write_json(output / "results.json", results)
     return output
