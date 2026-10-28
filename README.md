@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.10 在同一批冻结候选上，配对比较原始片段与来源名／页码增强的重排输入。开发集有限证据 Recall@6 从 0.702 升至 0.754，MRR 从 0.480 升至 0.592，无答案样本两边均交付零条；但两题覆盖回退，完整证据覆盖仍为 12/19，目录仍未恢复，因此暂不切换默认。共 44 次本地重排、零检索／生成／网络搜索，22 个缓存交付基线全部复现；568 项测试通过、6 项跳过。见 [配对结果、回退样本与限制](docs/development/e4-10-source-context-rerank.md)。
+
 E4.9 固定“保护向量前三、总交付六条”原型并做 20 题开发集回归。虽然此前目录／调查的排名预算回放能保住目标，但 19 个可回答样本 Recall@6 从 0.702 降至 0.649，两个样本覆盖回退，无答案样本交付从 0 条变成 3 条。离线调整顺序恢复了部分 MRR，未恢复覆盖，因此不启用该策略。20 次本地检索、零生成／网络搜索，测试集未运行，生产默认未变；560 项测试通过、6 项跳过。见 [回归结果、排序回放与不采纳原因](docs/development/e4-9-vector-retention.md)。
 
 E4.8 增加可选检索阶段诊断，比较三题的完整问题与简短查询：6 次本地检索、零生成调用。目录片段已在向量结果第 3／第 2 名进入候选池，却均被重排到第 29；简短查询没有恢复交付。调查段落重排后稳定第 3，而向量排名第 7／第 19，也提示只取向量前六会丢证据。本轮定位了重排丢失问题，未改排序策略、阈值或生产默认；549 项测试通过、6 项跳过。见 [阶段排名、失败对照与后续保留策略](docs/development/e4-8-query-stage-diagnostics.md)。
@@ -561,6 +563,13 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.10 pairs raw/source-context reranking on frozen pools. Finite-unit Recall@6 rises from 0.702
+to 0.754 and MRR from 0.480 to 0.592; the no-answer case retains zero hits. Two cases lose coverage,
+all-unit coverage stays 12/19 and the TOC is still absent, so defaults remain unchanged. Forty-four
+local rerank calls, no retrieval/generator/Web calls; all 22 cached delivery controls reproduce.
+Regression: 568 passed, 6 skipped. See
+[paired results, regressions and limits](docs/development/e4-10-source-context-rerank.md).
 
 E4.9 tests fixed vector-head protection on the 20-case development split. Despite retaining earlier
 diagnostic targets, Recall@6 drops from 0.702 to 0.649 on 19 answerable cases, and the no-answer
