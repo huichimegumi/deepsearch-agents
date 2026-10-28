@@ -99,17 +99,30 @@ def _rank_candidates(
     query: str,
     candidates: list[tuple[Chunk, Document]],
     limit: int | None = None,
+    *,
+    diagnostics: dict | None = None,
 ) -> list[RetrievedChunk]:
     settings = get_rag_settings()
     if not candidates:
+        if diagnostics is not None:
+            diagnostics.update(reranked_ids=[], retained_ids=[], rerank_applied=False)
         return []
 
     reranking = rerank_with_status(query, [chunk.content for chunk, _document in candidates])
+    ordered = sorted(zip(candidates, reranking.scores), key=lambda item: item[1], reverse=True)
     ranked = _filter_ranked_candidates(
-        sorted(zip(candidates, reranking.scores), key=lambda item: item[1], reverse=True),
+        ordered,
         settings.min_relevance_score,
         limit or settings.rerank_top_k,
     )
+    if diagnostics is not None:
+        diagnostics.update(
+            reranked_ids=[row[0][0].id for row in ordered],
+            rerank_scores={row[0][0].id: float(row[1]) for row in ordered},
+            retained_ids=[row[0][0].id for row in ranked],
+            rerank_applied=reranking.applied,
+            rerank_error_type=reranking.error_type,
+        )
     return [
         RetrievedChunk(
             chunk_id=chunk.id,
@@ -194,11 +207,23 @@ def hybrid_search(
     query: str,
     knowledge_base_id: str,
     query_vector: list[float] | None = None,
+    *,
+    diagnostics: dict | None = None,
 ) -> list[RetrievedChunk]:
     pool = collect_candidates(query, [knowledge_base_id], query_vector)
-    return _rank_candidates(query, [pool.rows[chunk_id] for chunk_id in pool.hybrid_ids])
+    return _rank_pool(query, pool, diagnostics)
 
 
-def hybrid_search_many(query: str, knowledge_base_ids: list[str]) -> list[RetrievedChunk]:
+def hybrid_search_many(
+    query: str, knowledge_base_ids: list[str], *, diagnostics: dict | None = None
+) -> list[RetrievedChunk]:
     pool = collect_candidates(query, knowledge_base_ids)
-    return _rank_candidates(query, [pool.rows[chunk_id] for chunk_id in pool.hybrid_ids])
+    return _rank_pool(query, pool, diagnostics)
+
+
+def _rank_pool(query, pool, diagnostics):
+    if diagnostics is not None:
+        diagnostics.update(vector_ids=list(pool.vector_ids), hybrid_ids=list(pool.hybrid_ids))
+    return _rank_candidates(
+        query, [pool.rows[chunk_id] for chunk_id in pool.hybrid_ids], diagnostics=diagnostics
+    )

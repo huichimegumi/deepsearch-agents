@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.8 增加可选检索阶段诊断，比较三题的完整问题与简短查询：6 次本地检索、零生成调用。目录片段已在向量结果第 3／第 2 名进入候选池，却均被重排到第 29；简短查询没有恢复交付。调查段落重排后稳定第 3，而向量排名第 7／第 19，也提示只取向量前六会丢证据。本轮定位了重排丢失问题，未改排序策略、阈值或生产默认；549 项测试通过、6 项跳过。见 [阶段排名、失败对照与后续保留策略](docs/development/e4-8-query-stage-diagnostics.md)。
+
 E4.7 将冻结三题接到真实本地 RAG，再进入 ID 选段与 Writer：3 次本地查询、5 次模型调用、零网络搜索。电商知识库 2 文档／117 片段，三批各返回 6 条 Evidence，均受上下文预算限制且返回记录均执行了重排。调查题初审符合原文，负样本保留缺口；目录题未召回目录，随后把相关正文标题误当章节，引用关联检查未能拦住。失败已保留，未补入旧正确片段，生产默认不变；543 项测试通过、6 项跳过。见 [真实检索执行、分阶段失败定位与限制](docs/development/e4-7-live-rag-transfer.md)。
 
 E4.6 冻结三道新开发题，验证本地固定片段池内的自动选段与 Writer，包含证据不足题。首轮因短引文与 PDF 换行复制失败；改为模型只选 `evidence_id`、后端原样取片段后，两个正样本各生成两项候选，负样本保留两项未解决并跳过 Writer。两轮共 8 次模型调用、零搜索；内容初审符合给定片段，但不代表实时 RAG 或独立留出集准确率。复用共同执行器，生产默认不变；537 项测试通过、6 项跳过。见 [冻结题组、失败保留与 ID 选段验证](docs/development/e4-6-fixed-pool-transfer.md)。
@@ -557,6 +559,13 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.8 adds optional retrieval-stage diagnostics and compares original/concise queries using 6 local
+calls and no generator. The TOC reaches vector rank 3/2 but is reranked to 29 in both variants;
+concise queries do not recover its delivery. Survey support remains rerank rank 3 despite vector
+ranks 7/19, so vector top6 alone would lose it. Ranking policies, thresholds and production defaults
+remain unchanged. Regression: 549 passed, 6 skipped. See
+[stage ranks, failed query improvement and retention next steps](docs/development/e4-8-query-stage-diagnostics.md).
 
 E4.7 feeds actual local RAG results into the three-task ID-selection/Writer evaluation: 3 local
 queries, 5 model calls and no Web search. The scoped corpus has 2 documents/117 chunks; all 18

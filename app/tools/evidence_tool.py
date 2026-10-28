@@ -720,7 +720,9 @@ def _validate_read_only_sql(query: str) -> str:
     return cleaned
 
 
-def _collect_local_documents(query: str, knowledge_base: str) -> EvidenceBatch:
+def _collect_local_documents(
+    query: str, knowledge_base: str, *, diagnostics: dict | None = None
+) -> EvidenceBatch:
     if not query.strip():
         raise ValueError("query is required for local-document evidence")
     knowledge_bases = _resolve_knowledge_bases(knowledge_base)
@@ -732,11 +734,25 @@ def _collect_local_documents(query: str, knowledge_base: str) -> EvidenceBatch:
             warnings=(f"Knowledge base not found: {knowledge_base}",),
         )
     if len(knowledge_bases) == 1:
-        hits = hybrid_search(query, knowledge_bases[0].id)
+        hits = (
+            hybrid_search(query, knowledge_bases[0].id)
+            if diagnostics is None
+            else hybrid_search(query, knowledge_bases[0].id, diagnostics=diagnostics)
+        )
     else:
-        hits = hybrid_search_many(query, [item.id for item in knowledge_bases])
+        hits = (
+            hybrid_search_many(query, [item.id for item in knowledge_bases])
+            if diagnostics is None
+            else hybrid_search_many(
+                query, [item.id for item in knowledge_bases], diagnostics=diagnostics
+            )
+        )
     hits.sort(key=lambda item: item.score, reverse=True)
     limited_hits, budget = _limit_hits_for_answer(hits)
+    if diagnostics is not None:
+        diagnostics.update(
+            delivered_ids=[hit.chunk_id for hit in limited_hits], context_budget=budget
+        )
     records = retrieved_chunks_to_evidence(
         limited_hits,
         knowledge_base_ids=[item.id for item in knowledge_bases],
