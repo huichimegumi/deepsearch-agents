@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.7 将冻结三题接到真实本地 RAG，再进入 ID 选段与 Writer：3 次本地查询、5 次模型调用、零网络搜索。电商知识库 2 文档／117 片段，三批各返回 6 条 Evidence，均受上下文预算限制且返回记录均执行了重排。调查题初审符合原文，负样本保留缺口；目录题未召回目录，随后把相关正文标题误当章节，引用关联检查未能拦住。失败已保留，未补入旧正确片段，生产默认不变；543 项测试通过、6 项跳过。见 [真实检索执行、分阶段失败定位与限制](docs/development/e4-7-live-rag-transfer.md)。
+
 E4.6 冻结三道新开发题，验证本地固定片段池内的自动选段与 Writer，包含证据不足题。首轮因短引文与 PDF 换行复制失败；改为模型只选 `evidence_id`、后端原样取片段后，两个正样本各生成两项候选，负样本保留两项未解决并跳过 Writer。两轮共 8 次模型调用、零搜索；内容初审符合给定片段，但不代表实时 RAG 或独立留出集准确率。复用共同执行器，生产默认不变；537 项测试通过、6 项跳过。见 [冻结题组、失败保留与 ID 选段验证](docs/development/e4-6-fixed-pool-transfer.md)。
 
 E4.5 将已核验的逐项摘录交给 E4.3 Writer，分开选段与作答。两题用 2 次模型调用、零新增搜索，生成五项带引文的候选回答，安装选择和 `pg_combinebackup` 两项仍明确未解决；跨问题项混引会被拒绝。选段来自 AI 初审，因此不计为自动研究成绩，两题仍为部分回答，生产默认不变。531 项测试通过、6 项跳过。见 [辅助选段试验、逐条核验与限制](docs/development/e4-5-handoff-writer.md)。
@@ -555,6 +557,14 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.7 feeds actual local RAG results into the three-task ID-selection/Writer evaluation: 3 local
+queries, 5 model calls and no Web search. The scoped corpus has 2 documents/117 chunks; all 18
+returned records report reranking applied, within bounded partial batches. Survey statements
+match sources and the negative keeps its gaps, but the chapter task misses the TOC and invents
+chapter ordering from related pages despite valid links. No correct excerpt is injected to repair
+this failure. Production defaults remain unchanged. Regression: 543 passed, 6 skipped. See
+[live execution, stage failures and limits](docs/development/e4-7-live-rag-transfer.md).
 
 E4.6 freezes three new development questions on saved local chunks, including missing evidence.
 After retaining a failed literal-quote pilot, ID-based selection lets the backend preserve original

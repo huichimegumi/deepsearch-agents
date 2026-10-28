@@ -1,0 +1,268 @@
+{
+  "stage": "E4.7",
+  "date": "2026-10-28",
+  "dataset_sha256": "bb5d8f95f3c750da0ed962f627863618004fd633f07e07849d41edb813703699",
+  "retrieval_run": "rag_transfer_assets_20261028T033659Z_a8cacb2e19",
+  "generation_run": "live_rag_transfer_20261028T033816Z_6db384a396",
+  "retrieval_manifest": {
+    "git_commit": "3c622155fcdf5490f47e33216c9551843b2ddee5",
+    "git_dirty": true,
+    "source_sha256": "da2f7f0e54ee38417fb4596644ee3e9a9c7f6188f1e2a534c0d8900da6e81844",
+    "dataset_sha256": "bb5d8f95f3c750da0ed962f627863618004fd633f07e07849d41edb813703699",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "versions": {
+      "fastembed": "0.8.0",
+      "onnxruntime": "1.27.0",
+      "qdrant-client": "1.18.0",
+      "deepagents": "0.5.7"
+    },
+    "configuration": {
+      "retrieval_enabled": true,
+      "knowledge_bases": [
+        "电商行业"
+      ],
+      "max_local_queries": 3,
+      "query_policy": "original_question_once",
+      "search_queries": 0,
+      "fetched_pages": 0
+    }
+  },
+  "generation_manifest": {
+    "git_commit": "3c622155fcdf5490f47e33216c9551843b2ddee5",
+    "git_dirty": true,
+    "source_sha256": "da2f7f0e54ee38417fb4596644ee3e9a9c7f6188f1e2a534c0d8900da6e81844",
+    "dataset_sha256": "bb5d8f95f3c750da0ed962f627863618004fd633f07e07849d41edb813703699",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "versions": {
+      "fastembed": "0.8.0",
+      "onnxruntime": "1.27.0",
+      "qdrant-client": "1.18.0",
+      "deepagents": "0.5.7"
+    },
+    "configuration": {
+      "execute": true,
+      "assisted_source_selection": false,
+      "max_logical_calls": 6,
+      "search_queries": 0,
+      "fetched_pages": 0,
+      "provider_retries": 0,
+      "timeout_seconds_per_call": 90,
+      "writer_instruction_sha256": "d956ac42357d3ae0037de80ae63b4d109a8e66b207adc4003fd05bb97eadc438",
+      "selector": "select_case"
+    }
+  },
+  "knowledge_bases": [
+    "电商行业"
+  ],
+  "corpus_sha256": "4f647f2fd3bda35b31ae8b8d58dcac4cc895ae6935fc5eb6ed787dfb90e909a3",
+  "corpus_file_sha256": "62fa740f9f7e998da133035614152089d06c60fa34b6ff4c5ec70f5032194a06",
+  "corpus_documents": 2,
+  "corpus_chunks": 117,
+  "corpus_unchanged": true,
+  "retrieval_configuration": {
+    "embedding_model": "BAAI/bge-small-zh-v1.5",
+    "rerank_model": "BAAI/bge-reranker-base",
+    "vector_top_k": 24,
+    "lexical_top_k": 24,
+    "rerank_top_k": 8,
+    "min_relevance_score": 1.0
+  },
+  "retrieval_cases": [
+    {
+      "id": "transfer_local_001",
+      "local_queries": 1,
+      "status": "PARTIAL",
+      "evidence_records": 6,
+      "rerank_applied_records": 6,
+      "elapsed_ms": 16059.415,
+      "artifact_sha256": {
+        "inputs.json": "6460a240ad1cf8aa508aeb7121323976981d2244cb08605d2b1a4181923ba8d9",
+        "retrieval.json": "6c023458f76b7cb7af60ea0f0f2f393ecb1f42c2ecd6f69ef0b9207b2803b09d"
+      }
+    },
+    {
+      "id": "transfer_local_002",
+      "local_queries": 1,
+      "status": "PARTIAL",
+      "evidence_records": 6,
+      "rerank_applied_records": 6,
+      "elapsed_ms": 14168.738,
+      "artifact_sha256": {
+        "inputs.json": "36df15137a0d5362a227a2e42cb4b607e4b2b8fd6416432d5ae617caab80f459",
+        "retrieval.json": "3e594f12a1b52f96ddde823810ae5a3c57e36e25f860f84543477b8103765c9e"
+      }
+    },
+    {
+      "id": "transfer_local_003",
+      "local_queries": 1,
+      "status": "PARTIAL",
+      "evidence_records": 6,
+      "rerank_applied_records": 6,
+      "elapsed_ms": 14565.844,
+      "artifact_sha256": {
+        "inputs.json": "98e6a4c05be30e693aea82c24888b2631ad1e9c771e51bafd717c8ce04b164ce",
+        "retrieval.json": "e4429e8e056f0a81677fa91894437ebd5791e08926eab53265148470112471ff"
+      }
+    }
+  ],
+  "generation_cases": [
+    {
+      "id": "transfer_local_001",
+      "logical_calls": 2,
+      "status": "generated_pending_semantic_review",
+      "selector_usage": {
+        "input_tokens": 5025,
+        "output_tokens": 165,
+        "total_tokens": 5190,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {}
+      },
+      "selected_parts": 2,
+      "selector_instruction_sha256": "e9a1e82cad922518714b6e4770f928c6ff4b5e9051b06995ee2dc01124682f59",
+      "usage": {
+        "input_tokens": 2519,
+        "output_tokens": 153,
+        "total_tokens": 2672,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {}
+      },
+      "candidate_parts": 2,
+      "unresolved_parts": 0,
+      "rejected_assertions": 0,
+      "artifact_sha256": {
+        "assertions.json": "25031950349f12b934523b9ef710543b2eba2467a0b18aa764fa855926dc7c56",
+        "candidate.md": "0a06b73e51b8446d7d23f2ae1fb8621c2c54fbc812b03e12081bb6cf4f735934",
+        "inputs.json": "6460a240ad1cf8aa508aeb7121323976981d2244cb08605d2b1a4181923ba8d9",
+        "raw_response.json": "ade136ef9264fa35af00c1cb35ab5282c7dd03ca08b3eee98ca49966480168e1",
+        "selection.json": "d7d36be605389bccca695ccce9bef715209f47e0bf45eb62a0a3547c0cebcbcd",
+        "selector_raw.json": "1d0491a9f2301a39f0395bfadf44b33df58708118f62df6202b4fdfd41950371",
+        "writer_inputs.json": "d5612c793435c0d056a13d472d8a4fcef95294587533dac239ca55f87760419d"
+      }
+    },
+    {
+      "id": "transfer_local_002",
+      "logical_calls": 2,
+      "status": "generated_pending_semantic_review",
+      "selector_usage": {
+        "input_tokens": 3937,
+        "output_tokens": 116,
+        "total_tokens": 4053,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {}
+      },
+      "selected_parts": 2,
+      "selector_instruction_sha256": "e9a1e82cad922518714b6e4770f928c6ff4b5e9051b06995ee2dc01124682f59",
+      "usage": {
+        "input_tokens": 1193,
+        "output_tokens": 203,
+        "total_tokens": 1396,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {}
+      },
+      "candidate_parts": 2,
+      "unresolved_parts": 0,
+      "rejected_assertions": 0,
+      "artifact_sha256": {
+        "assertions.json": "62d701c7448c1068bc3482a77ae67946170a4cd467768af94ed6cb3ce0884d85",
+        "candidate.md": "b45b968c19e0d18447c07a35056daa13c86a1070b694fa00982ce39ba44f2f29",
+        "inputs.json": "36df15137a0d5362a227a2e42cb4b607e4b2b8fd6416432d5ae617caab80f459",
+        "raw_response.json": "5bd873a5d1fd3d73c3ae18c9e5a085a30300c9062abc87b696a1a7dd780983f4",
+        "selection.json": "0b7e6b2a8db2b4456e4669546b080df1ade817bca34206e03f4d85d4dfb9b148",
+        "selector_raw.json": "e5eae2843e7b96c591265aacbb3d021838fdf9a826eeade34966647f5974cdf4",
+        "writer_inputs.json": "66ed259e5b25a2a6e1350604d8b47357d0ed0ae39e9d5e838944fe145668618a"
+      }
+    },
+    {
+      "id": "transfer_local_003",
+      "logical_calls": 1,
+      "status": "no_valid_selected_quotes",
+      "selector_usage": {
+        "input_tokens": 4120,
+        "output_tokens": 51,
+        "total_tokens": 4171,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {}
+      },
+      "selected_parts": 0,
+      "selector_instruction_sha256": "e9a1e82cad922518714b6e4770f928c6ff4b5e9051b06995ee2dc01124682f59",
+      "candidate_parts": 0,
+      "unresolved_parts": 2,
+      "rejected_assertions": 0,
+      "artifact_sha256": {
+        "assertions.json": "d78a053751b4b8a1ab05862437404a61e9dd313149e8b62f5cbf7fb7fab19a72",
+        "candidate.md": "48e45c423d8ed5b943816df4454e48fa29438fc11c7cc5a6f0618c3250357507",
+        "inputs.json": "98e6a4c05be30e693aea82c24888b2631ad1e9c771e51bafd717c8ce04b164ce",
+        "selection.json": "06a0a09e04d8460c7b0712b1318f16b5aa07c3ec9b6adcb915cb6e9be8c33b5b",
+        "selector_raw.json": "d7a65c0a3eef1c74cc6ce5d4471ee221d62ded40495577613b7a50f41b289916",
+        "writer_inputs.json": "f17fe4c74ca664058a9f407b8c7b6d454ed6eb1b3f83c55f2e5b4a7eb58e4664"
+      }
+    }
+  ],
+  "local_queries": 3,
+  "search_queries": 0,
+  "fetched_pages": 0,
+  "logical_model_calls": 5,
+  "usage": {
+    "input_tokens": 16794,
+    "output_tokens": 688
+  },
+  "candidate_parts": 4,
+  "unresolved_parts": 2,
+  "source_unchanged": true,
+  "inputs_unchanged": true,
+  "input_sha256": {
+    "evals/results/rag_transfer_assets_20261028T033659Z_a8cacb2e19/results.json": "e7bb821c4360a63fcdadbc7c10ee82786b5b3ee502c6a478b76a668a34641f45",
+    "evals/results/rag_transfer_assets_20261028T033659Z_a8cacb2e19/corpus.json": "62fa740f9f7e998da133035614152089d06c60fa34b6ff4c5ec70f5032194a06",
+    "evals/reports_acceptance/transfer_v1.json": "bb5d8f95f3c750da0ed962f627863618004fd633f07e07849d41edb813703699",
+    "evals/results/rag_transfer_assets_20261028T033659Z_a8cacb2e19/transfer_local_001/inputs.json": "6460a240ad1cf8aa508aeb7121323976981d2244cb08605d2b1a4181923ba8d9",
+    "evals/results/rag_transfer_assets_20261028T033659Z_a8cacb2e19/transfer_local_001/retrieval.json": "6c023458f76b7cb7af60ea0f0f2f393ecb1f42c2ecd6f69ef0b9207b2803b09d",
+    "evals/results/rag_transfer_assets_20261028T033659Z_a8cacb2e19/transfer_local_002/inputs.json": "36df15137a0d5362a227a2e42cb4b607e4b2b8fd6416432d5ae617caab80f459",
+    "evals/results/rag_transfer_assets_20261028T033659Z_a8cacb2e19/transfer_local_002/retrieval.json": "3e594f12a1b52f96ddde823810ae5a3c57e36e25f860f84543477b8103765c9e",
+    "evals/results/rag_transfer_assets_20261028T033659Z_a8cacb2e19/transfer_local_003/inputs.json": "98e6a4c05be30e693aea82c24888b2631ad1e9c771e51bafd717c8ce04b164ce",
+    "evals/results/rag_transfer_assets_20261028T033659Z_a8cacb2e19/transfer_local_003/retrieval.json": "e4429e8e056f0a81677fa91894437ebd5791e08926eab53265148470112471ff"
+  },
+  "ai_review": {
+    "case_assessments": [
+      {
+        "id": "transfer_local_001",
+        "assessment": "incorrect"
+      },
+      {
+        "id": "transfer_local_002",
+        "assessment": "complete_within_returned_evidence"
+      },
+      {
+        "id": "transfer_local_003",
+        "assessment": "appropriate_bounded_nonanswer"
+      }
+    ],
+    "assertion_entries_reviewed": 5,
+    "unsupported_entries": 2,
+    "json_sha256": "fdd0145127700949e172adf4a410d794a48712a064d1a0e9228ac2a545a7e538",
+    "worksheet_sha256": "b006cc8672f3a992ccd6eda7a0e5e59006509d0f5836a8210815b7b899a42a5b"
+  },
+  "regression": {
+    "passed": 543,
+    "skipped": 6
+  },
+  "production_change": false,
+  "human_accuracy": null,
+  "limitations": [
+    "Opt-in retrieval/selection/Writer evaluation, not a run of the complete production Supervisor workflow.",
+    "Three exposed development questions, one original-question RAG query each, no targeted repair or source injection.",
+    "Four mechanically linked parts include two incorrect chapter-title answers; do not treat link counts as accuracy.",
+    "All batches are PARTIAL under the existing context budget; all 18 returned records report reranking applied. This does not measure unreturned candidates.",
+    "TOC reference is inspected only after generation for review and was not supplied as retrieval support.",
+    "Negative Writer is skipped. All content judgements are provisional AI work; no human acceptance or pooled benchmark score."
+  ]
+}

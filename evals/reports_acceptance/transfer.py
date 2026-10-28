@@ -120,6 +120,11 @@ def check_selection(proposal: SelectionProposal, case: dict) -> tuple[dict, dict
 
 
 async def select_case(model, case, folder, row):
+    if not case["records"]:
+        writer_case, checks = check_selection(SelectionProposal(), case)
+        write_json(folder / "selection.json", {"proposal": {"parts": []}, **checks})
+        row["selected_parts"] = 0
+        return writer_case
     row["logical_calls"] += 1
     response = await asyncio.wait_for(
         model.with_structured_output(SelectionProposal, include_raw=True).ainvoke(
