@@ -2,6 +2,8 @@
 
 本目录包含 DeepSearch Agents 第一阶段的项目内中文评测集，覆盖路由、联网搜索、数据库查询、本地知识库检索和端到端报告生成。
 
+E4.9 的 `python -m evals.rag.run_retention` 默认只核验并建立开发集计划；`--execute` 对固定 20 题各做一次共享召回／重排，对比基线与固定保护向量前三的六条交付。`--replay-ordering <运行目录>` 只重排已保存的相同成员和文本。19 个可回答样本用于 @6 有限证据指标，无答案样本不计分；本轮覆盖下降且无答案输入增加，因此原型不启用，未执行测试集。见 [E4.9 记录](../docs/development/e4-9-vector-retention.md)。
+
 E4.8 的 `python -m evals.reports_acceptance.query_compare` 默认冻结查询计划，`--execute` 对三题各运行完整问题／简短查询，共六次本地检索、零生成调用。可选诊断记录候选、重排、保留和交付阶段的 ID／分数，不改变普通检索行为。本轮目录证据进入候选后被重排丢失，简短查询未修复；调查证据则受益于重排，均作为后续保留策略的反例保存。见 [E4.8 记录](../docs/development/e4-8-query-stage-diagnostics.md)。
 
 E4.7 的 `python -m evals.reports_acceptance.rag_transfer` 默认只生成计划；`--retrieve` 对三道冻结题各做一次真实本地查询，`--retrieved-run <目录> --execute` 才对核验过的实际 Evidence 运行选段与 Writer。检索失败、语料变化或输入校验失败不能进入模型；空检索跳过模型。实际试跑发现目录漏召回后仍误选正文并错写章节，保留失败，不将有效引用当正确率。见 [E4.7 记录与命令](../docs/development/e4-7-live-rag-transfer.md)。
