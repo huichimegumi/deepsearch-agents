@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.5 将已核验的逐项摘录交给 E4.3 Writer，分开选段与作答。两题用 2 次模型调用、零新增搜索，生成五项带引文的候选回答，安装选择和 `pg_combinebackup` 两项仍明确未解决；跨问题项混引会被拒绝。选段来自 AI 初审，因此不计为自动研究成绩，两题仍为部分回答，生产默认不变。531 项测试通过、6 项跳过。见 [辅助选段试验、逐条核验与限制](docs/development/e4-5-handoff-writer.md)。
+
 E4.4 增加问题槽位覆盖检查与离线证据缺口分类：漏项／重复项明确列为未解决，原文引文必须来自实际保存的官方 Evidence。本轮 2 次模型调用、零新增搜索，但模型七项全部弃答，未宣称覆盖提升。离线 AI 审阅区分出四项已有摘录未使用、一项选段缺口、两项有限输入不足，并从保存的官方原文恢复增量备份摘录；这不计为模型成功。实验未启用为生产默认；523 项测试通过、6 项跳过。见 [失败试验、缺口分类与证据交接](docs/development/e4-4-question-coverage.md)。
 
 E4.3 新增保存摘录上的 Writer 忠实改写评测：先按官方来源过滤，再以相同摘录比较原文基线和逐条绑定 `quote_id` 的结构化改写。两题共 2 次模型调用、零新增搜索；本次未再扩大平台限制或引用第三方摘录，但安装选择和备份细节仍缺失，两题内容初审仍为部分回答。六条断言拆为十个事实单元逐项审阅，引用合格不等于语义正确；实验未接入生产默认。506 项测试通过、6 项跳过。见 [逐条审阅、输入控制与覆盖缺口](docs/development/e4-3-writer-fidelity.md)。
@@ -551,6 +553,12 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.5 gives the E4.3 Writer verified per-part extracts: two calls, no search, five linked candidate
+parts and two explicit evidence gaps. Mixed-part links are rejected. Source selection is assisted
+by provisional AI review, so this is not automatic research accuracy; both tasks remain partial
+and production defaults stay unchanged. Regression: 531 passed, 6 skipped. See
+[assisted source handoff, assertion review and limits](docs/development/e4-5-handoff-writer.md).
 
 E4.4 adds exhaustive question-slot accounting and offline source-gap review. Two calls, no search:
 the model abstains on all seven parts, so no coverage gain is claimed. Provisional offline review

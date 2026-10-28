@@ -2,6 +2,8 @@
 
 本目录包含 DeepSearch Agents 第一阶段的项目内中文评测集，覆盖路由、联网搜索、数据库查询、本地知识库检索和端到端报告生成。
 
+E4.5 增加 `python -m evals.reports_acceptance.handoff_writer <E4.4 保存运行目录>`：核验 AI 初审证据交接包后，由 E4.3 Writer 仅基于逐项摘录作答；默认离线模板，显式 `--execute` 最多两次调用、零检索。拒绝跨问题项混引，保留无引文项和 Writer 漏答，逐项语义仍需审阅。本轮五项候选、两项未解决；辅助选段不计为自动研究成绩。见 [E4.5 记录](../docs/development/e4-5-handoff-writer.md)。
+
 E4.4 增加 `python -m evals.reports_acceptance.coverage <保存摘录运行目录>`：默认生成逐问题槽位模板，显式 `--execute` 最多两次模型调用、零检索；遗漏／重复槽位与无效引文不能算候选回答。另提供 `coverage_review.diagnose_review` 对显式离线审阅核验原文、区分选段缺口与已有证据未使用，保留模型原始失败结果。本轮模型七项全部弃答，后续离线恢复的官方摘录不计为模型成绩。见 [E4.4 记录](../docs/development/e4-4-question-coverage.md)。
 
 E4.3 增加 `python -m evals.reports_acceptance.writer_fidelity <保存摘录运行目录>`：默认核验哈希并生成原文基线，显式 `--execute` 才调用两次 Writer，不重新检索或压缩。两种输出共享经过官方来源过滤的摘录，改写逐条关联稳定 `quote_id`；机械关联检查与语义／完整性审阅分开记录，未修改生产默认。两题仍未完整作答，见 [E4.3 记录与运行命令](../docs/development/e4-3-writer-fidelity.md)。

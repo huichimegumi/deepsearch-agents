@@ -1,0 +1,128 @@
+{
+  "stage": "E4.5",
+  "date": "2026-10-28",
+  "experiment_run": "handoff_writer_20261028T024948Z_2ec2081068",
+  "manifest": {
+    "git_commit": "4ca5e0031423d29fd35f4dc4f1ef454d73f0c536",
+    "git_dirty": true,
+    "source_sha256": "aafc984892a56c49bf42b021dc87b2eaa51431b33ceafc0891fc306499b90dc6",
+    "dataset_sha256": "8a6c9d1d679ae126a59f9062fb3efe6c9ec2d88160b93804c5ae0e6bc1b107f3",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "versions": {
+      "fastembed": "0.8.0",
+      "onnxruntime": "1.27.0",
+      "qdrant-client": "1.18.0",
+      "deepagents": "0.5.7"
+    },
+    "configuration": {
+      "execute": true,
+      "assisted_source_selection": true,
+      "max_logical_calls": 2,
+      "search_queries": 0,
+      "fetched_pages": 0,
+      "provider_retries": 0,
+      "timeout_seconds_per_call": 90,
+      "writer_instruction_sha256": "d956ac42357d3ae0037de80ae63b4d109a8e66b207adc4003fd05bb97eadc438"
+    }
+  },
+  "source_run": "question_coverage_20261027T065145Z_2030685ed2",
+  "input_sha256": {
+    "evals/reports/e4-4-question-coverage-2026-10-27.json": "c4d6a10284d9655bb7328d5862fa6ad787f06195fcf18ec7ac419367933a2a61",
+    "evals/results/question_coverage_20261027T065145Z_2030685ed2/report_web_001/inputs.json": "8ac104cac530c9c3d4eba88304c68e4e7a6b6f7ff872b1a063571149634596ca",
+    "evals/results/question_coverage_20261027T065145Z_2030685ed2/report_web_001/coverage.json": "cd5b6b5f1b7bc27f1ec6500c979a93e01f74ef4b47c3f2b1ea76e9c8dabf894d",
+    "evals/results/question_coverage_20261027T065145Z_2030685ed2/report_web_001/source_review.json": "411da99091152709fe0bd1c67e1d300c06c470159f463c326401c467be3238d8",
+    "evals/results/question_coverage_20261027T065145Z_2030685ed2/report_web_001/diagnostics.json": "d7901902fda18ca6797ef67f6483b8b66e161a3046411c5c6b50599075a5a59d",
+    "evals/results/question_coverage_20261027T065145Z_2030685ed2/report_web_002/inputs.json": "a090b3016d7d25dd0f8a2a93e3369f59918ff1f4af8ae771978c552986b0bba3",
+    "evals/results/question_coverage_20261027T065145Z_2030685ed2/report_web_002/coverage.json": "4c692049b141c78a5fa190fd72e7cf021d383c4b380cd6523374f73aeb75a695",
+    "evals/results/question_coverage_20261027T065145Z_2030685ed2/report_web_002/source_review.json": "3ed609b7ad8529a72e8c600ece299f017b04f34652210d7df4b0ee51a4f7ff3c",
+    "evals/results/question_coverage_20261027T065145Z_2030685ed2/report_web_002/diagnostics.json": "31ba04ce9bf6aa68d9ddd4f11bc3e6edb0b2ace4176238aca6e1a8eb13414d89"
+  },
+  "model": "qwen-flash",
+  "assisted_source_selection": true,
+  "logical_model_calls": 2,
+  "search_queries": 0,
+  "fetched_pages": 0,
+  "cases": [
+    {
+      "id": "report_web_001",
+      "logical_calls": 1,
+      "status": "generated_pending_semantic_review",
+      "usage": {
+        "input_tokens": 649,
+        "output_tokens": 252,
+        "total_tokens": 901,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {}
+      },
+      "candidate_parts": 2,
+      "unresolved_parts": 1,
+      "rejected_assertions": 0,
+      "artifact_sha256": {
+        "assertions.json": "f7bec17bc6af604be47b887e2b74baed5b72e25c427eb49f9f5690a2d3ca71e1",
+        "candidate.md": "6886fdbef2bb9b20a978f85762cb69ba1db3d6d83b79a1635e035190c6bb5559",
+        "inputs.json": "fe410a40d63fae509bd97ef8dfdfe6a86644cfbad283831e1ceffbc0f71e8399",
+        "raw_response.json": "f2e3e41f452c9077e9a4fdb210787d70dccf39cbbab222abc28a98e69a51deb3"
+      }
+    },
+    {
+      "id": "report_web_002",
+      "logical_calls": 1,
+      "status": "generated_pending_semantic_review",
+      "usage": {
+        "input_tokens": 772,
+        "output_tokens": 228,
+        "total_tokens": 1000,
+        "input_token_details": {
+          "cache_read": 0
+        },
+        "output_token_details": {}
+      },
+      "candidate_parts": 3,
+      "unresolved_parts": 1,
+      "rejected_assertions": 0,
+      "artifact_sha256": {
+        "assertions.json": "fcd9212835ac38ed012c59c2929694b461a88229199e9503b3d15be42011cdb7",
+        "candidate.md": "0cfd7d69f14e8bc4eb0e24712f211763414bc38dbe171be31ddfb86c00605433",
+        "inputs.json": "61770561087749fbd7b93522f9a78d333103f6913ff8991d7c4b40929446388d",
+        "raw_response.json": "5da4b1efdf366511b99b2252a4e37db051a95cc9beacefb8260f77dce8860968"
+      }
+    }
+  ],
+  "inputs_unchanged": true,
+  "source_unchanged": true,
+  "candidate_parts": 5,
+  "unresolved_parts": 2,
+  "ai_review": {
+    "assertion_entries_reviewed": 6,
+    "sub_assertion_units_reviewed": 9,
+    "case_assessments": [
+      {
+        "id": "report_web_001",
+        "assessment": "partial"
+      },
+      {
+        "id": "report_web_002",
+        "assessment": "partial"
+      }
+    ],
+    "json_sha256": "d43d338e221c0eeccabeb7e66a6f1f2e0c4360a9f03bcab6a414bb562b1ff785",
+    "worksheet_sha256": "478dd77943491d9cca2938bdd63dcdc7b23580e8fbf2aa05481a38cffdf6c5f7"
+  },
+  "regression": {
+    "passed": 531,
+    "skipped": 6
+  },
+  "production_change": false,
+  "human_accuracy": null,
+  "human_claim_support_rate": null,
+  "limitations": [
+    "Two exposed development tasks, one sample each; evidence selection is assisted by explicit provisional AI review.",
+    "Five linked candidate parts do not establish automatic research accuracy or complete task acceptance; both tasks remain partial.",
+    "E4.4-to-E4.5 changes include source selection, input size/shape and output schema; no causal isolation of the blanket-abstention failure.",
+    "Reuse of the E4.3 Writer instruction is verified; structured links still cannot prove entailment, atomicity or answer completeness.",
+    "No new evidence is fetched. Installation-choice and utility details stay unresolved; no evaluator-only reference is injected.",
+    "Source selection and prompts are not yet tested on a new task group; production defaults remain unchanged."
+  ]
+}
