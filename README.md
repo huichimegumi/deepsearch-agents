@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.12 在冻结候选池上交叉比较原标题／标题占位查询与原文／来源前缀片段。标题替换使有限证据 Recall@6 从 0.702／0.754 降至 0.421／0.474，完整覆盖从 12/19 降至 7/19；目录排名虽改善，仍因阈值未交付，因此不启用这项改写。20 道开发题与 2 个诊断池均有效，44 个历史交付对照全部复现；82 次本地重排、零检索／生成／网络调用，596 项测试通过、6 项跳过。见 [四条件结果、失败归因与后续边界](docs/development/e4-12-relation-query.md)。
+
 E4.11 新增冻结结果的离线证据流失审计：客服参考从第 4 降至第 11，被前八截断；跨文档应用参考从第 6 降至第 8，被最终六条上限截断；目录仍第 28。完整审计 20 道开发题与 2 个诊断池，明确区分来源文档命中和有限锚点支持，不改标签或生产默认。零检索／重排／生成／网络调用；584 项测试通过、6 项跳过。见 [归因工具、结果与下一项实验](docs/development/e4-11-evidence-loss-audit.md)。
 
 E4.10 在同一批冻结候选上，配对比较原始片段与来源名／页码增强的重排输入。开发集有限证据 Recall@6 从 0.702 升至 0.754，MRR 从 0.480 升至 0.592，无答案样本两边均交付零条；但两题覆盖回退，完整证据覆盖仍为 12/19，目录仍未恢复，因此暂不切换默认。共 44 次本地重排、零检索／生成／网络搜索，22 个缓存交付基线全部复现；568 项测试通过、6 项跳过。见 [配对结果、回退样本与限制](docs/development/e4-10-source-context-rerank.md)。
@@ -565,6 +567,13 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.12 crosses original/title-placeholder queries with raw/source-context passages on frozen pools.
+Title replacement reduces finite-unit Recall@6 from 0.702/0.754 to 0.421/0.474 and complete coverage
+from 12/19 to 7/19; improved TOC rank still fails the threshold. This ablation stays disabled. All
+20 development cases and two diagnostics are valid; 44 historical delivery controls reproduce.
+82 local rerank calls, zero retrieval/generator/Web calls; 596 passed, 6 skipped. See
+[factorial results, failures and next boundary](docs/development/e4-12-relation-query.md).
 
 E4.11 adds offline finite-evidence loss attribution over 20 development cases and two diagnostic
 pools. Service support moves from rank 4 to 11 (top-eight loss), cross-document applications from
