@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.18 对人民银行“专栏”题做冻结结果的分阶段诊断：栏目目录与专栏 1 正文交付，专栏 2、3 正文未进候选池，专栏 4 正文重排第 12、未过前八保留。该原题没有独立核验的语义答案标签，栏目命中不能算回答召回率；暂不调整检索默认策略。零新增检索／模型／网络调用，671 项测试通过、6 项跳过。见 [固定探针、证据流失位置与下一步](docs/development/e4-18-pbc-column-diagnostic.md)。
+
 E4.17 将 E4.16 四题的哈希绑定真实 Evidence 接到冻结的 ID 选段＋Writer。目录两条标题与京东实践十条陈述经独立 AI 初审和逐字引句核验，暂判有依据；金融专栏题未选到充分片段、显式排除来源题零证据，均保持未解决。共 5 次 qwen-flash 逻辑调用、零新增检索／网络调用；664 项测试通过、6 项跳过。人工准确率仍为空，不据此认定报告正确率，实验通路继续默认关闭。见 [候选回答、初审及金融题缺口](docs/development/e4-17-source-transfer-review.md)。
 
 E4.16 新增五道冻结开发题的真实本地检索边界检查。首轮暴露“请勿列出目录”误保留目录；后续审计发现显式排除来源时回退会交付被排除文档，现改为零证据和明确提示。四轮运行与失败均保留，最终 5/5 检查通过，旧结构挑战 21/21 通过；累计 20 次本地检索、零生成／网络调用，全量测试 658 通过、6 跳过。该结果只验证检索交付边界，不是报告准确率；实验通路仍默认关闭。见 [新题实跑、修复和限制](docs/development/e4-16-new-live-structure.md)。
@@ -577,6 +579,12 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.18 audits five fixed structural probes for the PBC column question: the TOC and column 1
+body were delivered, columns 2/3 were absent from the candidate pool, and column 4 ranked 12
+and missed top-eight retention. These probes are not verified answers to the broad question,
+so no answer-recall score or default change follows. The hash-bound audit adds no retrieval,
+model or Web calls; 671 passed, 6 skipped. See [stage positions and next test](docs/development/e4-18-pbc-column-diagnostic.md).
 
 E4.17 runs frozen ID selection and Writer on four hash-bound E4.16 Evidence batches without
 new retrieval. Two questions yield candidate statements: two TOC titles and ten JD-practice
