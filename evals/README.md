@@ -2,6 +2,8 @@
 
 本目录包含 DeepSearch Agents 第一阶段的项目内中文评测集，覆盖路由、联网搜索、数据库查询、本地知识库检索和端到端报告生成。
 
+E4.11 的 `python -m evals.rag.audit_evidence_loss` 对哈希绑定的 E4.10 结果离线逐单元归因，区分候选缺失、阈值、前八保留、六条交付和正文截断；同时记录同源但未匹配有限锚点的条数。覆盖开发集二十题与两份诊断池，无模型／检索调用，参考标签只用于审计。见 [审计结果与复现](../docs/development/e4-11-evidence-loss-audit.md)。
+
 E4.10 的 `python -m evals.rag.run_context_rerank` 默认核验旧候选快照并建立计划；`--diagnostic --execute` 对两份诊断候选配对重排，`--execute` 对开发集二十题配对重排。只改变重排模型的来源名／页码前缀，Evidence 保留原文，阈值／预算不变；总计 44 次本地重排，无新检索或生成。均值改善但目录和两个覆盖回退尚未解决，默认不启用。见 [E4.10 记录](../docs/development/e4-10-source-context-rerank.md)。
 
 E4.9 的 `python -m evals.rag.run_retention` 默认只核验并建立开发集计划；`--execute` 对固定 20 题各做一次共享召回／重排，对比基线与固定保护向量前三的六条交付。`--replay-ordering <运行目录>` 只重排已保存的相同成员和文本。19 个可回答样本用于 @6 有限证据指标，无答案样本不计分；本轮覆盖下降且无答案输入增加，因此原型不启用，未执行测试集。见 [E4.9 记录](../docs/development/e4-9-vector-retention.md)。

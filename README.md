@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.11 新增冻结结果的离线证据流失审计：客服参考从第 4 降至第 11，被前八截断；跨文档应用参考从第 6 降至第 8，被最终六条上限截断；目录仍第 28。完整审计 20 道开发题与 2 个诊断池，明确区分来源文档命中和有限锚点支持，不改标签或生产默认。零检索／重排／生成／网络调用；584 项测试通过、6 项跳过。见 [归因工具、结果与下一项实验](docs/development/e4-11-evidence-loss-audit.md)。
+
 E4.10 在同一批冻结候选上，配对比较原始片段与来源名／页码增强的重排输入。开发集有限证据 Recall@6 从 0.702 升至 0.754，MRR 从 0.480 升至 0.592，无答案样本两边均交付零条；但两题覆盖回退，完整证据覆盖仍为 12/19，目录仍未恢复，因此暂不切换默认。共 44 次本地重排、零检索／生成／网络搜索，22 个缓存交付基线全部复现；568 项测试通过、6 项跳过。见 [配对结果、回退样本与限制](docs/development/e4-10-source-context-rerank.md)。
 
 E4.9 固定“保护向量前三、总交付六条”原型并做 20 题开发集回归。虽然此前目录／调查的排名预算回放能保住目标，但 19 个可回答样本 Recall@6 从 0.702 降至 0.649，两个样本覆盖回退，无答案样本交付从 0 条变成 3 条。离线调整顺序恢复了部分 MRR，未恢复覆盖，因此不启用该策略。20 次本地检索、零生成／网络搜索，测试集未运行，生产默认未变；560 项测试通过、6 项跳过。见 [回归结果、排序回放与不采纳原因](docs/development/e4-9-vector-retention.md)。
@@ -563,6 +565,12 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.11 adds offline finite-evidence loss attribution over 20 development cases and two diagnostic
+pools. Service support moves from rank 4 to 11 (top-eight loss), cross-document applications from
+6 to 8 (six-hit delivery loss), and the TOC stays at 28. Source identity is counted separately
+from anchor support; labels and production defaults stay unchanged. Zero service/model/Web calls;
+584 passed, 6 skipped. See [attribution and next experiment](docs/development/e4-11-evidence-loss-audit.md).
 
 E4.10 pairs raw/source-context reranking on frozen pools. Finite-unit Recall@6 rises from 0.702
 to 0.754 and MRR from 0.480 to 0.592; the no-answer case retains zero hits. Two cases lose coverage,

@@ -1,0 +1,1505 @@
+{
+  "stage": "E4.11",
+  "date": "2026-10-29",
+  "status": "audited",
+  "manifest": {
+    "git_commit": "ccdd3d88e9e1fac87eac46bd49d30574f949012c",
+    "git_dirty": true,
+    "source_sha256": "e67f1ec7d8ce50ec03c5c32592d981905f6d66a755950502e440047c04368e05",
+    "dataset_sha256": "66bf37d47c6d8343418ed652f5eb1edf0ae22ec09d635a4b1c673c1eddb267d6",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "versions": {
+      "fastembed": "0.8.0",
+      "onnxruntime": "1.27.0",
+      "qdrant-client": "1.18.0",
+      "deepagents": "0.5.7"
+    },
+    "configuration": {
+      "mode": "offline_loss_attribution"
+    }
+  },
+  "gate_configuration": {
+    "min_score": 1,
+    "retained_top_k": 8,
+    "max_delivered": 6
+  },
+  "input_sha256": {
+    "E:\\Projects\\deepsearch-agents\\evals\\reports\\e4-10-source-context-rerank-2026-10-28.json": "c9fef01c23523516f3c0db1fb50e7d6b8939ec3bf96871f491900ab29d34beb8",
+    "E:\\Projects\\deepsearch-agents\\evals\\reports\\e4-9-vector-retention-2026-10-28.json": "5e5cecf26bccb8cefe350e34b3c36c9c451c892c87962245d8777237594bace8",
+    "E:\\Projects\\deepsearch-agents\\evals\\results\\rag_retention_dev_20261028T082206Z_ae60b12456\\corpus.json": "efa55c0a7de4744f00b5b186301fb0a4e002d4f4c986846aa9bfbc230f2698cf",
+    "E:\\Projects\\deepsearch-agents\\evals\\results\\rag_retention_dev_20261028T082206Z_ae60b12456\\results.json": "6a69a484de92f5c6a290f84c1aca9ec2c9e7e1c8eb520212f8ebff0426b68551",
+    "E:\\Projects\\deepsearch-agents\\evals\\rag\\suites\\v2\\development.jsonl": "66bf37d47c6d8343418ed652f5eb1edf0ae22ec09d635a4b1c673c1eddb267d6",
+    "E:\\Projects\\deepsearch-agents\\evals\\rag\\suites\\v2\\suite.lock.json": "396c731fb3ff5c9df7a254c97a255a5c4eefbfb39b9fa10f0d3e2ad8ea74fdd5",
+    "E:\\Projects\\deepsearch-agents\\evals\\results\\context_rerank_dev_20261028T084607Z_26daa73038\\results.json": "3da53bfb6bd4074b246261ce78a18e9f5cbe7885ebd1af6b0ed1fcf398f9d03e",
+    "E:\\Projects\\deepsearch-agents\\evals\\reports\\e4-8-query-stage-diagnostics-2026-10-28.json": "9a2d8aebefbaa5a49aefc3a61f45fc3151473d772cfc70ec8e02c7628c0ef294",
+    "E:\\Projects\\deepsearch-agents\\evals\\results\\rag_query_compare_20261028T034913Z_c55944dd11\\corpus.json": "62fa740f9f7e998da133035614152089d06c60fa34b6ff4c5ec70f5032194a06",
+    "E:\\Projects\\deepsearch-agents\\evals\\results\\rag_query_compare_20261028T034913Z_c55944dd11\\query_plan.json": "a8b3893b0d594b13b7f7f118509b45a29a53f0be9d9650900adca19edd34d658",
+    "E:\\Projects\\deepsearch-agents\\evals\\results\\rag_query_compare_20261028T034913Z_c55944dd11\\transfer_local_001\\original.json": "f9fda9b0fc438296ae4364fc2c1657ca8022b97f0bbe59ab2462e9c030401b73",
+    "E:\\Projects\\deepsearch-agents\\evals\\results\\rag_query_compare_20261028T034913Z_c55944dd11\\transfer_local_002\\original.json": "d350c2ca76f7ef2f26fd8c0e9d205179e72f1960daf4dea879c289b2f8d87b67",
+    "E:\\Projects\\deepsearch-agents\\evals\\results\\context_rerank_diagnostic_20261028T084304Z_d8afabda86\\results.json": "bad4d8dce0225b70c2f67aa436c7b8a3865b179bad7890678aac39adb07eab42"
+  },
+  "groups": {
+    "development": [
+      {
+        "id": "rag_local_zh_001",
+        "units": [
+          {
+            "unit_id": "scenarios",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "c9ccaa6e-2ba5-43a8-b5aa-e6442822923c",
+                    "rank": 1,
+                    "score": 8.343385696411133
+                  },
+                  {
+                    "chunk_id": "a68d0e73-cd8b-4c1a-b681-54af2ee1688f",
+                    "rank": 7,
+                    "score": 5.635206699371338
+                  }
+                ],
+                "delivered_match_ids": [
+                  "c9ccaa6e-2ba5-43a8-b5aa-e6442822923c"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "c9ccaa6e-2ba5-43a8-b5aa-e6442822923c",
+                    "rank": 1,
+                    "score": 9.912893295288086
+                  },
+                  {
+                    "chunk_id": "a68d0e73-cd8b-4c1a-b681-54af2ee1688f",
+                    "rank": 12,
+                    "score": 7.900089263916016
+                  }
+                ],
+                "delivered_match_ids": [
+                  "c9ccaa6e-2ba5-43a8-b5aa-e6442822923c"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_002",
+        "units": [
+          {
+            "unit_id": "benefits",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 3,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "0e6ed954-d00a-4b20-b46d-d3603f5636a8",
+                    "rank": 1,
+                    "score": 8.6083402633667
+                  },
+                  {
+                    "chunk_id": "a68d0e73-cd8b-4c1a-b681-54af2ee1688f",
+                    "rank": 18,
+                    "score": 6.328986644744873
+                  },
+                  {
+                    "chunk_id": "d5769462-2762-4845-854f-de3fa06ab4d2",
+                    "rank": 28,
+                    "score": 3.973813533782959
+                  }
+                ],
+                "delivered_match_ids": [
+                  "0e6ed954-d00a-4b20-b46d-d3603f5636a8"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 3,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "0e6ed954-d00a-4b20-b46d-d3603f5636a8",
+                    "rank": 1,
+                    "score": 9.518333435058594
+                  },
+                  {
+                    "chunk_id": "a68d0e73-cd8b-4c1a-b681-54af2ee1688f",
+                    "rank": 19,
+                    "score": 7.542537212371826
+                  },
+                  {
+                    "chunk_id": "d5769462-2762-4845-854f-de3fa06ab4d2",
+                    "rank": 23,
+                    "score": 7.030043125152588
+                  }
+                ],
+                "delivered_match_ids": [
+                  "0e6ed954-d00a-4b20-b46d-d3603f5636a8"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_003",
+        "units": [
+          {
+            "unit_id": "participants",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "a68d0e73-cd8b-4c1a-b681-54af2ee1688f",
+                    "rank": 1,
+                    "score": 6.256416320800781
+                  }
+                ],
+                "delivered_match_ids": [
+                  "a68d0e73-cd8b-4c1a-b681-54af2ee1688f"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "a68d0e73-cd8b-4c1a-b681-54af2ee1688f",
+                    "rank": 3,
+                    "score": 7.754240989685059
+                  }
+                ],
+                "delivered_match_ids": [
+                  "a68d0e73-cd8b-4c1a-b681-54af2ee1688f"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_004",
+        "units": [
+          {
+            "unit_id": "agent_future",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "66a3fb97-b292-486c-93bd-383b247e3cca",
+                    "rank": 3,
+                    "score": 6.776212692260742
+                  }
+                ],
+                "delivered_match_ids": [
+                  "66a3fb97-b292-486c-93bd-383b247e3cca"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "66a3fb97-b292-486c-93bd-383b247e3cca",
+                    "rank": 4,
+                    "score": 8.994634628295898
+                  }
+                ],
+                "delivered_match_ids": [
+                  "66a3fb97-b292-486c-93bd-383b247e3cca"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_005",
+        "units": [
+          {
+            "unit_id": "applications",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 3,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "b733dfad-a42d-4ae3-9978-d8478246ac82",
+                    "rank": 3,
+                    "score": 7.475516319274902
+                  },
+                  {
+                    "chunk_id": "6abbb21e-0af8-4fe5-8c85-63c6579671f8",
+                    "rank": 7,
+                    "score": 6.858625888824463
+                  }
+                ],
+                "delivered_match_ids": [
+                  "b733dfad-a42d-4ae3-9978-d8478246ac82"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 3,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "b733dfad-a42d-4ae3-9978-d8478246ac82",
+                    "rank": 1,
+                    "score": 9.865772247314453
+                  },
+                  {
+                    "chunk_id": "6abbb21e-0af8-4fe5-8c85-63c6579671f8",
+                    "rank": 2,
+                    "score": 9.61368179321289
+                  }
+                ],
+                "delivered_match_ids": [
+                  "b733dfad-a42d-4ae3-9978-d8478246ac82",
+                  "6abbb21e-0af8-4fe5-8c85-63c6579671f8"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 4
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_006",
+        "units": [
+          {
+            "unit_id": "marketing",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivery_budget",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "9feba184-0164-4080-b61d-548d1fa99959",
+                    "rank": 8,
+                    "score": 7.777717590332031
+                  },
+                  {
+                    "chunk_id": "a9361cac-1b25-4cc9-8412-d01b33ed4b68",
+                    "rank": 14,
+                    "score": 6.693541526794434
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "9feba184-0164-4080-b61d-548d1fa99959",
+                    "rank": 2,
+                    "score": 9.96418571472168
+                  },
+                  {
+                    "chunk_id": "a9361cac-1b25-4cc9-8412-d01b33ed4b68",
+                    "rank": 12,
+                    "score": 9.19122314453125
+                  }
+                ],
+                "delivered_match_ids": [
+                  "9feba184-0164-4080-b61d-548d1fa99959"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_007",
+        "units": [
+          {
+            "unit_id": "service",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 3,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "64e36d8f-c442-4f01-9a4e-1bb6149eb97f",
+                    "rank": 4,
+                    "score": 6.010941505432129
+                  },
+                  {
+                    "chunk_id": "6abbb21e-0af8-4fe5-8c85-63c6579671f8",
+                    "rank": 18,
+                    "score": 4.606964111328125
+                  }
+                ],
+                "delivered_match_ids": [
+                  "64e36d8f-c442-4f01-9a4e-1bb6149eb97f"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "retained_top_k",
+                "corpus_match_count": 3,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "64e36d8f-c442-4f01-9a4e-1bb6149eb97f",
+                    "rank": 11,
+                    "score": 7.60843563079834
+                  },
+                  {
+                    "chunk_id": "6abbb21e-0af8-4fe5-8c85-63c6579671f8",
+                    "rank": 12,
+                    "score": 7.57086706161499
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_008",
+        "units": [
+          {
+            "unit_id": "challenges",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "24454af0-b5bb-44d8-b2ca-2a68b69c0b30",
+                    "rank": 2,
+                    "score": 8.525742530822754
+                  }
+                ],
+                "delivered_match_ids": [
+                  "24454af0-b5bb-44d8-b2ca-2a68b69c0b30"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "24454af0-b5bb-44d8-b2ca-2a68b69c0b30",
+                    "rank": 1,
+                    "score": 10.153186798095703
+                  }
+                ],
+                "delivered_match_ids": [
+                  "24454af0-b5bb-44d8-b2ca-2a68b69c0b30"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          },
+          {
+            "unit_id": "integration",
+            "policies": {
+              "baseline": {
+                "first_loss": "candidate_pool",
+                "corpus_match_count": 1,
+                "matched_candidates": [],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              },
+              "source_context": {
+                "first_loss": "candidate_pool",
+                "corpus_match_count": 1,
+                "matched_candidates": [],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_009",
+        "units": [
+          {
+            "unit_id": "macro",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "c1e3c4b0-24c9-48cc-809a-56950740d1b1",
+                    "rank": 2,
+                    "score": 4.357358455657959
+                  },
+                  {
+                    "chunk_id": "a1694808-a2ab-4021-9a0f-2a19619f05ea",
+                    "rank": 9,
+                    "score": 1.6253468990325928
+                  }
+                ],
+                "delivered_match_ids": [
+                  "c1e3c4b0-24c9-48cc-809a-56950740d1b1"
+                ],
+                "delivered_from_reference_documents": 5,
+                "delivered_reference_document_without_anchor": 4
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "a1694808-a2ab-4021-9a0f-2a19619f05ea",
+                    "rank": 3,
+                    "score": 8.392415046691895
+                  },
+                  {
+                    "chunk_id": "c1e3c4b0-24c9-48cc-809a-56950740d1b1",
+                    "rank": 10,
+                    "score": 7.87606143951416
+                  }
+                ],
+                "delivered_match_ids": [
+                  "a1694808-a2ab-4021-9a0f-2a19619f05ea"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_010",
+        "units": [
+          {
+            "unit_id": "macro",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "a1694808-a2ab-4021-9a0f-2a19619f05ea",
+                    "rank": 5,
+                    "score": 5.80888557434082
+                  },
+                  {
+                    "chunk_id": "c1e3c4b0-24c9-48cc-809a-56950740d1b1",
+                    "rank": 7,
+                    "score": 5.471495628356934
+                  }
+                ],
+                "delivered_match_ids": [
+                  "a1694808-a2ab-4021-9a0f-2a19619f05ea"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "a1694808-a2ab-4021-9a0f-2a19619f05ea",
+                    "rank": 3,
+                    "score": 9.085169792175293
+                  },
+                  {
+                    "chunk_id": "c1e3c4b0-24c9-48cc-809a-56950740d1b1",
+                    "rank": 8,
+                    "score": 8.024949073791504
+                  }
+                ],
+                "delivered_match_ids": [
+                  "a1694808-a2ab-4021-9a0f-2a19619f05ea"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          },
+          {
+            "unit_id": "ai_investment",
+            "policies": {
+              "baseline": {
+                "first_loss": "retained_top_k",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "58b76355-ef28-44a0-945e-3ab6da34ec5a",
+                    "rank": 9,
+                    "score": 4.353459358215332
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              },
+              "source_context": {
+                "first_loss": "retained_top_k",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "58b76355-ef28-44a0-945e-3ab6da34ec5a",
+                    "rank": 9,
+                    "score": 7.999638080596924
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_011",
+        "units": [
+          {
+            "unit_id": "stocks",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "5b10c80b-038c-4877-902b-47bbc7bb7049",
+                    "rank": 2,
+                    "score": 4.749885559082031
+                  }
+                ],
+                "delivered_match_ids": [
+                  "5b10c80b-038c-4877-902b-47bbc7bb7049"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "5b10c80b-038c-4877-902b-47bbc7bb7049",
+                    "rank": 2,
+                    "score": 7.5857343673706055
+                  }
+                ],
+                "delivered_match_ids": [
+                  "5b10c80b-038c-4877-902b-47bbc7bb7049"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          },
+          {
+            "unit_id": "bonds",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "5b10c80b-038c-4877-902b-47bbc7bb7049",
+                    "rank": 2,
+                    "score": 4.749885559082031
+                  }
+                ],
+                "delivered_match_ids": [
+                  "5b10c80b-038c-4877-902b-47bbc7bb7049"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "5b10c80b-038c-4877-902b-47bbc7bb7049",
+                    "rank": 2,
+                    "score": 7.5857343673706055
+                  }
+                ],
+                "delivered_match_ids": [
+                  "5b10c80b-038c-4877-902b-47bbc7bb7049"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_012",
+        "units": [
+          {
+            "unit_id": "retrospective",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "6abf5fe8-d584-4da8-bce5-dc09e3bbe021",
+                    "rank": 1,
+                    "score": 3.8518638610839844
+                  },
+                  {
+                    "chunk_id": "54851c18-6beb-4cfc-b881-68997feb32c9",
+                    "rank": 13,
+                    "score": 1.1084545850753784
+                  }
+                ],
+                "delivered_match_ids": [
+                  "6abf5fe8-d584-4da8-bce5-dc09e3bbe021"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "6abf5fe8-d584-4da8-bce5-dc09e3bbe021",
+                    "rank": 5,
+                    "score": 8.329060554504395
+                  },
+                  {
+                    "chunk_id": "54851c18-6beb-4cfc-b881-68997feb32c9",
+                    "rank": 17,
+                    "score": 7.707302093505859
+                  }
+                ],
+                "delivered_match_ids": [
+                  "6abf5fe8-d584-4da8-bce5-dc09e3bbe021"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          },
+          {
+            "unit_id": "outlook",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "8a7123ec-e02e-416c-99d5-8c32a25244d8",
+                    "rank": 2,
+                    "score": 2.701838254928589
+                  },
+                  {
+                    "chunk_id": "fd9d7046-58c5-4bfd-b6a9-a06a1c2de394",
+                    "rank": 6,
+                    "score": 1.9364230632781982
+                  }
+                ],
+                "delivered_match_ids": [
+                  "8a7123ec-e02e-416c-99d5-8c32a25244d8",
+                  "fd9d7046-58c5-4bfd-b6a9-a06a1c2de394"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 4
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "8a7123ec-e02e-416c-99d5-8c32a25244d8",
+                    "rank": 1,
+                    "score": 8.568796157836914
+                  },
+                  {
+                    "chunk_id": "fd9d7046-58c5-4bfd-b6a9-a06a1c2de394",
+                    "rank": 3,
+                    "score": 8.427594184875488
+                  }
+                ],
+                "delivered_match_ids": [
+                  "8a7123ec-e02e-416c-99d5-8c32a25244d8",
+                  "fd9d7046-58c5-4bfd-b6a9-a06a1c2de394"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 4
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_013",
+        "units": [
+          {
+            "unit_id": "credit",
+            "policies": {
+              "baseline": {
+                "first_loss": "score_threshold",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "f5f747ef-f133-4411-83e9-b8a26c75dd79",
+                    "rank": 12,
+                    "score": 0.9256834983825684
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "f5f747ef-f133-4411-83e9-b8a26c75dd79",
+                    "rank": 3,
+                    "score": 7.847637176513672
+                  }
+                ],
+                "delivered_match_ids": [
+                  "f5f747ef-f133-4411-83e9-b8a26c75dd79"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          },
+          {
+            "unit_id": "funding",
+            "policies": {
+              "baseline": {
+                "first_loss": "score_threshold",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "f5f747ef-f133-4411-83e9-b8a26c75dd79",
+                    "rank": 12,
+                    "score": 0.9256834983825684
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "f5f747ef-f133-4411-83e9-b8a26c75dd79",
+                    "rank": 3,
+                    "score": 7.847637176513672
+                  }
+                ],
+                "delivered_match_ids": [
+                  "f5f747ef-f133-4411-83e9-b8a26c75dd79"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_014",
+        "units": [
+          {
+            "unit_id": "prices",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivery_budget",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "aa387748-a1f1-49d4-9cf8-cb5886741852",
+                    "rank": 7,
+                    "score": 1.0173615217208862
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              },
+              "source_context": {
+                "first_loss": "delivery_budget",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "aa387748-a1f1-49d4-9cf8-cb5886741852",
+                    "rank": 7,
+                    "score": 7.756836891174316
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              }
+            }
+          },
+          {
+            "unit_id": "ppi",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivery_budget",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "aa387748-a1f1-49d4-9cf8-cb5886741852",
+                    "rank": 7,
+                    "score": 1.0173615217208862
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              },
+              "source_context": {
+                "first_loss": "delivery_budget",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "aa387748-a1f1-49d4-9cf8-cb5886741852",
+                    "rank": 7,
+                    "score": 7.756836891174316
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_015",
+        "units": [
+          {
+            "unit_id": "stock_expectations",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "73567157-2eca-4798-a00c-23f781dba702",
+                    "rank": 2,
+                    "score": 4.3315043449401855
+                  }
+                ],
+                "delivered_match_ids": [
+                  "73567157-2eca-4798-a00c-23f781dba702"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "73567157-2eca-4798-a00c-23f781dba702",
+                    "rank": 1,
+                    "score": 9.743423461914062
+                  }
+                ],
+                "delivered_match_ids": [
+                  "73567157-2eca-4798-a00c-23f781dba702"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          },
+          {
+            "unit_id": "property_expectations",
+            "policies": {
+              "baseline": {
+                "first_loss": "candidate_pool",
+                "corpus_match_count": 1,
+                "matched_candidates": [],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              },
+              "source_context": {
+                "first_loss": "candidate_pool",
+                "corpus_match_count": 1,
+                "matched_candidates": [],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              }
+            }
+          },
+          {
+            "unit_id": "macro_expectations",
+            "policies": {
+              "baseline": {
+                "first_loss": "candidate_pool",
+                "corpus_match_count": 1,
+                "matched_candidates": [],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              },
+              "source_context": {
+                "first_loss": "candidate_pool",
+                "corpus_match_count": 1,
+                "matched_candidates": [],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_016",
+        "units": [
+          {
+            "unit_id": "stock_expectations",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "73567157-2eca-4798-a00c-23f781dba702",
+                    "rank": 2,
+                    "score": 4.295259952545166
+                  }
+                ],
+                "delivered_match_ids": [
+                  "73567157-2eca-4798-a00c-23f781dba702"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "73567157-2eca-4798-a00c-23f781dba702",
+                    "rank": 1,
+                    "score": 10.259392738342285
+                  }
+                ],
+                "delivered_match_ids": [
+                  "73567157-2eca-4798-a00c-23f781dba702"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          },
+          {
+            "unit_id": "returns",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "73567157-2eca-4798-a00c-23f781dba702",
+                    "rank": 2,
+                    "score": 4.295259952545166
+                  }
+                ],
+                "delivered_match_ids": [
+                  "73567157-2eca-4798-a00c-23f781dba702"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "73567157-2eca-4798-a00c-23f781dba702",
+                    "rank": 1,
+                    "score": 10.259392738342285
+                  }
+                ],
+                "delivered_match_ids": [
+                  "73567157-2eca-4798-a00c-23f781dba702"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_017",
+        "units": [
+          {
+            "unit_id": "sentiment",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 3,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "ef88efcd-0e05-4cc6-a731-977ee0b92e41",
+                    "rank": 2,
+                    "score": 2.6448235511779785
+                  },
+                  {
+                    "chunk_id": "a00e2253-234a-4fcf-b1a4-71dc10033731",
+                    "rank": 8,
+                    "score": 0.4219359755516052
+                  }
+                ],
+                "delivered_match_ids": [
+                  "ef88efcd-0e05-4cc6-a731-977ee0b92e41"
+                ],
+                "delivered_from_reference_documents": 4,
+                "delivered_reference_document_without_anchor": 3
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 3,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "ef88efcd-0e05-4cc6-a731-977ee0b92e41",
+                    "rank": 2,
+                    "score": 9.799871444702148
+                  },
+                  {
+                    "chunk_id": "a00e2253-234a-4fcf-b1a4-71dc10033731",
+                    "rank": 3,
+                    "score": 9.441488265991211
+                  }
+                ],
+                "delivered_match_ids": [
+                  "ef88efcd-0e05-4cc6-a731-977ee0b92e41",
+                  "a00e2253-234a-4fcf-b1a4-71dc10033731"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 4
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_018",
+        "units": [
+          {
+            "unit_id": "macro",
+            "policies": {
+              "baseline": {
+                "first_loss": "score_threshold",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "a1694808-a2ab-4021-9a0f-2a19619f05ea",
+                    "rank": 19,
+                    "score": -1.0686339139938354
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 2,
+                "delivered_reference_document_without_anchor": 2
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "a1694808-a2ab-4021-9a0f-2a19619f05ea",
+                    "rank": 6,
+                    "score": 4.161409378051758
+                  }
+                ],
+                "delivered_match_ids": [
+                  "a1694808-a2ab-4021-9a0f-2a19619f05ea"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          },
+          {
+            "unit_id": "outlook",
+            "policies": {
+              "baseline": {
+                "first_loss": "score_threshold",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "fd9d7046-58c5-4bfd-b6a9-a06a1c2de394",
+                    "rank": 17,
+                    "score": -0.9846662282943726
+                  },
+                  {
+                    "chunk_id": "8a7123ec-e02e-416c-99d5-8c32a25244d8",
+                    "rank": 20,
+                    "score": -1.2259366512298584
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 2,
+                "delivered_reference_document_without_anchor": 2
+              },
+              "source_context": {
+                "first_loss": "score_threshold",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "fd9d7046-58c5-4bfd-b6a9-a06a1c2de394",
+                    "rank": 25,
+                    "score": -1.3662481307983398
+                  },
+                  {
+                    "chunk_id": "8a7123ec-e02e-416c-99d5-8c32a25244d8",
+                    "rank": 26,
+                    "score": -1.4721882343292236
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 0,
+                "delivered_reference_document_without_anchor": 0
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 5,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_019",
+        "units": [
+          {
+            "unit_id": "scenarios",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "c9ccaa6e-2ba5-43a8-b5aa-e6442822923c",
+                    "rank": 1,
+                    "score": 5.009790420532227
+                  },
+                  {
+                    "chunk_id": "a68d0e73-cd8b-4c1a-b681-54af2ee1688f",
+                    "rank": 9,
+                    "score": 3.9255220890045166
+                  }
+                ],
+                "delivered_match_ids": [
+                  "c9ccaa6e-2ba5-43a8-b5aa-e6442822923c"
+                ],
+                "delivered_from_reference_documents": 3,
+                "delivered_reference_document_without_anchor": 2
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 2,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "c9ccaa6e-2ba5-43a8-b5aa-e6442822923c",
+                    "rank": 1,
+                    "score": 5.682057857513428
+                  },
+                  {
+                    "chunk_id": "a68d0e73-cd8b-4c1a-b681-54af2ee1688f",
+                    "rank": 11,
+                    "score": 4.983770370483398
+                  }
+                ],
+                "delivered_match_ids": [
+                  "c9ccaa6e-2ba5-43a8-b5aa-e6442822923c"
+                ],
+                "delivered_from_reference_documents": 4,
+                "delivered_reference_document_without_anchor": 3
+              }
+            }
+          },
+          {
+            "unit_id": "applications",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 3,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "b733dfad-a42d-4ae3-9978-d8478246ac82",
+                    "rank": 6,
+                    "score": 4.17375373840332
+                  }
+                ],
+                "delivered_match_ids": [
+                  "b733dfad-a42d-4ae3-9978-d8478246ac82"
+                ],
+                "delivered_from_reference_documents": 3,
+                "delivered_reference_document_without_anchor": 2
+              },
+              "source_context": {
+                "first_loss": "delivery_budget",
+                "corpus_match_count": 3,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "b733dfad-a42d-4ae3-9978-d8478246ac82",
+                    "rank": 8,
+                    "score": 5.120950698852539
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 2,
+                "delivered_reference_document_without_anchor": 2
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "rag_local_zh_020",
+        "units": [],
+        "delivered_counts": {
+          "baseline": 0,
+          "source_context": 0
+        }
+      }
+    ],
+    "diagnostic": [
+      {
+        "id": "transfer_local_001",
+        "units": [
+          {
+            "unit_id": "diagnostic_reference",
+            "policies": {
+              "baseline": {
+                "first_loss": "score_threshold",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "02092c12-ee31-4a8f-b611-e34696214c4c",
+                    "rank": 29,
+                    "score": 0.4726756811141968
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              },
+              "source_context": {
+                "first_loss": "retained_top_k",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "02092c12-ee31-4a8f-b611-e34696214c4c",
+                    "rank": 28,
+                    "score": 4.333883285522461
+                  }
+                ],
+                "delivered_match_ids": [],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 6
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      },
+      {
+        "id": "transfer_local_002",
+        "units": [
+          {
+            "unit_id": "diagnostic_reference",
+            "policies": {
+              "baseline": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "be6b8c3c-b7b6-47fa-b889-8c59d83cc585",
+                    "rank": 3,
+                    "score": 5.983903408050537
+                  }
+                ],
+                "delivered_match_ids": [
+                  "be6b8c3c-b7b6-47fa-b889-8c59d83cc585"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              },
+              "source_context": {
+                "first_loss": "delivered",
+                "corpus_match_count": 1,
+                "matched_candidates": [
+                  {
+                    "chunk_id": "be6b8c3c-b7b6-47fa-b889-8c59d83cc585",
+                    "rank": 1,
+                    "score": 8.399946212768555
+                  }
+                ],
+                "delivered_match_ids": [
+                  "be6b8c3c-b7b6-47fa-b889-8c59d83cc585"
+                ],
+                "delivered_from_reference_documents": 6,
+                "delivered_reference_document_without_anchor": 5
+              }
+            }
+          }
+        ],
+        "delivered_counts": {
+          "baseline": 6,
+          "source_context": 6
+        }
+      }
+    ]
+  },
+  "development_unit_gates": {
+    "baseline": {
+      "delivered": 19,
+      "delivery_budget": 3,
+      "candidate_pool": 3,
+      "retained_top_k": 1,
+      "score_threshold": 4
+    },
+    "source_context": {
+      "delivered": 21,
+      "retained_top_k": 2,
+      "candidate_pool": 3,
+      "delivery_budget": 3,
+      "score_threshold": 1
+    }
+  },
+  "local_retrieval_queries": 0,
+  "local_rerank_calls": 0,
+  "generator_calls": 0,
+  "search_queries": 0,
+  "production_default_changed": false,
+  "human_accuracy": null,
+  "interpretation": "Finite-anchor attribution only; source identity is not passage support. Missing anchors do not establish semantic irrelevance or corpus absence."
+}
