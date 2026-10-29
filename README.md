@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.13 新增默认未接入生产的精确文档定位与目录结构原型：仅匹配真实文件名，目录需独立标记、编号条目、唯一来源且已在候选池内。冻结分数回放中，目录原文在两种格式下均恢复为交付第 1，Evidence ID 不变；调查对照保留，二十题交付文本和指标均未变化。仅八题文档名精确匹配，九题无法定位并保留原结果，三题无显式标题；这不是实时检索或报告修复。零新增检索／模型／网络调用，620 项测试通过、6 项跳过。见 [原型规则、回放与接入边界](docs/development/e4-13-source-structure.md)。
+
 E4.12 在冻结候选池上交叉比较原标题／标题占位查询与原文／来源前缀片段。标题替换使有限证据 Recall@6 从 0.702／0.754 降至 0.421／0.474，完整覆盖从 12/19 降至 7/19；目录排名虽改善，仍因阈值未交付，因此不启用这项改写。20 道开发题与 2 个诊断池均有效，44 个历史交付对照全部复现；82 次本地重排、零检索／生成／网络调用，596 项测试通过、6 项跳过。见 [四条件结果、失败归因与后续边界](docs/development/e4-12-relation-query.md)。
 
 E4.11 新增冻结结果的离线证据流失审计：客服参考从第 4 降至第 11，被前八截断；跨文档应用参考从第 6 降至第 8，被最终六条上限截断；目录仍第 28。完整审计 20 道开发题与 2 个诊断池，明确区分来源文档命中和有限锚点支持，不改标签或生产默认。零检索／重排／生成／网络调用；584 项测试通过、6 项跳过。见 [归因工具、结果与下一项实验](docs/development/e4-11-evidence-loss-audit.md)。
@@ -567,6 +569,14 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.13 adds an evaluation-only exact-document/TOC planner. Unique indexed TOC chunks already in
+the candidate pool can be explicitly reserved within the existing delivery budget; no runtime
+call site uses it. Frozen-score replay delivers the actual TOC first with its original Evidence
+ID in both formats. Survey controls and all 20 development deliveries/metrics stay unchanged;
+only eight development source names resolve, nine do not, and three lack explicit titles. This
+is not live retrieval or report repair. Zero new retrieval/model/Web calls; 620 passed, 6 skipped.
+See [planner, replay and integration boundary](docs/development/e4-13-source-structure.md).
 
 E4.12 crosses original/title-placeholder queries with raw/source-context passages on frozen pools.
 Title replacement reduces finite-unit Recall@6 from 0.702/0.754 to 0.421/0.474 and complete coverage

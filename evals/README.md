@@ -2,6 +2,8 @@
 
 本目录包含 DeepSearch Agents 第一阶段的项目内中文评测集，覆盖路由、联网搜索、数据库查询、本地知识库检索和端到端报告生成。
 
+E4.13 的 `python -m evals.rag.run_source_structure` 默认只核验输入并建计划；`--diagnostic --execute`／`--execute` 离线复用 E4.10 分数，分别回放两道诊断题／二十道开发题。原型严格解析《文档名》，仅为唯一真实目录片段显式预留交付位置，仍受六条／字符预算限制，不猜简称、不补候选。目录原文恢复，开发集指标未变，零新检索或模型调用，尚未接入运行时。见 [E4.13 规则与限制](../docs/development/e4-13-source-structure.md)。
+
 E4.12 的 `python -m evals.rag.run_relation_query` 默认核验候选／历史对照并写查询计划；`--diagnostic --execute` 执行两题八次本地重排，`--execute` 执行开发集二十题 74 次重排。显式《标题》替换为文档占位符，其余约束不变，不推断简称、不扩大预算。四条件结果显示覆盖下降，保留失败且默认不启用；零新增检索、生成或网络调用。见 [E4.12 完整记录](../docs/development/e4-12-relation-query.md)。
 
 E4.11 的 `python -m evals.rag.audit_evidence_loss` 对哈希绑定的 E4.10 结果离线逐单元归因，区分候选缺失、阈值、前八保留、六条交付和正文截断；同时记录同源但未匹配有限锚点的条数。覆盖开发集二十题与两份诊断池，无模型／检索调用，参考标签只用于审计。见 [审计结果与复现](../docs/development/e4-11-evidence-loss-audit.md)。

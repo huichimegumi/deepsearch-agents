@@ -1,0 +1,1584 @@
+{
+  "stage": "E4.13",
+  "date": "2026-10-29",
+  "mode": "offline_fixed_score_replay",
+  "runs": {
+    "diagnostic": {
+      "run_id": "source_structure_diagnostic_20261029T030916Z_102d05813f",
+      "results_sha256": "78bdb357f2092a905d6d170496cd187efb7de901d8db274483dbe71f8550e825",
+      "manifest": {
+        "git_commit": "c5ea1889e8e0669c7a9f4e4a14329ca0e63a5455",
+        "git_dirty": true,
+        "source_sha256": "88927fd71bc65710b32cb62695ffd33460f4fe6fd7db505d5a1836e7c0bf9281",
+        "dataset_sha256": "66bf37d47c6d8343418ed652f5eb1edf0ae22ec09d635a4b1c673c1eddb267d6",
+        "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+        "versions": {
+          "fastembed": "0.8.0",
+          "onnxruntime": "1.27.0",
+          "qdrant-client": "1.18.0",
+          "deepagents": "0.5.7"
+        },
+        "configuration": {
+          "execute": true,
+          "diagnostic": true,
+          "mode": "offline_fixed_score_replay",
+          "test_split_executed": false
+        }
+      },
+      "input_sha256": {
+        "E:\\Projects\\deepsearch-agents\\evals\\reports\\e4-8-query-stage-diagnostics-2026-10-28.json": "9a2d8aebefbaa5a49aefc3a61f45fc3151473d772cfc70ec8e02c7628c0ef294",
+        "E:\\Projects\\deepsearch-agents\\evals\\results\\rag_query_compare_20261028T034913Z_c55944dd11\\corpus.json": "62fa740f9f7e998da133035614152089d06c60fa34b6ff4c5ec70f5032194a06",
+        "E:\\Projects\\deepsearch-agents\\evals\\results\\rag_query_compare_20261028T034913Z_c55944dd11\\query_plan.json": "a8b3893b0d594b13b7f7f118509b45a29a53f0be9d9650900adca19edd34d658",
+        "E:\\Projects\\deepsearch-agents\\evals\\results\\rag_query_compare_20261028T034913Z_c55944dd11\\transfer_local_001\\original.json": "f9fda9b0fc438296ae4364fc2c1657ca8022b97f0bbe59ab2462e9c030401b73",
+        "E:\\Projects\\deepsearch-agents\\evals\\results\\rag_query_compare_20261028T034913Z_c55944dd11\\transfer_local_002\\original.json": "d350c2ca76f7ef2f26fd8c0e9d205179e72f1960daf4dea879c289b2f8d87b67",
+        "E:\\Projects\\deepsearch-agents\\evals\\reports\\e4-10-source-context-rerank-2026-10-28.json": "c9fef01c23523516f3c0db1fb50e7d6b8939ec3bf96871f491900ab29d34beb8",
+        "E:\\Projects\\deepsearch-agents\\evals\\results\\context_rerank_diagnostic_20261028T084304Z_d8afabda86\\results.json": "bad4d8dce0225b70c2f67aa436c7b8a3865b179bad7890678aac39adb07eab42"
+      },
+      "summary": null,
+      "cases": [
+        {
+          "id": "transfer_local_001",
+          "plan": {
+            "status": "resolved",
+            "document_sha256": [
+              "61803158d2af3f9913fffe612463789dc6fa46a97fe28dae199be216120a2d2c"
+            ],
+            "structural_ids": [
+              "02092c12-ee31-4a8f-b611-e34696214c4c"
+            ],
+            "structure_status": "selected"
+          },
+          "metrics": {
+            "baseline_raw": null,
+            "scoped_raw": null,
+            "baseline_context": null,
+            "scoped_context": null
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": false,
+            "context": false
+          },
+          "reference_delivery": {
+            "baseline_raw": {
+              "rank": null,
+              "evidence_id": null
+            },
+            "scoped_raw": {
+              "rank": 1,
+              "evidence_id": "ev1_local_document_4072a8b1a934c6f323e8aed5"
+            },
+            "baseline_context": {
+              "rank": null,
+              "evidence_id": null
+            },
+            "scoped_context": {
+              "rank": 1,
+              "evidence_id": "ev1_local_document_4072a8b1a934c6f323e8aed5"
+            }
+          },
+          "budgets": {
+            "baseline_raw": {
+              "candidate_hits": 8,
+              "answer_hits": 6,
+              "max_answer_hits": 6,
+              "context_chars": 4123,
+              "max_context_chars": 10000,
+              "truncated": true,
+              "truncated_by_hits": true,
+              "truncated_by_chars": false
+            },
+            "scoped_raw": {
+              "candidate_hits": 8,
+              "answer_hits": 6,
+              "max_answer_hits": 6,
+              "context_chars": 3538,
+              "max_context_chars": 10000,
+              "truncated": true,
+              "truncated_by_hits": true,
+              "truncated_by_chars": false
+            },
+            "baseline_context": {
+              "candidate_hits": 8,
+              "answer_hits": 6,
+              "max_answer_hits": 6,
+              "context_chars": 3995,
+              "max_context_chars": 10000,
+              "truncated": true,
+              "truncated_by_hits": true,
+              "truncated_by_chars": false
+            },
+            "scoped_context": {
+              "candidate_hits": 8,
+              "answer_hits": 6,
+              "max_answer_hits": 6,
+              "context_chars": 3465,
+              "max_context_chars": 10000,
+              "truncated": true,
+              "truncated_by_hits": true,
+              "truncated_by_chars": false
+            }
+          }
+        },
+        {
+          "id": "transfer_local_002",
+          "plan": {
+            "status": "resolved",
+            "document_sha256": [
+              "28aab03c3f2d3a30c3b5b6ee6ed6b8adec9e9459d7e3588727920bf135742f2a"
+            ],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": null,
+            "scoped_raw": null,
+            "baseline_context": null,
+            "scoped_context": null
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          },
+          "reference_delivery": {
+            "baseline_raw": {
+              "rank": 3,
+              "evidence_id": null
+            },
+            "scoped_raw": {
+              "rank": 3,
+              "evidence_id": "ev1_local_document_33124c6985a61183e34ca2b0"
+            },
+            "baseline_context": {
+              "rank": 1,
+              "evidence_id": null
+            },
+            "scoped_context": {
+              "rank": 1,
+              "evidence_id": "ev1_local_document_33124c6985a61183e34ca2b0"
+            }
+          },
+          "budgets": {
+            "baseline_raw": {
+              "candidate_hits": 8,
+              "answer_hits": 6,
+              "max_answer_hits": 6,
+              "context_chars": 2409,
+              "max_context_chars": 10000,
+              "truncated": true,
+              "truncated_by_hits": true,
+              "truncated_by_chars": false
+            },
+            "scoped_raw": {
+              "candidate_hits": 8,
+              "answer_hits": 6,
+              "max_answer_hits": 6,
+              "context_chars": 2409,
+              "max_context_chars": 10000,
+              "truncated": true,
+              "truncated_by_hits": true,
+              "truncated_by_chars": false
+            },
+            "baseline_context": {
+              "candidate_hits": 8,
+              "answer_hits": 6,
+              "max_answer_hits": 6,
+              "context_chars": 3352,
+              "max_context_chars": 10000,
+              "truncated": true,
+              "truncated_by_hits": true,
+              "truncated_by_chars": false
+            },
+            "scoped_context": {
+              "candidate_hits": 8,
+              "answer_hits": 6,
+              "max_answer_hits": 6,
+              "context_chars": 3352,
+              "max_context_chars": 10000,
+              "truncated": true,
+              "truncated_by_hits": true,
+              "truncated_by_chars": false
+            }
+          }
+        }
+      ],
+      "source_resolution_counts": {
+        "resolved": 2
+      }
+    },
+    "development": {
+      "run_id": "source_structure_dev_20261029T030921Z_b3ae1cccf4",
+      "results_sha256": "42ebacff5e8d839fa80ca3e7ac207fe2bcb4d85ee895b5688da2aab2f873f237",
+      "manifest": {
+        "git_commit": "c5ea1889e8e0669c7a9f4e4a14329ca0e63a5455",
+        "git_dirty": true,
+        "source_sha256": "88927fd71bc65710b32cb62695ffd33460f4fe6fd7db505d5a1836e7c0bf9281",
+        "dataset_sha256": "66bf37d47c6d8343418ed652f5eb1edf0ae22ec09d635a4b1c673c1eddb267d6",
+        "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+        "versions": {
+          "fastembed": "0.8.0",
+          "onnxruntime": "1.27.0",
+          "qdrant-client": "1.18.0",
+          "deepagents": "0.5.7"
+        },
+        "configuration": {
+          "execute": true,
+          "diagnostic": false,
+          "mode": "offline_fixed_score_replay",
+          "test_split_executed": false
+        }
+      },
+      "input_sha256": {
+        "E:\\Projects\\deepsearch-agents\\evals\\reports\\e4-9-vector-retention-2026-10-28.json": "5e5cecf26bccb8cefe350e34b3c36c9c451c892c87962245d8777237594bace8",
+        "E:\\Projects\\deepsearch-agents\\evals\\results\\rag_retention_dev_20261028T082206Z_ae60b12456\\corpus.json": "efa55c0a7de4744f00b5b186301fb0a4e002d4f4c986846aa9bfbc230f2698cf",
+        "E:\\Projects\\deepsearch-agents\\evals\\results\\rag_retention_dev_20261028T082206Z_ae60b12456\\results.json": "6a69a484de92f5c6a290f84c1aca9ec2c9e7e1c8eb520212f8ebff0426b68551",
+        "E:\\Projects\\deepsearch-agents\\evals\\rag\\suites\\v2\\development.jsonl": "66bf37d47c6d8343418ed652f5eb1edf0ae22ec09d635a4b1c673c1eddb267d6",
+        "E:\\Projects\\deepsearch-agents\\evals\\rag\\suites\\v2\\suite.lock.json": "396c731fb3ff5c9df7a254c97a255a5c4eefbfb39b9fa10f0d3e2ad8ea74fdd5",
+        "E:\\Projects\\deepsearch-agents\\evals\\reports\\e4-10-source-context-rerank-2026-10-28.json": "c9fef01c23523516f3c0db1fb50e7d6b8939ec3bf96871f491900ab29d34beb8",
+        "E:\\Projects\\deepsearch-agents\\evals\\results\\context_rerank_dev_20261028T084607Z_26daa73038\\results.json": "3da53bfb6bd4074b246261ce78a18e9f5cbe7885ebd1af6b0ed1fcf398f9d03e"
+      },
+      "summary": {
+        "scheduled": 20,
+        "valid": 20,
+        "policies": {
+          "baseline_raw": {
+            "answerable": 19,
+            "recall_at_6": 0.7017543859649122,
+            "mrr_at_6": 0.47982456140350876,
+            "all_evidence_found": 12
+          },
+          "scoped_raw": {
+            "answerable": 19,
+            "recall_at_6": 0.7017543859649122,
+            "mrr_at_6": 0.47982456140350876,
+            "all_evidence_found": 12
+          },
+          "baseline_context": {
+            "answerable": 19,
+            "recall_at_6": 0.7543859649122807,
+            "mrr_at_6": 0.5921052631578947,
+            "all_evidence_found": 12
+          },
+          "scoped_context": {
+            "answerable": 19,
+            "recall_at_6": 0.7543859649122807,
+            "mrr_at_6": 0.5921052631578947,
+            "all_evidence_found": 12
+          }
+        }
+      },
+      "cases": [
+        {
+          "id": "rag_local_zh_001",
+          "plan": {
+            "status": "resolved",
+            "document_sha256": [
+              "61803158d2af3f9913fffe612463789dc6fa46a97fe28dae199be216120a2d2c"
+            ],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "scenarios": 1
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "scenarios": 1
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "scenarios": 1
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "scenarios": 1
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_002",
+          "plan": {
+            "status": "resolved",
+            "document_sha256": [
+              "61803158d2af3f9913fffe612463789dc6fa46a97fe28dae199be216120a2d2c"
+            ],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "benefits": 1
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "benefits": 1
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "benefits": 1
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "benefits": 1
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_003",
+          "plan": {
+            "status": "resolved",
+            "document_sha256": [
+              "61803158d2af3f9913fffe612463789dc6fa46a97fe28dae199be216120a2d2c"
+            ],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "participants": 1
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "participants": 1
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.3333333333333333,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "participants": 3
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.3333333333333333,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "participants": 3
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_004",
+          "plan": {
+            "status": "resolved",
+            "document_sha256": [
+              "61803158d2af3f9913fffe612463789dc6fa46a97fe28dae199be216120a2d2c"
+            ],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.3333333333333333,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "agent_future": 3
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.3333333333333333,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "agent_future": 3
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.25,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "agent_future": 4
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.25,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "agent_future": 4
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_005",
+          "plan": {
+            "status": "resolved",
+            "document_sha256": [
+              "28aab03c3f2d3a30c3b5b6ee6ed6b8adec9e9459d7e3588727920bf135742f2a"
+            ],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.3333333333333333,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "applications": 3
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.3333333333333333,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "applications": 3
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "applications": 1
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "applications": 1
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_006",
+          "plan": {
+            "status": "resolved",
+            "document_sha256": [
+              "28aab03c3f2d3a30c3b5b6ee6ed6b8adec9e9459d7e3588727920bf135742f2a"
+            ],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 0.0,
+              "mrr_at_6": 0.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "marketing": null
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 0.0,
+              "mrr_at_6": 0.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "marketing": null
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "marketing": 2
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "marketing": 2
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_007",
+          "plan": {
+            "status": "resolved",
+            "document_sha256": [
+              "28aab03c3f2d3a30c3b5b6ee6ed6b8adec9e9459d7e3588727920bf135742f2a"
+            ],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.25,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "service": 4
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.25,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "service": 4
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 0.0,
+              "mrr_at_6": 0.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "service": null
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 0.0,
+              "mrr_at_6": 0.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "service": null
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_008",
+          "plan": {
+            "status": "resolved",
+            "document_sha256": [
+              "28aab03c3f2d3a30c3b5b6ee6ed6b8adec9e9459d7e3588727920bf135742f2a"
+            ],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 0.5,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "challenges": 2,
+                "integration": null
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 0.5,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "challenges": 2,
+                "integration": null
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 0.5,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "challenges": 1,
+                "integration": null
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 0.5,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "challenges": 1,
+                "integration": null
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_009",
+          "plan": {
+            "status": "unresolved_source",
+            "document_sha256": [],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "macro": 2
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "macro": 2
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.3333333333333333,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "macro": 3
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.3333333333333333,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "macro": 3
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_010",
+          "plan": {
+            "status": "unresolved_source",
+            "document_sha256": [],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 0.5,
+              "mrr_at_6": 0.2,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "macro": 5,
+                "ai_investment": null
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 0.5,
+              "mrr_at_6": 0.2,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "macro": 5,
+                "ai_investment": null
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 0.5,
+              "mrr_at_6": 0.3333333333333333,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "macro": 3,
+                "ai_investment": null
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 0.5,
+              "mrr_at_6": 0.3333333333333333,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "macro": 3,
+                "ai_investment": null
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_011",
+          "plan": {
+            "status": "unresolved_source",
+            "document_sha256": [],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "stocks": 2,
+                "bonds": 2
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "stocks": 2,
+                "bonds": 2
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "stocks": 2,
+                "bonds": 2
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "stocks": 2,
+                "bonds": 2
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_012",
+          "plan": {
+            "status": "unresolved_source",
+            "document_sha256": [],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "retrospective": 1,
+                "outlook": 2
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "retrospective": 1,
+                "outlook": 2
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "retrospective": 5,
+                "outlook": 1
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "retrospective": 5,
+                "outlook": 1
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_013",
+          "plan": {
+            "status": "unresolved_source",
+            "document_sha256": [],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 0.0,
+              "mrr_at_6": 0.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "credit": null,
+                "funding": null
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 0.0,
+              "mrr_at_6": 0.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "credit": null,
+                "funding": null
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.3333333333333333,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "credit": 3,
+                "funding": 3
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.3333333333333333,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "credit": 3,
+                "funding": 3
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_014",
+          "plan": {
+            "status": "unresolved_source",
+            "document_sha256": [],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 0.0,
+              "mrr_at_6": 0.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "prices": null,
+                "ppi": null
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 0.0,
+              "mrr_at_6": 0.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "prices": null,
+                "ppi": null
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 0.0,
+              "mrr_at_6": 0.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "prices": null,
+                "ppi": null
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 0.0,
+              "mrr_at_6": 0.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "prices": null,
+                "ppi": null
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_015",
+          "plan": {
+            "status": "unresolved_source",
+            "document_sha256": [],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 0.3333333333333333,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "stock_expectations": 2,
+                "property_expectations": null,
+                "macro_expectations": null
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 0.3333333333333333,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "stock_expectations": 2,
+                "property_expectations": null,
+                "macro_expectations": null
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 0.3333333333333333,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "stock_expectations": 1,
+                "property_expectations": null,
+                "macro_expectations": null
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 0.3333333333333333,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "stock_expectations": 1,
+                "property_expectations": null,
+                "macro_expectations": null
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_016",
+          "plan": {
+            "status": "unresolved_source",
+            "document_sha256": [],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "stock_expectations": 2,
+                "returns": 2
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "stock_expectations": 2,
+                "returns": 2
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "stock_expectations": 1,
+                "returns": 1
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "stock_expectations": 1,
+                "returns": 1
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_017",
+          "plan": {
+            "status": "unresolved_source",
+            "document_sha256": [],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "sentiment": 2
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "sentiment": 2
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "sentiment": 2
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 0.5,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "sentiment": 2
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_018",
+          "plan": {
+            "status": "no_explicit_source",
+            "document_sha256": [],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 0.0,
+              "mrr_at_6": 0.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "macro": null,
+                "outlook": null
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 0.0,
+              "mrr_at_6": 0.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "macro": null,
+                "outlook": null
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 0.5,
+              "mrr_at_6": 0.16666666666666666,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "macro": 6,
+                "outlook": null
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 0.5,
+              "mrr_at_6": 0.16666666666666666,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "macro": 6,
+                "outlook": null
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 5,
+            "scoped_raw": 5,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_019",
+          "plan": {
+            "status": "no_explicit_source",
+            "document_sha256": [],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "scenarios": 1,
+                "applications": 6
+              }
+            },
+            "scoped_raw": {
+              "recall_at_6": 1.0,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": true,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "scenarios": 1,
+                "applications": 6
+              }
+            },
+            "baseline_context": {
+              "recall_at_6": 0.5,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "scenarios": 1,
+                "applications": null
+              }
+            },
+            "scoped_context": {
+              "recall_at_6": 0.5,
+              "mrr_at_6": 1.0,
+              "all_evidence_found": false,
+              "no_answer": false,
+              "abstention_evaluated": false,
+              "unit_ranks": {
+                "scenarios": 1,
+                "applications": null
+              }
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 6,
+            "scoped_raw": 6,
+            "baseline_context": 6,
+            "scoped_context": 6
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        },
+        {
+          "id": "rag_local_zh_020",
+          "plan": {
+            "status": "no_explicit_source",
+            "document_sha256": [],
+            "structural_ids": [],
+            "structure_status": "not_requested"
+          },
+          "metrics": {
+            "baseline_raw": {
+              "recall_at_6": null,
+              "mrr_at_6": null,
+              "all_evidence_found": null,
+              "no_answer": true,
+              "abstention_evaluated": false,
+              "unit_ranks": {}
+            },
+            "scoped_raw": {
+              "recall_at_6": null,
+              "mrr_at_6": null,
+              "all_evidence_found": null,
+              "no_answer": true,
+              "abstention_evaluated": false,
+              "unit_ranks": {}
+            },
+            "baseline_context": {
+              "recall_at_6": null,
+              "mrr_at_6": null,
+              "all_evidence_found": null,
+              "no_answer": true,
+              "abstention_evaluated": false,
+              "unit_ranks": {}
+            },
+            "scoped_context": {
+              "recall_at_6": null,
+              "mrr_at_6": null,
+              "all_evidence_found": null,
+              "no_answer": true,
+              "abstention_evaluated": false,
+              "unit_ranks": {}
+            }
+          },
+          "delivered_counts": {
+            "baseline_raw": 0,
+            "scoped_raw": 0,
+            "baseline_context": 0,
+            "scoped_context": 0
+          },
+          "delivery_equal_to_baseline": {
+            "raw": true,
+            "context": true
+          }
+        }
+      ],
+      "source_resolution_counts": {
+        "resolved": 8,
+        "unresolved_source": 9,
+        "no_explicit_source": 3
+      }
+    }
+  },
+  "local_retrieval_queries": 0,
+  "local_rerank_calls": 0,
+  "generator_calls": 0,
+  "search_queries": 0,
+  "production_default_changed": false,
+  "human_accuracy": null,
+  "limitations": [
+    "Exposed development labels are finite and provisional, not answer accuracy.",
+    "No fresh database/vector retrieval, reranking, model response or report acceptance is measured.",
+    "Nine development document names do not resolve exactly; unquoted source aliases are not inferred.",
+    "Structural reservation explicitly bypasses the semantic score gate for up to two uniquely identified TOC chunks already in the frozen pool.",
+    "A standalone TOC marker and numbered entries are heuristic structure signals, not semantic verification.",
+    "Production call sites do not invoke this prototype."
+  ],
+  "verification": {
+    "pytest_passed": 620,
+    "pytest_skipped": 6,
+    "focused_test_cases": 24,
+    "ruff_lint": "passed",
+    "ruff_format": "passed",
+    "diff_check": "passed"
+  }
+}
