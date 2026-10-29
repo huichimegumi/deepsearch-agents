@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.19 冻结两道更明确的人民银行专栏题，配对比较普通与实验检索，再运行 ID 选段＋Writer。首轮真实专栏清单排第 11、未交付，Writer 把专栏 1 正文分项误作其他专栏标题；严格识别独立“专栏”清单后，实验路径交付该页第 1，四个标题均与原文一致并引用该页。三种政策协同方式题还暴露 Writer 偶发引用相邻续页，需单独修复。两轮共 8 次本地检索、16 次 qwen-flash 逻辑调用、零网络搜索；677 项测试通过、6 项跳过。人工准确率仍为空，实验通路默认关闭。见 [配对结果、源文本核验与引用偏差](docs/development/e4-19-pbc-clarity.md)。
+
 E4.18 对人民银行“专栏”题做冻结结果的分阶段诊断：栏目目录与专栏 1 正文交付，专栏 2、3 正文未进候选池，专栏 4 正文重排第 12、未过前八保留。该原题没有独立核验的语义答案标签，栏目命中不能算回答召回率；暂不调整检索默认策略。零新增检索／模型／网络调用，671 项测试通过、6 项跳过。见 [固定探针、证据流失位置与下一步](docs/development/e4-18-pbc-column-diagnostic.md)。
 
 E4.17 将 E4.16 四题的哈希绑定真实 Evidence 接到冻结的 ID 选段＋Writer。目录两条标题与京东实践十条陈述经独立 AI 初审和逐字引句核验，暂判有依据；金融专栏题未选到充分片段、显式排除来源题零证据，均保持未解决。共 5 次 qwen-flash 逻辑调用、零新增检索／网络调用；664 项测试通过、6 项跳过。人工准确率仍为空，不据此认定报告正确率，实验通路继续默认关闭。见 [候选回答、初审及金融题缺口](docs/development/e4-17-source-transfer-review.md)。
@@ -579,6 +581,16 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.19 freezes two clearer PBC column questions and compares ordinary versus experimental
+retrieval plus ID selection and Writer. Both pilot paths missed the true column index at rerank
+rank 11, and Writer mistook numbered measures in column 1 for later column titles. Strict
+recognition of the separate numbered column index now delivers it first in the experimental
+path; all four titles match and cite that original page, while the ordinary path still matches
+only one. The three-method question also reveals an intermittent Writer citation to the wrong
+continuation chunk. Across both runs: eight local queries, 16 qwen-flash logical calls, no Web
+search; 677 passed, 6 skipped. Human accuracy remains null and the experiment stays off by
+default. See [paired runs, source checks and citation gap](docs/development/e4-19-pbc-clarity.md).
 
 E4.18 audits five fixed structural probes for the PBC column question: the TOC and column 1
 body were delivered, columns 2/3 were absent from the candidate pool, and column 4 ranked 12

@@ -1,0 +1,22 @@
+{
+  "version": "pbc_clarity_v1",
+  "scope": "two exposed source-verified questions, paired ordinary and opt-in experimental retrieval",
+  "knowledge_base": "金融行业",
+  "document_sha256": "4cad3f2ced2a9a5b8813f81c6d293b90c77fd7f9e142df11d14fd3900e8633c6",
+  "cases": [
+    {
+      "id": "pbc_column_headings",
+      "question": "请仅依据《中国人民银行2025年第四季度中国货币政策执行报告》的目录，逐项列出专栏1至专栏4的标题。不要概括专栏正文。",
+      "parts": {"four_headings": "专栏1至专栏4的四个标题"},
+      "reference_chunk_id": "95e15a27-7d5e-4ffa-8202-687ea3ff7011",
+      "reference_content_sha256": "d737f7c6b0adea7b8bee41014afd123d112ff79cea4cda76cfb11da91ab0a79a"
+    },
+    {
+      "id": "pbc_column_one_methods",
+      "question": "《中国人民银行2025年第四季度中国货币政策执行报告》专栏1说财政政策和货币政策主要通过哪三种方式协同支持扩内需？只列出专栏写明的三种方式。",
+      "parts": {"three_methods": "专栏1写明的三种财政与货币政策协同方式"},
+      "reference_chunk_id": "9533415d-95a6-4b11-97dc-9301862d592c",
+      "reference_content_sha256": "587a3244c99a8b6f9c1aba6694e7eb6bc03abade312b1c5938e5c776724f6972"
+    }
+  ]
+}

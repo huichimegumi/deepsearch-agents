@@ -80,6 +80,23 @@ def test_number_spelling_does_not_create_fake_distinct_entries():
     assert is_toc("目录\n01 第一条\n02 第二条")
 
 
+def test_column_index_requires_header_consecutive_entries_and_page_leaders():
+    index = (
+        "VI\n专栏\n"
+        "专栏 1 财政金融协同支持扩内需 ........ 14\n"
+        "专栏 2 绿色金融质效 ........ 17\n"
+        "专栏 3 流动性总量 ........ 26\n"
+        "专栏 4 信用修复 ........ 37\n"
+    )
+    assert is_toc(index)
+    assert not is_toc(index.replace("专栏\n", "正文\n", 1))
+    assert not is_toc(index.replace("........", "——"))
+    assert not is_toc(index.replace("专栏 3 流动性总量", "专栏 2 流动性总量"))
+    assert not is_toc(index.replace("专栏 3 流动性总量 ........ 26\n", ""))
+    assert not is_toc("专栏\n专栏 1 财政金融协同支持扩内需 ........ 14")
+    assert not is_toc("专栏\n专栏 1 财政金融协同支持扩内需\n正文描述政策协同。")
+
+
 def test_separate_is_not_a_negative_but_polite_dont_still_is():
     assert requests_toc("分别列出目录第一、二章与第三、四章的标题。不要据目录推断正文。")
     assert not requests_toc("请先别生成目录。")

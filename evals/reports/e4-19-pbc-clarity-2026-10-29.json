@@ -1,0 +1,340 @@
+{
+  "stage": "E4.19",
+  "date": "2026-10-29",
+  "scope": "two_exposed_pbc_questions_paired_ordinary_experimental_retrieval_and_writer",
+  "dataset": "evals/reports_acceptance/pbc_clarity_v1.json",
+  "dataset_sha256": "d5ad31938f89de130c9ba6b34cd7a710e1662ae48d574a77b7a684f91daf9800",
+  "pilot": {
+    "retrieval_run": "pbc_clarity_assets_20261029T081117Z_e7a871e7ce",
+    "retrieval_results_sha256": "4d9567a8f81e1ba2606a83103866f9e182adc2e586eec640c507fee49cddd415",
+    "writer_run": "pbc_clarity_writer_20261029T081250Z_31c5dd46c1",
+    "writer_results_sha256": "2c64eaa823712a5d343d872f25700daa275ea80bf05fb7ec1505db84f0617a6c",
+    "literal_review_run": "pbc_clarity_review_20261029T082207Z_f10231a404",
+    "literal_review_results_sha256": "b82d6ba10c0d926e1bad65d33371bd1c8ba0988894f46ace418520224eae7041",
+    "source_sha256": "30d0a77dd6be104a38ee553b29f77b8306f254c23ce01305cef26335b3a96547",
+    "source_fingerprint_reconstructed": true,
+    "archived_planner_sha256": "d207a9e5b0d2255d83f6c0597495e94cce2e2f83bdcbb7f1168f5e77105b13a5",
+    "cases": [
+      {
+        "id": "pbc_column_headings__ordinary",
+        "retrieval_status": "ok",
+        "reference_rerank_rank": 11,
+        "reference_delivered_rank": null,
+        "source_structure_status": null,
+        "delivered_records": 6,
+        "writer_status": "generated_pending_semantic_review",
+        "logical_calls": 2,
+        "candidate_assertions": 2,
+        "audit": {
+          "assertions": [
+            {
+              "assertion_id": "a01",
+              "column_number": 1,
+              "exact_title_present": true,
+              "cites_index_passage": false
+            },
+            {
+              "assertion_id": "a02",
+              "column_number": 2,
+              "exact_title_present": false,
+              "cites_index_passage": false
+            }
+          ],
+          "matched_numbers": [
+            1
+          ],
+          "complete_index_bound": false
+        }
+      },
+      {
+        "id": "pbc_column_headings__experimental",
+        "retrieval_status": "ok",
+        "reference_rerank_rank": 11,
+        "reference_delivered_rank": null,
+        "source_structure_status": "structure_missing",
+        "delivered_records": 6,
+        "writer_status": "generated_pending_semantic_review",
+        "logical_calls": 2,
+        "candidate_assertions": 4,
+        "audit": {
+          "assertions": [
+            {
+              "assertion_id": "a01",
+              "column_number": 1,
+              "exact_title_present": true,
+              "cites_index_passage": false
+            },
+            {
+              "assertion_id": "a02",
+              "column_number": 2,
+              "exact_title_present": false,
+              "cites_index_passage": false
+            },
+            {
+              "assertion_id": "a03",
+              "column_number": 3,
+              "exact_title_present": false,
+              "cites_index_passage": false
+            },
+            {
+              "assertion_id": "a04",
+              "column_number": 4,
+              "exact_title_present": false,
+              "cites_index_passage": false
+            }
+          ],
+          "matched_numbers": [
+            1
+          ],
+          "complete_index_bound": false
+        }
+      },
+      {
+        "id": "pbc_column_one_methods__ordinary",
+        "retrieval_status": "ok",
+        "reference_rerank_rank": 1,
+        "reference_delivered_rank": 1,
+        "source_structure_status": null,
+        "delivered_records": 6,
+        "writer_status": "generated_pending_semantic_review",
+        "logical_calls": 2,
+        "candidate_assertions": 3,
+        "audit": {
+          "assertions": [
+            {
+              "assertion_id": "a01",
+              "literal_in_cited_passage": true,
+              "literal_in_other_delivered_passage": false
+            },
+            {
+              "assertion_id": "a02",
+              "literal_in_cited_passage": true,
+              "literal_in_other_delivered_passage": false
+            },
+            {
+              "assertion_id": "a03",
+              "literal_in_cited_passage": false,
+              "literal_in_other_delivered_passage": true
+            }
+          ],
+          "all_three_literal_in_cited": false
+        }
+      },
+      {
+        "id": "pbc_column_one_methods__experimental",
+        "retrieval_status": "ok",
+        "reference_rerank_rank": 1,
+        "reference_delivered_rank": 1,
+        "source_structure_status": "not_requested",
+        "delivered_records": 6,
+        "writer_status": "generated_pending_semantic_review",
+        "logical_calls": 2,
+        "candidate_assertions": 3,
+        "audit": {
+          "assertions": [
+            {
+              "assertion_id": "a01",
+              "literal_in_cited_passage": true,
+              "literal_in_other_delivered_passage": false
+            },
+            {
+              "assertion_id": "a02",
+              "literal_in_cited_passage": true,
+              "literal_in_other_delivered_passage": false
+            },
+            {
+              "assertion_id": "a03",
+              "literal_in_cited_passage": true,
+              "literal_in_other_delivered_passage": false
+            }
+          ],
+          "all_three_literal_in_cited": true
+        }
+      }
+    ]
+  },
+  "final": {
+    "retrieval_run": "pbc_clarity_assets_20261029T081513Z_906740335f",
+    "retrieval_results_sha256": "2e6f053f7930d9c91c42026e0ea4899d63f13f10ba9f0b1e495369bda13f02f9",
+    "writer_run": "pbc_clarity_writer_20261029T081636Z_fa2b881d1b",
+    "writer_results_sha256": "3c091491934045e012c323420852704f9d9196727f73db5c9187c056cd0d4c48",
+    "literal_review_run": "pbc_clarity_review_20261029T082100Z_c59c7ffec6",
+    "literal_review_results_sha256": "ff2686ff49ebfec26678166cb882185e71cb0a00949e1950b8775fa0d205ce20",
+    "source_sha256": "8a53dda47fae2a65d284b84101348abcff726a1c89e3f006fd451ce797acfc45",
+    "corpus_sha256": "553653e2be5bc45599c9478236de3d86bc1eb253e4b6eeedfa61d6149a978b25",
+    "source_unchanged": true,
+    "dataset_unchanged": true,
+    "corpus_unchanged": true,
+    "cases": [
+      {
+        "id": "pbc_column_headings__ordinary",
+        "retrieval_status": "ok",
+        "reference_rerank_rank": 11,
+        "reference_delivered_rank": null,
+        "source_structure_status": null,
+        "delivered_records": 6,
+        "writer_status": "generated_pending_semantic_review",
+        "logical_calls": 2,
+        "candidate_assertions": 4,
+        "audit": {
+          "assertions": [
+            {
+              "assertion_id": "a01",
+              "column_number": 1,
+              "exact_title_present": true,
+              "cites_index_passage": false
+            },
+            {
+              "assertion_id": "a02",
+              "column_number": 2,
+              "exact_title_present": false,
+              "cites_index_passage": false
+            },
+            {
+              "assertion_id": "a03",
+              "column_number": 3,
+              "exact_title_present": false,
+              "cites_index_passage": false
+            },
+            {
+              "assertion_id": "a04",
+              "column_number": 4,
+              "exact_title_present": false,
+              "cites_index_passage": false
+            }
+          ],
+          "matched_numbers": [
+            1
+          ],
+          "complete_index_bound": false
+        }
+      },
+      {
+        "id": "pbc_column_headings__experimental",
+        "retrieval_status": "ok",
+        "reference_rerank_rank": 11,
+        "reference_delivered_rank": 1,
+        "source_structure_status": "selected",
+        "delivered_records": 6,
+        "writer_status": "generated_pending_semantic_review",
+        "logical_calls": 2,
+        "candidate_assertions": 4,
+        "audit": {
+          "assertions": [
+            {
+              "assertion_id": "a01",
+              "column_number": 1,
+              "exact_title_present": true,
+              "cites_index_passage": true
+            },
+            {
+              "assertion_id": "a02",
+              "column_number": 2,
+              "exact_title_present": true,
+              "cites_index_passage": true
+            },
+            {
+              "assertion_id": "a03",
+              "column_number": 3,
+              "exact_title_present": true,
+              "cites_index_passage": true
+            },
+            {
+              "assertion_id": "a04",
+              "column_number": 4,
+              "exact_title_present": true,
+              "cites_index_passage": true
+            }
+          ],
+          "matched_numbers": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "complete_index_bound": true
+        }
+      },
+      {
+        "id": "pbc_column_one_methods__ordinary",
+        "retrieval_status": "ok",
+        "reference_rerank_rank": 1,
+        "reference_delivered_rank": 1,
+        "source_structure_status": null,
+        "delivered_records": 6,
+        "writer_status": "generated_pending_semantic_review",
+        "logical_calls": 2,
+        "candidate_assertions": 3,
+        "audit": {
+          "assertions": [
+            {
+              "assertion_id": "a01",
+              "literal_in_cited_passage": true,
+              "literal_in_other_delivered_passage": false
+            },
+            {
+              "assertion_id": "a02",
+              "literal_in_cited_passage": true,
+              "literal_in_other_delivered_passage": false
+            },
+            {
+              "assertion_id": "a03",
+              "literal_in_cited_passage": true,
+              "literal_in_other_delivered_passage": false
+            }
+          ],
+          "all_three_literal_in_cited": true
+        }
+      },
+      {
+        "id": "pbc_column_one_methods__experimental",
+        "retrieval_status": "ok",
+        "reference_rerank_rank": 1,
+        "reference_delivered_rank": 1,
+        "source_structure_status": "not_requested",
+        "delivered_records": 6,
+        "writer_status": "generated_pending_semantic_review",
+        "logical_calls": 2,
+        "candidate_assertions": 3,
+        "audit": {
+          "assertions": [
+            {
+              "assertion_id": "a01",
+              "literal_in_cited_passage": true,
+              "literal_in_other_delivered_passage": false
+            },
+            {
+              "assertion_id": "a02",
+              "literal_in_cited_passage": true,
+              "literal_in_other_delivered_passage": false
+            },
+            {
+              "assertion_id": "a03",
+              "literal_in_cited_passage": false,
+              "literal_in_other_delivered_passage": true
+            }
+          ],
+          "all_three_literal_in_cited": false
+        }
+      }
+    ]
+  },
+  "structural_challenges": {
+    "run": "structure_challenges_20261029T081442Z_8a49be8cac",
+    "results_sha256": "cde54d5ef5b4a153047d7a4f0654d5325460f75f848a432d467901caec491718",
+    "passed": 21,
+    "total": 21
+  },
+  "interpretation": {
+    "exact_title_match_is_finite_source_string_check_not_human_accuracy": true,
+    "literal_sentence_match_is_not_semantic_entailment": true,
+    "method_citation_variance_between_runs": true,
+    "human_accuracy": null,
+    "production_default_changed": false
+  },
+  "cost": {
+    "local_retrieval_queries": 8,
+    "generator_logical_calls": 16,
+    "web_queries": 0
+  }
+}

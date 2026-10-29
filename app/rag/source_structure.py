@@ -64,6 +64,21 @@ def requests_toc(query: str) -> bool:
 
 def is_toc(content: str) -> bool:
     lines = [unicodedata.normalize("NFKC", line).strip() for line in content.splitlines()]
+    # Some PDFs place a separate numbered column index on the same page as table listings.
+    # Require the standalone header, consecutive entries and printed page leaders so an
+    # in-body "专栏 1" heading cannot become structural evidence by itself.
+    if "专栏" in lines:
+        column_numbers = []
+        for line in lines:
+            match = re.fullmatch(r"专栏\s+([1-9]\d{0,2})\s+\S.{1,220}?\.{3,}\s*\d{1,4}", line)
+            if match:
+                column_numbers.append(int(match.group(1)))
+        if (
+            len(column_numbers) >= 3
+            and len(set(column_numbers)) == len(column_numbers)
+            and set(column_numbers) == set(range(1, max(column_numbers) + 1))
+        ):
+            return True
     if not any(
         re.sub(r"\s+", "", line).casefold() in {"目录", "contents", "tableofcontents"}
         for line in lines
