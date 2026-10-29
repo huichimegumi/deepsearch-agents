@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.14 已将文档定位／目录结构通路接入默认关闭的内部开关与评测 CLI，并完成三题真实 PostgreSQL／Qdrant 检索和最小 ID 选段＋Writer 验证。目录原文交付第 1，四章标题初审正确；调查题保留 2024 年及 42%／64% 区分；负样本保留两项未解决并跳过 Writer。共 3 次本地查询、5 次 qwen-flash 调用、零网络搜索；2 文档／117 片段语料未变。目录选择明确披露语义分数门槛绕过，普通 API／UI 路径不变；630 项测试通过、6 项跳过，人工准确率仍为空。见 [真实执行、AI 初审与上线边界](docs/development/e4-14-live-source-structure.md)。
+
 E4.13 新增默认未接入生产的精确文档定位与目录结构原型：仅匹配真实文件名，目录需独立标记、编号条目、唯一来源且已在候选池内。冻结分数回放中，目录原文在两种格式下均恢复为交付第 1，Evidence ID 不变；调查对照保留，二十题交付文本和指标均未变化。仅八题文档名精确匹配，九题无法定位并保留原结果，三题无显式标题；这不是实时检索或报告修复。零新增检索／模型／网络调用，620 项测试通过、6 项跳过。见 [原型规则、回放与接入边界](docs/development/e4-13-source-structure.md)。
 
 E4.12 在冻结候选池上交叉比较原标题／标题占位查询与原文／来源前缀片段。标题替换使有限证据 Recall@6 从 0.702／0.754 降至 0.421／0.474，完整覆盖从 12/19 降至 7/19；目录排名虽改善，仍因阈值未交付，因此不启用这项改写。20 道开发题与 2 个诊断池均有效，44 个历史交付对照全部复现；82 次本地重排、零检索／生成／网络调用，596 项测试通过、6 项跳过。见 [四条件结果、失败归因与后续边界](docs/development/e4-12-relation-query.md)。
@@ -569,6 +571,14 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.14 connects source/TOC retrieval through an off-by-default internal keyword and evaluation
+CLI, then runs three real PostgreSQL/Qdrant queries through ID selection and Writer. Initial AI
+review finds correct TOC chapter pairs and survey year/populations; the insufficient-evidence
+case keeps both gaps and skips Writer. Three local queries, five qwen-flash calls, zero Web
+searches; the two-document/117-chunk corpus is unchanged. Structural score-gate bypass is explicit,
+ordinary API/UI behavior stays unchanged, and human accuracy remains null. 630 passed, 6 skipped.
+See [live run, review and promotion boundary](docs/development/e4-14-live-source-structure.md).
 
 E4.13 adds an evaluation-only exact-document/TOC planner. Unique indexed TOC chunks already in
 the candidate pool can be explicitly reserved within the existing delivery budget; no runtime

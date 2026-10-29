@@ -72,6 +72,37 @@ def test_plan_does_not_touch_services_or_known_source_pools(configured, monkeypa
     assert result["status"] == "plan_only" and result["model_calls"] == 0
 
 
+def test_experimental_diagnostics_are_captured_and_bound_before_generation(configured, monkeypatch):
+    def retrieve(query, *, source_structure, diagnostics):
+        assert source_structure
+        value = batch(query)
+        for r in value["records"]:
+            r["metadata"]["chunk_id"] = "actual"
+        diagnostics.update(
+            rerank_applied=True, delivered_ids=["actual"] if value["records"] else []
+        )
+        return value
+
+    monkeypatch.setattr(rt, "retrieve_case", retrieve)
+    output = rt.prepare(retrieve=True, source_structure=True)
+    _, hashes = rt.load_retrieved(output)
+    assert str(output / "case_0/diagnostics.json") in hashes
+    (output / "case_0/diagnostics.json").write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="hash_mismatch"):
+        rt.load_retrieved(output)
+
+
+def test_experimental_rerank_fallback_invalidates_retrieval(configured, monkeypatch):
+    def retrieve(query, *, source_structure, diagnostics):
+        diagnostics.update(rerank_applied=False)
+        return batch(query)
+
+    monkeypatch.setattr(rt, "retrieve_case", retrieve)
+    output = rt.prepare(retrieve=True, source_structure=True)
+    with pytest.raises(ValueError, match="invalid_retrieval"):
+        rt.load_retrieved(output)
+
+
 def test_retrieval_uses_original_questions_once_and_binds_only_actual_records(
     configured, monkeypatch
 ):

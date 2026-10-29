@@ -1,0 +1,331 @@
+{
+  "stage": "E4.14",
+  "date": "2026-10-29",
+  "retrieval_run": "rag_structure_assets_20261029T031933Z_57455c1eeb",
+  "generation_run": "live_rag_transfer_20261029T032059Z_b088c04a04",
+  "retrieval_results_sha256": "70ba934321f5f101ae906b87ad4a88a0f4df6a5cdd13ef56dbb3958ed2807566",
+  "generation_results_sha256": "e5310ebf1602dc816506951e4f1f52e183e461ca540c834f5cee45f42e67a489",
+  "retrieval_manifest": {
+    "git_commit": "cc029118c4b6e6f24c974c947950c15d024a11d5",
+    "git_dirty": true,
+    "source_sha256": "76cea26a8c90bb6b8dabd39b75e3d689bc24b91c80d8021952ee4df1e412098e",
+    "dataset_sha256": "bb5d8f95f3c750da0ed962f627863618004fd633f07e07849d41edb813703699",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "versions": {
+      "fastembed": "0.8.0",
+      "onnxruntime": "1.27.0",
+      "qdrant-client": "1.18.0",
+      "deepagents": "0.5.7"
+    },
+    "configuration": {
+      "retrieval_enabled": true,
+      "experimental_source_structure": true,
+      "knowledge_bases": [
+        "电商行业"
+      ],
+      "max_local_queries": 3,
+      "query_policy": "original_question_once",
+      "search_queries": 0,
+      "fetched_pages": 0
+    }
+  },
+  "generation_manifest": {
+    "git_commit": "cc029118c4b6e6f24c974c947950c15d024a11d5",
+    "git_dirty": true,
+    "source_sha256": "76cea26a8c90bb6b8dabd39b75e3d689bc24b91c80d8021952ee4df1e412098e",
+    "dataset_sha256": "bb5d8f95f3c750da0ed962f627863618004fd633f07e07849d41edb813703699",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "versions": {
+      "fastembed": "0.8.0",
+      "onnxruntime": "1.27.0",
+      "qdrant-client": "1.18.0",
+      "deepagents": "0.5.7"
+    },
+    "configuration": {
+      "execute": true,
+      "assisted_source_selection": false,
+      "max_logical_calls": 6,
+      "search_queries": 0,
+      "fetched_pages": 0,
+      "provider_retries": 0,
+      "timeout_seconds_per_call": 90,
+      "writer_instruction_sha256": "d956ac42357d3ae0037de80ae63b4d109a8e66b207adc4003fd05bb97eadc438",
+      "selector": "select_case"
+    }
+  },
+  "corpus_file_sha256": "62fa740f9f7e998da133035614152089d06c60fa34b6ff4c5ec70f5032194a06",
+  "corpus_sha256": "4f647f2fd3bda35b31ae8b8d58dcac4cc895ae6935fc5eb6ed787dfb90e909a3",
+  "corpus_documents": 2,
+  "corpus_chunks": 117,
+  "retrieval_configuration": {
+    "embedding_model": "BAAI/bge-small-zh-v1.5",
+    "rerank_model": "BAAI/bge-reranker-base",
+    "vector_top_k": 24,
+    "lexical_top_k": 24,
+    "rerank_top_k": 8,
+    "min_relevance_score": 1.0
+  },
+  "model": "qwen-flash",
+  "local_rag_queries": 3,
+  "query_embedding_calls": 3,
+  "local_rerank_calls": 3,
+  "generator_calls": 5,
+  "search_queries": 0,
+  "fetched_pages": 0,
+  "production_default_changed": false,
+  "human_accuracy": null,
+  "human_adjudications": 0,
+  "cases": [
+    {
+      "id": "transfer_local_001",
+      "retrieval_status": "PARTIAL",
+      "evidence_records": 6,
+      "retrieval_elapsed_ms": 13444.255,
+      "source_structure": {
+        "status": "resolved",
+        "document_sha256": [
+          "61803158d2af3f9913fffe612463789dc6fa46a97fe28dae199be216120a2d2c"
+        ],
+        "structural_ids": [
+          "02092c12-ee31-4a8f-b611-e34696214c4c"
+        ],
+        "structure_status": "selected",
+        "semantic_score_gate_bypassed_ids": [
+          "02092c12-ee31-4a8f-b611-e34696214c4c"
+        ],
+        "selected_ids": [
+          "02092c12-ee31-4a8f-b611-e34696214c4c",
+          "7525c777-c199-4be6-896a-8694c9f5bf29",
+          "a6451d27-cb95-44d2-9941-13f6d6f0a088",
+          "66cd50af-5bc8-47d2-8853-5684a54845e8",
+          "f73028d9-f36b-4c03-9b9d-9a5632b40b8d",
+          "cf69a57a-bed2-4e4e-99ee-c570e8527afc",
+          "96101966-f529-4ef9-a7cc-2aeef1be793f",
+          "c9ccaa6e-2ba5-43a8-b5aa-e6442822923c"
+        ]
+      },
+      "context_budget": {
+        "candidate_hits": 8,
+        "answer_hits": 6,
+        "max_answer_hits": 6,
+        "context_chars": 3538,
+        "max_context_chars": 10000,
+        "truncated": true,
+        "truncated_by_hits": true,
+        "truncated_by_chars": false
+      },
+      "retrieval_methods": {
+        "explicit_toc_structure": 1,
+        "scoped_semantic_rerank": 5
+      },
+      "delivered_evidence_ids": [
+        "ev1_local_document_4072a8b1a934c6f323e8aed5",
+        "ev1_local_document_a8b047330e76afbf606bd6fe",
+        "ev1_local_document_9d5552cc6abaeca81977016e",
+        "ev1_local_document_aacfe316ff06075ffa3ae0cb",
+        "ev1_local_document_2f293cd400a8cd7ba49cdda1",
+        "ev1_local_document_2d62a901206313d843a2a8ab"
+      ],
+      "generation_status": "generated_pending_semantic_review",
+      "logical_calls": 2,
+      "candidate_parts": 2,
+      "unresolved_parts": 0,
+      "rejected_assertions": 0,
+      "selected_evidence_by_part": {
+        "first_two": [
+          "ev1_local_document_4072a8b1a934c6f323e8aed5"
+        ],
+        "last_two": [
+          "ev1_local_document_4072a8b1a934c6f323e8aed5"
+        ]
+      },
+      "initial_ai_review": {
+        "assessment": "supported_in_selected_source_initial_ai_review",
+        "details": "Both requested chapter pairs match the retrieved TOC entries. Both assertions cite the actual TOC; no thematic body headings are substituted."
+      },
+      "retrieval_artifact_sha256": {
+        "diagnostics.json": "a3e85b25a4e1ff87b60c416bea2eae517c7f205e946d50476f3b899030405a88",
+        "inputs.json": "d34dd947dfff21431944eae6c07988bb49c0c420610efe767f06f04042784e75",
+        "retrieval.json": "01f949990092aedfde86de4c3487bcd2af73a14763b573a89ddf89515a5ab17a"
+      },
+      "generation_artifact_sha256": {
+        "assertions.json": "869d29b7bc95a6c0aa50e71565ed7d1c27685975ae135c766162cb56853dbe48",
+        "candidate.md": "e56cc0c72b4ca2811cfa736d0fba80b20faf15376a3374524e021b644c2f2b36",
+        "inputs.json": "d34dd947dfff21431944eae6c07988bb49c0c420610efe767f06f04042784e75",
+        "raw_response.json": "3d89a5ff9d664612c265e31101d4f028d199f8266a66ba4f0058a6f716cd20cb",
+        "selection.json": "23cb996e1d07801e7b73f72e436cae0cc2afd67d970cef74729fbfa069245af7",
+        "selector_raw.json": "0f3f8189adbf6e22ffd1bfde20e1598b734f81dae570c080203d65dd65a43b36",
+        "writer_inputs.json": "86221dbe99976b9f2929e801b6928a40d9716417eb100ae25d70cd1c3c22d35a"
+      }
+    },
+    {
+      "id": "transfer_local_002",
+      "retrieval_status": "PARTIAL",
+      "evidence_records": 6,
+      "retrieval_elapsed_ms": 17668.968,
+      "source_structure": {
+        "status": "resolved",
+        "document_sha256": [
+          "28aab03c3f2d3a30c3b5b6ee6ed6b8adec9e9459d7e3588727920bf135742f2a"
+        ],
+        "structural_ids": [],
+        "structure_status": "not_requested",
+        "semantic_score_gate_bypassed_ids": [],
+        "selected_ids": [
+          "c6bbd56e-c172-44d7-bac2-925c9e6d1a83",
+          "78b8b0e7-ce53-4dca-a272-1b5fdd696cdd",
+          "be6b8c3c-b7b6-47fa-b889-8c59d83cc585",
+          "9feadefe-9cd3-4fb1-9e1c-cc72fa477fc2",
+          "cd6020b4-ae80-42df-984b-414eaa9eed17",
+          "159428be-9bad-49bf-8517-2c01c0708497",
+          "b733dfad-a42d-4ae3-9978-d8478246ac82",
+          "ab106cd2-ea5d-4f53-8b3c-a8c169809703"
+        ]
+      },
+      "context_budget": {
+        "candidate_hits": 8,
+        "answer_hits": 6,
+        "max_answer_hits": 6,
+        "context_chars": 2409,
+        "max_context_chars": 10000,
+        "truncated": true,
+        "truncated_by_hits": true,
+        "truncated_by_chars": false
+      },
+      "retrieval_methods": {
+        "scoped_semantic_rerank": 6
+      },
+      "delivered_evidence_ids": [
+        "ev1_local_document_681e3eaf9e999d1f58a33b05",
+        "ev1_local_document_d034850917035cb987602960",
+        "ev1_local_document_33124c6985a61183e34ca2b0",
+        "ev1_local_document_ab676dae8a57212a558d8edb",
+        "ev1_local_document_ddca60cfa8dbfd5e49d85d0f",
+        "ev1_local_document_11807007da2aaef966fede63"
+      ],
+      "generation_status": "generated_pending_semantic_review",
+      "logical_calls": 2,
+      "candidate_parts": 2,
+      "unresolved_parts": 0,
+      "rejected_assertions": 0,
+      "selected_evidence_by_part": {
+        "survey_year": [
+          "ev1_local_document_33124c6985a61183e34ca2b0"
+        ],
+        "adoption_rates": [
+          "ev1_local_document_33124c6985a61183e34ca2b0"
+        ]
+      },
+      "initial_ai_review": {
+        "assessment": "supported_in_selected_source_initial_ai_review",
+        "details": "Survey year remains 2024; 42% applies to all retailers and 64% to large retailers. No report-year substitution or population conflation is present."
+      },
+      "retrieval_artifact_sha256": {
+        "diagnostics.json": "ac3c18aa31630a8ec543dbac6ec92a716936683891a1611c7a1f65fa0486a74e",
+        "inputs.json": "64a768dbd8287a2d13ce968e5297d0c4768a67151635046c58dd46f4e2636227",
+        "retrieval.json": "fb0022b4f0099b31156619a83515f46b96d18452c8ad0ff8b6be70ab1a6ab3e9"
+      },
+      "generation_artifact_sha256": {
+        "assertions.json": "1a29c06b857e0435f6c9b266941c5e9c57a666c065e5ece6c0a9c2b87ca8e495",
+        "candidate.md": "f8b7a20907770ee58269197bfba94057991a1ca675bca9edbad3a7ce565f2846",
+        "inputs.json": "64a768dbd8287a2d13ce968e5297d0c4768a67151635046c58dd46f4e2636227",
+        "raw_response.json": "0812079d8e62df37447ce7467635afc0b440b225d2b3c1d0522d1fafe23f8b1d",
+        "selection.json": "0b7e6b2a8db2b4456e4669546b080df1ade817bca34206e03f4d85d4dfb9b148",
+        "selector_raw.json": "860e43a2f882ab0b4ab707e4e335bee0af618d7e960561959a7c4a8e512a6178",
+        "writer_inputs.json": "66ed259e5b25a2a6e1350604d8b47357d0ed0ae39e9d5e838944fe145668618a"
+      }
+    },
+    {
+      "id": "transfer_local_003",
+      "retrieval_status": "PARTIAL",
+      "evidence_records": 6,
+      "retrieval_elapsed_ms": 17423.232,
+      "source_structure": {
+        "status": "resolved",
+        "document_sha256": [
+          "28aab03c3f2d3a30c3b5b6ee6ed6b8adec9e9459d7e3588727920bf135742f2a"
+        ],
+        "structural_ids": [],
+        "structure_status": "not_requested",
+        "semantic_score_gate_bypassed_ids": [],
+        "selected_ids": [
+          "be6b8c3c-b7b6-47fa-b889-8c59d83cc585",
+          "c6bbd56e-c172-44d7-bac2-925c9e6d1a83",
+          "d50f59a2-dfad-45c2-91bc-9f35277b23f2",
+          "159428be-9bad-49bf-8517-2c01c0708497",
+          "9fdfbceb-a9a5-4b34-86de-3b47445f001f",
+          "cd6020b4-ae80-42df-984b-414eaa9eed17",
+          "a9361cac-1b25-4cc9-8412-d01b33ed4b68",
+          "6b97e7a8-297e-4fdf-b6c0-4bc555bcd80f"
+        ]
+      },
+      "context_budget": {
+        "candidate_hits": 8,
+        "answer_hits": 6,
+        "max_answer_hits": 6,
+        "context_chars": 2603,
+        "max_context_chars": 10000,
+        "truncated": true,
+        "truncated_by_hits": true,
+        "truncated_by_chars": false
+      },
+      "retrieval_methods": {
+        "scoped_semantic_rerank": 6
+      },
+      "delivered_evidence_ids": [
+        "ev1_local_document_33124c6985a61183e34ca2b0",
+        "ev1_local_document_681e3eaf9e999d1f58a33b05",
+        "ev1_local_document_fcd68a0f39b68d20c3ec7c15",
+        "ev1_local_document_11807007da2aaef966fede63",
+        "ev1_local_document_d3f2fe7a7a038f19b0d229ba",
+        "ev1_local_document_ddca60cfa8dbfd5e49d85d0f"
+      ],
+      "generation_status": "no_valid_selected_quotes",
+      "logical_calls": 1,
+      "candidate_parts": 0,
+      "unresolved_parts": 2,
+      "rejected_assertions": 0,
+      "selected_evidence_by_part": {
+        "measured_uplift": [],
+        "sample_size": []
+      },
+      "initial_ai_review": {
+        "assessment": "appropriate_bounded_gap_initial_ai_review",
+        "details": "The six delivered passages do not establish a 2025 measured per-store revenue uplift and its trial sample size. Both parts stay unresolved; Writer is skipped, without a corpus-wide absence claim."
+      },
+      "retrieval_artifact_sha256": {
+        "diagnostics.json": "2e0b060739c675fe2a4c50c944432dc9c61e42e03de8be768e26a07c5de5bd35",
+        "inputs.json": "2b5e946b1d41557783ef3ef60b79ac5e477c15192c4a9a6be637b1761944311c",
+        "retrieval.json": "70885d8ef7fb5f2573bdccee3b81a3188645826080bcff3b1eaea32c45ef8248"
+      },
+      "generation_artifact_sha256": {
+        "assertions.json": "d78a053751b4b8a1ab05862437404a61e9dd313149e8b62f5cbf7fb7fab19a72",
+        "candidate.md": "48e45c423d8ed5b943816df4454e48fa29438fc11c7cc5a6f0618c3250357507",
+        "inputs.json": "2b5e946b1d41557783ef3ef60b79ac5e477c15192c4a9a6be637b1761944311c",
+        "selection.json": "06a0a09e04d8460c7b0712b1318f16b5aa07c3ec9b6adcb915cb6e9be8c33b5b",
+        "selector_raw.json": "e1c00cd7f8f15a2d7541a4dbc243850f541e0da017701859421061d67c278828",
+        "writer_inputs.json": "f17fe4c74ca664058a9f407b8c7b6d454ed6eb1b3f83c55f2e5b4a7eb58e4664"
+      }
+    }
+  ],
+  "ai_review_sha256": "147bf663566dfe88cd689bfdd0d0b2f81a3fd01b6ff891f3a6b7b2dcfae5499e",
+  "verification": {
+    "pytest_passed": 630,
+    "pytest_skipped": 6,
+    "focused_passed": 48,
+    "source_unchanged": true,
+    "corpus_unchanged": true,
+    "inputs_unchanged": true,
+    "ruff_lint": "passed",
+    "ruff_format": "passed",
+    "diff_check": "passed"
+  },
+  "limitations": [
+    "Three repeatedly exposed development tasks; not a holdout or system-wide accuracy benchmark.",
+    "AI initial source review is not human adjudication or an independent Judge score.",
+    "Uses the minimal ID-selector/Writer pipeline, not full DeepAgent orchestration.",
+    "Experimental opt-in is an internal keyword and evaluation CLI; normal API/UI behavior is unchanged.",
+    "Runs use host Python against Docker PostgreSQL/Qdrant; no running API container rebuild/deployment is claimed.",
+    "No broad structural precision, ambiguous-title resolution or new corpus coverage is established."
+  ]
+}

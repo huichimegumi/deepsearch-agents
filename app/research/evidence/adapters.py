@@ -192,6 +192,15 @@ def retrieved_chunks_to_evidence(
                     "rerank_applied": hit.rerank_applied,
                     "rerank_error_type": hit.rerank_error_type,
                     "query": query,
+                    **(
+                        {
+                            "retrieval_method": hit.retrieval_method,
+                            "semantic_score_gate_bypassed": hit.retrieval_method
+                            == "explicit_toc_structure",
+                        }
+                        if hit.retrieval_method
+                        else {}
+                    ),
                 },
             )
         )

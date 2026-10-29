@@ -42,21 +42,29 @@ def corpus():
     return corpus_snapshot(KNOWLEDGE_BASES)[1]
 
 
-def retrieve_case(query):
+def retrieve_case(query, *, source_structure=False, diagnostics=None):
     from app.tools.evidence_tool import _collect_local_documents
 
+    if source_structure:
+        return _collect_local_documents(
+            query, KNOWLEDGE_BASES[0], diagnostics=diagnostics, experimental_source_structure=True
+        ).to_dict()
     return _collect_local_documents(query, KNOWLEDGE_BASES[0]).to_dict()
 
 
-def prepare(*, retrieve=False):
+def prepare(*, retrieve=False, source_structure=False):
     inputs = questions()
-    output = safe_path(Path("evals/results") / new_run_id("rag_transfer_assets"))
+    output = safe_path(
+        Path("evals/results")
+        / new_run_id("rag_structure_assets" if source_structure else "rag_transfer_assets")
+    )
     output.mkdir(parents=True, exist_ok=False)
     result = {
         "manifest": build_manifest(
             DATASET,
             {
                 "retrieval_enabled": retrieve,
+                "experimental_source_structure": source_structure,
                 "knowledge_bases": KNOWLEDGE_BASES,
                 "max_local_queries": 3,
                 "query_policy": "original_question_once",
@@ -99,7 +107,16 @@ def prepare(*, retrieve=False):
         row = {"id": case["id"], "local_queries": 1}
         result["cases"].append(row)
         try:
-            batch = retrieve_case(case["question"])
+            if source_structure:
+                diagnostics = {}
+                batch = retrieve_case(
+                    case["question"], source_structure=True, diagnostics=diagnostics
+                )
+                write_json(folder / "diagnostics.json", diagnostics)
+                if not diagnostics.get("rerank_applied"):
+                    raise ValueError("live_reranker_not_applied")
+            else:
+                batch = retrieve_case(case["question"])
             if batch.get("query") != case["question"]:
                 raise ValueError("retrieval_query_mismatch")
             case["records"] = batch["records"]
@@ -155,13 +172,25 @@ def load_retrieved(source):
     inputs = []
     for row, task in zip(result["cases"], expected, strict=True):
         folder = safe_path(source / row["id"])
-        for name in ("inputs.json", "retrieval.json"):
+        names = ["inputs.json", "retrieval.json"]
+        experimental = result["manifest"]["configuration"].get(
+            "experimental_source_structure", False
+        )
+        if experimental:
+            names.append("diagnostics.json")
+        for name in names:
             item = folder / name
             if file_sha256(item) != row["artifact_sha256"][name]:
                 raise ValueError("retrieved_input_hash_mismatch")
             hashes[str(item)] = file_sha256(item)
         case = json.loads((folder / "inputs.json").read_text(encoding="utf-8"))
         batch = json.loads((folder / "retrieval.json").read_text(encoding="utf-8"))
+        if experimental:
+            diagnostics = json.loads((folder / "diagnostics.json").read_text(encoding="utf-8"))
+            if not diagnostics.get("rerank_applied") or diagnostics.get("delivered_ids") != [
+                r["metadata"]["chunk_id"] for r in case["records"]
+            ]:
+                raise ValueError("experimental_diagnostics_binding_mismatch")
         if (
             {k: v for k, v in case.items() if k != "records"}
             != {k: v for k, v in task.items() if k != "records"}
@@ -201,13 +230,20 @@ def main():
     parser.add_argument(
         "--execute", action="store_true", help="Admit models only from a verified retrieval run"
     )
+    parser.add_argument(
+        "--source-structure",
+        action="store_true",
+        help="Opt in to exact source/TOC retrieval; ordinary search stays unchanged",
+    )
     args = parser.parse_args()
     if args.execute and args.retrieved_run is None:
         parser.error("--execute requires --retrieved-run")
+    if args.source_structure and args.retrieved_run:
+        parser.error("--source-structure applies when preparing retrieval, not to saved runs")
     print(
         asyncio.run(write(args.retrieved_run, execute=args.execute))
         if args.retrieved_run
-        else prepare(retrieve=args.retrieve)
+        else prepare(retrieve=args.retrieve, source_structure=args.source_structure)
     )
 
 

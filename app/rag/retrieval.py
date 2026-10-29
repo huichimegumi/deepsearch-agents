@@ -26,6 +26,7 @@ class RetrievedChunk:
     rerank_model: str | None = None
     rerank_applied: bool | None = None
     rerank_error_type: str | None = None
+    retrieval_method: str | None = None
 
     @property
     def citation(self) -> str:

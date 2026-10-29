@@ -721,7 +721,11 @@ def _validate_read_only_sql(query: str) -> str:
 
 
 def _collect_local_documents(
-    query: str, knowledge_base: str, *, diagnostics: dict | None = None
+    query: str,
+    knowledge_base: str,
+    *,
+    diagnostics: dict | None = None,
+    experimental_source_structure: bool = False,
 ) -> EvidenceBatch:
     if not query.strip():
         raise ValueError("query is required for local-document evidence")
@@ -733,7 +737,15 @@ def _collect_local_documents(
             query=query,
             warnings=(f"Knowledge base not found: {knowledge_base}",),
         )
-    if len(knowledge_bases) == 1:
+    experiment_details = None
+    if experimental_source_structure:
+        from app.rag.structure_retrieval import search_source_structure
+
+        experiment_details = {} if diagnostics is None else diagnostics
+        hits = search_source_structure(
+            query, [item.id for item in knowledge_bases], diagnostics=experiment_details
+        )
+    elif len(knowledge_bases) == 1:
         hits = (
             hybrid_search(query, knowledge_bases[0].id)
             if diagnostics is None
@@ -747,7 +759,8 @@ def _collect_local_documents(
                 query, [item.id for item in knowledge_bases], diagnostics=diagnostics
             )
         )
-    hits.sort(key=lambda item: item.score, reverse=True)
+    if not experimental_source_structure:
+        hits.sort(key=lambda item: item.score, reverse=True)
     limited_hits, budget = _limit_hits_for_answer(hits)
     if diagnostics is not None:
         diagnostics.update(
@@ -766,6 +779,16 @@ def _collect_local_documents(
     elif budget["truncated"]:
         status = EvidenceBatchStatus.PARTIAL
         warnings = ("Local-document evidence was bounded by the retrieval context budget.",)
+    if experiment_details is not None:
+        plan = experiment_details.get("source_structure", {})
+        if plan.get("status") != "resolved":
+            warnings += (
+                f"Experimental source resolution: {plan.get('status')}; original retrieval retained.",
+            )
+        elif plan.get("structure_status") not in {"not_requested", "selected"}:
+            warnings += (
+                f"Experimental structure selection: {plan.get('structure_status')}; no structural reservation.",
+            )
     return EvidenceBatch(
         source=EvidenceSource.LOCAL_DOCUMENT,
         status=status,

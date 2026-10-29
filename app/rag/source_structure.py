@@ -48,19 +48,15 @@ def is_toc(content: str) -> bool:
     return len(entries) >= 2
 
 
-def plan_source_structure(
-    query: str, corpus: dict, candidate_ids: list[str]
-) -> SourceStructurePlan:
-    """All source names must resolve; never guess aliases or pull chunks outside the pool."""
-    if len(candidate_ids) != len(set(candidate_ids)) or any(i not in corpus for i in candidate_ids):
-        raise ValueError("invalid_candidate_membership")
+def resolve_document_sources(query: str, documents) -> SourceStructurePlan:
+    """Resolve metadata only, before reading document bodies or planning structure."""
     titles = list(dict.fromkeys(re.findall(r"《([^《》\n]+)》", query)))
     if not titles:
         return SourceStructurePlan("no_explicit_source")
     if re.search(r"(?:不要|不得|不使用|不查|无需|排除|不依据|不参考).{0,20}《", query):
         return SourceStructurePlan("unsupported_source_constraint")
     inventory = {}
-    for row in corpus.values():
+    for row in documents:
         inventory.setdefault(document_key(row["filename"]), set()).add(row["document_sha256"])
     resolved = []
     for title in titles:
@@ -71,6 +67,19 @@ def plan_source_structure(
             return SourceStructurePlan("ambiguous_source")
         resolved.extend(documents)
     documents = tuple(dict.fromkeys(resolved))
+    return SourceStructurePlan("resolved", documents)
+
+
+def plan_source_structure(
+    query: str, corpus: dict, candidate_ids: list[str]
+) -> SourceStructurePlan:
+    """All source names must resolve; never guess aliases or pull chunks outside the pool."""
+    if len(candidate_ids) != len(set(candidate_ids)) or any(i not in corpus for i in candidate_ids):
+        raise ValueError("invalid_candidate_membership")
+    resolution = resolve_document_sources(query, corpus.values())
+    if resolution.status != "resolved":
+        return resolution
+    documents = resolution.document_sha256
     if not requests_toc(query):
         return SourceStructurePlan("resolved", documents)
     if len(documents) > 2:
