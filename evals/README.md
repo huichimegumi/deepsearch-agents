@@ -2,6 +2,8 @@
 
 本目录包含 DeepSearch Agents 第一阶段的项目内中文评测集，覆盖路由、联网搜索、数据库查询、本地知识库检索和端到端报告生成。
 
+E4.17 从 E4.16 已保存且哈希绑定的四题真实 Evidence 运行 ID 选段与 Writer，不重新检索。两题生成候选回答：目录第 03／04 章两条陈述、京东实践十条陈述；金融专栏题未选到充分片段、排除来源题零证据，均保持未解决。逐条 AI 初审的原文引句经代码核验，12 条暂判有依据、2 个部分未解决；人工准确率仍为空，不能当作报告正确率。共 5 次 qwen-flash 逻辑调用、零新检索／网络调用。见 [E4.17 候选回答与审查记录](../docs/development/e4-17-source-transfer-review.md)。
+
 E4.16 固定五道新开发题，运行 `python -m evals.rag.run_source_structure_live --execute` 做真实 PostgreSQL／Qdrant 检索边界检查；默认不加 `--execute` 仅建计划。首轮发现“请勿列出目录”误保留目录，复验又发现显式排除来源时回退会交付被排除文档；现将该约束安全地返回零证据并给出准确提示。四次五题运行均保留，最终 5/5 通过，旧结构挑战 21/21 通过；共 20 次本地查询、零生成／网络调用。这不是回答准确率或独立留出集结果。见 [E4.16 实跑与失败记录](../docs/development/e4-16-new-live-structure.md)。
 
 E4.15 的 `python -m evals.rag.source_structure_challenges` 执行二十一项规划器组件检查，四项为显式合成扰动，不调用检索或生成。`python -m evals.rag.run_source_structure --execute --indexed-page-suffix` 回放经索引末页佐证的文件名后缀匹配；不加该选项仍为精确匹配。真实数据库元数据与五文档快照一致，标题定位覆盖提高，但有限证据指标未变，不计作回答准确率。首轮“分别”被误判为否定的诊断失败已保留，修正后重跑通过。见 [E4.15 元数据与负样本记录](../docs/development/e4-15-source-metadata.md)。

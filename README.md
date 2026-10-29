@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.17 将 E4.16 四题的哈希绑定真实 Evidence 接到冻结的 ID 选段＋Writer。目录两条标题与京东实践十条陈述经独立 AI 初审和逐字引句核验，暂判有依据；金融专栏题未选到充分片段、显式排除来源题零证据，均保持未解决。共 5 次 qwen-flash 逻辑调用、零新增检索／网络调用；664 项测试通过、6 项跳过。人工准确率仍为空，不据此认定报告正确率，实验通路继续默认关闭。见 [候选回答、初审及金融题缺口](docs/development/e4-17-source-transfer-review.md)。
+
 E4.16 新增五道冻结开发题的真实本地检索边界检查。首轮暴露“请勿列出目录”误保留目录；后续审计发现显式排除来源时回退会交付被排除文档，现改为零证据和明确提示。四轮运行与失败均保留，最终 5/5 检查通过，旧结构挑战 21/21 通过；累计 20 次本地检索、零生成／网络调用，全量测试 658 通过、6 跳过。该结果只验证检索交付边界，不是报告准确率；实验通路仍默认关闭。见 [新题实跑、修复和限制](docs/development/e4-16-new-live-structure.md)。
 
 E4.15 增加索引末页佐证的文件名页数后缀匹配，真实 PostgreSQL 元数据核验后，开发题显式标题定位从 8/20 提高到 17/20；不猜简称、不改年份，冲突仍拒绝。二十一项结构组件挑战符合预期，覆盖否定目录请求和重复编号；首轮误将“分别”当否定的回归已修复并保留失败。冻结分数回放的证据指标未变，原文格式两题排除其他文档片段；这不代表回答准确率提升。651 项测试通过、6 项跳过，零新增检索／模型／网络调用，普通 API／UI 路径不变。见 [元数据核验、负样本与回放限制](docs/development/e4-15-source-metadata.md)。
@@ -575,6 +577,14 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.17 runs frozen ID selection and Writer on four hash-bound E4.16 Evidence batches without
+new retrieval. Two questions yield candidate statements: two TOC titles and ten JD-practice
+statements. A separate AI preliminary review verifies linked literal source spans and marks
+these twelve provisionally supported; the PBC-column and excluded-source parts remain
+unresolved. Five qwen-flash logical calls, no new retrieval/Web calls; 664 passed, 6 skipped.
+Human accuracy remains null, and the experimental route stays off by default. See
+[candidate answers, review and the finance evidence gap](docs/development/e4-17-source-transfer-review.md).
 
 E4.16 freezes five new development prompts and checks actual local retrieval boundaries.
 The pilot wrongly reserved a TOC for `请勿列出目录`; a later audit found that an explicit source

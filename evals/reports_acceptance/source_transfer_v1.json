@@ -1,0 +1,27 @@
+{
+  "version": "source_transfer_v1",
+  "scope": "four exposed development questions on E4.16 immutable live retrieval",
+  "retrieval_run": "source_structure_live_20261029T073039Z_ec97a5bfce",
+  "cases": [
+    {
+      "id": "toc_new_chapters",
+      "question": "请依据《2026数字人电商直播白皮书》的目录，仅列出第03和04章标题。",
+      "parts": {"chapter_titles": "目录第03章与第04章的标题"}
+    },
+    {
+      "id": "toc_polite_negative",
+      "question": "依据《2026数字人电商直播白皮书》说明京东实践，请勿列出目录。",
+      "parts": {"jd_practice": "京东数字人直播的具体实践；不要列目录"}
+    },
+    {
+      "id": "pbc_attested_title",
+      "question": "《中国人民银行2025年第四季度中国货币政策执行报告》中，专栏讨论了哪些政策传导问题？",
+      "parts": {"policy_transmission": "专栏中讨论的政策传导问题；正文不足则保持未解决"}
+    },
+    {
+      "id": "excluded_named_source",
+      "question": "不要参考《2026数字人电商直播白皮书》，只检索其他资料说明数字人直播场景。",
+      "parts": {"other_source_scenarios": "排除指定文档后其他资料中的数字人直播场景"}
+    }
+  ]
+}

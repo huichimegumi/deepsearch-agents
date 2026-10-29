@@ -1,0 +1,116 @@
+{
+  "stage": "E4.17",
+  "date": "2026-10-29",
+  "scope": "exposed_saved_live_evidence_to_id_selection_writer_and_ai_preliminary_review",
+  "dataset": "evals/reports_acceptance/source_transfer_v1.json",
+  "dataset_sha256": "dc523d23392f563979238389f844e9605be7226264a1d6f35dff915e2cd6c6f0",
+  "retrieval_record": "evals/reports/e4-16-new-live-structure-2026-10-29.json",
+  "retrieval_record_sha256": "ec72097b0cff876fd69d3e049d78fc27a86329d9383c0ebf1f8658fbbc8c234b",
+  "generation": {
+    "run": "source_transfer_20261029T074546Z_cc5156d709",
+    "results_sha256": "4a54c5850f72aea20cdac8975842b5051565cadce22e2d37fb9ce983cccf33d3",
+    "source_sha256": "59326dc91ff05d59e8afc77f25528c8bc44816f95120b0fc6fa1afbafedf0568",
+    "source_fingerprint_reconstructed": true,
+    "archived_reviewer_source_sha256": "fe5703e0a6ffba65696ead6a721980020987cf0b7655745d8120ec9a38cc5360",
+    "inputs_unchanged": true,
+    "source_unchanged_during_execution": true,
+    "model": "qwen-flash",
+    "cases": [
+      {
+        "id": "toc_new_chapters",
+        "status": "generated_pending_semantic_review",
+        "logical_calls": 2,
+        "selected_parts": 1,
+        "candidate_parts": 1,
+        "unresolved_parts": 0,
+        "rejected_assertions": 0,
+        "artifact_sha256": {
+          "assertions.json": "1a646e97e3544ff92da528196841051d8aaf29a99e4bfa6f4eed481331ebd7bf",
+          "candidate.md": "3084be8edf55cd6759cb1d115d1ac4899f6d5e33ffae03e8035ae93e19e1f8a1",
+          "inputs.json": "1d316bc433503834338e6ac0a21e4d6680aaf5a8beea43fec9fa53007826eb0e",
+          "raw_response.json": "d1d9d4691aab256d0c2d88ea032697303d6b75cf2a29bf926592826bf0177ed2",
+          "selection.json": "ab189a90ecef9e6ad2bf5fc2faa59fab4755023e33c5784ef7ff1c52bec27b9c",
+          "selector_raw.json": "fe93df746ead66564ab0fdb68982c8974c414b226854369574e3662a48c64163",
+          "writer_inputs.json": "63de266e8b752c5b461410c0727472c77a88fbeb52d36c6fdca424b0696e9fa5"
+        }
+      },
+      {
+        "id": "toc_polite_negative",
+        "status": "generated_pending_semantic_review",
+        "logical_calls": 2,
+        "selected_parts": 1,
+        "candidate_parts": 1,
+        "unresolved_parts": 0,
+        "rejected_assertions": 0,
+        "artifact_sha256": {
+          "assertions.json": "6c9582ce7b302ae1b8159b545b066088c5b61710757cff04340c0c2023bdbf8d",
+          "candidate.md": "bf2ea2063e83e12c893319b3c81ce7c8cb06fefdc3bb38fc1d9dee8b4edbe28c",
+          "inputs.json": "ff90704a51739c71b92f8a9ce65d1d253d757a746306348da28e23964dc2c036",
+          "raw_response.json": "5b5f83485966067e34575da3c84f25724b03ca49dcbaec4453af5b41fa2d2436",
+          "selection.json": "61be7334f8e1e3d755c1eb8976893a129cd1fa90750730e6a51760168c44fdcc",
+          "selector_raw.json": "a35aeb538dbd0f57557c3c8611450ce882705b67a7d92760b630618758203d11",
+          "writer_inputs.json": "90d7eb5cf12a3ad02498961ad78ae28210067420e01099cfde55b82490ecba3e"
+        }
+      },
+      {
+        "id": "pbc_attested_title",
+        "status": "no_valid_selected_quotes",
+        "logical_calls": 1,
+        "selected_parts": 0,
+        "candidate_parts": 0,
+        "unresolved_parts": 1,
+        "rejected_assertions": 0,
+        "artifact_sha256": {
+          "assertions.json": "b4dd36a1bed4d13e92d8f858ac6bc397d997f9b509c8a7db0cb9779aafd113d3",
+          "candidate.md": "78b6620607d477c99e8d912637d5d75144a5f07c103c9d00f78b620215bdf608",
+          "inputs.json": "153ca2a5d06f23592d0e22c37bf8be8fcf8bf9ec02768176683e85906ad272df",
+          "selection.json": "2055505712d440dfd0e9a2f2758a7bdf86c9f7ef7135bf1e8ab46bde97409df8",
+          "selector_raw.json": "f35bf354a01ad31394c4974c7b0b140e79584fe1aebcd1af8b631d2d5603f6f1",
+          "writer_inputs.json": "2b71bf8ce97deec95bbb0bccb898901097aafedb776965c2192a156253145f67"
+        }
+      },
+      {
+        "id": "excluded_named_source",
+        "status": "no_valid_selected_quotes",
+        "logical_calls": 0,
+        "selected_parts": 0,
+        "candidate_parts": 0,
+        "unresolved_parts": 1,
+        "rejected_assertions": 0,
+        "artifact_sha256": {
+          "assertions.json": "0487188a17afc436f210692e205622a511d3f4a220c457650f5f6b529944194f",
+          "candidate.md": "631bde1a530a5d5a5fa139e201ab7ab5a42394398b5ac926d08a7be0e2851e56",
+          "inputs.json": "1c8841cefb4d85cc7ffb6ab1a2cb32f96f493c726d3cf20ff999a55bd625d916",
+          "selection.json": "8796107e6ad71e550c6e1e4fb46e2b359537f359cfae681b419c45b4002260c4",
+          "writer_inputs.json": "280bd5410ec599ee52ee24870ec9588d12d431c68551e7b36dd5964775109073"
+        }
+      }
+    ]
+  },
+  "review": {
+    "reviewer_type": "ai_assistant_preliminary",
+    "review_source_fingerprint_sha256": "c9b98fde0de35df4ad3148eb0aba757833edd1b554942a1c9221c54db0e4b8ab",
+    "reviewer_file_sha256": "2de71e34ac20f5137835c3e8c66f70432b0036ff8749e7a9092f2d7f2ba727b2",
+    "review_file_sha256": "696fa4fcf169865039925e6cdfc3c44a9a579111e26916d4c9236628c3a2dffa",
+    "validated_review_sha256": "74d3286dcb5f722fbdbeb4b6892c05daf35e429e48352a83d7ae86bf20714370",
+    "quote_links_valid": true,
+    "verdict_counts": {
+      "supported": 12,
+      "unresolved": 2
+    },
+    "toc_negative_does_not_list_toc": true,
+    "excluded_source_has_no_assertions": true,
+    "human_review": "pending",
+    "human_accuracy": null,
+    "human_claim_support_rate": null,
+    "semantic_verdicts_are_provisional": true
+  },
+  "cost": {
+    "local_retrieval_queries": 0,
+    "local_reranks": 0,
+    "generator_logical_calls": 5,
+    "web_queries": 0,
+    "fetched_pages": 0
+  },
+  "production_default_changed": false
+}
