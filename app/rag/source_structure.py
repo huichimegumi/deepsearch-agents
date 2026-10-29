@@ -5,7 +5,7 @@ Pure planning only: no model, database access, label lookup or production routin
 
 import re
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 
 def document_key(name: str) -> str:
@@ -20,13 +20,44 @@ class SourceStructurePlan:
     document_sha256: tuple[str, ...] = ()
     structural_ids: tuple[str, ...] = ()
     structure_status: str = "not_requested"
+    resolution_methods: tuple[str, ...] = ()
+
+
+def indexed_page_suffix_key(filename: str, indexed_page_end: int | None) -> str | None:
+    """An attested indexed last page, not a claim about the original PDF page total."""
+    if type(indexed_page_end) is not int or indexed_page_end < 1:
+        return None
+    match = re.fullmatch(r"(.+?)([1-9]\d{0,3})页", document_key(filename))
+    if not match or match.group(1).endswith(("第", "页")):
+        return None
+    prefix, pages = match.groups()
+    if prefix[-1].isdigit() or int(pages) != indexed_page_end:
+        return None
+    return prefix
+
+
+def document_inventory(corpus: dict) -> list[dict]:
+    """Caller supplies a complete scoped snapshot or attested metadata, never partial recall."""
+    inventory = {}
+    for row in corpus.values():
+        key = (row["filename"], row["document_sha256"])
+        entry = inventory.setdefault(
+            key, {"filename": key[0], "document_sha256": key[1], "indexed_page_end": None}
+        )
+        page = row.get("indexed_page_end") or row.get("page_end")
+        if page is not None:
+            entry["indexed_page_end"] = max(entry["indexed_page_end"] or 0, page)
+    return list(inventory.values())
 
 
 def requests_toc(query: str) -> bool:
-    clauses = re.split(r"[。！？!?；;\n]", query)
+    clauses = re.split(r"[。！？!?；;，,\n]", query)
+    cue = r"(?:目录|table\s+of\s+contents)"
+    negative = r"(?:不要|不得|无需|不需要|不必|不用|不想|不是|不列|不生成|(?<![\u4e00-\u9fff])(?:请|先|暂时|这次|本次)*别|do\s+not\b|don't\b|without\b|no\s+)"
     return any(
-        re.search(r"目录|table\s+of\s+contents", clause, re.I)
-        and not re.match(r"\s*(?:请)?(?:不要|不得|无需|不需要|do\s+not\b|don't\b)", clause, re.I)
+        re.search(cue, clause, re.I)
+        and not re.search(negative + r".{0,32}" + cue, clause, re.I)
+        and not re.search(cue + r".{0,8}" + negative, clause, re.I)
         for clause in clauses
     )
 
@@ -44,11 +75,14 @@ def is_toc(content: str) -> bool:
             r"^(?:第([一二三四五六七八九十百\d]+)章\s*|([0-9]{1,3})[\s、.．)]+)\S+", line
         )
         if match:
-            entries.add(match.group(1) or match.group(2))
+            number = match.group(1) or match.group(2)
+            entries.add(str(int(number)) if number.isdecimal() else number)
     return len(entries) >= 2
 
 
-def resolve_document_sources(query: str, documents) -> SourceStructurePlan:
+def resolve_document_sources(
+    query: str, documents, *, allow_page_suffix=False
+) -> SourceStructurePlan:
     """Resolve metadata only, before reading document bodies or planning structure."""
     titles = list(dict.fromkeys(re.findall(r"《([^《》\n]+)》", query)))
     if not titles:
@@ -56,9 +90,20 @@ def resolve_document_sources(query: str, documents) -> SourceStructurePlan:
     if re.search(r"(?:不要|不得|不使用|不查|无需|排除|不依据|不参考).{0,20}《", query):
         return SourceStructurePlan("unsupported_source_constraint")
     inventory = {}
+    exact = {}
     for row in documents:
-        inventory.setdefault(document_key(row["filename"]), set()).add(row["document_sha256"])
+        key = document_key(row["filename"])
+        inventory.setdefault(key, set()).add(row["document_sha256"])
+        exact.setdefault(key, set()).add(row["document_sha256"])
+        alias = (
+            indexed_page_suffix_key(row["filename"], row.get("indexed_page_end"))
+            if allow_page_suffix
+            else None
+        )
+        if alias:
+            inventory.setdefault(alias, set()).add(row["document_sha256"])
     resolved = []
+    methods = []
     for title in titles:
         documents = inventory.get(document_key(title), set())
         if not documents:
@@ -66,24 +111,31 @@ def resolve_document_sources(query: str, documents) -> SourceStructurePlan:
         if len(documents) != 1:
             return SourceStructurePlan("ambiguous_source")
         resolved.extend(documents)
+        methods.append("exact_filename" if document_key(title) in exact else "indexed_page_suffix")
     documents = tuple(dict.fromkeys(resolved))
-    return SourceStructurePlan("resolved", documents)
+    return SourceStructurePlan("resolved", documents, resolution_methods=tuple(methods))
 
 
 def plan_source_structure(
-    query: str, corpus: dict, candidate_ids: list[str]
+    query: str,
+    corpus: dict,
+    candidate_ids: list[str],
+    *,
+    allow_page_suffix=False,
 ) -> SourceStructurePlan:
     """All source names must resolve; never guess aliases or pull chunks outside the pool."""
     if len(candidate_ids) != len(set(candidate_ids)) or any(i not in corpus for i in candidate_ids):
         raise ValueError("invalid_candidate_membership")
-    resolution = resolve_document_sources(query, corpus.values())
+    resolution = resolve_document_sources(
+        query, document_inventory(corpus), allow_page_suffix=allow_page_suffix
+    )
     if resolution.status != "resolved":
         return resolution
     documents = resolution.document_sha256
     if not requests_toc(query):
-        return SourceStructurePlan("resolved", documents)
+        return resolution
     if len(documents) > 2:
-        return SourceStructurePlan("resolved", documents, structure_status="source_limit")
+        return replace(resolution, structure_status="source_limit")
     selected = []
     for document in documents:
         toc_ids = [
@@ -92,17 +144,14 @@ def plan_source_structure(
             if row["document_sha256"] == document and is_toc(row["content"])
         ]
         if len(toc_ids) != 1:
-            return SourceStructurePlan(
-                "resolved",
-                documents,
+            return replace(
+                resolution,
                 structure_status=("structure_missing" if not toc_ids else "ambiguous_structure"),
             )
         if toc_ids[0] not in candidate_ids:
-            return SourceStructurePlan(
-                "resolved", documents, structure_status="structure_outside_pool"
-            )
+            return replace(resolution, structure_status="structure_outside_pool")
         selected.extend(toc_ids)
-    return SourceStructurePlan("resolved", documents, tuple(selected), "selected")
+    return replace(resolution, structural_ids=tuple(selected), structure_status="selected")
 
 
 def scoped_delivery_ids(plan: SourceStructurePlan, corpus: dict, policy: dict) -> list[str]:

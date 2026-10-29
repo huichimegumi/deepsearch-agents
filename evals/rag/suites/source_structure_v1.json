@@ -1,0 +1,27 @@
+{
+  "version": "source_structure_component_challenges_v1",
+  "scope": "exposed corpus, planner-only checks with full-corpus candidates and explicit synthetic perturbations",
+  "cases": [
+    {"id":"toc_positive","query":"列出《2026数字人电商直播白皮书》的目录。","expected":{"status":"resolved","structure_status":"selected"}},
+    {"id":"toc_separately","query":"《2026数字人电商直播白皮书》分别列出目录第一、二章与第三、四章的标题。不要据目录推断正文。","expected":{"status":"resolved","structure_status":"selected"}},
+    {"id":"toc_english","query":"List the table of contents of 《2026数字人电商直播白皮书》.","expected":{"status":"resolved","structure_status":"selected"}},
+    {"id":"negative_polite_prefix","query":"请先不要生成《2026数字人电商直播白皮书》的目录，只概括应用场景。","expected":{"status":"unsupported_source_constraint","structure_status":"not_requested"}},
+    {"id":"negative_after_title","query":"《2026数字人电商直播白皮书》请先不要生成目录，只概括应用场景。","expected":{"status":"resolved","structure_status":"not_requested"}},
+    {"id":"negative_no_need","query":"《2026数字人电商直播白皮书》无需目录，只概括应用场景。","expected":{"status":"resolved","structure_status":"not_requested"}},
+    {"id":"negative_after_cue","query":"《2026数字人电商直播白皮书》的目录不用列，请回答应用场景。","expected":{"status":"resolved","structure_status":"not_requested"}},
+    {"id":"negative_only_toc","query":"《2026数字人电商直播白皮书》不要只给目录，要分析应用场景。","expected":{"status":"resolved","structure_status":"not_requested"}},
+    {"id":"negative_english","query":"For 《2026数字人电商直播白皮书》, do not give a table of contents; describe applications.","expected":{"status":"resolved","structure_status":"not_requested"}},
+    {"id":"negative_without","query":"Summarize 《2026数字人电商直播白皮书》 without a table of contents.","expected":{"status":"resolved","structure_status":"not_requested"}},
+    {"id":"chapter_is_not_toc","query":"《2026数字人电商直播白皮书》有关于火星直播的专门章节吗？","expected":{"status":"resolved","structure_status":"not_requested"}},
+    {"id":"unknown_source","query":"请给出《不存在的研究报告》的目录。","expected":{"status":"unresolved_source","structure_status":"not_requested"}},
+    {"id":"unquoted_alias","query":"请给出数字人白皮书的目录。","expected":{"status":"no_explicit_source","structure_status":"not_requested"}},
+    {"id":"ambiguous_source","query":"《2026数字人电商直播白皮书》目录","mutation":"duplicate_document_name","expected":{"status":"ambiguous_source","structure_status":"not_requested"}},
+    {"id":"ambiguous_structure","query":"《2026数字人电商直播白皮书》目录","mutation":"duplicate_toc","expected":{"status":"resolved","structure_status":"ambiguous_structure"}},
+    {"id":"outside_pool","query":"《2026数字人电商直播白皮书》目录","mutation":"exclude_toc_from_pool","expected":{"status":"resolved","structure_status":"structure_outside_pool"}},
+    {"id":"missing_structure","query":"《2026数字人电商直播白皮书》目录","mutation":"exclude_toc_from_corpus","expected":{"status":"resolved","structure_status":"structure_missing"}},
+    {"id":"indexed_suffix_pbc","query":"《中国人民银行2025年第四季度中国货币政策执行报告》货币政策取向是什么？","expected":{"status":"resolved","structure_status":"not_requested"}},
+    {"id":"indexed_suffix_ckiss","query":"《长江商学院2025年投资者情绪问卷调查CKISS四季度报告》调查了什么？","expected":{"status":"resolved","structure_status":"not_requested"}},
+    {"id":"indexed_suffix_blackrock","query":"《贝莱德BlackRock2026年全球投资展望报告》如何看待市场？","expected":{"status":"resolved","structure_status":"not_requested"}},
+    {"id":"wrong_year","query":"《中国人民银行2024年第四季度中国货币政策执行报告》政策取向是什么？","expected":{"status":"unresolved_source","structure_status":"not_requested"}}
+  ]
+}

@@ -87,6 +87,27 @@ def test_unresolved_source_falls_back_without_body_read(live, monkeypatch):
     assert details["source_structure"]["status"] == "unresolved_source"
 
 
+def test_live_path_accepts_attested_suffix_metadata(live):
+    rows, _, _, _ = live
+    document = rows["body"][1]
+    document.filename = "Report17页.pdf"
+    document.indexed_page_end = 17
+    details = {}
+    result = sr.search_source_structure("《Report》应用场景", ["kb"], diagnostics=details)
+    assert [h.chunk_id for h in result] == ["body"]
+    assert details["source_structure"]["resolution_methods"] == ("indexed_page_suffix",)
+
+
+def test_negated_toc_in_live_path_does_not_read_structure(live, monkeypatch):
+    monkeypatch.setattr(sr, "_load_source_chunks", lambda *_: pytest.fail("negated TOC body scan"))
+    details = {}
+    result = sr.search_source_structure(
+        "《Report》请先不要生成目录，只概括场景。", ["kb"], diagnostics=details
+    )
+    assert [h.chunk_id for h in result] == ["body"]
+    assert details["source_structure"]["structure_status"] == "not_requested"
+
+
 @pytest.mark.parametrize("failure", ["document_limit", "chunk_limit", "outside_pool", "fallback"])
 def test_bounded_inventory_and_availability_fallbacks(live, monkeypatch, failure):
     rows, pool, baseline, _ = live
@@ -161,6 +182,7 @@ def test_database_reads_are_ready_scoped_and_bounded(monkeypatch):
                     content=TOC,
                     lexical_text="toc",
                     token_count=1,
+                    page_end=17 if i == "a" else 999,
                 )
             )
         session.add(
@@ -172,6 +194,7 @@ def test_database_reads_are_ready_scoped_and_bounded(monkeypatch):
                 content=TOC,
                 lexical_text="toc",
                 token_count=1,
+                page_end=999,
             )
         )
         session.commit()
@@ -183,6 +206,7 @@ def test_database_reads_are_ready_scoped_and_bounded(monkeypatch):
 
     monkeypatch.setattr(sr, "session_scope", scope)
     assert [d.id for d in sr._load_documents(["allowed"])] == ["a"]
+    assert sr._load_documents(["allowed"])[0].indexed_page_end == 17
     assert [c.id for c, _ in sr._load_source_chunks(["allowed"], ["a", "b", "c"])] == ["a"]
     monkeypatch.setattr(sr, "DOCUMENT_LIMIT", 0)
     assert len(sr._load_documents(["allowed"])) == 1  # limit + one overflow sentinel

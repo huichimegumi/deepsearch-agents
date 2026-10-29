@@ -2,6 +2,8 @@
 
 本目录包含 DeepSearch Agents 第一阶段的项目内中文评测集，覆盖路由、联网搜索、数据库查询、本地知识库检索和端到端报告生成。
 
+E4.15 的 `python -m evals.rag.source_structure_challenges` 执行二十一项规划器组件检查，四项为显式合成扰动，不调用检索或生成。`python -m evals.rag.run_source_structure --execute --indexed-page-suffix` 回放经索引末页佐证的文件名后缀匹配；不加该选项仍为精确匹配。真实数据库元数据与五文档快照一致，标题定位覆盖提高，但有限证据指标未变，不计作回答准确率。首轮“分别”被误判为否定的诊断失败已保留，修正后重跑通过。见 [E4.15 元数据与负样本记录](../docs/development/e4-15-source-metadata.md)。
+
 E4.14 的 `python -m evals.reports_acceptance.rag_transfer --source-structure --retrieve` 显式启用真实文档定位／目录结构检索；不加 `--retrieve` 只建计划。随后用 `--retrieved-run` 与 `--execute` 对哈希绑定的实际 Evidence 执行 ID 选段＋Writer，不再附加 `--source-structure`。三题共 3 次本地查询、5 次生成调用、零网络搜索；目录引用恢复，调查对照与证据不足弃答保留，属于暴露开发题的 AI 初审。普通检索仍不启用该选项。见 [E4.14 实跑与边界](../docs/development/e4-14-live-source-structure.md)。
 
 E4.13 的 `python -m evals.rag.run_source_structure` 默认只核验输入并建计划；`--diagnostic --execute`／`--execute` 离线复用 E4.10 分数，分别回放两道诊断题／二十道开发题。原型严格解析《文档名》，仅为唯一真实目录片段显式预留交付位置，仍受六条／字符预算限制，不猜简称、不补候选。目录原文恢复，开发集指标未变，零新检索或模型调用，尚未接入运行时。见 [E4.13 规则与限制](../docs/development/e4-13-source-structure.md)。

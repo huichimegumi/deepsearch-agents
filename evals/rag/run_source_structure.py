@@ -68,14 +68,16 @@ def replay_policy(task, corpus, plan, policy):
     }
 
 
-def evaluate(task, corpus, control):
+def evaluate(task, corpus, control, *, allow_page_suffix=False):
     from evals.rag.protocol import canonical_sha256
 
     if control["status"] != "ok" or control["candidate_pool_sha256"] != canonical_sha256(
         task["hybrid_ids"]
     ):
         raise ValueError("control_pool_binding_changed")
-    plan = plan_source_structure(task["query"], corpus, task["hybrid_ids"])
+    plan = plan_source_structure(
+        task["query"], corpus, task["hybrid_ids"], allow_page_suffix=allow_page_suffix
+    )
     output = {"id": task["id"], "status": "ok", "plan": asdict(plan), "policies": {}}
     for name, source in (("raw", "baseline"), ("context", "source_context")):
         policy = control["policies"][source]
@@ -88,7 +90,7 @@ def evaluate(task, corpus, control):
     return output
 
 
-def run(*, execute=False, diagnostic=False):
+def run(*, execute=False, diagnostic=False, allow_page_suffix=False):
     tasks, corpus, hashes, controls = load_inputs(diagnostic=diagnostic)
     output = (
         ROOT
@@ -104,6 +106,7 @@ def run(*, execute=False, diagnostic=False):
                 "diagnostic": diagnostic,
                 "mode": "offline_fixed_score_replay",
                 "test_split_executed": False,
+                "allow_indexed_page_suffix": allow_page_suffix,
             },
         ),
         "input_sha256": hashes,
@@ -127,7 +130,7 @@ def run(*, execute=False, diagnostic=False):
         raise ValueError("context_budget_changed")
     for task in tasks:
         try:
-            row = evaluate(task, corpus, controls[task["id"]])
+            row = evaluate(task, corpus, controls[task["id"]], allow_page_suffix=allow_page_suffix)
         except Exception as exc:  # noqa: BLE001 - explicit invalid row, never retry
             row = {"id": task["id"], "status": "invalid", "error_type": type(exc).__name__}
         result["cases"].append(row)
@@ -153,8 +156,19 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execute", action="store_true", help="Offline replay only, no inference")
     parser.add_argument("--diagnostic", action="store_true")
+    parser.add_argument(
+        "--indexed-page-suffix",
+        action="store_true",
+        help="Allow suffix removal only when it matches scoped indexed last-page metadata",
+    )
     args = parser.parse_args()
-    print(run(execute=args.execute, diagnostic=args.diagnostic))
+    print(
+        run(
+            execute=args.execute,
+            diagnostic=args.diagnostic,
+            allow_page_suffix=args.indexed_page_suffix,
+        )
+    )
 
 
 if __name__ == "__main__":

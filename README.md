@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.15 增加索引末页佐证的文件名页数后缀匹配，真实 PostgreSQL 元数据核验后，开发题显式标题定位从 8/20 提高到 17/20；不猜简称、不改年份，冲突仍拒绝。二十一项结构组件挑战符合预期，覆盖否定目录请求和重复编号；首轮误将“分别”当否定的回归已修复并保留失败。冻结分数回放的证据指标未变，原文格式两题排除其他文档片段；这不代表回答准确率提升。651 项测试通过、6 项跳过，零新增检索／模型／网络调用，普通 API／UI 路径不变。见 [元数据核验、负样本与回放限制](docs/development/e4-15-source-metadata.md)。
+
 E4.14 已将文档定位／目录结构通路接入默认关闭的内部开关与评测 CLI，并完成三题真实 PostgreSQL／Qdrant 检索和最小 ID 选段＋Writer 验证。目录原文交付第 1，四章标题初审正确；调查题保留 2024 年及 42%／64% 区分；负样本保留两项未解决并跳过 Writer。共 3 次本地查询、5 次 qwen-flash 调用、零网络搜索；2 文档／117 片段语料未变。目录选择明确披露语义分数门槛绕过，普通 API／UI 路径不变；630 项测试通过、6 项跳过，人工准确率仍为空。见 [真实执行、AI 初审与上线边界](docs/development/e4-14-live-source-structure.md)。
 
 E4.13 新增默认未接入生产的精确文档定位与目录结构原型：仅匹配真实文件名，目录需独立标记、编号条目、唯一来源且已在候选池内。冻结分数回放中，目录原文在两种格式下均恢复为交付第 1，Evidence ID 不变；调查对照保留，二十题交付文本和指标均未变化。仅八题文档名精确匹配，九题无法定位并保留原结果，三题无显式标题；这不是实时检索或报告修复。零新增检索／模型／网络调用，620 项测试通过、6 项跳过。见 [原型规则、回放与接入边界](docs/development/e4-13-source-structure.md)。
@@ -571,6 +573,13 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.15 adds indexed-last-page-attested filename suffix keys, raising explicit source resolution
+from 8/20 to 17/20 development questions after live PostgreSQL metadata verification. Twenty-one
+structural component checks pass; a pilot false negative on “separately” is repaired and preserved.
+Frozen-score evidence metrics stay unchanged; two raw deliveries exclude other-document hits.
+This is not improved answer accuracy. 651 passed, 6 skipped; zero new retrieval/model/Web calls,
+ordinary API/UI behavior unchanged. See [metadata and negative controls](docs/development/e4-15-source-metadata.md).
 
 E4.14 connects source/TOC retrieval through an off-by-default internal keyword and evaluation
 CLI, then runs three real PostgreSQL/Qdrant queries through ID selection and Writer. Initial AI

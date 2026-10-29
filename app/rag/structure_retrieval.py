@@ -2,6 +2,8 @@
 
 from dataclasses import asdict, replace
 
+from sqlalchemy import and_, func, select
+
 from app.rag.database import session_scope
 from app.rag.models import Chunk, Document
 from app.rag.retrieval import RetrievedChunk, _rank_candidates, collect_candidates
@@ -18,9 +20,30 @@ STRUCTURE_CHUNK_LIMIT = 1024
 
 def _load_documents(knowledge_base_ids):
     with session_scope() as session:
-        return (
-            session.query(Document)
+        bounded = (
+            session.query(Document.id)
             .filter(Document.knowledge_base_id.in_(knowledge_base_ids), Document.status == "ready")
+            .order_by(Document.id)
+            .limit(DOCUMENT_LIMIT + 1)
+            .subquery()
+        )
+        return (
+            session.query(
+                Document.id,
+                Document.filename,
+                Document.sha256,
+                func.max(Chunk.page_end).label("indexed_page_end"),
+            )
+            .outerjoin(
+                Chunk,
+                and_(
+                    Chunk.document_id == Document.id,
+                    Chunk.knowledge_base_id.in_(knowledge_base_ids),
+                ),
+            )
+            .filter(Document.knowledge_base_id.in_(knowledge_base_ids), Document.status == "ready")
+            .filter(Document.id.in_(select(bounded.c.id)))
+            .group_by(Document.id, Document.filename, Document.sha256)
             .order_by(Document.id)
             .limit(DOCUMENT_LIMIT + 1)
             .all()
@@ -73,15 +96,27 @@ def search_source_structure(query, knowledge_base_ids, *, diagnostics=None):
     documents = _load_documents(knowledge_base_ids)
     if len(documents) > DOCUMENT_LIMIT:
         return fallback("document_inventory_limit")
-    metadata = [{"filename": d.filename, "document_sha256": d.sha256} for d in documents]
-    resolution = resolve_document_sources(query, metadata)
+    metadata = [
+        {
+            "filename": d.filename,
+            "document_sha256": d.sha256,
+            "indexed_page_end": getattr(d, "indexed_page_end", None),
+        }
+        for d in documents
+    ]
+    resolution = resolve_document_sources(query, metadata, allow_page_suffix=True)
     if resolution.status != "resolved":
         return fallback(resolution.status)
     corpus = {i: _row(*pair) for i, pair in pool.rows.items()}
     # Metadata stubs participate only in exact name resolution, never as source passages.
     corpus.update(
         {
-            f"document:{d.id}": {"filename": d.filename, "document_sha256": d.sha256, "content": ""}
+            f"document:{d.id}": {
+                "filename": d.filename,
+                "document_sha256": d.sha256,
+                "content": "",
+                "indexed_page_end": getattr(d, "indexed_page_end", None),
+            }
             for d in documents
         }
     )
@@ -92,7 +127,7 @@ def search_source_structure(query, knowledge_base_ids, *, diagnostics=None):
             plan = replace(resolution, structure_status="structure_inventory_limit")
         else:
             corpus.update({chunk.id: _row(chunk, document) for chunk, document in rows})
-            plan = plan_source_structure(query, corpus, pool.hybrid_ids)
+            plan = plan_source_structure(query, corpus, pool.hybrid_ids, allow_page_suffix=True)
     elif requests_toc(query):
         plan = replace(resolution, structure_status="source_limit")
     # Scope full scores before the top-eight cutoff; keep query and model input unchanged.
