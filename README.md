@@ -30,6 +30,8 @@ DeepSearch Agents 是一个基于 DeepAgents 的对话式多智能体深度研�
 
 ### Research Core 开发状态
 
+E4.16 新增五道冻结开发题的真实本地检索边界检查。首轮暴露“请勿列出目录”误保留目录；后续审计发现显式排除来源时回退会交付被排除文档，现改为零证据和明确提示。四轮运行与失败均保留，最终 5/5 检查通过，旧结构挑战 21/21 通过；累计 20 次本地检索、零生成／网络调用，全量测试 658 通过、6 跳过。该结果只验证检索交付边界，不是报告准确率；实验通路仍默认关闭。见 [新题实跑、修复和限制](docs/development/e4-16-new-live-structure.md)。
+
 E4.15 增加索引末页佐证的文件名页数后缀匹配，真实 PostgreSQL 元数据核验后，开发题显式标题定位从 8/20 提高到 17/20；不猜简称、不改年份，冲突仍拒绝。二十一项结构组件挑战符合预期，覆盖否定目录请求和重复编号；首轮误将“分别”当否定的回归已修复并保留失败。冻结分数回放的证据指标未变，原文格式两题排除其他文档片段；这不代表回答准确率提升。651 项测试通过、6 项跳过，零新增检索／模型／网络调用，普通 API／UI 路径不变。见 [元数据核验、负样本与回放限制](docs/development/e4-15-source-metadata.md)。
 
 E4.14 已将文档定位／目录结构通路接入默认关闭的内部开关与评测 CLI，并完成三题真实 PostgreSQL／Qdrant 检索和最小 ID 选段＋Writer 验证。目录原文交付第 1，四章标题初审正确；调查题保留 2024 年及 42%／64% 区分；负样本保留两项未解决并跳过 Writer。共 3 次本地查询、5 次 qwen-flash 调用、零网络搜索；2 文档／117 片段语料未变。目录选择明确披露语义分数门槛绕过，普通 API／UI 路径不变；630 项测试通过、6 项跳过，人工准确率仍为空。见 [真实执行、AI 初审与上线边界](docs/development/e4-14-live-source-structure.md)。
@@ -573,6 +575,15 @@ Evaluation now prioritizes evidence-level RAG A/B/C experiments and a small real
 - Audit logs: task starts, results, cancellations, and errors are written by session to `app/logs/session_*.jsonl` for easier troubleshooting.
 
 ### Research Core status
+
+E4.16 freezes five new development prompts and checks actual local retrieval boundaries.
+The pilot wrongly reserved a TOC for `请勿列出目录`; a later audit found that an explicit source
+exclusion returned six chunks from the excluded document. Both are fixed; unsupported exclusions
+now deliver zero evidence with a specific warning. All four five-query runs and failures are
+preserved. Final checks pass 5/5, prior structural challenges 21/21; 20 local queries, no
+generator/Web calls, 658 passed and 6 skipped. This checks delivery behavior, not report
+accuracy or independent holdout performance. The experiment stays off by default. See
+[new live checks and provenance](docs/development/e4-16-new-live-structure.md).
 
 E4.15 adds indexed-last-page-attested filename suffix keys, raising explicit source resolution
 from 8/20 to 17/20 development questions after live PostgreSQL metadata verification. Twenty-one

@@ -1,0 +1,216 @@
+{
+  "stage": "E4.16",
+  "date": "2026-10-29",
+  "scope": "new_exposed_live_retrieval_checks_not_report_accuracy",
+  "dataset": "evals/rag/suites/source_structure_live_v1.json",
+  "dataset_sha256": "31e31f502fbc16b9fb9fd41358534250ad142882e88492fe1c87a6399690ba79",
+  "pilot": {
+    "run": "source_structure_live_20261029T072119Z_3ed93081ac",
+    "results_sha256": "4af3f7317c4311d6461ba5cb116f00b1626872203eff61fae49516d09c70d9ab",
+    "source_sha256": "2f79f35865e3cc22dc7ce824580382db8cb948fa784b206470c91d4844dd383a",
+    "source_fingerprint_reconstructed": true,
+    "archived_source_sha256": {
+      "app/rag/source_structure.py": "7bb82303e727cb1bdcb01240f91358486499cc15115024adf02fd3185dd28656",
+      "evals/rag/run_source_structure_live.py": "1eb53abc71a8d54840b0702ce86c2999b59268efc3bdfe26a6b5cf00cdb54e92"
+    },
+    "local_queries": 5,
+    "failed_checks": {
+      "toc_new_chapters": [
+        "resolved_document"
+      ],
+      "toc_polite_negative": [
+        "structure_status",
+        "resolved_document"
+      ],
+      "pbc_attested_title": [
+        "resolved_document"
+      ],
+      "blackrock_attested_title": [
+        "resolved_document"
+      ]
+    },
+    "actual_behavior_failure": "toc_polite_negative_reserved_toc",
+    "harness_failure": "resolved_document_compared_runtime_tuple_to_list"
+  },
+  "intermediate": {
+    "run": "source_structure_live_20261029T072326Z_4118154bdc",
+    "results_sha256": "d8a1e89663666350b55abc650c3e5e8f48b06f085896b2be0e33c0e95f5ed520",
+    "source_sha256": "4101282bd978743a9f4261291e6ecc897a995830c1802b284c1f40859d583935",
+    "source_fingerprint_reconstructed": true,
+    "archived_source_sha256": {
+      "app/rag/source_structure.py": "d207a9e5b0d2255d83f6c0597495e94cce2e2f83bdcbb7f1168f5e77105b13a5",
+      "app/rag/structure_retrieval.py": "540b8b6f59b9c40415e7560a3480aba7a81a130501382c18d83f6182a3a6e5a3",
+      "app/tools/evidence_tool.py": "173c0ec7f0b7a28e7584d1d4a7c2e858b54580215421a973419974482977670d",
+      "evals/rag/run_source_structure_live.py": "340f7c5fe05dbc59e16ed07fd716ec845f2782da8c51c569449ec4bcb19646c9"
+    },
+    "harness_passed": 5,
+    "harness_total": 5,
+    "external_audit": "explicitly_excluded_document_delivered",
+    "excluded_document_records": 6,
+    "local_queries": 5
+  },
+  "safe_delivery": {
+    "run": "source_structure_live_20261029T072739Z_a88ea790ba",
+    "results_sha256": "55b2ca7c3d920bdce1bc78af270431f3d3a2bb9d6545866a8d47832217507dc6",
+    "source_sha256": "6886bc73ae1dc79d1680708cefcd40661f4afbc2f02410a05aa99d028208f508",
+    "source_fingerprint_reconstructed": true,
+    "archived_evidence_tool_sha256": "440bfa5bd013a1fbc7c18a1d0f1c65629700035666b3cd6db357c8c9d3b3d377",
+    "passed": 5,
+    "total": 5,
+    "excluded_document_records": 0,
+    "warning_issue": "generic_missing_relevance_warning_on_deliberate_suppression",
+    "local_queries": 5
+  },
+  "final": {
+    "run": "source_structure_live_20261029T073039Z_ec97a5bfce",
+    "results_sha256": "b9061ed10fe57070e9e935f50224c9fe430465040d6431e58aa4425c1b3a3aa0",
+    "source_sha256": "0eb485c052e424d5735fdcd6c7f9a306a3bc3586ab6bc3babcf0d090b90f8d19",
+    "corpus_sha256": {
+      "电商行业": "4f647f2fd3bda35b31ae8b8d58dcac4cc895ae6935fc5eb6ed787dfb90e909a3",
+      "金融行业": "553653e2be5bc45599c9478236de3d86bc1eb253e4b6eeedfa61d6149a978b25"
+    },
+    "corpus_unchanged": true,
+    "source_unchanged": true,
+    "dataset_unchanged": true,
+    "passed": 5,
+    "total": 5,
+    "cases": [
+      {
+        "id": "toc_new_chapters",
+        "status": "pass",
+        "batch_status": "PARTIAL",
+        "records": 6,
+        "resolution_status": "resolved",
+        "structure_status": "selected",
+        "resolution_methods": [
+          "exact_filename"
+        ],
+        "checks": {
+          "reranker_applied": true,
+          "status": true,
+          "structure_status": true,
+          "delivery_binding": true,
+          "stable_evidence_ids": true,
+          "resolved_document": true,
+          "source_scope": true,
+          "structural_first": true,
+          "structural_pool_member": true
+        },
+        "artifact_sha256": {
+          "diagnostics.json": "0725acb8541fef6e82073416287ac7572cfdf3ed82b2afbf1655410a650a7a5e",
+          "retrieval.json": "ccb29016551f40f3b618a2c1509977a3bcd6c0d18368b3412626e5e2e109fff6"
+        }
+      },
+      {
+        "id": "toc_polite_negative",
+        "status": "pass",
+        "batch_status": "PARTIAL",
+        "records": 6,
+        "resolution_status": "resolved",
+        "structure_status": "not_requested",
+        "resolution_methods": [
+          "exact_filename"
+        ],
+        "checks": {
+          "reranker_applied": true,
+          "status": true,
+          "structure_status": true,
+          "delivery_binding": true,
+          "stable_evidence_ids": true,
+          "resolved_document": true,
+          "source_scope": true
+        },
+        "artifact_sha256": {
+          "diagnostics.json": "ef47b601cdceee9aa13d075045719747d87371d8037932d3ca389f52f33ce810",
+          "retrieval.json": "4fb87b9d7b38c07409fef4d5721237746ae8643cb6b42053e999cfb85700175f"
+        }
+      },
+      {
+        "id": "excluded_named_source",
+        "status": "pass",
+        "batch_status": "NO_EVIDENCE",
+        "records": 0,
+        "resolution_status": "unsupported_source_constraint",
+        "structure_status": "not_requested",
+        "resolution_methods": [],
+        "checks": {
+          "reranker_applied": true,
+          "status": true,
+          "structure_status": true,
+          "delivery_binding": true,
+          "stable_evidence_ids": true,
+          "explicit_fallback": true,
+          "excluded_source_not_delivered": true
+        },
+        "artifact_sha256": {
+          "diagnostics.json": "3b555e4afbef817777e9b9a54c520e8569545e4f0eb388aa1f64f023d7a7c0c6",
+          "retrieval.json": "b3e4de702808039099ab3c1af74ec1da8de0dd1f0339ce3503c9934a0fc8cf92"
+        }
+      },
+      {
+        "id": "pbc_attested_title",
+        "status": "pass",
+        "batch_status": "PARTIAL",
+        "records": 6,
+        "resolution_status": "resolved",
+        "structure_status": "not_requested",
+        "resolution_methods": [
+          "indexed_page_suffix"
+        ],
+        "checks": {
+          "reranker_applied": true,
+          "status": true,
+          "structure_status": true,
+          "delivery_binding": true,
+          "stable_evidence_ids": true,
+          "resolved_document": true,
+          "source_scope": true
+        },
+        "artifact_sha256": {
+          "diagnostics.json": "83cfa606f0490d0377523cc19537b6e7792ead982903a393473734b5489182d6",
+          "retrieval.json": "04b98fa12109b728267bfcc1f0a73673012cb56ffd78bb09ade03e7401a654b1"
+        }
+      },
+      {
+        "id": "blackrock_attested_title",
+        "status": "pass",
+        "batch_status": "PARTIAL",
+        "records": 6,
+        "resolution_status": "resolved",
+        "structure_status": "not_requested",
+        "resolution_methods": [
+          "indexed_page_suffix"
+        ],
+        "checks": {
+          "reranker_applied": true,
+          "status": true,
+          "structure_status": true,
+          "delivery_binding": true,
+          "stable_evidence_ids": true,
+          "resolved_document": true,
+          "source_scope": true
+        },
+        "artifact_sha256": {
+          "diagnostics.json": "b47199296509a4d0e0234d54971fd74835546778a21911516bab1d2298bccf84",
+          "retrieval.json": "c8e081c86909c0128d7b0f99cbb7f3a7bd1d42b2745b7c08c064fbec46c478e7"
+        }
+      }
+    ]
+  },
+  "regression_challenges": {
+    "run": "structure_challenges_20261029T073214Z_d8618ac167",
+    "results_sha256": "d9405e669a4afd8ce33b17e7f19ef9866625229754faa8dc39908e6cdb815282",
+    "passed": 21,
+    "total": 21
+  },
+  "cost": {
+    "local_retrieval_queries": 20,
+    "local_query_embeddings": 20,
+    "local_reranks": 20,
+    "generator_calls": 0,
+    "web_queries": 0,
+    "fetched_pages": 0
+  },
+  "human_accuracy": null,
+  "production_default_changed": false
+}

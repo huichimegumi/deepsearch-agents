@@ -66,6 +66,8 @@ def test_inventory_uses_scoped_indexed_last_page_without_source_text():
         "无需目录，只分析应用。",
         "Summarize without a table of contents.",
         "No table of contents, please.",
+        "请勿列出目录，只说明实践。",
+        "勿给出目录，概括方法。",
     ],
 )
 def test_negated_structural_request_does_not_reserve(query):

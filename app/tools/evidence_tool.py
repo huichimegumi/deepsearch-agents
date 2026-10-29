@@ -771,17 +771,27 @@ def _collect_local_documents(
         knowledge_base_ids=[item.id for item in knowledge_bases],
         query=query,
     )
+    source_constraint_blocked = bool(
+        experiment_details
+        and experiment_details.get("source_structure", {}).get("status")
+        == "unsupported_source_constraint"
+    )
     warnings = ()
     status = EvidenceBatchStatus.OK
     if not records:
         status = EvidenceBatchStatus.NO_EVIDENCE
-        warnings = ("No relevant local-document chunks were found.",)
+        if not source_constraint_blocked:
+            warnings = ("No relevant local-document chunks were found.",)
     elif budget["truncated"]:
         status = EvidenceBatchStatus.PARTIAL
         warnings = ("Local-document evidence was bounded by the retrieval context budget.",)
     if experiment_details is not None:
         plan = experiment_details.get("source_structure", {})
-        if plan.get("status") != "resolved":
+        if plan.get("status") == "unsupported_source_constraint":
+            warnings += (
+                "Experimental source exclusion cannot be satisfied; no local-document evidence returned.",
+            )
+        elif plan.get("status") != "resolved":
             warnings += (
                 f"Experimental source resolution: {plan.get('status')}; original retrieval retained.",
             )

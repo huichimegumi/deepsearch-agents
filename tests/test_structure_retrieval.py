@@ -87,6 +87,19 @@ def test_unresolved_source_falls_back_without_body_read(live, monkeypatch):
     assert details["source_structure"]["status"] == "unresolved_source"
 
 
+def test_excluded_named_source_returns_no_evidence(live, monkeypatch):
+    monkeypatch.setattr(sr, "_load_source_chunks", lambda *_: pytest.fail("excluded body read"))
+    details = {}
+    assert (
+        sr.search_source_structure(
+            "不要参考《Report》，只用其他资料回答。", ["kb"], diagnostics=details
+        )
+        == []
+    )
+    assert details["source_structure"]["status"] == "unsupported_source_constraint"
+    assert details["source_structure"]["selected_ids"] == []
+
+
 def test_live_path_accepts_attested_suffix_metadata(live):
     rows, _, _, _ = live
     document = rows["body"][1]
@@ -249,3 +262,26 @@ def test_evidence_tool_opt_in_preserves_order_and_default_is_unchanged(monkeypat
     expected = retrieved_chunks_to_evidence([toc], knowledge_base_ids=["old"], query="old")[0]
     assert result.records[0].evidence_id == expected.evidence_id
     assert details["delivered_ids"] == ["toc", "body"]
+
+
+def test_source_exclusion_warning_reports_suppression_not_failed_recall(monkeypatch):
+    from app.tools import evidence_tool as et
+
+    monkeypatch.setattr(et, "_resolve_knowledge_bases", lambda _: [SimpleNamespace(id="kb")])
+
+    def blocked(*_, diagnostics):
+        diagnostics["source_structure"] = {
+            "status": "unsupported_source_constraint",
+            "structure_status": "not_requested",
+            "selected_ids": [],
+        }
+        return []
+
+    monkeypatch.setattr(sr, "search_source_structure", blocked)
+    batch = et._collect_local_documents(
+        "不要参考《Report》", "kb", experimental_source_structure=True
+    )
+    assert batch.to_dict()["status"] == "NO_EVIDENCE"
+    assert not batch.records
+    assert len(batch.warnings) == 1
+    assert "exclusion cannot be satisfied" in batch.warnings[0]

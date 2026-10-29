@@ -53,7 +53,7 @@ def document_inventory(corpus: dict) -> list[dict]:
 def requests_toc(query: str) -> bool:
     clauses = re.split(r"[。！？!?；;，,\n]", query)
     cue = r"(?:目录|table\s+of\s+contents)"
-    negative = r"(?:不要|不得|无需|不需要|不必|不用|不想|不是|不列|不生成|(?<![\u4e00-\u9fff])(?:请|先|暂时|这次|本次)*别|do\s+not\b|don't\b|without\b|no\s+)"
+    negative = r"(?:不要|不得|无需|不需要|不必|不用|不想|不是|不列|不生成|请勿|勿列|勿生成|勿给出|勿提供|勿展示|勿输出|(?<![\u4e00-\u9fff])(?:请|先|暂时|这次|本次)*别|do\s+not\b|don't\b|without\b|no\s+)"
     return any(
         re.search(cue, clause, re.I)
         and not re.search(negative + r".{0,32}" + cue, clause, re.I)

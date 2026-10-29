@@ -105,6 +105,10 @@ def search_source_structure(query, knowledge_base_ids, *, diagnostics=None):
         for d in documents
     ]
     resolution = resolve_document_sources(query, metadata, allow_page_suffix=True)
+    if resolution.status == "unsupported_source_constraint":
+        details["source_structure"] = asdict(resolution)
+        details["source_structure"]["selected_ids"] = []
+        return []
     if resolution.status != "resolved":
         return fallback(resolution.status)
     corpus = {i: _row(*pair) for i, pair in pool.rows.items()}
