@@ -1,0 +1,32 @@
+{
+  "packet_sha256": "279face9e9bc07211226a58037ffe79b6ea8edb72b5b00388870c889485b527b",
+  "review_sha256": "fd5a4dd188e13bdc21282c71f16ee6b44f682bd33ba5347a89b2a05352458fe9",
+  "reviewer_type": "ai_assistant_preliminary",
+  "rows": [
+    {
+      "id": "report_local_001",
+      "keypoints": [
+        {
+          "keypoint_index": 1,
+          "verdict": "covered_candidate"
+        }
+      ],
+      "semantic_acceptance": null
+    },
+    {
+      "id": "report_local_004",
+      "keypoints": [
+        {
+          "keypoint_index": 1,
+          "verdict": "covered_candidate"
+        },
+        {
+          "keypoint_index": 2,
+          "verdict": "missing"
+        }
+      ],
+      "semantic_acceptance": null
+    }
+  ],
+  "human_accuracy": null
+}
