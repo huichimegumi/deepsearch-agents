@@ -145,3 +145,23 @@ async def test_runner_uses_actual_report_and_saved_evidence(tmp_path, monkeypatc
         == "source fact"
     )
     assert row["audit"]["acceptance"] == "pending_human_review"
+
+
+async def test_runner_forwards_explicit_required_sources(tmp_path, monkeypatch):
+    seen = []
+
+    async def execute(*args, **kwargs):
+        seen.append(kwargs.get("required_evidence_sources"))
+        return None
+
+    monkeypatch.setattr(runner, "ROOT", tmp_path)
+    monkeypatch.setattr(runner, "run_deep_agent", execute)
+    await runner.execute_case(
+        fixture_case(),
+        "prompt",
+        "session",
+        tmp_path / "case",
+        10,
+        required_evidence_sources=("sql", "local_document"),
+    )
+    assert seen == [("sql", "local_document")]

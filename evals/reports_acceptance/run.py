@@ -45,6 +45,7 @@ async def execute_case(
     indexed_local: bool = False,
     research_limits=None,
     audit_function=None,
+    required_evidence_sources: tuple[str, ...] = (),
 ):
     started = time.monotonic()
     error_type = None
@@ -65,6 +66,11 @@ async def execute_case(
                 indexed_local_research_enabled=indexed_local,
                 budget_profile_override="deep_report",
                 research_limits_override=limits,
+                **(
+                    {"required_evidence_sources": required_evidence_sources}
+                    if required_evidence_sources
+                    else {}
+                ),
             ),
             timeout=timeout,
         )

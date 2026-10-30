@@ -1,0 +1,35 @@
+{
+  "stage": "E4.24",
+  "date": "2026-10-30",
+  "scope": "explicit_required_source_delivery_and_one_zero_web_live_probe",
+  "historical_case": {
+    "run": "extended_reports_20261030T080951Z_5008c43ce0",
+    "results_sha256": "83bcd8849191144c0a05fbfec4799afd19fb219fa8dddb864c97b72c2b172016",
+    "case_id": "report_cross_002",
+    "execution_status": "completed",
+    "required_sources_collected": false,
+    "required_sources_cited": false
+  },
+  "live_probe": {
+    "run": "extended_reports_20261030T085340Z_3815965122",
+    "results_sha256": "c3464af9253d820d537b4d8b257a97ae3c9c1481d1af9b237fb1e123bc0ee470",
+    "case_id": "report_cross_002",
+    "execution_status": "cancelled",
+    "error_type": "TimeoutError",
+    "elapsed_seconds": 1565.594,
+    "failure_reasons": [
+      "upstream_timeout",
+      "cancelled",
+      "cancelled_by_user_or_eval"
+    ],
+    "admitted_search_queries": 0,
+    "inputs_unchanged": true,
+    "source_sha256": "21952e00d388e847e46c59fe8de342cf523aa23d17c234b1172d4099e47d3f0a"
+  },
+  "interpretation": {
+    "required_source_delivery_reached_in_live_probe": false,
+    "offline_delivery_branch_verified_by_tests": true,
+    "answer_accuracy": null,
+    "production_default_required_sources_enabled": false
+  }
+}

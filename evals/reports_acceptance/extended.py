@@ -370,6 +370,7 @@ def run(lock_path: Path, execute=False, allow_paid=False, *, case_ids=None) -> P
                         330,
                         research_limits=limits,
                         audit_function=audit_extended,
+                        required_evidence_sources=tuple(case["required_sources"]),
                     )
                 )
             row["configured_limits"] = asdict(limits)

@@ -579,6 +579,39 @@ def _enforce_final_report_citations(
     return notice, notice_validation
 
 
+def _enforce_required_source_delivery(
+    report: str,
+    validation: ReportCitationValidation,
+    run_trace: ResearchRunTrace,
+    required_sources: tuple[str, ...],
+) -> tuple[str, ReportCitationValidation]:
+    """Withhold an answer when caller-required source types were not cited."""
+    eligible = set(run_trace.claim_eligible_evidence_ids)
+
+    def source_of(eid: str) -> str:
+        value = getattr(run_trace._evidence_records_by_id[eid], "source", "")
+        return str(getattr(value, "value", value))
+
+    collected = {source_of(eid) for eid in eligible}
+    cited = {source_of(eid) for eid in validation.cited_evidence_ids if eid in eligible}
+    if set(required_sources) <= collected and set(required_sources) <= cited:
+        return report, validation
+    run_trace.degraded = True
+    run_trace.report_citation_withheld = True
+    run_trace.report_used_claim_fallback = False
+    run_trace.record_failure("required_evidence_source_missing")
+    notice = (
+        "# Report delivery withheld\n\n"
+        "The requested source types were not all collected and cited by eligible "
+        "Evidence. The available material is insufficient for this report."
+    )
+    notice_validation = validate_report_citations(
+        notice, allowed_evidence_ids=(), citations_required=False
+    )
+    run_trace.record_report_citation_validation(notice_validation)
+    return notice, notice_validation
+
+
 def _attach_backend_evidence_ledger(
     phase_result: str | None,
     run_trace: ResearchRunTrace,
@@ -1582,6 +1615,7 @@ async def run_deep_agent(
     sql_entity_recovery_enabled: bool = False,
     export_evaluation_evidence: bool = False,
     indexed_local_research_enabled: bool = False,
+    required_evidence_sources: tuple[str, ...] = (),
 ):
     """
     异步流式执行主智能体
@@ -1591,6 +1625,8 @@ async def run_deep_agent(
     :param task_query: 前端提交的原始任务问题
     :param session_id: 当前任务 ID，同时用于 thread_id、输出目录和 WebSocket 定向推送
     """
+    if any(source not in {"local_document", "web", "sql"} for source in required_evidence_sources):
+        raise ValueError("Unsupported required Evidence source")
     event_thread_id = monitor_thread_id or session_id
     settings = get_settings()
     allowed_profiles = {"quick", "standard", "deep_report", "thorough"}
@@ -2010,6 +2046,10 @@ async def run_deep_agent(
                     compressed_fallback=phase_outputs.get("evidence_compression", ""),
                     run_trace=run_trace,
                 )
+                if required_evidence_sources:
+                    phase_result, citation_validation = _enforce_required_source_delivery(
+                        phase_result, citation_validation, run_trace, required_evidence_sources
+                    )
                 phase_result = _attach_required_executed_sql(phase_result, run_trace)
                 if not citation_validation.valid:
                     run_trace.mark_phase_artifact(phase.key, "citation_rejected")
