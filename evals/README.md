@@ -1,5 +1,7 @@
 # 项目评测集
 
+E4.22 在十题私有审阅包上新增交付门槛：独立检查执行完成、任务要求的来源、实际引用及未知 ID。原始十题离线回放仅本地 001、004 两题满足机械条件；跨源 002 虽曾标为 completed，却同时缺少本地来源与有效文档引用。两题仅可进入事实与证据审阅，不能算答案正确。见 [交付门槛记录](../docs/development/e4-22-delivery-protocol.md)。
+
 E4.21 从 E4.20 保存的十题报告／Evidence／Trace 生成逐题私有审阅包，并补上引用校验对 `ev2_...`、`ev3_...` 伪 ID 的识别。历史跨源 SQL＋本地文档题虽然运行状态为 completed，实际只收集到 SQL 证据，报告另编造两条文档 ID；旧引用扫描漏检，修订后离线重放明确拒绝。十题审阅包已就绪，人工准确率仍为空。见 [审阅与校验记录](../docs/development/e4-21-ten-case-review-and-citation-boundary.md)。
 
 E4.20 将既有六道本地报告题与四道扩展题纳入同一冻结批次。`python -m evals.reports_acceptance.ten_case_batch --lock <扩展资产锁>` 预检题集、语料与参考资产；两个原有真实入口各自执行后，该模块核对十题完整性、源码／模型一致性和原始报告及 Evidence 哈希，再汇总状态、证据覆盖和资源使用。降级题保留，语义准确率仍待人工复核。见 [十题批次说明](../docs/development/e4-20-ten-case-batch.md)。

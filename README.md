@@ -1,5 +1,7 @@
 # DeepSearch Agents
 
+E4.22 将十题报告的“运行完成”与“所需来源及引用结构齐全”分开评估：保存结果离线回放只有 2/10 道满足交付门槛，仍需事实与证据审阅。跨源 SQL＋文档题的来源缺失和伪造文档 ID 被明确列为失败原因。见 [E4.22 记录](docs/development/e4-22-delivery-protocol.md)。
+
 E4.21 为十题实跑生成逐题证据审阅包，并修复了报告引用校验漏检 `ev2_...`／`ev3_...` 伪造 ID 的问题。保存的 SQL＋文档题离线回放从旧规则的引用通过变为明确拒绝；这不改变历史运行记录，也尚未构成人工答案准确率。见 [十题审阅与边界修复](docs/development/e4-21-ten-case-review-and-citation-boundary.md)。
 
 当前报告评测可用 `evals.reports_acceptance.ten_case_batch` 预检并汇总既有六道本地题和四道 Web／跨源题。批次固定题集、资产锁和最多十次 Tavily 查询的排定额度，保留所有降级结果；机械证据覆盖不等于人工答案准确率。见 [十题评测批次](docs/development/e4-20-ten-case-batch.md)。

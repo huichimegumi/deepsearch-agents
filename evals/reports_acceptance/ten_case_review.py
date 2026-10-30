@@ -5,10 +5,39 @@ import json
 from collections import Counter
 from pathlib import Path
 
+from app.research.claims import validate_report_citations
 from evals.reports_acceptance.support_review import segment_report
 from evals.reports_acceptance.ten_case_batch import private_path, summarize
 from evals.runners.common import ROOT, write_json, write_markdown
 from evals.runners.experiment import file_sha256, new_run_id
+
+
+def delivery_checks(row: dict, reference: dict, snapshot: dict, report: str) -> list[str]:
+    """Check delivery mechanics; a clean result still needs semantic review."""
+    records = snapshot["records"]
+    issues = []
+    if row["execution_status"] != "completed" or row["error_type"]:
+        issues.append("execution_not_completed")
+    if not report.strip():
+        issues.append("empty_report")
+    if reference["answerable"] and not records:
+        issues.append("answerable_without_evidence")
+    if row["audit"].get("local_source_scope_met") is False:
+        issues.append("local_source_scope_failed")
+    if row["audit"].get("required_sources_collected") is False:
+        issues.append("required_source_not_collected")
+    if row["audit"].get("required_sources_cited") is False:
+        issues.append("required_source_not_cited")
+    citation = validate_report_citations(
+        report,
+        allowed_evidence_ids=[record["evidence_id"] for record in records],
+        citations_required=reference["answerable"],
+    )
+    if citation.unknown_evidence_ids:
+        issues.append("unknown_citation")
+    if citation.missing_required_citations:
+        issues.append("missing_citation")
+    return issues
 
 
 def review(plan_path: Path, local_path: Path, extended_path: Path) -> Path:
@@ -133,10 +162,13 @@ def review(plan_path: Path, local_path: Path, extended_path: Path) -> Path:
                 signals.append("historically_missed_unknown_citation")
             if row["audit"].get("required_sources_collected") is False:
                 signals.append("required_source_missing")
+            issues = delivery_checks(row, reference, snapshot, report)
             rows.append(
                 {
                     "id": case_id,
                     "signals": signals,
+                    "delivery_issues": issues,
+                    "delivery_protocol_ready": not issues,
                     "review_input_sha256": file_sha256(folder / "input.json"),
                     "semantic_verdict": None,
                 }
@@ -147,6 +179,10 @@ def review(plan_path: Path, local_path: Path, extended_path: Path) -> Path:
         "source_run_sha256": summary["run_sha256"],
         "rows": rows,
         "signal_counts": dict(Counter(signal for row in rows for signal in row["signals"])),
+        "delivery_issue_counts": dict(
+            Counter(issue for row in rows for issue in row["delivery_issues"])
+        ),
+        "delivery_protocol_ready_count": sum(row["delivery_protocol_ready"] for row in rows),
         "human_accuracy": None,
     }
     write_json(output / "results.json", result)
