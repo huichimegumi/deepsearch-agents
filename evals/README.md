@@ -1,5 +1,7 @@
 # 项目评测集
 
+E4.21 从 E4.20 保存的十题报告／Evidence／Trace 生成逐题私有审阅包，并补上引用校验对 `ev2_...`、`ev3_...` 伪 ID 的识别。历史跨源 SQL＋本地文档题虽然运行状态为 completed，实际只收集到 SQL 证据，报告另编造两条文档 ID；旧引用扫描漏检，修订后离线重放明确拒绝。十题审阅包已就绪，人工准确率仍为空。见 [审阅与校验记录](../docs/development/e4-21-ten-case-review-and-citation-boundary.md)。
+
 E4.20 将既有六道本地报告题与四道扩展题纳入同一冻结批次。`python -m evals.reports_acceptance.ten_case_batch --lock <扩展资产锁>` 预检题集、语料与参考资产；两个原有真实入口各自执行后，该模块核对十题完整性、源码／模型一致性和原始报告及 Evidence 哈希，再汇总状态、证据覆盖和资源使用。降级题保留，语义准确率仍待人工复核。见 [十题批次说明](../docs/development/e4-20-ten-case-batch.md)。
 
 2026-10-30 同源码／模型实跑已完成：10 题中 3 completed、7 degraded，中位耗时 171.453 秒；扩展题实际准入 10 次 Tavily 查询。所有结果都保留，人工答案准确率仍为空。见 [无正文汇总](reports/e4-20-ten-case-baseline-2026-10-30.json)。

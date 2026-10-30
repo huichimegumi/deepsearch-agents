@@ -1,5 +1,7 @@
 # DeepSearch Agents
 
+E4.21 为十题实跑生成逐题证据审阅包，并修复了报告引用校验漏检 `ev2_...`／`ev3_...` 伪造 ID 的问题。保存的 SQL＋文档题离线回放从旧规则的引用通过变为明确拒绝；这不改变历史运行记录，也尚未构成人工答案准确率。见 [十题审阅与边界修复](docs/development/e4-21-ten-case-review-and-citation-boundary.md)。
+
 当前报告评测可用 `evals.reports_acceptance.ten_case_batch` 预检并汇总既有六道本地题和四道 Web／跨源题。批次固定题集、资产锁和最多十次 Tavily 查询的排定额度，保留所有降级结果；机械证据覆盖不等于人工答案准确率。见 [十题评测批次](docs/development/e4-20-ten-case-batch.md)。
 
 2026-10-30 当前版本已完成十题实跑：3 道正常完成、7 道降级，中位耗时 171.453 秒；扩展题共准入 10 次 Tavily 查询。结果包含逐题证据覆盖与失败原因，语义准确率待人工审阅。见 [E4.20 汇总](evals/reports/e4-20-ten-case-baseline-2026-10-30.json)。

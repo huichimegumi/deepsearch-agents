@@ -116,6 +116,17 @@ def test_report_citation_validation_catches_malformed_evidence_like_tokens():
     assert validation.unknown_evidence_ids == (malformed_id,)
 
 
+def test_report_citation_validation_rejects_fabricated_other_versions():
+    fabricated = ("ev2_doc_7c1f3a9d4b8e2a1c5f0c2e1a", "ev3_doc_8d2e4b9c5a7f1b2d6e0c3f2b")
+    validation = validate_report_citations(
+        f"Real [{KNOWN_EVIDENCE_ID}], invented [{fabricated[0]}] and [{fabricated[1]}].",
+        allowed_evidence_ids=[KNOWN_EVIDENCE_ID],
+    )
+
+    assert validation.valid is False
+    assert validation.unknown_evidence_ids == fabricated
+
+
 def test_invalid_writer_output_falls_back_to_validated_claim_package():
     trace = _trace()
     trace.record_evidence((SimpleNamespace(evidence_id=KNOWN_EVIDENCE_ID, source="sql"),))

@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field, field_validator
 
 CLAIM_SCHEMA_VERSION = "1.0"
 EVIDENCE_CITATION_PATTERN = re.compile(
-    r"\[(ev1_[a-z0-9_-]+)\]",
+    r"\[(ev[0-9]+_[a-z0-9_-]+)\]",
     re.IGNORECASE,
 )
 KNOWN_WRAPPER_PATTERN = re.compile(r"\[(ev1_(?:sql|web|local_document|fee_engine)_[a-f0-9]{24})\]")
