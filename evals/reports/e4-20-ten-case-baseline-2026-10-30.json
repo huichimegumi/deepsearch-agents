@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "plan_sha256": "7e8134e10f8bbf0ddcc85632b5cc61256f1bcaac0736e2303733d6ee769fc4b9",
+  "run_sha256": {
+    "evals/results/report_acceptance_20261030T075549Z_b11bd7a238/results.json": "3c19f2085cd5015e42942ffa7d7b398fc03212eef4a46109360e094e142e3824",
+    "evals/results/extended_reports_20261030T080951Z_5008c43ce0/results.json": "83bcd8849191144c0a05fbfec4799afd19fb219fa8dddb864c97b72c2b172016"
+  },
+  "source_sha256": "28bb48473683e0bd0cb20ac4a471ea4641b917503437c159f2bb32bcbf8560be",
+  "model": "qwen-flash",
+  "rows": [
+    {
+      "id": "report_local_001",
+      "execution_status": "completed",
+      "error_type": null,
+      "failure_reasons": [],
+      "elapsed_seconds": 71.75,
+      "report_nonempty": true,
+      "evidence_count": 6,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": true,
+      "all_reference_units_cited": true,
+      "required_sources_collected": null,
+      "required_sources_cited": null,
+      "llm_calls_instrumented": 6,
+      "result_path": "evals/results/report_acceptance_20261030T075549Z_b11bd7a238/results.json"
+    },
+    {
+      "id": "report_local_002",
+      "execution_status": "degraded",
+      "error_type": null,
+      "failure_reasons": [
+        "timeout"
+      ],
+      "elapsed_seconds": 193.625,
+      "report_nonempty": true,
+      "evidence_count": 10,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": true,
+      "all_reference_units_cited": true,
+      "required_sources_collected": null,
+      "required_sources_cited": null,
+      "llm_calls_instrumented": 9,
+      "result_path": "evals/results/report_acceptance_20261030T075549Z_b11bd7a238/results.json"
+    },
+    {
+      "id": "report_local_003",
+      "execution_status": "degraded",
+      "error_type": null,
+      "failure_reasons": [
+        "timeout",
+        "final_report_citation_validation_failed",
+        "claim_fallback_citation_validation_failed"
+      ],
+      "elapsed_seconds": 210.578,
+      "report_nonempty": true,
+      "evidence_count": 11,
+      "citation_ids_resolve": false,
+      "all_reference_units_retrieved": true,
+      "all_reference_units_cited": false,
+      "required_sources_collected": null,
+      "required_sources_cited": null,
+      "llm_calls_instrumented": 12,
+      "result_path": "evals/results/report_acceptance_20261030T075549Z_b11bd7a238/results.json"
+    },
+    {
+      "id": "report_local_004",
+      "execution_status": "completed",
+      "error_type": null,
+      "failure_reasons": [],
+      "elapsed_seconds": 80.547,
+      "report_nonempty": true,
+      "evidence_count": 6,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": false,
+      "all_reference_units_cited": false,
+      "required_sources_collected": null,
+      "required_sources_cited": null,
+      "llm_calls_instrumented": 10,
+      "result_path": "evals/results/report_acceptance_20261030T075549Z_b11bd7a238/results.json"
+    },
+    {
+      "id": "report_local_005",
+      "execution_status": "degraded",
+      "error_type": null,
+      "failure_reasons": [
+        "timeout",
+        "llm_call_limit"
+      ],
+      "elapsed_seconds": 98.359,
+      "report_nonempty": true,
+      "evidence_count": 2,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": false,
+      "all_reference_units_cited": false,
+      "required_sources_collected": null,
+      "required_sources_cited": null,
+      "llm_calls_instrumented": 13,
+      "result_path": "evals/results/report_acceptance_20261030T075549Z_b11bd7a238/results.json"
+    },
+    {
+      "id": "report_local_006",
+      "execution_status": "degraded",
+      "error_type": null,
+      "failure_reasons": [
+        "timeout"
+      ],
+      "elapsed_seconds": 157.968,
+      "report_nonempty": true,
+      "evidence_count": 0,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": null,
+      "all_reference_units_cited": null,
+      "required_sources_collected": null,
+      "required_sources_cited": null,
+      "llm_calls_instrumented": 8,
+      "result_path": "evals/results/report_acceptance_20261030T075549Z_b11bd7a238/results.json"
+    },
+    {
+      "id": "report_web_001",
+      "execution_status": "degraded",
+      "error_type": null,
+      "failure_reasons": [
+        "upstream_timeout"
+      ],
+      "elapsed_seconds": 184.938,
+      "report_nonempty": true,
+      "evidence_count": 3,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": true,
+      "all_reference_units_cited": true,
+      "required_sources_collected": true,
+      "required_sources_cited": true,
+      "llm_calls_instrumented": 4,
+      "result_path": "evals/results/extended_reports_20261030T080951Z_5008c43ce0/results.json"
+    },
+    {
+      "id": "report_web_002",
+      "execution_status": "degraded",
+      "error_type": null,
+      "failure_reasons": [
+        "timeout",
+        "final_report_citation_validation_failed",
+        "claim_fallback_citation_validation_failed"
+      ],
+      "elapsed_seconds": 215.781,
+      "report_nonempty": true,
+      "evidence_count": 3,
+      "citation_ids_resolve": false,
+      "all_reference_units_retrieved": false,
+      "all_reference_units_cited": false,
+      "required_sources_collected": true,
+      "required_sources_cited": false,
+      "llm_calls_instrumented": 4,
+      "result_path": "evals/results/extended_reports_20261030T080951Z_5008c43ce0/results.json"
+    },
+    {
+      "id": "report_cross_001",
+      "execution_status": "degraded",
+      "error_type": null,
+      "failure_reasons": [
+        "timeout",
+        "subagent_retrieval_budget_exhausted"
+      ],
+      "elapsed_seconds": 189.625,
+      "report_nonempty": true,
+      "evidence_count": 9,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": false,
+      "all_reference_units_cited": false,
+      "required_sources_collected": true,
+      "required_sources_cited": true,
+      "llm_calls_instrumented": 11,
+      "result_path": "evals/results/extended_reports_20261030T080951Z_5008c43ce0/results.json"
+    },
+    {
+      "id": "report_cross_002",
+      "execution_status": "completed",
+      "error_type": null,
+      "failure_reasons": [],
+      "elapsed_seconds": 47.578,
+      "report_nonempty": true,
+      "evidence_count": 2,
+      "citation_ids_resolve": true,
+      "all_reference_units_retrieved": false,
+      "all_reference_units_cited": false,
+      "required_sources_collected": false,
+      "required_sources_cited": false,
+      "llm_calls_instrumented": 7,
+      "result_path": "evals/results/extended_reports_20261030T080951Z_5008c43ce0/results.json"
+    }
+  ],
+  "execution_counts": {
+    "completed": 3,
+    "degraded": 7
+  },
+  "median_elapsed_seconds": 171.45299999999997,
+  "reported_admitted_search_queries": 10,
+  "scheduled_search_query_ceiling": 10,
+  "generative_answer_accuracy": null,
+  "acceptance": "pending_human_review"
+}
