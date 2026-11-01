@@ -1,0 +1,39 @@
+{
+  "version": "benchmark_v3",
+  "purpose": "public_benchmark_development_and_smoke",
+  "source_sets": [
+    {
+      "name": "dabstep_research",
+      "lock": "evals/dabstep/dataset.lock.json",
+      "lock_sha256": "5aee5a8464d1a1ed76913829f65d98d3de44298e721e26622eeb1714384423f0",
+      "selection": "evals/dabstep/selected_tasks.jsonl",
+      "selection_sha256": "7f0645ce8fc34401f3576a2a54cfaf128fd0c3641357bb8047dc790bb411e4ea",
+      "case_ids": [
+        "dabstep_research_002",
+        "dabstep_research_084",
+        "dabstep_research_000",
+        "dabstep_research_003",
+        "dabstep_research_020",
+        "dabstep_research_041",
+        "dabstep_research_047",
+        "dabstep_research_085"
+      ],
+      "role": "development_and_previously_exposed_holdout"
+    },
+    {
+      "name": "hybrid_deep_research",
+      "lock": "evals/hybrid/dataset.lock.json",
+      "lock_sha256": "5286b1b08f6057c528a7b32e96cf2730ff2cba25c3806053cb0d97616d4f3551",
+      "selection": "evals/hybrid/smoke_subset.json",
+      "selection_sha256": "da0d77f57f8cf2480b817798c54a139dc24129b7efc3dd29ab010ef4220197e0",
+      "case_ids": ["s2sql_041", "sql2s_192", "parallel_053"],
+      "role": "engineering_smoke_only"
+    }
+  ],
+  "notes": [
+    "Legacy PDF cases are excluded because their source documents are unavailable on this host.",
+    "DABStep's original holdout was exposed during prior development; it is now regression material, not independent validation.",
+    "The three Hybrid cases are a routing smoke and cannot represent the 380-task benchmark.",
+    "Never publish decrypted Hybrid questions, gold answers or SQL."
+  ]
+}

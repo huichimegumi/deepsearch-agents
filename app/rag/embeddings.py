@@ -22,7 +22,14 @@ def _cache_dir() -> str | None:
 
 @lru_cache(maxsize=1)
 def get_embedding_model() -> TextEmbedding:
-    return TextEmbedding(model_name=get_rag_settings().embedding_model, cache_dir=_cache_dir())
+    # Shared hosts may have active GPU jobs; keep benchmark and application
+    # inference on CPU unless a separate resource admission policy is added.
+    return TextEmbedding(
+        model_name=get_rag_settings().embedding_model,
+        cache_dir=_cache_dir(),
+        providers=["CPUExecutionProvider"],
+        cuda=False,
+    )
 
 
 def embed_documents(texts: Sequence[str]) -> list[list[float]]:
@@ -37,7 +44,12 @@ def embed_query(text: str) -> list[float]:
 def _get_reranker():
     from fastembed.rerank.cross_encoder import TextCrossEncoder
 
-    return TextCrossEncoder(model_name=get_rag_settings().rerank_model, cache_dir=_cache_dir())
+    return TextCrossEncoder(
+        model_name=get_rag_settings().rerank_model,
+        cache_dir=_cache_dir(),
+        providers=["CPUExecutionProvider"],
+        cuda=False,
+    )
 
 
 @dataclass(frozen=True)

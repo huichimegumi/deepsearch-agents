@@ -1,5 +1,12 @@
 # 项目评测集
 
+E5.0 已准备不依赖个人电脑 PDF 的公开 benchmark：固定版本的 DABStep-Research/Adyen dev
+与 HybridDeepResearch/LiteSQL，合计 8 道 DABStep 开发回归题和 3 道 Hybrid 路由 smoke 题。
+先运行 `python -m evals.dabstep.prepare`、`python -m evals.hybrid.download_dataset`，再用
+`python -m evals.benchmark_preflight` 校验文件哈希、选题、SQLite 参考结果与跨源任务。
+本机预检为 11/11 资产就绪；这不是答案质量成绩。embedding 与 reranker 使用 CPU，
+避免占用共享 GPU。见 [E5.0 阶段记录](../docs/development/e5-0-public-benchmark-foundation.md)。
+
 E4.24 为完整报告交付增加调用方显式指定的来源要求：评测中的 Web／跨源题使用冻结的 `required_sources`，只有所需来源既取得合格 Evidence 又被实际引用时才交付回答。SQL＋本地题的零网络实跑因上游超时及取消迟滞结束于 `cancelled`，未触达最终交付分支；来源约束由确定性测试验证，不把该实跑记为质量提升。见 [来源交付与取消问题](../docs/development/e4-24-required-source-delivery.md)。
 
 E4.23 对通过 E4.22 机械交付门槛的本地 001、004 题做引用原文绑定的 AI 初审：001 的场景要点暂判有依据；004 的回顾性“适度宽松”有依据，但未回答后续增长与物价合理回升的完整要点。逐项报告／Evidence 引文存于私有审阅包，公开记录仅保留标签和哈希；人工准确率为空。见 [两题初审记录](../docs/development/e4-23-two-case-source-triage.md)。
