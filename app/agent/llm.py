@@ -8,7 +8,6 @@
 import os
 from functools import lru_cache
 
-from langchain.chat_models import init_chat_model
 from langchain_openai import ChatOpenAI
 
 from app.config import get_settings
@@ -19,10 +18,9 @@ class EvaluationBudgetedChatOpenAI(ChatOpenAI):
 
     def _get_request_payload(self, input_, *, stop=None, **kwargs):
         payload = super()._get_request_payload(input_, stop=stop, **kwargs)
-        if os.getenv("EVAL_LEDGER_PATH"):
-            from evals.request_budget import admit_request
+        from app.research.request_budget import admit_request
 
-            admit_request(payload)
+        admit_request(payload)
         return payload
 
 
@@ -63,7 +61,7 @@ def get_model():
         base_url=settings.openai_base_url,
         timeout=settings.tool_timeout_seconds,
         # Evaluation workers need one observable HTTP attempt per model invocation.
-        max_retries=0 if os.getenv("EVAL_DISABLE_SDK_RETRIES") == "1" else 1,
+        max_retries=0,
     )
     if os.getenv("EVAL_TEMPERATURE") is not None:
         model_kwargs["temperature"] = float(os.environ["EVAL_TEMPERATURE"])
@@ -78,6 +76,4 @@ def get_model():
         )
     if settings.llm_provider == "dashscope":
         return DashScopeChatOpenAI(**model_kwargs)
-    if os.getenv("EVAL_LEDGER_PATH"):
-        return EvaluationBudgetedChatOpenAI(**model_kwargs)
-    return init_chat_model(model_provider="openai", **model_kwargs)
+    return EvaluationBudgetedChatOpenAI(**model_kwargs)

@@ -11,7 +11,7 @@ import shutil
 import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import List
+from typing import List, Literal
 
 import uvicorn
 from fastapi import (
@@ -28,9 +28,8 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from app.agent.main_agent import run_deep_agent
 from app.api.conversation_store import append_message, get_or_create_conversation
 from app.api.conversations import router as conversations_router
 from app.api.health import router as health_router
@@ -49,6 +48,7 @@ from app.memory.extraction import extract_and_store_memories
 from app.memory.router import router as memories_router
 from app.rag.database import init_schema, session_scope
 from app.rag.models import User
+from app.research.service import run_research
 
 
 @asynccontextmanager
@@ -107,6 +107,9 @@ class TaskRequest(BaseModel):
 
     query: str
     thread_id: str = None
+    sources: list[Literal["sql", "local_document", "web", "fee_engine"]] | None = Field(
+        default=None, min_length=1, max_length=4
+    )
 
 
 def _thread_key(user_id: str, thread_id: str) -> str:
@@ -168,6 +171,7 @@ async def _run_task_and_record(
     user_id: str,
     monitor_thread_id: str,
     user_message_id: str | None = None,
+    sources: list[str] | None = None,
 ) -> None:
     conversation_memory = format_conversation_context_for_prompt(
         get_conversation_context(
@@ -178,12 +182,13 @@ async def _run_task_and_record(
     )
     monitor.begin_trace(monitor_thread_id)
     try:
-        result = await run_deep_agent(
+        result = await run_research(
             query,
             thread_id,
             user_id=user_id,
             monitor_thread_id=monitor_thread_id,
             conversation_memory=conversation_memory,
+            sources=sources,
         )
     finally:
         trace_events = monitor.end_trace(monitor_thread_id)
@@ -244,6 +249,7 @@ async def run_task(request: TaskRequest, current_user: User = Depends(get_curren
             user_id=current_user.id,
             monitor_thread_id=task_key,
             user_message_id=user_message.id,
+            sources=request.sources,
         )
     )
     active_tasks[task_key] = task

@@ -1,0 +1,12 @@
+{
+  "http_status": 200,
+  "runtime_status": "completed",
+  "item_count": "3",
+  "saved_assistant_messages": 1,
+  "model_reservations": {
+    "requests": 3,
+    "reserved_tokens": 13984
+  },
+  "artifact": "/home/suhan/projects/deepsearch-agents/app/output/user_e6_smoke/session_bounded_smoke_418d50fb56a443be8de7478fdb461d95/research_3bc98113ec2c41e086d8fa577e88b7dd/research_result.json",
+  "limitations": "Identity and conversation storage replaced; actual HTTP handler, shared executor, SQL and provider exercised."
+}

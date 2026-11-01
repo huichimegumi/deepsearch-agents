@@ -49,6 +49,7 @@ class AppSettings:
     openai_base_url: str | None
     cors_origins: tuple[str, ...]
     llm_provider: str = "legacy"
+    research_workflow: str = "legacy"
     agent_recursion_limit: int = 30
     agent_max_runtime_seconds: float = 300.0
     agent_hard_max_recursion_limit: int = 160
@@ -215,6 +216,7 @@ def get_settings() -> AppSettings:
         openai_api_key=api_key,
         openai_base_url=base_url,
         llm_provider=provider,
+        research_workflow=os.getenv("RESEARCH_WORKFLOW", "legacy"),
         cors_origins=_split_csv(
             os.getenv(
                 "CORS_ORIGINS",
