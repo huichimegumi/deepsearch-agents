@@ -1,0 +1,13 @@
+{
+  "version": "4.1",
+  "scheduled": 16,
+  "scored": 16,
+  "passes": 5,
+  "statuses": {
+    "completed": 7,
+    "error": 7,
+    "degraded": 2
+  },
+  "judge_errors": 0,
+  "generator_usage_missing": 7
+}

@@ -81,3 +81,5 @@ Thumbs.db
 
 # WorkBuddy
 .workbuddy/
+# Downloaded unmodified RFC source snapshots and rebuilt evaluation databases.
+/data/benchmarks/standards_v4/

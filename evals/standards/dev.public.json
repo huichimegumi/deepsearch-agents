@@ -1,0 +1,134 @@
+[
+  {
+    "id": "dev_local_0",
+    "question": "According to local RFC 8446, how does TLS 1.3 treat static RSA key exchange?",
+    "sources": [
+      "local_document"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_local_1",
+    "question": "Compare local RFC 4627 and RFC 8259 on which values may be a complete JSON text. Explain the apparent version conflict.",
+    "sources": [
+      "local_document"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_local_2",
+    "question": "Using only local RFC 8259, report the exact maximum number of object members all JSON parsers must accept. Refuse a universal numeric limit if none is specified.",
+    "sources": [
+      "local_document"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_local_3",
+    "question": "Using only local RFC 9111, what fixed retention period in days must every HTTP cache apply? Refuse a universal number if it is not specified.",
+    "sources": [
+      "local_document"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_mixed_0",
+    "question": "First use SQL to identify the RFC number and publication year for the standard titled 'Robots Exclusion Protocol'. Return the exact numeric metric publication_year, citing the SQL result. Then use that identifier to query the available Web snapshots and answer: How are equally specific allow and disallow rules resolved in the Robots Exclusion Protocol?",
+    "sources": [
+      "sql",
+      "web"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_mixed_1",
+    "question": "First use SQL to identify the RFC number and publication year for the standard titled 'Uniform Resource Identifier (URI): Generic Syntax'. Return the exact numeric metric publication_year, citing the SQL result. Then use that identifier to query the available Web snapshots and answer: Compare the classification of parentheses in RFC 2396 and RFC 3986. Explain the version difference using both sources.",
+    "sources": [
+      "sql",
+      "web"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_mixed_2",
+    "question": "First use SQL to identify the RFC number and publication year for the standard titled 'HTTP State Management Mechanism'. Return the exact numeric metric publication_year, citing the SQL result. Then use that identifier to query the available Web snapshots and answer: Distinguish the Secure and HttpOnly cookie attributes and their limitations.",
+    "sources": [
+      "sql",
+      "web"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_mixed_3",
+    "question": "First use SQL to identify the RFC number and publication year for the standard titled 'The WebSocket Protocol'. Return the exact numeric metric publication_year, citing the SQL result. Then use that identifier to query the available Web snapshots and answer: What does WebSocket close status 1000 mean, and how does it differ from 1001?",
+    "sources": [
+      "sql",
+      "web"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_sql_0",
+    "question": "Use only the SQL database. Count all standards rows. Return the exact numeric metric document_count with a source-field binding.",
+    "sources": [
+      "sql"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_sql_1",
+    "question": "Use only the SQL database. Find the earliest publication year in standards. Return the exact numeric metric earliest_year with a source-field binding.",
+    "sources": [
+      "sql"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_sql_2",
+    "question": "Use only the SQL database. Count standards rows whose source_role is web. Return the exact numeric metric web_document_count with a source-field binding.",
+    "sources": [
+      "sql"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_sql_3",
+    "question": "Use only the SQL database. Count distinct author names across all rows of authors. Return the exact numeric metric distinct_author_count with a source-field binding.",
+    "sources": [
+      "sql"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_web_0",
+    "question": "Use only the available Web snapshots, especially RFC 9309. How are equally specific allow and disallow rules resolved in the Robots Exclusion Protocol?",
+    "sources": [
+      "web"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_web_1",
+    "question": "Use only the available Web snapshots, especially RFC 3986. Compare the classification of parentheses in RFC 2396 and RFC 3986. Explain the version difference using both sources.",
+    "sources": [
+      "web"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_web_2",
+    "question": "Use only the available Web snapshots, especially RFC 6265. Distinguish the Secure and HttpOnly cookie attributes and their limitations.",
+    "sources": [
+      "web"
+    ],
+    "split": "dev"
+  },
+  {
+    "id": "dev_web_3",
+    "question": "Use only the available Web snapshots, especially RFC 6455. What does WebSocket close status 1000 mean, and how does it differ from 1001?",
+    "sources": [
+      "web"
+    ],
+    "split": "dev"
+  }
+]

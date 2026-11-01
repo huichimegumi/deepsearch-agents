@@ -1,0 +1,1360 @@
+{
+  "rows": [
+    {
+      "id": "dev_local_0",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Claim 1 states static RSA cipher suites have been removed, matching the checklist requirement."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim 1 cites local RFC 8446 excerpts (offsets 16000 and 18000) containing the exact removal statement."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Both cited excerpts contain the bullet: 'Static RSA and Diffie-Hellman cipher suites have been removed; all public-key based key exchange mechanisms now provide forward secrecy.'"
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Offset 18000 excerpt contains the same bullet, confirming removal of static RSA cipher suites as a major difference."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "TOC excerpt lists 'E.8. Attacks on Static RSA .....152'; body text absent, as the claim itself acknowledges."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Offset 270000 excerpt shows only ClientHello/ServerHello and extension definitions, consistent with the claim's description."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4033,
+            "output_tokens": 296,
+            "total_tokens": 4329,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 8006,
+        "output_tokens": 676,
+        "total_tokens": 8682
+      }
+    },
+    {
+      "id": "dev_local_1",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Clearly distinguishes 4627's object/array-only JSON-text rule from 8259's serialized value rule, including scalars."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Attributes each rule to its RFC with quoted grammar from both local sources."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1_51fab3c3762ce5bf4854c3c7 shows 'JSON-text = object / array' and 'serialized object or array'; header confirms July 2006, Informational, Crockford."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Same evidence shows value = false/null/true/object/array/number/string and JSON-text restricted to object/array."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "ev1_8208fc3f80be258133a553b1 shows 'JSON-text = ws value ws' and 'serialized value'; header shows December 2017, Standards Track, Bray."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Evidence states prior specs constrained JSON text to object or array and generators of objects/arrays will be interoperable."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "8259 evidence shows identical value production (object, array, number, string, false/null/true, lowercase)."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "ev1_10c4ed735077a238df519b9c states 8259 replaces RFC 7159, which obsoleted RFC 4627."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "Evidence states normative ECMA-404 reference emphasizes no inconsistencies in 'JSON text' definition and grammar is same."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "Evidence cites errata 607/3607, goal to apply errata, remove inconsistencies, highlight interoperability practices."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "Both excerpts support: 4627 restricts JSON-text scope while value rule identical; 8259 attributes relaxation to prior specs."
+              },
+              {
+                "index": 10,
+                "supported": true,
+                "reason": "ev1_66e227c047ec783b64744f6e shows Informational and 'does not specify an Internet standard'; 8259 header shows Standards Track."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 6517,
+            "output_tokens": 588,
+            "total_tokens": 7105,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 11846,
+        "output_tokens": 1355,
+        "total_tokens": 13201
+      }
+    },
+    {
+      "id": "dev_local_2",
+      "status": "degraded",
+      "issues": [
+        "runtime_not_completed",
+        "unanswerable_task_not_refused"
+      ],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate explicitly states RFC 8259 specifies no universal maximum member count all parsers must accept."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "No number invented; limitations state evidence scope (four excerpts, no live fetch)."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Section 9 excerpt permits size limits and grammar shows no count cap; supports no universal numeric limit."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Object ABNF with '*' repetition is quoted verbatim in ev1 offset 10000; no count limit imposed."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Section 9 excerpt states MUST accept conforming texts and MAY set size, nesting, number, string limits."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Reasonable inference directly from Section 9's allowance of text-size limits; no specific count guaranteed."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Introduction excerpt defines object as unordered collection of zero or more name/value pairs."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Section 4 excerpt states names SHOULD be unique; no member-count constraint stated."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4485,
+            "output_tokens": 333,
+            "total_tokens": 4818,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": {
+        "input_tokens": 8782,
+        "output_tokens": 857,
+        "total_tokens": 9639
+      }
+    },
+    {
+      "id": "dev_local_3",
+      "status": "completed",
+      "issues": [
+        "unanswerable_task_not_refused"
+      ],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate explicitly states RFC 9111 specifies no fixed retention period applying to every cache, and explains freshness is per-response."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "No fabricated day count; refusal is scoped to the local RFC 9111 excerpts, with limitations noting unretrieved sections."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence shows freshness computed per response via freshness_lifetime/current_age; no universal constant appears."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Section 4.2.1 excerpt lists s-maxage, max-age, Expires-Date, otherwise heuristic — matches claim."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Section 4.2.2 says cache MAY assign heuristic time, no specific algorithms, encourages fraction, typical 10%."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Evidence gives response_is_fresh = (freshness_lifetime > current_age) and age definition matching claim."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "no-store excerpt states cache MUST NOT store any part of request or response; a prohibition, not duration."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Scope note accurately describes retrieved excerpts (copyright, TOC, 4.2–4.2.3, request directives) and missing sections."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 6199,
+            "output_tokens": 374,
+            "total_tokens": 6573,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": {
+        "input_tokens": 10409,
+        "output_tokens": 1020,
+        "total_tokens": 11429
+      }
+    },
+    {
+      "id": "dev_mixed_0",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "publication_year",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "SQL result ev1_sql shows rfc 9309, title 'Robots Exclusion Protocol', year 2022; candidate cites it for publication_year 2022."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate explains most-specific match = most octets, citing Section 2.2.2 text that states this."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Candidate quotes 'If an \"allow\" rule and a \"disallow\" rule are equivalent, then the \"allow\" rule SHOULD be used,' matching reference."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence row shows rfc=9309, title='Robots Exclusion Protocol', year=2022, matching the claim."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Both web excerpts have title 'RFC 9309: Robots Exclusion Protocol' and are rfc9309.txt content, confirming mapping."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Excerpt states MUST match paths, SHOULD be case sensitive, MUST start with first octet, most specific match (most octets) MUST be used."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Excerpt contains exact sentence: equivalent allow/disallow rules -> allow SHOULD be used."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Excerpt states duplicate rules MAY be deduplicated, no match/no rules -> allowed, /robots.txt implicitly allowed."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Offset 12000 excerpt states crawler SHOULD ignore rules not in any group; offset 10000 states no matching group/no '*'/no groups -> no rules apply."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "Offset 2000 excerpt states rules are not access authorization and specifies rules originally defined by 'Robots Exclusion Protocol' [ROBOTSTXT]."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 5166,
+            "output_tokens": 497,
+            "total_tokens": 5663,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 10910,
+        "output_tokens": 1154,
+        "total_tokens": 12064
+      }
+    },
+    {
+      "id": "dev_mixed_1",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "publication_year",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 0.75,
+      "claim_support": 0.8,
+      "judge_responses": [
+        {
+          "checklist_coverage": 0.75,
+          "claim_support": 0.8,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "SQL evidence ev1_sql shows rfc 3986, year 2005; candidate cites it and reports publication_year 2005."
+              },
+              {
+                "index": 2,
+                "score": 0.0,
+                "reason": "Reference says RFC 2396 unreserved mark includes parentheses, but candidate claims parentheses are absent from unreserved/mark and not reserved; contradicts reference."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "RFC 3986 sub-delims rule in ev1_web_4f1955 and bff73 includes '(' and ')'; candidate states this correctly."
+              },
+              {
+                "index": 4,
+                "score": 1.0,
+                "reason": "Candidate attributes RFC 2396 non-reserved treatment and RFC 3986 sub-delim classification to correct versions."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence returns rfc 3986, year 2005 for the exact title."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "ev1_web_4f1955 and bff73 give reserved = gen-delims / sub-delims with '(' and ')' in sub-delims."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "bff73 states reserved may/may not be delimiters, percent-encoding changes interpretation, and reserved protected from normalization."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "bff73 lists gen-delims without parentheses and sub-delims with them; consistent with subcomponent delimiters."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "ev1_web_14007f7 and 01ee6b enumerate reserved without parentheses."
+              },
+              {
+                "index": 6,
+                "supported": false,
+                "reason": "Claim that parentheses fall outside unreserved/mark is not entailed; excerpt truncated and reference says mark includes parentheses."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "ev1_web_38e609 and 7ea147 list excluded/unwise sets without parentheses."
+              },
+              {
+                "index": 8,
+                "supported": false,
+                "reason": "RFC 2396 portion (ordinary non-reserved) is not entailed; reference says parentheses are unreserved marks, and unreserved chars are data characters, not 'ordinary' in the claimed sense."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "bff73 shows two-tier gen-delims/sub-delims; 14007f7 shows flat reserved list in RFC 2396."
+              },
+              {
+                "index": 10,
+                "supported": true,
+                "reason": "bff73 supports normalization/percent-encoding statements; absence of rationale is accurately noted."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 10790,
+            "output_tokens": 643,
+            "total_tokens": 11433,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": {
+        "input_tokens": 19742,
+        "output_tokens": 1680,
+        "total_tokens": 21422
+      }
+    },
+    {
+      "id": "dev_mixed_2",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "publication_year",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 0.8888888888888888,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 0.8888888888888888,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "SQL evidence ev1_sql... returns rfc 6265, year 2011; candidate cites it for publication_year 2011."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim 3 accurately reflects RFC 6265 §4.1.2.5: Secure limits scope to secure channels, included only over secure channel (typically TLS)."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Claim 4 accurately reflects §4.1.2.6: HttpOnly limits scope to HTTP requests, omits cookie via non-HTTP APIs like document.cookie."
+              },
+              {
+                "index": 4,
+                "score": 1.0,
+                "reason": "Candidate explicitly states Secure protects only confidentiality and an active attacker can overwrite Secure cookies, disrupting integrity."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence shows rfc 6265, title match, year 2011; claim matches exactly."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "ev1_web_999a... shows §5.2.5/5.2.6 append behavior; ev1_web_decc... shows steps 8/9 setting secure-only-flag and http-only-flag."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "ev1_web_b747... §4.1.2.5 states Secure limits scope to secure channels, included only over secure channel (typically TLS)."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "ev1_web_b747... §4.1.2.6 states HttpOnly limits scope to HTTP requests, omits via non-HTTP APIs such as browser API exposing cookies to scripts."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "ev1_web_b747... states HttpOnly independent of Secure, cookie can have both; ev1_web_5620... example uses Secure and HttpOnly for sensitive session identifier."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "ev1_web_b747... states Secure protects only confidentiality; active attacker can overwrite Secure cookies from insecure channel, disrupting integrity (§8.6)."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "ev1_web_17dd... §8.6 states active attacker can inject cookies into Cookie header to https://example.com/ by impersonating http://example.com/ response."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "ev1_web_17dd... states cookies available to other schemes (ftp, gopher) and lack of isolation by scheme present in cookie processing requirements."
+              },
+              {
+                "index": 9,
+                "supported": false,
+                "reason": "ev1_web_6a22 is only a table of contents listing §8.5/8.6 titles; it does not state weak confidentiality/integrity content. Path caveat is supported by b747, but the weak-confidentiality claim lacks entailing evidence."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 6317,
+            "output_tokens": 716,
+            "total_tokens": 7033,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": {
+        "input_tokens": 11364,
+        "output_tokens": 1380,
+        "total_tokens": 12744
+      }
+    },
+    {
+      "id": "dev_mixed_3",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "publication_year",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "SQL evidence returns rfc 6455, year 2011; candidate cites it and states publication_year 2011."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Section 7.4.1 excerpt states 1000 indicates normal closure, purpose fulfilled."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Section 7.4.1 excerpt states 1001 indicates endpoint 'going away', e.g., server down or browser navigated away."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence shows rfc=6455, year=2011, matching the claim."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Both web excerpts show header 'RFC 6455 The WebSocket Protocol December 2011'."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Excerpt states 1000 indicates normal closure, purpose fulfilled."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Excerpt states 1001 indicates endpoint 'going away', server down or browser navigated away."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Difference follows directly from the two definitions in the excerpt."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Registry table lists 1000 Normal Closure and 1001 Going Away, reference RFC 6455."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "Section 7.4 excerpt states interpretation/action left undefined and code/message optional."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "Excerpt states range 1000-4999, 1000-2999 policies, 3000-3999 FCFS, 4000-4999 Private Use."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 5232,
+            "output_tokens": 460,
+            "total_tokens": 5692,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 11104,
+        "output_tokens": 1137,
+        "total_tokens": 12241
+      }
+    },
+    {
+      "id": "dev_sql_0",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "document_count",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports document_count = 10 and cites the executed SQL query result (COUNT(*) AS document_count FROM standards) showing 10."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence is a SQL query result of SELECT COUNT(*) AS document_count FROM standards returning 10, entailing the claim of a single-row total count."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 990,
+            "output_tokens": 139,
+            "total_tokens": 1129,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 3485,
+        "output_tokens": 377,
+        "total_tokens": 3862
+      }
+    },
+    {
+      "id": "dev_sql_1",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "earliest_year",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports earliest_year = 1998 and cites the executed SQL query result (MIN(year) FROM standards) as evidence."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence is a SQL query result of SELECT MIN(year) AS earliest_year FROM standards returning 1998, which entails the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 989,
+            "output_tokens": 133,
+            "total_tokens": 1122,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 3497,
+        "output_tokens": 380,
+        "total_tokens": 3877
+      }
+    },
+    {
+      "id": "dev_sql_2",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "web_document_count",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports web_document_count = 5 and cites the executed SQL query result ev1, which shows COUNT(*) AS web_document_count FROM standards WHERE source_role='web' returning 5."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence ev1 is a SQL query result with the exact query counting standards rows where source_role='web', returning a single aggregate row with web_document_count = 5, matching the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 1058,
+            "output_tokens": 161,
+            "total_tokens": 1219,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 3538,
+        "output_tokens": 434,
+        "total_tokens": 3972
+      }
+    },
+    {
+      "id": "dev_sql_3",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "distinct_author_count",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports distinct_author_count = 16 and cites the executed SQL query result (ev1) whose content is {distinct_author_count: 16}."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence ev1 is a SQL query result for SELECT COUNT(DISTINCT author) AS distinct_author_count FROM authors with content distinct_author_count = 16, matching the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 1029,
+            "output_tokens": 153,
+            "total_tokens": 1182,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 3530,
+        "output_tokens": 411,
+        "total_tokens": 3941
+      }
+    },
+    {
+      "id": "dev_web_0",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Claim 1 explains most-specific matching: most octets, MUST be used, per §2.2.2."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim 2 states equivalent allow/disallow prefers allow with SHOULD strength, matching RFC text."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1_web_15a439455cdb56913509b1f9 contains the exact normative sentences on matching and most-specific (most octets) match."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Same excerpt contains verbatim: 'If an \"allow\" rule and a \"disallow\" rule are equivalent, then the \"allow\" rule SHOULD be used.'"
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "All listed items (case sensitivity SHOULD, first octet MUST, dedup MAY, no-match allowed, /robots.txt implicitly allowed) appear in the cited excerpt."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "TOC excerpt lists '5.2. Longest Match' under Examples; text absent from snapshots, as stated."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Introduction excerpt states rules are requested to be honored and are not a form of access authorization."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4540,
+            "output_tokens": 353,
+            "total_tokens": 4893,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 8680,
+        "output_tokens": 892,
+        "total_tokens": 9572
+      }
+    },
+    {
+      "id": "dev_web_1",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "RFC 2396 evidence shows mark includes \"(\" and \")\", and unreserved = alphanum | mark."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "RFC 3986 evidence shows sub-delims includes \"(\" and \")\", and reserved = gen-delims / sub-delims."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Candidate correctly attributes unreserved mark to RFC 2396 (Aug 1998) and sub-delims to RFC 3986 (Jan 2005)."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1_web_3c2536a9fae36740d67b68ba shows unreserved = alphanum | mark with mark including ( and ); date Aug 1998 confirmed."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "ev1_web_3c2536a9fae36740d67b68ba states unreserved chars can be escaped without changing semantics, but should not unless context disallows unescaped char."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "ev1_web_bff73af13eed6fee8461963d shows reserved = gen-delims / sub-delims with sub-delims including ( and ); Jan 2005 confirmed."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "ev1_web_4f1955ac630918124bb04eec shows unreserved = ALPHA / DIGIT / - . _ ~, excluding parentheses."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "ev1_web_bff73af13eed6fee8461963d states reserved replacement changes equivalence, interpretation, and protection from normalization."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "ev1_web_bff73af13eed6fee8461963d states reserved chars may be delimiters by generic/scheme/implementation syntax and conflicting data must be percent-encoded."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "ev1_web_3c2536a9fae36740d67b68ba states reserved if semantics change when replaced with escaped encoding, set defined by component."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "ev1_web_9600924f5b3e519179868bc8 shows RFC 2396 uric/reserved grammar; ev1_web_4f1955ac630918124bb04eec shows RFC 3986 gen-delims/sub-delims and pchar."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "Both excerpts show identical regex with same numbering; RFC 3986 says five components, RFC 2396 says four components plus fragment."
+              },
+              {
+                "index": 10,
+                "supported": true,
+                "reason": "Cited excerpts contain no explicit rationale/change-log for the reclassification; gap acknowledgment is accurate."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 9185,
+            "output_tokens": 721,
+            "total_tokens": 9906,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 16850,
+        "output_tokens": 1554,
+        "total_tokens": 18404
+      }
+    },
+    {
+      "id": "dev_web_2",
+      "status": "degraded",
+      "issues": [
+        "runtime_not_completed",
+        "answerable_task_not_answered"
+      ],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 0.6666666666666666,
+      "claim_support": 0.8888888888888888,
+      "judge_responses": [
+        {
+          "checklist_coverage": 0.6666666666666666,
+          "claim_support": 0.8888888888888888,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 0.0,
+                "reason": "Candidate explicitly says Secure's transmission restriction is not evidenced and never states it restricts transmission to secure channels."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim 4 describes HttpOnly enforcement against non-HTTP APIs (abort/ignore), matching the checklist."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Candidate does not claim Secure alone prevents all integrity attacks; it notes weak integrity and missing transport evidence."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1_web_999a13cb066f4294c4bc19a8 contains sections 5.2.5 and 5.2.6 with the exact MUST-append empty-value rules for Secure and HttpOnly."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "ev1_web_decc5c12e87fb44670a36845 steps 8-9 set secure-only-flag and http-only-flag; ev1_web_cd247268d6be3e812878804e repeats step 9, confirming distinct fields."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "ev1_web_999a13cb066f4294c4bc19a8 lists all fields including secure-only-flag and http-only-flag in the storage model."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "ev1_web_cd247268d6be3e812878804e steps 10 and 11.2 give the non-HTTP API abort/ignore rules exactly."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "ev1_web_decc5c12e87fb44670a36845 only shows step 8 setting secure-only-flag; no transport restriction text present, so the absence claim is accurate."
+              },
+              {
+                "index": 6,
+                "supported": false,
+                "reason": "ev1_web_6a227b7fa6415eea1292636d is only a table of contents listing section titles; it does not state cookies lack confidentiality/integrity. The 'does not prevent reading' claim is also unsupported."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "ev1_web_999a13cb066f4294c4bc19a8 step 1 states user agent MAY ignore a received cookie entirely, e.g., third-party or oversized."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "ev1_web_cd247268d6be3e812878804e describes excess-cookie removal with the stated priority order (expired, shared-domain, all)."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "ev1_web_6a227b7fa6415eea1292636d TOC lists 5.2.5 Secure, 5.2.6 HttpOnly, and 8.2-8.7 subsections as stated."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4533,
+            "output_tokens": 712,
+            "total_tokens": 5245,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": {
+        "input_tokens": 8067,
+        "output_tokens": 1326,
+        "total_tokens": 9393
+      }
+    },
+    {
+      "id": "dev_web_3",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate states 1000 indicates normal closure with purpose fulfilled, matching RFC 6455 Section 7.4.1."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate states 1001 indicates an endpoint is 'going away', e.g., server going down or browser navigating away."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1_web_2419589442e7d823149cfb9a states 1000 indicates normal closure, purpose fulfilled, under Section 7.4.1."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Same evidence states 1001 indicates endpoint 'going away', such as server going down or browser navigating away."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "The distinction (purpose fulfilled vs. external departure reasons) is directly entailed by the two definitions in the cited evidence."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "ev1_web_d1f42463e1871c35bc0c6d55 shows IANA registry listing 1000 Normal Closure and 1001 Going Away, both referencing RFC 6455."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Cited evidence states interpretation of reason and action are left undefined, and status code/message are optional components of a Close frame."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "ev1_web_9df98b3809b2eb4e8e744b25 states codes are integers 1000-4999, with 1000-2999 protocol/extensions, 3000-3999 libraries/frameworks/applications, 4000-4999 private use."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 5447,
+            "output_tokens": 448,
+            "total_tokens": 5895,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 10777,
+        "output_tokens": 832,
+        "total_tokens": 11609
+      }
+    }
+  ],
+  "scheduled": 16,
+  "terminal": 16
+}

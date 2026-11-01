@@ -1,0 +1,328 @@
+{
+  "case_file": "evals/standards/dev.json",
+  "runs": [
+    {
+      "run_id": "e6-2-dev-bounded",
+      "manifest": {
+        "version": "4.0",
+        "split": "dev",
+        "workflow": "bounded",
+        "profile": "deepseek",
+        "public_tasks_sha256": "4f3421c114e1b9a0696df28414b924864d94eabf5548fc01bc0dba80a44b22f9",
+        "source_sha256": "5c1980c0e17f8566ca401c61006cd5f18708d7195722b497038b28149b985260",
+        "sources_sha256": "89afdcaa10941dfab903d2d23a8dc80e0ce0c9efac524f9b0e9bf5c8827645cf",
+        "database_sha256": "d132bb826ce398393bd9cc85b734afe5cbd4ffe569f984387df34a66a4f5eac1",
+        "case_ids": [
+          "dev_local_0",
+          "dev_local_1",
+          "dev_local_2",
+          "dev_local_3",
+          "dev_mixed_0",
+          "dev_mixed_1",
+          "dev_mixed_2",
+          "dev_mixed_3",
+          "dev_sql_0",
+          "dev_sql_1",
+          "dev_sql_2",
+          "dev_sql_3",
+          "dev_web_0",
+          "dev_web_1",
+          "dev_web_2",
+          "dev_web_3"
+        ],
+        "deadline_seconds": 210,
+        "case_model_token_reservation_limit": 180000,
+        "batch_token_reservation_limit": 2000000,
+        "web_mode": "snapshot_only",
+        "gpu": "cpu"
+      },
+      "summary": {
+        "scheduled": 16,
+        "terminal": 16,
+        "completed": 7,
+        "passes": 5,
+        "statuses": {
+          "completed": 7,
+          "error": 7,
+          "degraded": 2
+        },
+        "p50_seconds": 13.68,
+        "p95_seconds": 19.469,
+        "known_generator_tokens": 61498,
+        "generator_usage_missing": 7,
+        "reserved_tokens": 324965,
+        "requests": 46
+      },
+      "rows": [
+        {
+          "id": "dev_local_0",
+          "category": "local_document",
+          "status": "completed",
+          "seconds": 14.605,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "dev_local_1",
+          "category": "local_document",
+          "status": "error",
+          "seconds": 17.956,
+          "pass": false,
+          "checklist": 0.0,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed",
+            "answerable_task_not_answered"
+          ],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "dev_local_2",
+          "category": "local_document",
+          "status": "error",
+          "seconds": 13.247,
+          "pass": false,
+          "checklist": 0.0,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed",
+            "unanswerable_task_not_refused"
+          ],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "dev_local_3",
+          "category": "local_document",
+          "status": "error",
+          "seconds": 14.456,
+          "pass": false,
+          "checklist": 0.0,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed",
+            "unanswerable_task_not_refused"
+          ],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "dev_mixed_0",
+          "category": "mixed",
+          "status": "degraded",
+          "seconds": 12.696,
+          "pass": false,
+          "checklist": 0.3333333333333333,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed",
+            "answerable_task_not_answered",
+            "missing_required_source_citations",
+            "missing_executed_sql_web_dependency"
+          ],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "dev_mixed_1",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 17.663,
+          "pass": false,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [
+            "missing_executed_sql_web_dependency"
+          ],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "dev_mixed_2",
+          "category": "mixed",
+          "status": "degraded",
+          "seconds": 11.802,
+          "pass": false,
+          "checklist": 0.375,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed",
+            "answerable_task_not_answered",
+            "missing_required_source_citations",
+            "missing_executed_sql_web_dependency"
+          ],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "dev_mixed_3",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 14.963,
+          "pass": false,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [
+            "missing_executed_sql_web_dependency"
+          ],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "dev_sql_0",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 11.403,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "document_count",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "dev_sql_1",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 11.307,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "earliest_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "dev_sql_2",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 10.953,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "web_document_count",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "dev_sql_3",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 11.099,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "distinct_author_count",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "dev_web_0",
+          "category": "web",
+          "status": "error",
+          "seconds": 12.905,
+          "pass": false,
+          "checklist": 0.0,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed",
+            "answerable_task_not_answered"
+          ],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "dev_web_1",
+          "category": "web",
+          "status": "error",
+          "seconds": 19.469,
+          "pass": false,
+          "checklist": 0.0,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed",
+            "answerable_task_not_answered"
+          ],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "dev_web_2",
+          "category": "web",
+          "status": "error",
+          "seconds": 18.324,
+          "pass": false,
+          "checklist": 0.16666666666666666,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed",
+            "answerable_task_not_answered"
+          ],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "dev_web_3",
+          "category": "web",
+          "status": "error",
+          "seconds": 14.114,
+          "pass": false,
+          "checklist": 0.0,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed",
+            "answerable_task_not_answered"
+          ],
+          "judge_errors": [],
+          "numeric_checks": []
+        }
+      ]
+    }
+  ],
+  "limitations": "Internally authored engineering tasks over official RFC snapshots; not an official benchmark score. Snapshot retrieval excludes live web-search reliability. LLM support grades remain provisional."
+}

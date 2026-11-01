@@ -132,3 +132,10 @@ async def test_cancellation_never_publishes_completed_output(tmp_path):
             model=Blocked(),
         )
     assert not (tmp_path / "research_result.json").exists()
+
+
+def test_unknown_value_is_a_refusal_not_a_numeric_fact():
+    from app.research.report import ReportFact
+
+    with pytest.raises(ValueError, match="nonnumeric_report_fact"):
+        ReportFact(metric="limit", value="not specified", evidence_id="source", path=[])

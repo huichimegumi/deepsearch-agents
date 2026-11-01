@@ -1,0 +1,200 @@
+[
+  {
+    "id": "holdout_local_0",
+    "question": "Using local RFC 6901, explain the encodings of slash and tilde in JSON Pointer reference tokens and their decoding order.",
+    "sources": [
+      "local_document"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_local_1",
+    "question": "Using local RFC 7396, explain null members in JSON Merge Patch and what a non-object patch does to its target.",
+    "sources": [
+      "local_document"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_local_2",
+    "question": "Using local RFC 6585, explain 429 and whether Retry-After is mandatory. Distinguish normative strength.",
+    "sources": [
+      "local_document"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_local_3",
+    "question": "Using local RFC 3339, compare -00:00 with Z or +00:00; explain why treating them as identical loses information.",
+    "sources": [
+      "local_document"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_local_4",
+    "question": "Only local RFC 8288 is available: what is the exact number of Link header fields allowed by our deployed reverse proxy? Refuse if deployment-specific evidence is absent.",
+    "sources": [
+      "local_document"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_local_5",
+    "question": "Using local RFC 9112, give our production service's measured request-smuggling incident count last month. Refuse if telemetry is absent.",
+    "sources": [
+      "local_document"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_mixed_0",
+    "question": "First use SQL to identify the RFC number and publication year for the standard titled 'HTTP Cache-Control Extensions for Stale Content'. Return the exact numeric metric publication_year, citing the SQL result. Then use that identifier to query the available Web snapshots and answer: Compare stale-while-revalidate and stale-if-error: what different conditions allow stale responses?",
+    "sources": [
+      "sql",
+      "web"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_mixed_1",
+    "question": "First use SQL to identify the RFC number and publication year for the standard titled 'HTTP Strict Transport Security (HSTS)'. Return the exact numeric metric publication_year, citing the SQL result. Then use that identifier to query the available Web snapshots and answer: Explain HSTS includeSubDomains and what happens if max-age is zero.",
+    "sources": [
+      "sql",
+      "web"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_mixed_2",
+    "question": "First use SQL to identify the RFC number and publication year for the standard titled \"The 'Basic' HTTP Authentication Scheme\". Return the exact numeric metric publication_year, citing the SQL result. Then use that identifier to query the available Web snapshots and answer: Does HTTP Basic authentication encrypt credentials? Explain its Base64 encoding and transport requirement.",
+    "sources": [
+      "sql",
+      "web"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_mixed_3",
+    "question": "First use SQL to identify the RFC number and publication year for the standard titled 'Forwarded HTTP Extension'. Return the exact numeric metric publication_year, citing the SQL result. Then use that identifier to query the available Web snapshots and answer: Explain why Forwarded values cannot automatically be trusted and how privacy can be improved.",
+    "sources": [
+      "sql",
+      "web"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_mixed_4",
+    "question": "First use SQL to identify the RFC number and publication year for the standard titled 'Use of the Content-Disposition Header Field in the Hypertext Transfer Protocol (HTTP)'. Return the exact numeric metric publication_year, citing the SQL result. Then use that identifier to query the available Web snapshots and answer: When Content-Disposition has filename and filename*, which should recipients prefer, and what filesystem precaution is required?",
+    "sources": [
+      "sql",
+      "web"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_mixed_5",
+    "question": "First use SQL to identify the RFC number and publication year for the standard titled 'HTTP Message Signatures'. Return the exact numeric metric publication_year, citing the SQL result. Then use that identifier to query the available Web snapshots and answer: Distinguish Signature-Input from Signature in HTTP Message Signatures and explain why selecting covered components matters.",
+    "sources": [
+      "sql",
+      "web"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_sql_0",
+    "question": "Use only the SQL database. Count all standards rows. Return the exact numeric metric document_count with a source-field binding.",
+    "sources": [
+      "sql"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_sql_1",
+    "question": "Use only the SQL database. Find the earliest publication year in standards. Return the exact numeric metric earliest_year with a source-field binding.",
+    "sources": [
+      "sql"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_sql_2",
+    "question": "Use only the SQL database. Count standards rows whose source_role is web. Return the exact numeric metric web_document_count with a source-field binding.",
+    "sources": [
+      "sql"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_sql_3",
+    "question": "Use only the SQL database. Count distinct author names across all rows of authors. Return the exact numeric metric distinct_author_count with a source-field binding.",
+    "sources": [
+      "sql"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_sql_4",
+    "question": "Use only the SQL database. Sum page_count across all rows in standards. Return the exact numeric metric total_pages with a source-field binding.",
+    "sources": [
+      "sql"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_sql_5",
+    "question": "Use only the SQL database. Find the largest RFC identifier among standards rows with year >= 2014. Return the exact numeric metric latest_rfc with a source-field binding.",
+    "sources": [
+      "sql"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_web_0",
+    "question": "Use only the available Web snapshots, especially RFC 5861. Compare stale-while-revalidate and stale-if-error: what different conditions allow stale responses?",
+    "sources": [
+      "web"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_web_1",
+    "question": "Use only the available Web snapshots, especially RFC 6797. Explain HSTS includeSubDomains and what happens if max-age is zero.",
+    "sources": [
+      "web"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_web_2",
+    "question": "Use only the available Web snapshots, especially RFC 7617. Does HTTP Basic authentication encrypt credentials? Explain its Base64 encoding and transport requirement.",
+    "sources": [
+      "web"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_web_3",
+    "question": "Use only the available Web snapshots, especially RFC 7239. Explain why Forwarded values cannot automatically be trusted and how privacy can be improved.",
+    "sources": [
+      "web"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_web_4",
+    "question": "Use only the available Web snapshots, especially RFC 6266. When Content-Disposition has filename and filename*, which should recipients prefer, and what filesystem precaution is required?",
+    "sources": [
+      "web"
+    ],
+    "split": "holdout"
+  },
+  {
+    "id": "holdout_web_5",
+    "question": "Use only the available Web snapshots, especially RFC 9421. Distinguish Signature-Input from Signature in HTTP Message Signatures and explain why selecting covered components matters.",
+    "sources": [
+      "web"
+    ],
+    "split": "holdout"
+  }
+]

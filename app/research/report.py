@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
@@ -15,14 +15,25 @@ class ReportClaim(BaseModel):
 
 class ReportFact(BaseModel):
     metric: str = Field(min_length=1, max_length=100)
-    value: str = Field(max_length=100)
+    value: str = Field(
+        max_length=100,
+        description="A finite decimal number encoded as a string. Omit the entire fact if unknown or not numeric; never put explanatory text here.",
+    )
     evidence_id: str
-    path: list[str | int] = Field(default_factory=list, max_length=8)
+    path: list[str | int] = Field(
+        default_factory=list,
+        max_length=8,
+        description="Keys/indexes into the cited record's content object, not its outer wrapper. Do not bind facts to unstructured source text.",
+    )
 
     @field_validator("value")
     @classmethod
     def finite_number(cls, value: str) -> str:
-        if not Decimal(value).is_finite():
+        try:
+            finite = Decimal(value).is_finite()
+        except InvalidOperation as exc:
+            raise ValueError("nonnumeric_report_fact") from exc
+        if not finite:
             raise ValueError("nonfinite_report_fact")
         return value
 
@@ -31,7 +42,11 @@ class ResearchReport(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     answerability: Literal["answered", "partial", "insufficient_evidence"]
     claims: list[ReportClaim] = Field(default_factory=list, max_length=24)
-    facts: list[ReportFact] = Field(default_factory=list, max_length=24)
+    facts: list[ReportFact] = Field(
+        default_factory=list,
+        max_length=24,
+        description="Only numeric values bound to fields in structured SQL/fee Evidence. MUST be [] for refusals, unknown values, or text-only evidence. Put qualitative findings in claims.",
+    )
     limitations: list[str] = Field(default_factory=list, max_length=12)
 
     def render(self) -> str:
