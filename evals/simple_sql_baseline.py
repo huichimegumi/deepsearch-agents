@@ -6,9 +6,13 @@ import json
 from pathlib import Path
 
 from app.agent.llm import get_model
+from app.research.evidence.models import EvidenceRecord, EvidenceSource
 from app.tools.evidence_tool import _collect_sqlite
 from evals.benchmark_preflight import DABSTEP_DATABASE
 from evals.case_worker_v3 import _dabstep_prompt
+from evals.dabstep.common import default_data_dir
+from evals.dabstep.fee_aggregates import DIMENSIONS
+from evals.dabstep.fee_aggregates import OUTPUT as FEE_AGGREGATES
 
 QUERIES = (
     "SELECT COUNT(*) AS transactions, COUNT(DISTINCT psp_reference) AS distinct_references, "
@@ -46,6 +50,27 @@ def collect_public_evidence(database: Path = DABSTEP_DATABASE) -> list[dict]:
         if str(batch.status) not in {"OK", "PARTIAL"}:
             raise RuntimeError(f"sql_evidence_{batch.status}")
         records.extend(record.to_dict() for record in batch.records)
+    aggregates = json.loads(FEE_AGGREGATES.read_text(encoding="utf-8"))
+    if aggregates["dataset_revision"] != default_data_dir().name:
+        raise ValueError("fee_aggregate_revision_mismatch")
+    for dimension in DIMENSIONS:
+        record = EvidenceRecord.create(
+            source=EvidenceSource.FEE_ENGINE,
+            locator=(f"fee://{aggregates['dataset_fingerprint']}/aggregates/{dimension}"),
+            identity={
+                "dataset_fingerprint": aggregates["dataset_fingerprint"],
+                "dimension": dimension,
+            },
+            content={
+                "scope": aggregates["scope"],
+                "fee_formula": aggregates["fee_formula"],
+                "reference_matched_fee_total_eur": aggregates["reference_matched_fee_total_eur"],
+                "group_by": dimension,
+                "rows": aggregates["groups"][dimension],
+            },
+            metadata={"evidence_kind": "validated_fee_aggregate"},
+        )
+        records.append(record.to_dict())
     return records
 
 
@@ -68,7 +93,11 @@ async def execute(case_id: str) -> dict:
                         "You are a careful payments analyst. Answer the task using only the public "
                         "manual and the actual read-only SQL Evidence. Cite an exact Evidence ID "
                         "for every numerical claim. If a fee total or counterfactual saving was not "
-                        "calculated, say so rather than inventing it. Keep a complete report within "
+                        "calculated, say so rather than inventing it. Fee aggregate Evidence "
+                        "includes only matched rules; unpriced transactions have unknown fees, "
+                        "not zero fees. Compare merchant, ACI, scheme, and domestic groups but "
+                        "do not claim observational differences are causal or project savings "
+                        "without a defined counterfactual. Keep a complete report within "
                         "the available output budget. Do not call tools."
                     ),
                 },

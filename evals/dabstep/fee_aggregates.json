@@ -1,0 +1,443 @@
+{
+  "schema_version": 1,
+  "dataset_revision": "62ae9e0de555a8fb1fd5ab334e0546dbf27aa10c",
+  "dataset_fingerprint": "bf504872f907049d1fab7a10",
+  "scope": "matched fee rules only; unpriced transactions are excluded from fee totals",
+  "fee_formula": "fixed_amount + rate * transaction_amount / 10000 per transaction",
+  "reference_matched_fee_total_eur": "95213.255747",
+  "groups": {
+    "merchant": [
+      {
+        "key": "Belles_cookbook_store",
+        "transactions": 13848,
+        "matched_transactions": 6079,
+        "unpriced_transactions": 7769,
+        "fraudulent_disputes": 1071,
+        "volume_eur": "1262219.80",
+        "matched_fee_eur": "6764.614042"
+      },
+      {
+        "key": "Crossfit_Hanna",
+        "transactions": 55139,
+        "matched_transactions": 36812,
+        "unpriced_transactions": 18327,
+        "fraudulent_disputes": 4326,
+        "volume_eur": "5076636.90",
+        "matched_fee_eur": "43520.837094"
+      },
+      {
+        "key": "Golfclub_Baron_Friso",
+        "transactions": 27748,
+        "matched_transactions": 12478,
+        "unpriced_transactions": 15270,
+        "fraudulent_disputes": 2132,
+        "volume_eur": "2553380.62",
+        "matched_fee_eur": "15237.486205"
+      },
+      {
+        "key": "Martinis_Fine_Steakhouse",
+        "transactions": 13805,
+        "matched_transactions": 7673,
+        "unpriced_transactions": 6132,
+        "fraudulent_disputes": 1105,
+        "volume_eur": "1260227.18",
+        "matched_fee_eur": "12387.682233"
+      },
+      {
+        "key": "Rafa_AI",
+        "transactions": 27696,
+        "matched_transactions": 18730,
+        "unpriced_transactions": 8966,
+        "fraudulent_disputes": 2131,
+        "volume_eur": "2544832.96",
+        "matched_fee_eur": "17302.636173"
+      }
+    ],
+    "aci": [
+      {
+        "key": "A",
+        "transactions": 3837,
+        "matched_transactions": 3203,
+        "unpriced_transactions": 634,
+        "fraudulent_disputes": 0,
+        "volume_eur": "268022.59",
+        "matched_fee_eur": "3509.030276"
+      },
+      {
+        "key": "B",
+        "transactions": 2753,
+        "matched_transactions": 2720,
+        "unpriced_transactions": 33,
+        "fraudulent_disputes": 0,
+        "volume_eur": "339379.67",
+        "matched_fee_eur": "5152.878732"
+      },
+      {
+        "key": "C",
+        "transactions": 5807,
+        "matched_transactions": 5620,
+        "unpriced_transactions": 187,
+        "fraudulent_disputes": 0,
+        "volume_eur": "492392.51",
+        "matched_fee_eur": "6026.425483"
+      },
+      {
+        "key": "D",
+        "transactions": 49642,
+        "matched_transactions": 26357,
+        "unpriced_transactions": 23285,
+        "fraudulent_disputes": 0,
+        "volume_eur": "4468819.25",
+        "matched_fee_eur": "27804.320863"
+      },
+      {
+        "key": "E",
+        "transactions": 21468,
+        "matched_transactions": 14168,
+        "unpriced_transactions": 7300,
+        "fraudulent_disputes": 0,
+        "volume_eur": "1931729.90",
+        "matched_fee_eur": "12325.705797"
+      },
+      {
+        "key": "F",
+        "transactions": 29266,
+        "matched_transactions": 18223,
+        "unpriced_transactions": 11043,
+        "fraudulent_disputes": 0,
+        "volume_eur": "2631569.29",
+        "matched_fee_eur": "28887.552352"
+      },
+      {
+        "key": "G",
+        "transactions": 25463,
+        "matched_transactions": 11481,
+        "unpriced_transactions": 13982,
+        "fraudulent_disputes": 10765,
+        "volume_eur": "2565384.25",
+        "matched_fee_eur": "11507.342244"
+      }
+    ],
+    "card_scheme": [
+      {
+        "key": "GlobalCard",
+        "transactions": 48150,
+        "matched_transactions": 29049,
+        "unpriced_transactions": 19101,
+        "fraudulent_disputes": 3707,
+        "volume_eur": "4415368.11",
+        "matched_fee_eur": "31435.146450"
+      },
+      {
+        "key": "NexPay",
+        "transactions": 41679,
+        "matched_transactions": 9593,
+        "unpriced_transactions": 32086,
+        "fraudulent_disputes": 3284,
+        "volume_eur": "3813735.51",
+        "matched_fee_eur": "5839.366788"
+      },
+      {
+        "key": "SwiftCharge",
+        "transactions": 13733,
+        "matched_transactions": 8657,
+        "unpriced_transactions": 5076,
+        "fraudulent_disputes": 1102,
+        "volume_eur": "1254697.51",
+        "matched_fee_eur": "6403.426817"
+      },
+      {
+        "key": "TransactPlus",
+        "transactions": 34674,
+        "matched_transactions": 34473,
+        "unpriced_transactions": 201,
+        "fraudulent_disputes": 2672,
+        "volume_eur": "3213496.33",
+        "matched_fee_eur": "51535.315692"
+      }
+    ],
+    "intracountry": [
+      {
+        "key": "false",
+        "transactions": 113577,
+        "matched_transactions": 66600,
+        "unpriced_transactions": 46977,
+        "fraudulent_disputes": 8580,
+        "volume_eur": "10427322.28",
+        "matched_fee_eur": "78040.023989"
+      },
+      {
+        "key": "true",
+        "transactions": 24659,
+        "matched_transactions": 15172,
+        "unpriced_transactions": 9487,
+        "fraudulent_disputes": 2185,
+        "volume_eur": "2269975.18",
+        "matched_fee_eur": "17173.231758"
+      }
+    ],
+    "merchant_aci": [
+      {
+        "key": "Belles_cookbook_store|A",
+        "transactions": 377,
+        "matched_transactions": 377,
+        "unpriced_transactions": 0,
+        "fraudulent_disputes": 0,
+        "volume_eur": "25248.58",
+        "matched_fee_eur": "291.862339"
+      },
+      {
+        "key": "Belles_cookbook_store|B",
+        "transactions": 285,
+        "matched_transactions": 284,
+        "unpriced_transactions": 1,
+        "fraudulent_disputes": 0,
+        "volume_eur": "37040.39",
+        "matched_fee_eur": "555.544505"
+      },
+      {
+        "key": "Belles_cookbook_store|C",
+        "transactions": 569,
+        "matched_transactions": 546,
+        "unpriced_transactions": 23,
+        "fraudulent_disputes": 0,
+        "volume_eur": "46424.25",
+        "matched_fee_eur": "483.496498"
+      },
+      {
+        "key": "Belles_cookbook_store|D",
+        "transactions": 6140,
+        "matched_transactions": 2294,
+        "unpriced_transactions": 3846,
+        "fraudulent_disputes": 0,
+        "volume_eur": "554816.87",
+        "matched_fee_eur": "2220.337898"
+      },
+      {
+        "key": "Belles_cookbook_store|F",
+        "transactions": 3783,
+        "matched_transactions": 1998,
+        "unpriced_transactions": 1785,
+        "fraudulent_disputes": 0,
+        "volume_eur": "321510.49",
+        "matched_fee_eur": "2550.160752"
+      },
+      {
+        "key": "Belles_cookbook_store|G",
+        "transactions": 2694,
+        "matched_transactions": 580,
+        "unpriced_transactions": 2114,
+        "fraudulent_disputes": 1071,
+        "volume_eur": "277179.22",
+        "matched_fee_eur": "663.212050"
+      },
+      {
+        "key": "Crossfit_Hanna|A",
+        "transactions": 1536,
+        "matched_transactions": 1049,
+        "unpriced_transactions": 487,
+        "fraudulent_disputes": 0,
+        "volume_eur": "106479.98",
+        "matched_fee_eur": "1199.454590"
+      },
+      {
+        "key": "Crossfit_Hanna|B",
+        "transactions": 1084,
+        "matched_transactions": 1073,
+        "unpriced_transactions": 11,
+        "fraudulent_disputes": 0,
+        "volume_eur": "138053.99",
+        "matched_fee_eur": "1915.357068"
+      },
+      {
+        "key": "Crossfit_Hanna|C",
+        "transactions": 2345,
+        "matched_transactions": 2181,
+        "unpriced_transactions": 164,
+        "fraudulent_disputes": 0,
+        "volume_eur": "198420.07",
+        "matched_fee_eur": "1992.580584"
+      },
+      {
+        "key": "Crossfit_Hanna|D",
+        "transactions": 24740,
+        "matched_transactions": 17233,
+        "unpriced_transactions": 7507,
+        "fraudulent_disputes": 0,
+        "volume_eur": "2227259.73",
+        "matched_fee_eur": "16836.301710"
+      },
+      {
+        "key": "Crossfit_Hanna|F",
+        "transactions": 14509,
+        "matched_transactions": 8805,
+        "unpriced_transactions": 5704,
+        "fraudulent_disputes": 0,
+        "volume_eur": "1333680.38",
+        "matched_fee_eur": "15483.335402"
+      },
+      {
+        "key": "Crossfit_Hanna|G",
+        "transactions": 10925,
+        "matched_transactions": 6471,
+        "unpriced_transactions": 4454,
+        "fraudulent_disputes": 4326,
+        "volume_eur": "1072742.75",
+        "matched_fee_eur": "6093.807740"
+      },
+      {
+        "key": "Golfclub_Baron_Friso|A",
+        "transactions": 777,
+        "matched_transactions": 630,
+        "unpriced_transactions": 147,
+        "fraudulent_disputes": 0,
+        "volume_eur": "54732.36",
+        "matched_fee_eur": "521.522534"
+      },
+      {
+        "key": "Golfclub_Baron_Friso|B",
+        "transactions": 574,
+        "matched_transactions": 574,
+        "unpriced_transactions": 0,
+        "fraudulent_disputes": 0,
+        "volume_eur": "69550.72",
+        "matched_fee_eur": "867.771706"
+      },
+      {
+        "key": "Golfclub_Baron_Friso|C",
+        "transactions": 1164,
+        "matched_transactions": 1164,
+        "unpriced_transactions": 0,
+        "fraudulent_disputes": 0,
+        "volume_eur": "101234.49",
+        "matched_fee_eur": "849.311793"
+      },
+      {
+        "key": "Golfclub_Baron_Friso|D",
+        "transactions": 12567,
+        "matched_transactions": 4574,
+        "unpriced_transactions": 7993,
+        "fraudulent_disputes": 0,
+        "volume_eur": "1130315.69",
+        "matched_fee_eur": "5290.122185"
+      },
+      {
+        "key": "Golfclub_Baron_Friso|F",
+        "transactions": 7312,
+        "matched_transactions": 4035,
+        "unpriced_transactions": 3277,
+        "fraudulent_disputes": 0,
+        "volume_eur": "651489.65",
+        "matched_fee_eur": "6049.038442"
+      },
+      {
+        "key": "Golfclub_Baron_Friso|G",
+        "transactions": 5354,
+        "matched_transactions": 1501,
+        "unpriced_transactions": 3853,
+        "fraudulent_disputes": 2132,
+        "volume_eur": "546057.71",
+        "matched_fee_eur": "1659.719545"
+      },
+      {
+        "key": "Martinis_Fine_Steakhouse|A",
+        "transactions": 398,
+        "matched_transactions": 398,
+        "unpriced_transactions": 0,
+        "fraudulent_disputes": 0,
+        "volume_eur": "28977.77",
+        "matched_fee_eur": "681.626653"
+      },
+      {
+        "key": "Martinis_Fine_Steakhouse|B",
+        "transactions": 266,
+        "matched_transactions": 266,
+        "unpriced_transactions": 0,
+        "fraudulent_disputes": 0,
+        "volume_eur": "32777.13",
+        "matched_fee_eur": "940.134162"
+      },
+      {
+        "key": "Martinis_Fine_Steakhouse|C",
+        "transactions": 579,
+        "matched_transactions": 579,
+        "unpriced_transactions": 0,
+        "fraudulent_disputes": 0,
+        "volume_eur": "49840.75",
+        "matched_fee_eur": "1308.734164"
+      },
+      {
+        "key": "Martinis_Fine_Steakhouse|D",
+        "transactions": 6195,
+        "matched_transactions": 2256,
+        "unpriced_transactions": 3939,
+        "fraudulent_disputes": 0,
+        "volume_eur": "556426.96",
+        "matched_fee_eur": "3457.559070"
+      },
+      {
+        "key": "Martinis_Fine_Steakhouse|F",
+        "transactions": 3662,
+        "matched_transactions": 3385,
+        "unpriced_transactions": 277,
+        "fraudulent_disputes": 0,
+        "volume_eur": "324888.77",
+        "matched_fee_eur": "4805.017756"
+      },
+      {
+        "key": "Martinis_Fine_Steakhouse|G",
+        "transactions": 2705,
+        "matched_transactions": 789,
+        "unpriced_transactions": 1916,
+        "fraudulent_disputes": 1105,
+        "volume_eur": "267315.80",
+        "matched_fee_eur": "1194.610428"
+      },
+      {
+        "key": "Rafa_AI|A",
+        "transactions": 749,
+        "matched_transactions": 749,
+        "unpriced_transactions": 0,
+        "fraudulent_disputes": 0,
+        "volume_eur": "52583.90",
+        "matched_fee_eur": "814.564160"
+      },
+      {
+        "key": "Rafa_AI|B",
+        "transactions": 544,
+        "matched_transactions": 523,
+        "unpriced_transactions": 21,
+        "fraudulent_disputes": 0,
+        "volume_eur": "61957.44",
+        "matched_fee_eur": "874.071291"
+      },
+      {
+        "key": "Rafa_AI|C",
+        "transactions": 1150,
+        "matched_transactions": 1150,
+        "unpriced_transactions": 0,
+        "fraudulent_disputes": 0,
+        "volume_eur": "96472.95",
+        "matched_fee_eur": "1392.302444"
+      },
+      {
+        "key": "Rafa_AI|E",
+        "transactions": 21468,
+        "matched_transactions": 14168,
+        "unpriced_transactions": 7300,
+        "fraudulent_disputes": 0,
+        "volume_eur": "1931729.90",
+        "matched_fee_eur": "12325.705797"
+      },
+      {
+        "key": "Rafa_AI|G",
+        "transactions": 3785,
+        "matched_transactions": 2140,
+        "unpriced_transactions": 1645,
+        "fraudulent_disputes": 2131,
+        "volume_eur": "402088.77",
+        "matched_fee_eur": "1895.992481"
+      }
+    ]
+  }
+}
