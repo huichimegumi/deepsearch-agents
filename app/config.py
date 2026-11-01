@@ -19,7 +19,7 @@ def _is_placeholder(value: str) -> bool:
         not normalized
         or "你的" in normalized
         or normalized.startswith("your_")
-        or normalized in {"openai_api_key", "dashscope_api_key"}
+        or normalized in {"openai_api_key", "dashscope_api_key", "deepseek_api_key"}
     )
 
 
@@ -48,6 +48,7 @@ class AppSettings:
     openai_api_key: str
     openai_base_url: str | None
     cors_origins: tuple[str, ...]
+    llm_provider: str = "legacy"
     agent_recursion_limit: int = 30
     agent_max_runtime_seconds: float = 300.0
     agent_hard_max_recursion_limit: int = 160
@@ -78,10 +79,16 @@ class AppSettings:
 
     def validate_llm(self) -> None:
         missing = []
+        if self.llm_provider not in {"legacy", "dashscope", "deepseek", "openai"}:
+            raise RuntimeError(f"不支持的 LLM_PROVIDER: {self.llm_provider}")
         if _is_placeholder(self.llm_name):
             missing.append("LLM_NAME")
         if _is_placeholder(self.openai_api_key):
-            missing.append("OPENAI_API_KEY")
+            missing.append(
+                {"dashscope": "DASHSCOPE_API_KEY", "deepseek": "DEEPSEEK_API_KEY"}.get(
+                    self.llm_provider, "OPENAI_API_KEY"
+                )
+            )
         if missing:
             names = ", ".join(missing)
             raise RuntimeError(
@@ -183,10 +190,31 @@ class AppSettings:
 
 @lru_cache(maxsize=1)
 def get_settings() -> AppSettings:
+    provider = os.getenv("LLM_PROVIDER", "").strip().lower() or "legacy"
+    if provider == "deepseek":
+        llm_name = "deepseek-flash"
+        api_key = _first_secret("DEEPSEEK_API_KEY")
+        base_url = "https://api.deepseek.com"
+    elif provider == "dashscope":
+        llm_name = os.getenv("LLM_NAME", "")
+        api_key = _first_secret("DASHSCOPE_API_KEY")
+        base_url = (
+            os.getenv("OPENAI_BASE_URL") or "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
+    elif provider == "openai":
+        llm_name = os.getenv("LLM_NAME", "")
+        api_key = _first_secret("OPENAI_API_KEY")
+        base_url = os.getenv("OPENAI_BASE_URL") or None
+    else:
+        # Preserve existing installations that configure a model directly.
+        llm_name = os.getenv("LLM_NAME", "")
+        api_key = _first_secret("OPENAI_API_KEY", "DASHSCOPE_API_KEY")
+        base_url = os.getenv("OPENAI_BASE_URL") or None
     return AppSettings(
-        llm_name=os.getenv("LLM_NAME", ""),
-        openai_api_key=_first_secret("OPENAI_API_KEY", "DASHSCOPE_API_KEY"),
-        openai_base_url=os.getenv("OPENAI_BASE_URL") or None,
+        llm_name=llm_name,
+        openai_api_key=api_key,
+        openai_base_url=base_url,
+        llm_provider=provider,
         cors_origins=_split_csv(
             os.getenv(
                 "CORS_ORIGINS",

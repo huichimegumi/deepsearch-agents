@@ -70,6 +70,62 @@ class AppSettingsTests(unittest.TestCase):
 
         self.assertEqual(settings.openai_api_key, "sk-dashscope-test")
 
+    def test_deepseek_selection_uses_flash_and_its_own_key(self):
+        environment = {
+            "LLM_PROVIDER": "deepseek",
+            "LLM_NAME": "qwen-flash",
+            "OPENAI_BASE_URL": "https://dashscope.example/v1",
+            "DASHSCOPE_API_KEY": "sk-dashscope-test",
+            "DEEPSEEK_API_KEY": "sk-deepseek-test",
+        }
+        with patch.dict(os.environ, environment, clear=True):
+            get_settings.cache_clear()
+            settings = get_settings()
+
+        settings.validate_llm()
+        self.assertEqual(settings.llm_name, "deepseek-flash")
+        self.assertEqual(settings.openai_api_key, "sk-deepseek-test")
+        self.assertEqual(settings.openai_base_url, "https://api.deepseek.com")
+
+    def test_deepseek_selection_requires_deepseek_key(self):
+        environment = {
+            "LLM_PROVIDER": "deepseek",
+            "DASHSCOPE_API_KEY": "sk-dashscope-test",
+        }
+        with patch.dict(os.environ, environment, clear=True):
+            get_settings.cache_clear()
+            settings = get_settings()
+
+        with self.assertRaisesRegex(RuntimeError, "DEEPSEEK_API_KEY"):
+            settings.validate_llm()
+
+    def test_explicit_dashscope_selection_ignores_deepseek_key(self):
+        environment = {
+            "LLM_PROVIDER": "dashscope",
+            "LLM_NAME": "qwen-flash",
+            "DASHSCOPE_API_KEY": "sk-dashscope-test",
+            "DEEPSEEK_API_KEY": "sk-deepseek-test",
+        }
+        with patch.dict(os.environ, environment, clear=True):
+            get_settings.cache_clear()
+            settings = get_settings()
+
+        settings.validate_llm()
+        self.assertEqual(settings.llm_name, "qwen-flash")
+        self.assertEqual(settings.openai_api_key, "sk-dashscope-test")
+        self.assertEqual(
+            settings.openai_base_url,
+            "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        )
+
+    def test_unknown_provider_fails_validation(self):
+        with patch.dict(os.environ, {"LLM_PROVIDER": "unknown"}, clear=True):
+            get_settings.cache_clear()
+            settings = get_settings()
+
+        with self.assertRaisesRegex(RuntimeError, "LLM_PROVIDER"):
+            settings.validate_llm()
+
     def test_settings_parse_reliability_limits(self):
         environment = {
             "LLM_NAME": "qwen-max",
