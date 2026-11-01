@@ -1,0 +1,330 @@
+{
+  "case_ids": [
+    "dabstep_research_002",
+    "dabstep_research_084",
+    "dabstep_research_000",
+    "dabstep_research_003",
+    "dabstep_research_020",
+    "dabstep_research_041"
+  ],
+  "fixed_evidence_identical": {
+    "dabstep_research_002": true,
+    "dabstep_research_084": true,
+    "dabstep_research_000": true,
+    "dabstep_research_003": true,
+    "dabstep_research_020": true,
+    "dabstep_research_041": true
+  },
+  "runs": {
+    "deepseek_agent": {
+      "run_id": "benchmark_v3_20261101T113904Z_449e7f01",
+      "source_sha256": "6c0821be47f4002c5be542a548e5176a52272e25605453a1ee1984a183ac710a",
+      "terminal": 6,
+      "completed": 0,
+      "passes": 0,
+      "median_elapsed_seconds": 33.056,
+      "reserved_tokens": 899548,
+      "cases": [
+        {
+          "id": "dabstep_research_002",
+          "status": "budget_exhausted",
+          "elapsed_seconds": 33.054,
+          "model_request_count": 6,
+          "model_reserved_tokens": 152431,
+          "checklist_coverage": null,
+          "supported_coverage": null,
+          "citation_id_validity": 0.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_084",
+          "status": "budget_exhausted",
+          "elapsed_seconds": 32.546,
+          "model_request_count": 5,
+          "model_reserved_tokens": 148459,
+          "checklist_coverage": null,
+          "supported_coverage": null,
+          "citation_id_validity": 0.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_000",
+          "status": "budget_exhausted",
+          "elapsed_seconds": 35.76,
+          "model_request_count": 7,
+          "model_reserved_tokens": 170273,
+          "checklist_coverage": null,
+          "supported_coverage": null,
+          "citation_id_validity": 0.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_003",
+          "status": "budget_exhausted",
+          "elapsed_seconds": 33.312,
+          "model_request_count": 6,
+          "model_reserved_tokens": 150450,
+          "checklist_coverage": null,
+          "supported_coverage": null,
+          "citation_id_validity": 0.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_020",
+          "status": "budget_exhausted",
+          "elapsed_seconds": 33.058,
+          "model_request_count": 5,
+          "model_reserved_tokens": 135126,
+          "checklist_coverage": null,
+          "supported_coverage": null,
+          "citation_id_validity": 0.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_041",
+          "status": "budget_exhausted",
+          "elapsed_seconds": 32.907,
+          "model_request_count": 5,
+          "model_reserved_tokens": 142809,
+          "checklist_coverage": null,
+          "supported_coverage": null,
+          "citation_id_validity": 0.0,
+          "pass": false
+        }
+      ]
+    },
+    "deepseek_simple_sql": {
+      "run_id": "benchmark_v3_20261101T050247Z_1a4e024b",
+      "source_sha256": "6c0821be47f4002c5be542a548e5176a52272e25605453a1ee1984a183ac710a",
+      "terminal": 6,
+      "completed": 6,
+      "passes": 4,
+      "median_elapsed_seconds": 27.591,
+      "reserved_tokens": 102753,
+      "cases": [
+        {
+          "id": "dabstep_research_002",
+          "status": "completed",
+          "elapsed_seconds": 29.655,
+          "model_request_count": 1,
+          "model_reserved_tokens": 17038,
+          "checklist_coverage": 0.833,
+          "supported_coverage": 0.833,
+          "citation_id_validity": 1.0,
+          "pass": true
+        },
+        {
+          "id": "dabstep_research_084",
+          "status": "completed",
+          "elapsed_seconds": 34.351,
+          "model_request_count": 1,
+          "model_reserved_tokens": 17493,
+          "checklist_coverage": 1.0,
+          "supported_coverage": 1.0,
+          "citation_id_validity": 1.0,
+          "pass": true
+        },
+        {
+          "id": "dabstep_research_000",
+          "status": "completed",
+          "elapsed_seconds": 25.527,
+          "model_request_count": 1,
+          "model_reserved_tokens": 17042,
+          "checklist_coverage": 1.0,
+          "supported_coverage": 1.0,
+          "citation_id_validity": 1.0,
+          "pass": true
+        },
+        {
+          "id": "dabstep_research_003",
+          "status": "completed",
+          "elapsed_seconds": 32.109,
+          "model_request_count": 1,
+          "model_reserved_tokens": 17022,
+          "checklist_coverage": 0.857,
+          "supported_coverage": 0.857,
+          "citation_id_validity": 1.0,
+          "pass": true
+        },
+        {
+          "id": "dabstep_research_020",
+          "status": "completed",
+          "elapsed_seconds": 24.728,
+          "model_request_count": 1,
+          "model_reserved_tokens": 17040,
+          "checklist_coverage": 0.5,
+          "supported_coverage": 0.5,
+          "citation_id_validity": 1.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_041",
+          "status": "completed",
+          "elapsed_seconds": 24.453,
+          "model_request_count": 1,
+          "model_reserved_tokens": 17118,
+          "checklist_coverage": 0.4,
+          "supported_coverage": 0.4,
+          "citation_id_validity": 1.0,
+          "pass": false
+        }
+      ]
+    },
+    "qwen_agent": {
+      "run_id": "benchmark_v3_20261101T114245Z_cd35d1f2",
+      "source_sha256": "6c0821be47f4002c5be542a548e5176a52272e25605453a1ee1984a183ac710a",
+      "terminal": 6,
+      "completed": 0,
+      "passes": 0,
+      "median_elapsed_seconds": 54.1365,
+      "reserved_tokens": 968193,
+      "cases": [
+        {
+          "id": "dabstep_research_002",
+          "status": "budget_exhausted",
+          "elapsed_seconds": 55.647,
+          "model_request_count": 8,
+          "model_reserved_tokens": 173804,
+          "checklist_coverage": null,
+          "supported_coverage": null,
+          "citation_id_validity": 0.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_084",
+          "status": "budget_exhausted",
+          "elapsed_seconds": 50.49,
+          "model_request_count": 7,
+          "model_reserved_tokens": 153938,
+          "checklist_coverage": null,
+          "supported_coverage": null,
+          "citation_id_validity": 0.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_000",
+          "status": "budget_exhausted",
+          "elapsed_seconds": 62.854,
+          "model_request_count": 9,
+          "model_reserved_tokens": 173274,
+          "checklist_coverage": null,
+          "supported_coverage": null,
+          "citation_id_validity": 0.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_003",
+          "status": "budget_exhausted",
+          "elapsed_seconds": 61.812,
+          "model_request_count": 9,
+          "model_reserved_tokens": 174893,
+          "checklist_coverage": null,
+          "supported_coverage": null,
+          "citation_id_validity": 0.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_020",
+          "status": "budget_exhausted",
+          "elapsed_seconds": 33.349,
+          "model_request_count": 10,
+          "model_reserved_tokens": 118140,
+          "checklist_coverage": null,
+          "supported_coverage": null,
+          "citation_id_validity": 0.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_041",
+          "status": "budget_exhausted",
+          "elapsed_seconds": 52.626,
+          "model_request_count": 8,
+          "model_reserved_tokens": 174144,
+          "checklist_coverage": null,
+          "supported_coverage": null,
+          "citation_id_validity": 0.0,
+          "pass": false
+        }
+      ]
+    },
+    "qwen_simple_sql": {
+      "run_id": "benchmark_v3_20261101T050602Z_51b95ca9",
+      "source_sha256": "6c0821be47f4002c5be542a548e5176a52272e25605453a1ee1984a183ac710a",
+      "terminal": 6,
+      "completed": 6,
+      "passes": 3,
+      "median_elapsed_seconds": 42.748000000000005,
+      "reserved_tokens": 102753,
+      "cases": [
+        {
+          "id": "dabstep_research_002",
+          "status": "completed",
+          "elapsed_seconds": 38.826,
+          "model_request_count": 1,
+          "model_reserved_tokens": 17038,
+          "checklist_coverage": 0.833,
+          "supported_coverage": 0.833,
+          "citation_id_validity": 1.0,
+          "pass": true
+        },
+        {
+          "id": "dabstep_research_084",
+          "status": "completed",
+          "elapsed_seconds": 46.451,
+          "model_request_count": 1,
+          "model_reserved_tokens": 17493,
+          "checklist_coverage": 0.889,
+          "supported_coverage": 0.889,
+          "citation_id_validity": 1.0,
+          "pass": true
+        },
+        {
+          "id": "dabstep_research_000",
+          "status": "completed",
+          "elapsed_seconds": 29.855,
+          "model_request_count": 1,
+          "model_reserved_tokens": 17042,
+          "checklist_coverage": 1.0,
+          "supported_coverage": 1.0,
+          "citation_id_validity": 1.0,
+          "pass": true
+        },
+        {
+          "id": "dabstep_research_003",
+          "status": "completed",
+          "elapsed_seconds": 47.753,
+          "model_request_count": 1,
+          "model_reserved_tokens": 17022,
+          "checklist_coverage": 0.786,
+          "supported_coverage": 0.714,
+          "citation_id_validity": 1.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_020",
+          "status": "completed",
+          "elapsed_seconds": 42.329,
+          "model_request_count": 1,
+          "model_reserved_tokens": 17040,
+          "checklist_coverage": 0.5,
+          "supported_coverage": 0.5,
+          "citation_id_validity": 1.0,
+          "pass": false
+        },
+        {
+          "id": "dabstep_research_041",
+          "status": "completed",
+          "elapsed_seconds": 43.167,
+          "model_request_count": 1,
+          "model_reserved_tokens": 17118,
+          "checklist_coverage": 0.6,
+          "supported_coverage": 0.6,
+          "citation_id_validity": 1.0,
+          "pass": false
+        }
+      ]
+    }
+  },
+  "comparator_sha256": "e8eb0f3ac0a2d1900c988360af96a2d6f046c873e186f6ceb11d9075a85d3b43",
+  "caveat": "Six exposed DABStep SQL cases; model judge scores are provisional, not independent generalization."
+}

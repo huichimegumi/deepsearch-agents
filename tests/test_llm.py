@@ -7,7 +7,7 @@ from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
-from app.agent.llm import DeepSeekChatOpenAI, get_model
+from app.agent.llm import DashScopeChatOpenAI, DeepSeekChatOpenAI, get_model
 from app.config import get_settings
 
 
@@ -94,3 +94,14 @@ def test_evaluation_temperature_is_explicit():
     get_model.cache_clear()
     get_settings.cache_clear()
     assert model.temperature == 0
+
+
+def test_dashscope_translates_output_cap_to_provider_field():
+    model = DashScopeChatOpenAI(
+        model="qwen-flash",
+        api_key="test-key",
+        base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    )
+    payload = model._get_request_payload([HumanMessage(content="hi")], max_tokens=16)
+    assert payload["max_tokens"] == 16
+    assert "max_completion_tokens" not in payload

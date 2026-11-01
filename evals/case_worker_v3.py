@@ -97,6 +97,8 @@ async def _execute(case_id: str, session_id: str) -> dict:
         status = "completed" if answer else "failed"
     if score.get("trace_status") in {"failed", "degraded"}:
         status = str(score["trace_status"])
+    if trace and "EvaluationBudgetExceeded" in (trace.get("failure_reasons") or []):
+        status = "budget_exhausted"
     return {"id": case_id, "status": status, "answer": str(answer or ""), "score": score}
 
 
@@ -117,9 +119,11 @@ def main() -> int:
         else:
             result = asyncio.run(_execute(args.case_id, args.session_id))
     except Exception as exc:  # preserve a terminal result even for unexpected worker failures
+        from evals.request_budget import EvaluationBudgetExceeded
+
         result = {
             "id": args.case_id,
-            "status": "error",
+            "status": "budget_exhausted" if isinstance(exc, EvaluationBudgetExceeded) else "error",
             "error_type": type(exc).__name__,
             "error": str(exc),
             "traceback": traceback.format_exc(),

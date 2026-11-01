@@ -75,6 +75,10 @@ def supervise(
     child_env["SEARCH_BACKEND_LOCK"] = "duckduckgo"
     child_env["EVAL_DISABLE_SDK_RETRIES"] = "1"
     child_env["EVAL_TEMPERATURE"] = "0"
+    child_env["EVAL_LEDGER_PATH"] = str((attempt_dir / "model_requests.jsonl").resolve())
+    child_env["EVAL_MAX_REQUESTS"] = "10"
+    child_env["EVAL_MAX_RESERVED_TOKENS"] = "180000"
+    child_env["EVAL_DEFAULT_MAX_OUTPUT_TOKENS"] = "4000"
     child_env["PYTHONUNBUFFERED"] = "1"
     child_env.pop("TAVILY_API_KEY", None)
     child_env.pop("PERPLEXITY_API_KEY", None)

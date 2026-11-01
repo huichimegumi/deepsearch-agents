@@ -12,10 +12,20 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from evals.benchmark_preflight import ROOT, SUITE, preflight
+from evals.request_budget import usage as request_usage
 from evals.runners.experiment import build_manifest, file_sha256
-from evals.worker_supervisor import atomic_json, supervise
+from evals.worker_supervisor import WorkerOutcome, atomic_json, supervise
 
 RESULTS = ROOT / "evals" / "results"
+
+
+def _model_usage(run_dir: Path) -> dict[str, int]:
+    total = {"requests": 0, "reserved_tokens": 0}
+    for ledger in run_dir.glob("cases/*/attempt-*/model_requests.jsonl"):
+        current = request_usage(ledger)
+        for key in total:
+            total[key] += current[key]
+    return total
 
 
 def _cases() -> list[str]:
@@ -43,6 +53,7 @@ def _write_rows(run_dir: Path, rows: list[dict]) -> None:
             "terminal": len(rows),
             "statuses": dict(Counter(row["status"] for row in rows)),
             "total_elapsed_seconds": round(sum(row["elapsed_seconds"] for row in rows), 3),
+            "model_request_reservations": _model_usage(run_dir),
         },
     )
 
@@ -54,6 +65,7 @@ def run(
     workflow: str = "agent",
     timeout_seconds: float = 330,
     cleanup_seconds: float = 5,
+    max_batch_reserved_tokens: int = 1_500_000,
     resume_run: Path | None = None,
 ) -> Path:
     if profile not in {"deepseek", "qwen"}:
@@ -62,6 +74,8 @@ def run(
         raise ValueError("unknown_workflow")
     if timeout_seconds <= 0 or cleanup_seconds < 0:
         raise ValueError("invalid_deadline")
+    if max_batch_reserved_tokens <= 0:
+        raise ValueError("invalid_batch_model_budget")
     available = _cases()
     selected = case_ids if case_ids is not None else available
     if not selected:
@@ -88,6 +102,8 @@ def run(
             or manifest["suite_sha256"] != file_sha256(SUITE)
             or manifest["timeout_seconds"] != timeout_seconds
             or manifest["cleanup_seconds"] != cleanup_seconds
+            or manifest.get("max_batch_reserved_tokens", 1_500_000) != max_batch_reserved_tokens
+            or manifest["source_sha256"] != build_manifest(SUITE, {})["source_sha256"]
         ):
             raise ValueError("resume_manifest_mismatch")
     else:
@@ -106,6 +122,10 @@ def run(
                 "gpu": "cpu",
                 "temperature": 0,
                 "simple_writer_max_tokens": 8000 if workflow == "simple_sql" else None,
+                "max_model_requests_per_case": 10,
+                "max_reserved_model_tokens_per_case": 180000,
+                "default_model_output_token_cap": 4000,
+                "max_batch_reserved_tokens": max_batch_reserved_tokens,
             },
         )
         manifest.update(
@@ -116,6 +136,7 @@ def run(
                 "workflow": workflow,
                 "timeout_seconds": timeout_seconds,
                 "cleanup_seconds": cleanup_seconds,
+                "max_batch_reserved_tokens": max_batch_reserved_tokens,
                 "preflight_input_sha256": ready["input_sha256"],
             }
         )
@@ -138,25 +159,34 @@ def run(
         while (case_dir / f"attempt-{attempt_number:04d}").exists():
             attempt_number += 1
         attempt = case_dir / f"attempt-{attempt_number:04d}"
-        outcome = supervise(
-            [
-                sys.executable,
-                "-m",
-                "evals.case_worker_v3",
-                "--case-id",
-                case_id,
-                "--profile",
-                profile,
-                "--workflow",
-                workflow,
-                "--session-id",
-                f"{run_dir.name}_{case_id}_a{attempt_number}",
-            ],
-            cwd=ROOT,
-            attempt_dir=attempt,
-            timeout_seconds=timeout_seconds,
-            cleanup_seconds=cleanup_seconds,
-        )
+        if _model_usage(run_dir)["reserved_tokens"] + 180000 > max_batch_reserved_tokens:
+            attempt.mkdir(parents=True, exist_ok=False)
+            atomic_json(
+                attempt / "worker_result.json",
+                {"id": case_id, "status": "budget_exhausted", "reason": "batch_model_budget"},
+            )
+            outcome = WorkerOutcome("budget_exhausted", 0.0, None, False, None)
+        else:
+            outcome = supervise(
+                [
+                    sys.executable,
+                    "-m",
+                    "evals.case_worker_v3",
+                    "--case-id",
+                    case_id,
+                    "--profile",
+                    profile,
+                    "--workflow",
+                    workflow,
+                    "--session-id",
+                    f"{run_dir.name}_{case_id}_a{attempt_number}",
+                ],
+                cwd=ROOT,
+                attempt_dir=attempt,
+                timeout_seconds=timeout_seconds,
+                cleanup_seconds=cleanup_seconds,
+            )
+        model_usage = request_usage(attempt / "model_requests.jsonl")
         row = {
             "id": case_id,
             "status": outcome.status,
@@ -166,6 +196,8 @@ def run(
             "attempt": attempt.relative_to(run_dir).as_posix(),
             "score": (outcome.result or {}).get("score"),
             "error_type": (outcome.result or {}).get("error_type"),
+            "model_request_count": model_usage["requests"],
+            "model_reserved_tokens": model_usage["reserved_tokens"],
         }
         rows.append(row)
         _write_rows(run_dir, rows)
@@ -180,6 +212,7 @@ def main() -> int:
     parser.add_argument("--workflow", choices=("agent", "simple_sql"), default="agent")
     parser.add_argument("--timeout-seconds", type=float, default=330)
     parser.add_argument("--cleanup-seconds", type=float, default=5)
+    parser.add_argument("--max-batch-reserved-tokens", type=int, default=1_500_000)
     parser.add_argument("--resume-run", type=Path)
     args = parser.parse_args()
     try:

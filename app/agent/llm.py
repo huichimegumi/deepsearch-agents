@@ -14,7 +14,19 @@ from langchain_openai import ChatOpenAI
 from app.config import get_settings
 
 
-class DeepSeekChatOpenAI(ChatOpenAI):
+class EvaluationBudgetedChatOpenAI(ChatOpenAI):
+    """Reserve an evaluation request before the OpenAI-compatible transport runs."""
+
+    def _get_request_payload(self, input_, *, stop=None, **kwargs):
+        payload = super()._get_request_payload(input_, stop=stop, **kwargs)
+        if os.getenv("EVAL_LEDGER_PATH"):
+            from evals.request_budget import admit_request
+
+            admit_request(payload)
+        return payload
+
+
+class DeepSeekChatOpenAI(EvaluationBudgetedChatOpenAI):
     """Use tool calling for structured output on DeepSeek's Chat Completions API."""
 
     def _get_request_payload(self, input_, *, stop=None, **kwargs):
@@ -28,6 +40,16 @@ class DeepSeekChatOpenAI(ChatOpenAI):
     def with_structured_output(self, schema=None, **kwargs):
         kwargs.setdefault("method", "function_calling")
         return super().with_structured_output(schema, **kwargs)
+
+
+class DashScopeChatOpenAI(EvaluationBudgetedChatOpenAI):
+    """Send the output cap under DashScope's chat-completions field name."""
+
+    def _get_request_payload(self, input_, *, stop=None, **kwargs):
+        payload = super()._get_request_payload(input_, stop=stop, **kwargs)
+        if "max_completion_tokens" in payload:
+            payload["max_tokens"] = payload.pop("max_completion_tokens")
+        return payload
 
 
 @lru_cache(maxsize=1)
@@ -45,6 +67,8 @@ def get_model():
     )
     if os.getenv("EVAL_TEMPERATURE") is not None:
         model_kwargs["temperature"] = float(os.environ["EVAL_TEMPERATURE"])
+    if os.getenv("EVAL_DEFAULT_MAX_OUTPUT_TOKENS") is not None:
+        model_kwargs["max_tokens"] = int(os.environ["EVAL_DEFAULT_MAX_OUTPUT_TOKENS"])
     if settings.llm_provider == "deepseek":
         # DeepSeek's thinking mode rejects the forced tool choice used by
         # LangChain's function-calling structured output.
@@ -52,4 +76,8 @@ def get_model():
             **model_kwargs,
             extra_body={"thinking": {"type": "disabled"}},
         )
+    if settings.llm_provider == "dashscope":
+        return DashScopeChatOpenAI(**model_kwargs)
+    if os.getenv("EVAL_LEDGER_PATH"):
+        return EvaluationBudgetedChatOpenAI(**model_kwargs)
     return init_chat_model(model_provider="openai", **model_kwargs)

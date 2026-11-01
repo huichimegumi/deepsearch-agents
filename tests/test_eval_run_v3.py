@@ -54,3 +54,24 @@ def test_resume_rejects_changed_suite(monkeypatch: pytest.MonkeyPatch, tmp_path:
     manifest_path.write_text(json.dumps(manifest))
     with pytest.raises(ValueError, match="resume_manifest_mismatch"):
         run_v3.run(case_ids=["one"], resume_run=run_dir)
+
+
+def test_batch_budget_marks_remaining_case_terminal(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(run_v3, "RESULTS", tmp_path)
+    monkeypatch.setattr(run_v3, "_cases", lambda: ["one", "two"])
+    monkeypatch.setattr(run_v3, "preflight", lambda: {"ready": True, "input_sha256": {}})
+
+    def first_worker(command: list[str], *, attempt_dir: Path, **kwargs) -> WorkerOutcome:
+        attempt_dir.mkdir(parents=True)
+        (attempt_dir / "model_requests.jsonl").write_text(
+            json.dumps({"event": "admitted", "reserved_tokens": 100000}) + "\n"
+        )
+        return WorkerOutcome("completed", 1, 0, False, {"status": "completed"})
+
+    monkeypatch.setattr(run_v3, "supervise", first_worker)
+    run_dir = run_v3.run(case_ids=["one", "two"], max_batch_reserved_tokens=200000)
+    rows = [json.loads(line) for line in (run_dir / "results.jsonl").read_text().splitlines()]
+    assert [row["status"] for row in rows] == ["completed", "budget_exhausted"]
+    assert json.loads((run_dir / "summary.json").read_text())["terminal"] == 2
