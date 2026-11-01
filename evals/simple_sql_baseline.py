@@ -43,13 +43,17 @@ QUERIES = (
 )
 
 
-def collect_public_evidence(database: Path = DABSTEP_DATABASE) -> list[dict]:
+def collect_public_evidence(
+    database: Path = DABSTEP_DATABASE, *, include_fee: bool = True
+) -> list[dict]:
     records = []
     for query in QUERIES:
         batch = _collect_sqlite(query, "query", database)
         if str(batch.status) not in {"OK", "PARTIAL"}:
             raise RuntimeError(f"sql_evidence_{batch.status}")
         records.extend(record.to_dict() for record in batch.records)
+    if not include_fee:
+        return records
     aggregates = json.loads(FEE_AGGREGATES.read_text(encoding="utf-8"))
     if aggregates["dataset_revision"] != default_data_dir().name:
         raise ValueError("fee_aggregate_revision_mismatch")
@@ -74,14 +78,28 @@ def collect_public_evidence(database: Path = DABSTEP_DATABASE) -> list[dict]:
     return records
 
 
-async def execute(case_id: str) -> dict:
+async def execute(case_id: str, *, include_fee: bool = True) -> dict:
     if not case_id.startswith("dabstep_research_"):
         raise ValueError("simple_sql_baseline_only_supports_dabstep")
-    evidence = collect_public_evidence()
+    evidence = collect_public_evidence(include_fee=include_fee)
     evidence_context = "\n".join(
         f"[{record['evidence_id']}] {json.dumps(record['content'], ensure_ascii=False)}"
         for record in evidence
     )
+    system_prompt = (
+        "You are a careful payments analyst. Answer the task using only the public "
+        "manual and the actual read-only SQL Evidence. Cite an exact Evidence ID "
+        "for every numerical claim. If a fee total or counterfactual saving was not "
+        "calculated, say so rather than inventing it. "
+    )
+    if include_fee:
+        system_prompt += (
+            "Fee aggregate Evidence includes only matched rules; unpriced transactions "
+            "have unknown fees, not zero fees. Compare merchant, ACI, scheme, and "
+            "domestic groups but do not claim observational differences are causal "
+            "or project savings without a defined counterfactual. "
+        )
+    system_prompt += "Keep a complete report within the available output budget. Do not call tools."
     response = (
         await get_model()
         .bind(max_tokens=8000)
@@ -89,17 +107,7 @@ async def execute(case_id: str) -> dict:
             [
                 {
                     "role": "system",
-                    "content": (
-                        "You are a careful payments analyst. Answer the task using only the public "
-                        "manual and the actual read-only SQL Evidence. Cite an exact Evidence ID "
-                        "for every numerical claim. If a fee total or counterfactual saving was not "
-                        "calculated, say so rather than inventing it. Fee aggregate Evidence "
-                        "includes only matched rules; unpriced transactions have unknown fees, "
-                        "not zero fees. Compare merchant, ACI, scheme, and domestic groups but "
-                        "do not claim observational differences are causal or project savings "
-                        "without a defined counterfactual. Keep a complete report within "
-                        "the available output budget. Do not call tools."
-                    ),
+                    "content": system_prompt,
                 },
                 {
                     "role": "user",

@@ -29,6 +29,10 @@ def _dabstep_prompt(case_id: str) -> str:
     selected = load_jsonl(Path(__file__).parent / "dabstep" / "selected_tasks.jsonl")
     task = next((row for row in selected if row["benchmark_id"] == case_id), None)
     if task is None:
+        from evals.dabstep.holdout20 import task_for
+
+        task = task_for(case_id)
+    if task is None:
         raise ValueError("unknown_dabstep_case")
     context = default_data_dir() / "context"
     manual = (context / "manual.md").read_text(encoding="utf-8")
@@ -107,15 +111,17 @@ def main() -> int:
     parser.add_argument("--case-id", required=True)
     parser.add_argument("--session-id", required=True)
     parser.add_argument("--profile", choices=("deepseek", "qwen"), required=True)
-    parser.add_argument("--workflow", choices=("agent", "simple_sql"), default="agent")
+    parser.add_argument(
+        "--workflow", choices=("agent", "simple_sql", "simple_sql_no_fee"), default="agent"
+    )
     parser.add_argument("--result-path", type=Path, required=True)
     args = parser.parse_args()
     try:
         _configure_profile(args.profile)
-        if args.workflow == "simple_sql":
+        if args.workflow in {"simple_sql", "simple_sql_no_fee"}:
             from evals.simple_sql_baseline import execute
 
-            result = asyncio.run(execute(args.case_id))
+            result = asyncio.run(execute(args.case_id, include_fee=args.workflow == "simple_sql"))
         else:
             result = asyncio.run(_execute(args.case_id, args.session_id))
     except Exception as exc:  # preserve a terminal result even for unexpected worker failures

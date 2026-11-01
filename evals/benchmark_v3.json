@@ -21,6 +21,36 @@
       "role": "development_and_previously_exposed_holdout"
     },
     {
+      "name": "dabstep_research_holdout20",
+      "lock": "evals/dabstep/dataset.lock.json",
+      "lock_sha256": "5aee5a8464d1a1ed76913829f65d98d3de44298e721e26622eeb1714384423f0",
+      "selection": "evals/dabstep/holdout20.json",
+      "selection_sha256": "627c243b40b369a6ee73e6846bfa8d567b7c7b9cc1ca76ea1e15854258196015",
+      "case_ids": [
+        "dabstep_research_039",
+        "dabstep_research_022",
+        "dabstep_research_037",
+        "dabstep_research_036",
+        "dabstep_research_030",
+        "dabstep_research_044",
+        "dabstep_research_052",
+        "dabstep_research_053",
+        "dabstep_research_055",
+        "dabstep_research_048",
+        "dabstep_research_016",
+        "dabstep_research_008",
+        "dabstep_research_001",
+        "dabstep_research_009",
+        "dabstep_research_011",
+        "dabstep_research_094",
+        "dabstep_research_087",
+        "dabstep_research_086",
+        "dabstep_research_096",
+        "dabstep_research_088"
+      ],
+      "role": "once_only_public_unseen_task_checklists_same_source_snapshot"
+    },
+    {
       "name": "hybrid_deep_research",
       "lock": "evals/hybrid/dataset.lock.json",
       "lock_sha256": "5286b1b08f6057c528a7b32e96cf2730ff2cba25c3806053cb0d97616d4f3551",

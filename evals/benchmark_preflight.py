@@ -12,6 +12,7 @@ from evals.dabstep.common import default_data_dir as dabstep_data_dir
 from evals.dabstep.common import verify_files as verify_dabstep_files
 from evals.dabstep.download_adyen_dev import DEFAULT_PATH as ADYEN_DEV_PATH
 from evals.dabstep.download_adyen_dev import verify as verify_adyen_dev
+from evals.dabstep.holdout20 import validate_selection
 from evals.dabstep.verify_reference import EXPECTED_PATH, collect
 from evals.hybrid.common import default_data_dir as hybrid_data_dir
 from evals.hybrid.common import load_selected_tasks
@@ -50,6 +51,12 @@ def preflight() -> dict:
 
     if _selected_dabstep_ids() != sources["dabstep_research"]["case_ids"]:
         problems.append("dabstep_selection_changed")
+    try:
+        holdout_ids = [row["id"] for row in validate_selection()["cases"]]
+        if holdout_ids != sources["dabstep_research_holdout20"]["case_ids"]:
+            problems.append("dabstep_holdout_selection_changed")
+    except (ValueError, KeyError, OSError, json.JSONDecodeError):
+        problems.append("dabstep_holdout_selection_invalid")
     if not any(problem.startswith("hybrid_asset:") for problem in problems):
         try:
             task_ids = [row["id"] for row in load_selected_tasks(hybrid_data_dir())]

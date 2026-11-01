@@ -70,7 +70,7 @@ def run(
 ) -> Path:
     if profile not in {"deepseek", "qwen"}:
         raise ValueError("unknown_model_profile")
-    if workflow not in {"agent", "simple_sql"}:
+    if workflow not in {"agent", "simple_sql", "simple_sql_no_fee"}:
         raise ValueError("unknown_workflow")
     if timeout_seconds <= 0 or cleanup_seconds < 0:
         raise ValueError("invalid_deadline")
@@ -82,7 +82,7 @@ def run(
         raise ValueError("empty_case_selection")
     if len(selected) != len(set(selected)) or not set(selected) <= set(available):
         raise ValueError("invalid_case_selection")
-    if workflow == "simple_sql" and any(
+    if workflow in {"simple_sql", "simple_sql_no_fee"} and any(
         not item.startswith("dabstep_research_") for item in selected
     ):
         raise ValueError("simple_sql_requires_dabstep_cases")
@@ -121,7 +121,7 @@ def run(
                 "paid_search": False,
                 "gpu": "cpu",
                 "temperature": 0,
-                "simple_writer_max_tokens": 8000 if workflow == "simple_sql" else None,
+                "simple_writer_max_tokens": 8000 if workflow.startswith("simple_sql") else None,
                 "max_model_requests_per_case": 10,
                 "max_reserved_model_tokens_per_case": 180000,
                 "default_model_output_token_cap": 4000,
@@ -209,7 +209,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case-id", action="append", dest="case_ids")
     parser.add_argument("--profile", choices=("deepseek", "qwen"), default="deepseek")
-    parser.add_argument("--workflow", choices=("agent", "simple_sql"), default="agent")
+    parser.add_argument(
+        "--workflow", choices=("agent", "simple_sql", "simple_sql_no_fee"), default="agent"
+    )
     parser.add_argument("--timeout-seconds", type=float, default=330)
     parser.add_argument("--cleanup-seconds", type=float, default=5)
     parser.add_argument("--max-batch-reserved-tokens", type=int, default=1_500_000)

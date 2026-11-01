@@ -49,6 +49,10 @@ def checklist_items(case_id: str) -> list[str]:
     selected = load_jsonl(ROOT / "evals" / "dabstep" / "selected_tasks.jsonl")
     task = next((item for item in selected if item["benchmark_id"] == case_id), None)
     if task is None:
+        from evals.dabstep.holdout20 import task_for
+
+        task = task_for(case_id)
+    if task is None:
         raise ValueError("unknown_dabstep_case")
     items = [
         line.strip()[2:].strip()
