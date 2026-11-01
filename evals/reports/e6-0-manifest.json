@@ -1,0 +1,10 @@
+{
+  "version": "4.0",
+  "cases_sha256": "c6ffac9478fae1b5125e1eea9c19282cea54699f379d06043a474292465d5c03",
+  "results_sha256": "f589b1817bdfe95a206c2ee393851d00946edbc576d0065bf110939c3da8f8c3",
+  "instruction_sha256": "a55ee7f50d8ef26804386cdee38cc72c8d09d6bd4146544c0b97cf39c897de34",
+  "replicates": 1,
+  "scorer_sha256": "649a477792190207ba1af42735a25bcd7823c12e1b24262b1e7040d231670747",
+  "max_requests": 30,
+  "max_reserved_tokens": 150000
+}

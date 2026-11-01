@@ -1,0 +1,27 @@
+{
+  "summary": {
+    "version": "4.0",
+    "scheduled": 24,
+    "scored": 24,
+    "passes": 4,
+    "statuses": {
+      "completed": 24
+    },
+    "judge_errors": 0,
+    "generator_usage_missing": 24
+  },
+  "expected_accepted": [
+    "calibration_0_correct",
+    "calibration_1_correct",
+    "calibration_2_correct",
+    "calibration_3_correct"
+  ],
+  "accepted": [
+    "calibration_0_correct",
+    "calibration_1_correct",
+    "calibration_2_correct",
+    "calibration_3_correct"
+  ],
+  "false_accepts": [],
+  "false_rejects": []
+}

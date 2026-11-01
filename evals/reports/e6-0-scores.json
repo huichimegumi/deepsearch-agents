@@ -1,0 +1,1426 @@
+{
+  "rows": [
+    {
+      "id": "calibration_0_correct",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Facts report visits = 11, matching SQL evidence visits: 11."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim states site_0 is in Oslo, matching SQL evidence city: Oslo."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence record for site_0 lists city Oslo, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 820,
+            "output_tokens": 146,
+            "total_tokens": 966,
+            "input_token_details": {
+              "cache_read": 0
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_0_wrong_number",
+      "status": "completed",
+      "issues": [
+        "numeric_binding_mismatch:visits",
+        "reference_value_mismatch:visits"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": false
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 0.5,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 0.5,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 0.0,
+                "reason": "Evidence shows visits=11, but candidate fact states 12."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Evidence city is Oslo, matching the claim."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence record for site_0 lists city Oslo, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 820,
+            "output_tokens": 136,
+            "total_tokens": 956,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_0_wrong_citation",
+      "status": "completed",
+      "issues": [
+        "unknown_citations",
+        "numeric_binding_invalid:visits",
+        "missing_required_source_citations"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [
+        "ev1_sql_fabricated"
+      ],
+      "citation_id_validity": 0.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 0,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 0,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Fact reports visits = 11, matching the SQL evidence record (visits: 11)."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim states site_0 is in Oslo, matching the SQL evidence record (city: Oslo)."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": false,
+                "reason": "Claim cites ev1_sql_fabricated, which does not exist in the evidence; the actual record ev1_sql_11760adb691984f0ff3eb3b1 is uncited and cannot rescue it."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 798,
+            "output_tokens": 185,
+            "total_tokens": 983,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_0_uncited",
+      "status": "completed",
+      "issues": [
+        "uncited_claim"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 1,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Facts report visits = 11, matching SQL evidence visits 11 for site_0."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim states site_0 is in Oslo, matching SQL evidence city Oslo."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence for site_0 lists city Oslo, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 801,
+            "output_tokens": 148,
+            "total_tokens": 949,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_0_contradiction",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 0.5,
+      "claim_support": 0,
+      "judge_responses": [
+        {
+          "checklist_coverage": 0.5,
+          "claim_support": 0,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Fact states visits = 11, matching SQL evidence visits: 11."
+              },
+              {
+                "index": 2,
+                "score": 0.0,
+                "reason": "Claim says Paris, but evidence city is Oslo."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": false,
+                "reason": "Evidence city is Oslo, not Paris."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 820,
+            "output_tokens": 132,
+            "total_tokens": 952,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_0_truncated",
+      "status": "completed",
+      "issues": [
+        "incomplete_delivery"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Facts report visits = 11, matching SQL evidence visits: 11."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim states site_0 is in Oslo, matching SQL evidence city: Oslo."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence record for site_0 lists city Oslo, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 820,
+            "output_tokens": 146,
+            "total_tokens": 966,
+            "input_token_details": {
+              "cache_read": 640
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_1_correct",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Facts report visits = 14, matching SQL evidence visits: 14."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim states site_1 is in Lima, matching SQL evidence city: Lima."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence record for site_1 lists city Lima, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 826,
+            "output_tokens": 146,
+            "total_tokens": 972,
+            "input_token_details": {
+              "cache_read": 384
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_1_wrong_number",
+      "status": "completed",
+      "issues": [
+        "numeric_binding_mismatch:visits",
+        "reference_value_mismatch:visits"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": false
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 0.5,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 0.5,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 0.0,
+                "reason": "Evidence shows visits = 14, but candidate reports 15."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Evidence shows city = Lima, matching candidate's Lima."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence content lists city Lima for site_1, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 826,
+            "output_tokens": 138,
+            "total_tokens": 964,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_1_wrong_citation",
+      "status": "completed",
+      "issues": [
+        "unknown_citations",
+        "numeric_binding_invalid:visits",
+        "missing_required_source_citations"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [
+        "ev1_sql_fabricated"
+      ],
+      "citation_id_validity": 0.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 0,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 0,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports visits = 14, matching the SQL evidence (visits: 14)."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate reports city Lima, matching the SQL evidence (city: Lima)."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": false,
+                "reason": "Claim cites ev1_sql_fabricated, which does not exist in the evidence; the valid record ev1_sql_a3f58d67d71561e0c5e11688 cannot be used to rescue it."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 800,
+            "output_tokens": 180,
+            "total_tokens": 980,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_1_uncited",
+      "status": "completed",
+      "issues": [
+        "uncited_claim"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 1,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Facts report visits = 14, matching SQL evidence (visits: 14)."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "City Lima is stated in the claim and matches SQL evidence city: Lima."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence content lists city Lima for site_1, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 805,
+            "output_tokens": 148,
+            "total_tokens": 953,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_1_contradiction",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 0.5,
+      "claim_support": 0,
+      "judge_responses": [
+        {
+          "checklist_coverage": 0.5,
+          "claim_support": 0,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports visits = 14, matching SQL evidence."
+              },
+              {
+                "index": 2,
+                "score": 0.0,
+                "reason": "Candidate says Paris, but evidence shows city Lima."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": false,
+                "reason": "Evidence states city is Lima, not Paris."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 826,
+            "output_tokens": 129,
+            "total_tokens": 955,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_1_truncated",
+      "status": "completed",
+      "issues": [
+        "incomplete_delivery"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Facts report visits = 14, matching evidence visits: 14."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim states site_1 is in Lima, matching evidence city: Lima."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence record for site_1 lists city Lima, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 826,
+            "output_tokens": 144,
+            "total_tokens": 970,
+            "input_token_details": {
+              "cache_read": 640
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_2_correct",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Facts report visits = 17, matching SQL evidence visits: 17."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim states site_2 is in Accra, matching SQL evidence city: Accra."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence for site_2 lists city Accra, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 815,
+            "output_tokens": 149,
+            "total_tokens": 964,
+            "input_token_details": {
+              "cache_read": 384
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_2_wrong_number",
+      "status": "completed",
+      "issues": [
+        "numeric_binding_mismatch:visits",
+        "reference_value_mismatch:visits"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": false
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 0.5,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 0.5,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 0.0,
+                "reason": "Evidence shows visits = 17, but candidate reports 18."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Evidence shows city = Accra, matching candidate."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence content lists city Accra for site_2."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 815,
+            "output_tokens": 133,
+            "total_tokens": 948,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_2_wrong_citation",
+      "status": "completed",
+      "issues": [
+        "unknown_citations",
+        "numeric_binding_invalid:visits",
+        "missing_required_source_citations"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [
+        "ev1_sql_fabricated"
+      ],
+      "citation_id_validity": 0.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 0,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 0,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports visits = 17, matching the SQL evidence record for site_2."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate reports city Accra, matching the SQL evidence record for site_2."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": false,
+                "reason": "Claim cites ev1_sql_fabricated, which does not exist in the evidence; the valid record ev1_sql_899474338729159a3c49b370 cannot be used to rescue it."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 797,
+            "output_tokens": 176,
+            "total_tokens": 973,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_2_uncited",
+      "status": "completed",
+      "issues": [
+        "uncited_claim"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 1,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Fact reports visits = 17, matching SQL evidence for site_2."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim states site_2 is in Accra, matching SQL evidence city field."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence record for site_2 lists city Accra, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 798,
+            "output_tokens": 147,
+            "total_tokens": 945,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_2_contradiction",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 0.5,
+      "claim_support": 0,
+      "judge_responses": [
+        {
+          "checklist_coverage": 0.5,
+          "claim_support": 0,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Fact states visits = 17, matching SQL evidence."
+              },
+              {
+                "index": 2,
+                "score": 0.0,
+                "reason": "Claim says Paris, but evidence shows city Accra."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": false,
+                "reason": "Evidence city is Accra, not Paris."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 814,
+            "output_tokens": 130,
+            "total_tokens": 944,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_2_truncated",
+      "status": "completed",
+      "issues": [
+        "incomplete_delivery"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Facts report visits = 17, matching SQL evidence visits: 17."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim states site_2 is in Accra, matching SQL evidence city: Accra."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence record for site_2 lists city Accra, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 815,
+            "output_tokens": 150,
+            "total_tokens": 965,
+            "input_token_details": {
+              "cache_read": 640
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_3_correct",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Facts report visits = 20, matching SQL evidence (visits: 20)."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim states site_3 is in Kyoto, matching SQL evidence city: Kyoto."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence record for site_3 lists city Kyoto, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 820,
+            "output_tokens": 148,
+            "total_tokens": 968,
+            "input_token_details": {
+              "cache_read": 384
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_3_wrong_number",
+      "status": "completed",
+      "issues": [
+        "numeric_binding_mismatch:visits",
+        "reference_value_mismatch:visits"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": false
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 0.5,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 0.5,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 0.0,
+                "reason": "Evidence shows visits = 20, but candidate reports 21."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Evidence shows city = Kyoto, matching the candidate's claim."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence content lists city Kyoto for site_3, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 820,
+            "output_tokens": 139,
+            "total_tokens": 959,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_3_wrong_citation",
+      "status": "completed",
+      "issues": [
+        "unknown_citations",
+        "numeric_binding_invalid:visits",
+        "missing_required_source_citations"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [
+        "ev1_sql_fabricated"
+      ],
+      "citation_id_validity": 0.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 0,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 0,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports visits = 20, matching the SQL evidence record for site_3."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate reports city Kyoto, matching the SQL evidence record for site_3."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": false,
+                "reason": "Claim cites ev1_sql_fabricated, which does not exist in the evidence; the valid record ev1_sql_78703ea1f541482f0cddfcde cannot be used to rescue an uncited claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 798,
+            "output_tokens": 180,
+            "total_tokens": 978,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_3_uncited",
+      "status": "completed",
+      "issues": [
+        "uncited_claim"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 1,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports visits = 20, matching SQL evidence (visits: 20)."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate states site_3 is in Kyoto, matching SQL evidence city: Kyoto."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence record for site_3 lists city Kyoto, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 801,
+            "output_tokens": 148,
+            "total_tokens": 949,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_3_contradiction",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 0.5,
+      "claim_support": 0,
+      "judge_responses": [
+        {
+          "checklist_coverage": 0.5,
+          "claim_support": 0,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Fact states visits = 20, matching SQL evidence visits: 20."
+              },
+              {
+                "index": 2,
+                "score": 0.0,
+                "reason": "Claim says Paris, but evidence city is Kyoto."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": false,
+                "reason": "Evidence city is Kyoto, not Paris; claim contradicts cited record."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 820,
+            "output_tokens": 137,
+            "total_tokens": 957,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    },
+    {
+      "id": "calibration_3_truncated",
+      "status": "completed",
+      "issues": [
+        "incomplete_delivery"
+      ],
+      "reference_checks": [
+        {
+          "metric": "visits",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Facts report visits = 20, matching evidence."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim states site_3 is in Kyoto, matching evidence city."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence record for site_3 lists city Kyoto."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 820,
+            "output_tokens": 133,
+            "total_tokens": 953,
+            "input_token_details": {
+              "cache_read": 640
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": null
+    }
+  ],
+  "scheduled": 24,
+  "terminal": 24
+}
