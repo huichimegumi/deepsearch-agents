@@ -51,12 +51,15 @@ def run(
     *,
     case_ids: list[str] | None = None,
     profile: str = "deepseek",
+    workflow: str = "agent",
     timeout_seconds: float = 330,
     cleanup_seconds: float = 5,
     resume_run: Path | None = None,
 ) -> Path:
     if profile not in {"deepseek", "qwen"}:
         raise ValueError("unknown_model_profile")
+    if workflow not in {"agent", "simple_sql"}:
+        raise ValueError("unknown_workflow")
     if timeout_seconds <= 0 or cleanup_seconds < 0:
         raise ValueError("invalid_deadline")
     available = _cases()
@@ -65,6 +68,10 @@ def run(
         raise ValueError("empty_case_selection")
     if len(selected) != len(set(selected)) or not set(selected) <= set(available):
         raise ValueError("invalid_case_selection")
+    if workflow == "simple_sql" and any(
+        not item.startswith("dabstep_research_") for item in selected
+    ):
+        raise ValueError("simple_sql_requires_dabstep_cases")
     ready = preflight()
     if not ready["ready"]:
         raise RuntimeError("benchmark_preflight_failed: " + ", ".join(ready["problems"]))
@@ -77,6 +84,7 @@ def run(
         if (
             manifest["case_ids"] != selected
             or manifest["profile"] != profile
+            or manifest.get("workflow", "agent") != workflow
             or manifest["suite_sha256"] != file_sha256(SUITE)
             or manifest["timeout_seconds"] != timeout_seconds
             or manifest["cleanup_seconds"] != cleanup_seconds
@@ -90,11 +98,14 @@ def run(
             SUITE,
             {
                 "profile": profile,
+                "workflow": workflow,
                 "timeout_seconds": timeout_seconds,
                 "cleanup_seconds": cleanup_seconds,
                 "search_backend": "duckduckgo",
                 "paid_search": False,
                 "gpu": "cpu",
+                "temperature": 0,
+                "simple_writer_max_tokens": 8000 if workflow == "simple_sql" else None,
             },
         )
         manifest.update(
@@ -102,6 +113,7 @@ def run(
                 "case_ids": selected,
                 "suite_sha256": file_sha256(SUITE),
                 "profile": profile,
+                "workflow": workflow,
                 "timeout_seconds": timeout_seconds,
                 "cleanup_seconds": cleanup_seconds,
                 "preflight_input_sha256": ready["input_sha256"],
@@ -135,6 +147,8 @@ def run(
                 case_id,
                 "--profile",
                 profile,
+                "--workflow",
+                workflow,
                 "--session-id",
                 f"{run_dir.name}_{case_id}_a{attempt_number}",
             ],
@@ -163,6 +177,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--case-id", action="append", dest="case_ids")
     parser.add_argument("--profile", choices=("deepseek", "qwen"), default="deepseek")
+    parser.add_argument("--workflow", choices=("agent", "simple_sql"), default="agent")
     parser.add_argument("--timeout-seconds", type=float, default=330)
     parser.add_argument("--cleanup-seconds", type=float, default=5)
     parser.add_argument("--resume-run", type=Path)

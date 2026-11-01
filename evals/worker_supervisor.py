@@ -74,6 +74,7 @@ def supervise(
     child_env["CUDA_VISIBLE_DEVICES"] = "-1"
     child_env["SEARCH_BACKEND_LOCK"] = "duckduckgo"
     child_env["EVAL_DISABLE_SDK_RETRIES"] = "1"
+    child_env["EVAL_TEMPERATURE"] = "0"
     child_env["PYTHONUNBUFFERED"] = "1"
     child_env.pop("TAVILY_API_KEY", None)
     child_env.pop("PERPLEXITY_API_KEY", None)

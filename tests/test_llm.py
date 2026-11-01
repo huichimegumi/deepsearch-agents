@@ -3,6 +3,7 @@
 import os
 from unittest.mock import patch
 
+from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
@@ -64,3 +65,32 @@ def test_evaluation_disables_opaque_sdk_retries():
     get_model.cache_clear()
     get_settings.cache_clear()
     assert model.max_retries == 0
+
+
+def test_deepseek_translates_output_token_cap_to_provider_field():
+    model = DeepSeekChatOpenAI(
+        model="deepseek-flash",
+        api_key="test-key",
+        base_url="https://api.deepseek.com",
+    )
+    payload = model._get_request_payload([HumanMessage(content="hi")], max_tokens=3500)
+    assert payload["max_tokens"] == 3500
+    assert "max_completion_tokens" not in payload
+
+
+def test_evaluation_temperature_is_explicit():
+    with patch.dict(
+        os.environ,
+        {
+            "LLM_PROVIDER": "deepseek",
+            "DEEPSEEK_API_KEY": "test-key",
+            "EVAL_TEMPERATURE": "0",
+        },
+        clear=True,
+    ):
+        get_settings.cache_clear()
+        get_model.cache_clear()
+        model = get_model()
+    get_model.cache_clear()
+    get_settings.cache_clear()
+    assert model.temperature == 0

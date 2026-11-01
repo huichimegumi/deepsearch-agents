@@ -17,6 +17,14 @@ from app.config import get_settings
 class DeepSeekChatOpenAI(ChatOpenAI):
     """Use tool calling for structured output on DeepSeek's Chat Completions API."""
 
+    def _get_request_payload(self, input_, *, stop=None, **kwargs):
+        payload = super()._get_request_payload(input_, stop=stop, **kwargs)
+        # This OpenAI model adapter emits max_completion_tokens, while DeepSeek's
+        # chat endpoint documents max_tokens. Without translation the cap is ignored.
+        if "max_completion_tokens" in payload:
+            payload["max_tokens"] = payload.pop("max_completion_tokens")
+        return payload
+
     def with_structured_output(self, schema=None, **kwargs):
         kwargs.setdefault("method", "function_calling")
         return super().with_structured_output(schema, **kwargs)
@@ -35,6 +43,8 @@ def get_model():
         # Evaluation workers need one observable HTTP attempt per model invocation.
         max_retries=0 if os.getenv("EVAL_DISABLE_SDK_RETRIES") == "1" else 1,
     )
+    if os.getenv("EVAL_TEMPERATURE") is not None:
+        model_kwargs["temperature"] = float(os.environ["EVAL_TEMPERATURE"])
     if settings.llm_provider == "deepseek":
         # DeepSeek's thinking mode rejects the forced tool choice used by
         # LangChain's function-calling structured output.

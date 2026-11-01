@@ -1,0 +1,9 @@
+{
+  "judge_profile": "deepseek",
+  "judge_replicates_per_answer": 3,
+  "judge_max_output_tokens": 2000,
+  "judge_instruction_sha256": "c89efcd99f07283125ae3a405f36c13787eaf57a9cd72604c3792f1e99221469",
+  "scorer_sha256": "80dfde2ab2ee914972649d7a9ecac3d4f135808b3988271fd5a0d84e88c0ca79",
+  "scored_at": "2026-11-01T04:47:08.145251+00:00",
+  "case_count": 8
+}

@@ -105,11 +105,17 @@ def main() -> int:
     parser.add_argument("--case-id", required=True)
     parser.add_argument("--session-id", required=True)
     parser.add_argument("--profile", choices=("deepseek", "qwen"), required=True)
+    parser.add_argument("--workflow", choices=("agent", "simple_sql"), default="agent")
     parser.add_argument("--result-path", type=Path, required=True)
     args = parser.parse_args()
     try:
         _configure_profile(args.profile)
-        result = asyncio.run(_execute(args.case_id, args.session_id))
+        if args.workflow == "simple_sql":
+            from evals.simple_sql_baseline import execute
+
+            result = asyncio.run(execute(args.case_id))
+        else:
+            result = asyncio.run(_execute(args.case_id, args.session_id))
     except Exception as exc:  # preserve a terminal result even for unexpected worker failures
         result = {
             "id": args.case_id,
