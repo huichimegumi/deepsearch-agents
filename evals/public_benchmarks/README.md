@@ -37,3 +37,23 @@ and separately authored refusal/partial/tool-error fixtures. The 30 selected pub
 outputs must not be used for repair before the final report. Shared data in DABStep/alien
 and public questions limit independence. Actual Web failures remain part of end-to-end
 results; snapshot or search-result availability must not be substituted for answer quality.
+
+Commands after preflight:
+
+```bash
+python -m scripts.evaluate public-prepare --development
+python -m scripts.evaluate public-run --inputs evals/results/e7-inputs/development/public.json --output evals/results/my-dev --workflow bounded
+python -m scripts.evaluate public-score --run evals/results/my-dev --inputs evals/results/e7-inputs/development --output evals/results/my-dev/score-deepseek
+# Only after implementation and scorer are frozen:
+python -m scripts.evaluate public-prepare
+python -m scripts.evaluate public-run --inputs evals/results/e7-inputs/validation/public.json --output evals/results/my-final --workflow bounded
+python -m scripts.evaluate public-score --run evals/results/my-final --inputs evals/results/e7-inputs/validation --output evals/results/my-final/score-deepseek
+python -m scripts.evaluate public-score --run evals/results/my-final --inputs evals/results/e7-inputs/validation --output evals/results/my-final/score-qwen --provider qwen --audit-subset
+python -m scripts.evaluate public-report --run evals/results/my-final --output evals/reports/my-final.md
+```
+
+The Qwen audit deterministically selects two cases per suite, using task IDs before scoring;
+it does not override primary grades. Calibration found a false acceptance of a known-but-wrong
+citation by Qwen, so provider agreement is diagnostic, not proof. The local anonymous review
+export is `python -m evals.public_benchmarks.audit --run <run> --inputs <inputs> --output <new-ignored-directory>`.
+Keep its private decoding key separate from reviewer packets; no human review is claimed.

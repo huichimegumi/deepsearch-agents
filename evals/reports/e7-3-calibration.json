@@ -1,0 +1,208 @@
+{
+  "scope": "Controlled authored calibration, not human review or natural-report accuracy",
+  "cases": [
+    {
+      "provider": "deepseek",
+      "id": "correct",
+      "expected_accept": true,
+      "actual_accept": true,
+      "matched": true,
+      "issues": [],
+      "coverage": 1.0,
+      "support": 1.0,
+      "error": null
+    },
+    {
+      "provider": "deepseek",
+      "id": "wrong_facts",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "issues": [],
+      "coverage": 0.0,
+      "support": 0.0,
+      "error": null
+    },
+    {
+      "provider": "deepseek",
+      "id": "known_but_wrong_citation",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "issues": [],
+      "coverage": 1.0,
+      "support": 0.0,
+      "error": null
+    },
+    {
+      "provider": "deepseek",
+      "id": "missing_citation",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "issues": [
+        "uncited_claim"
+      ],
+      "coverage": 1.0,
+      "support": 0.0,
+      "error": null
+    },
+    {
+      "provider": "deepseek",
+      "id": "missing_year",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "issues": [],
+      "coverage": 0.5,
+      "support": 1.0,
+      "error": null
+    },
+    {
+      "provider": "deepseek",
+      "id": "facts_hidden_in_limitations",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "issues": [
+        "empty_answer"
+      ],
+      "coverage": 0.0,
+      "support": null,
+      "error": null
+    },
+    {
+      "provider": "deepseek",
+      "id": "correct_scoped_refusal",
+      "expected_accept": true,
+      "actual_accept": true,
+      "matched": true,
+      "issues": [],
+      "coverage": 1.0,
+      "support": null,
+      "error": null
+    },
+    {
+      "provider": "deepseek",
+      "id": "wrong_refusal",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "issues": [
+        "answerable_task_not_answered",
+        "empty_answer"
+      ],
+      "coverage": 0.0,
+      "support": null,
+      "error": null
+    },
+    {
+      "provider": "qwen",
+      "id": "correct",
+      "expected_accept": true,
+      "actual_accept": true,
+      "matched": true,
+      "issues": [],
+      "coverage": 1.0,
+      "support": 1.0,
+      "error": null
+    },
+    {
+      "provider": "qwen",
+      "id": "wrong_facts",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "issues": [],
+      "coverage": 0.0,
+      "support": 0.0,
+      "error": null
+    },
+    {
+      "provider": "qwen",
+      "id": "known_but_wrong_citation",
+      "expected_accept": false,
+      "actual_accept": true,
+      "matched": false,
+      "issues": [],
+      "coverage": 1.0,
+      "support": 1.0,
+      "error": null
+    },
+    {
+      "provider": "qwen",
+      "id": "missing_citation",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "issues": [
+        "uncited_claim"
+      ],
+      "coverage": 1.0,
+      "support": 1.0,
+      "error": null
+    },
+    {
+      "provider": "qwen",
+      "id": "missing_year",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "issues": [],
+      "coverage": 0.5,
+      "support": 1.0,
+      "error": null
+    },
+    {
+      "provider": "qwen",
+      "id": "facts_hidden_in_limitations",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "issues": [
+        "empty_answer"
+      ],
+      "coverage": 0.5,
+      "support": null,
+      "error": null
+    },
+    {
+      "provider": "qwen",
+      "id": "correct_scoped_refusal",
+      "expected_accept": true,
+      "actual_accept": true,
+      "matched": true,
+      "issues": [],
+      "coverage": 1.0,
+      "support": null,
+      "error": null
+    },
+    {
+      "provider": "qwen",
+      "id": "wrong_refusal",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "issues": [
+        "answerable_task_not_answered",
+        "empty_answer"
+      ],
+      "coverage": 1.0,
+      "support": null,
+      "error": null
+    }
+  ],
+  "matched": 15,
+  "scheduled": 16,
+  "judge_errors": 0,
+  "reservations": {
+    "deepseek": {
+      "requests": 8,
+      "reserved_tokens": 38055
+    },
+    "qwen": {
+      "requests": 8,
+      "reserved_tokens": 38055
+    }
+  }
+}

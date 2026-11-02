@@ -20,6 +20,7 @@ OFFLINE_TESTS = [
     "tests/test_eval_v4_recovery.py",
     "tests/test_report_v4.py",
     "tests/test_public_suite.py",
+    "tests/test_public_scoring.py",
 ]
 
 
@@ -41,6 +42,17 @@ def main() -> int:
     public_run.add_argument("--inputs", type=Path, required=True)
     public_run.add_argument("--output", type=Path, required=True)
     public_run.add_argument("--workflow", choices=("simple", "bounded"), default="bounded")
+    public_score = commands.add_parser(
+        "public-score", help="Score saved E7 research; invokes model judge"
+    )
+    public_score.add_argument("--run", type=Path, required=True)
+    public_score.add_argument("--inputs", type=Path, required=True)
+    public_score.add_argument("--output", type=Path, required=True)
+    public_score.add_argument("--provider", choices=("deepseek", "qwen"), default="deepseek")
+    public_score.add_argument("--audit-subset", action="store_true")
+    public_report = commands.add_parser("public-report", help="Publish metadata-only E7 report")
+    public_report.add_argument("--run", type=Path, action="append", required=True)
+    public_report.add_argument("--output", type=Path, required=True)
     commands.add_parser(
         "prepare", help="Download/verify locked sources and rebuild both SQLite snapshots"
     )
@@ -89,6 +101,35 @@ def main() -> int:
             ],
             cwd=ROOT,
         )
+    if args.command == "public-score":
+        return subprocess.call(
+            [
+                sys.executable,
+                "-m",
+                "evals.public_benchmarks.score",
+                "--run",
+                str(args.run),
+                "--inputs",
+                str(args.inputs),
+                "--output",
+                str(args.output),
+                "--provider",
+                args.provider,
+                *(["--audit-subset"] if args.audit_subset else []),
+            ],
+            cwd=ROOT,
+        )
+    if args.command == "public-report":
+        command = [
+            sys.executable,
+            "-m",
+            "evals.public_benchmarks.report",
+            "--output",
+            str(args.output),
+        ]
+        for path in args.run:
+            command += ["--run", str(path)]
+        return subprocess.call(command, cwd=ROOT)
     if args.command == "check":
         command = [sys.executable, "-m", "pytest", *OFFLINE_TESTS, "-q"]
         if args.junit:
