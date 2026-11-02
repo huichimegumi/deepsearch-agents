@@ -1,0 +1,22 @@
+{
+  "suite": "benchmark_v3",
+  "checked_at": "2026-11-02T07:24:12.782299+00:00",
+  "ready": true,
+  "case_count": 31,
+  "source_case_counts": {
+    "dabstep_research": 8,
+    "dabstep_research_holdout20": 20,
+    "hybrid_deep_research": 3
+  },
+  "input_sha256": {
+    "suite": "9c932144e59403682f3de424437ae5c5e3f42c80f0540f8d8495b355d3669fe4",
+    "dabstep_research_lock": "5aee5a8464d1a1ed76913829f65d98d3de44298e721e26622eeb1714384423f0",
+    "dabstep_research_selection": "7f0645ce8fc34401f3576a2a54cfaf128fd0c3641357bb8047dc790bb411e4ea",
+    "dabstep_research_holdout20_lock": "5aee5a8464d1a1ed76913829f65d98d3de44298e721e26622eeb1714384423f0",
+    "dabstep_research_holdout20_selection": "627c243b40b369a6ee73e6846bfa8d567b7c7b9cc1ca76ea1e15854258196015",
+    "hybrid_deep_research_lock": "5286b1b08f6057c528a7b32e96cf2730ff2cba25c3806053cb0d97616d4f3551",
+    "hybrid_deep_research_selection": "da0d77f57f8cf2480b817798c54a139dc24129b7efc3dd29ab010ef4220197e0"
+  },
+  "problems": [],
+  "privacy_note": "No decrypted task, answer, reference SQL, or raw benchmark text is emitted."
+}

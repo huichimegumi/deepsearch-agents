@@ -1,0 +1,11 @@
+{
+  "ready": true,
+  "cases": {
+    "dabstep": 12,
+    "hybrid": 12,
+    "drb": 6
+  },
+  "lock_sha256": "b998a1862bcc924a5b7457361019c945e490a512f9267afee738c8e1e46dacf0",
+  "errors": [],
+  "scope": "No model/search calls; no decrypted questions or answers emitted"
+}

@@ -83,3 +83,5 @@ Thumbs.db
 .workbuddy/
 # Downloaded unmodified RFC source snapshots and rebuilt evaluation databases.
 /data/benchmarks/standards_v4/
+# Pinned public report benchmark assets, retained locally with upstream notices.
+/data/benchmarks/deepresearch_bench/
