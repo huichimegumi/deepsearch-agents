@@ -13,7 +13,44 @@ from pathlib import Path
 def load(run: Path, cases: list[dict]) -> dict:
     manifest = json.loads((run / "manifest.json").read_text())
     results = json.loads((run / "results.json").read_text())
-    scores = json.loads((run / "score-v4/scores.json").read_text())["rows"]
+    original_scores = json.loads((run / "score-v4/scores.json").read_text())
+    scores = list(original_scores["rows"])
+    primary_passes = sum(row["pass"] for row in scores)
+    retry_count = 0
+    overlay = run / "score-v4/error_retries.json"
+    if overlay.exists():
+        from evals.scoring_v4 import digest
+
+        recovery = json.loads(overlay.read_text())
+        scoring_manifest = json.loads((run / "score-v4/manifest.json").read_text())
+        if recovery["original_scores_sha256"] != digest(original_scores) or recovery[
+            "original_manifest_sha256"
+        ] != digest(scoring_manifest):
+            raise ValueError("judge_retry_original_mismatch")
+        retry_ids = {row["id"] for row in recovery["retry_scores"]}
+        retry_manifest = recovery["retry_manifest"]
+        if retry_manifest["cases_sha256"] != digest(
+            [row for row in cases if row["id"] in retry_ids]
+        ) or retry_manifest["results_sha256"] != digest(
+            [row for row in results if row["id"] in retry_ids]
+        ):
+            raise ValueError("judge_retry_input_mismatch")
+        for key in ("version", "scorer_sha256", "instruction_sha256", "replicates"):
+            if retry_manifest[key] != scoring_manifest[key]:
+                raise ValueError("judge_retry_configuration_mismatch")
+        by_id = {row["id"]: index for index, row in enumerate(scores)}
+        for row in recovery["retry_scores"]:
+            old = scores[by_id[row["id"]]]
+            if (
+                not old["judge_errors"]
+                or old["judge_responses"]
+                or old["issues"] != row["issues"]
+                or old["reference_checks"] != row["reference_checks"]
+            ):
+                raise ValueError("judge_retry_ineligible_case")
+            retry_count += 1
+            if not row["judge_errors"]:
+                scores[by_id[row["id"]]] = {**row, "original_judge_errors": old["judge_errors"]}
     ids = [row["id"] for row in cases]
     if (
         manifest["case_ids"] != ids
@@ -44,6 +81,9 @@ def load(run: Path, cases: list[dict]) -> dict:
         "terminal": len(results),
         "completed": sum(row["status"] == "completed" for row in rows),
         "passes": sum(row["pass"] for row in rows),
+        "primary_passes": primary_passes,
+        "judge_error_retries": retry_count,
+        "judge_errors_unresolved": sum(bool(row["judge_errors"]) for row in rows),
         "statuses": dict(Counter(row["status"] for row in rows)),
         "p50_seconds": round(statistics.median(durations), 2),
         "p95_seconds": durations[math.ceil(0.95 * len(durations)) - 1],
@@ -91,11 +131,21 @@ def publish(paths: list[Path], cases_path: Path, output: Path) -> dict:
         "| Workflow | Completed | Pass | p50 s | p95 s | Requests | Reserved tokens | Known generator tokens | Missing usage cases |",
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
+    notes = []
     for run in runs:
         s = run["summary"]
         lines.append(
             f"| {run['manifest']['workflow']} | {s['completed']}/{s['scheduled']} | {s['passes']}/{s['scheduled']} | {s['p50_seconds']} | {s['p95_seconds']} | {s['requests']} | {s['reserved_tokens']} | {s['known_generator_tokens']} | {s['generator_usage_missing']} |"
         )
+        if s["judge_error_retries"]:
+            notes += [
+                "",
+                f"Original {run['manifest']['workflow']} passes: {s['primary_passes']}; "
+                f"judge-error-only retries: {s['judge_error_retries']}; unresolved: {s['judge_errors_unresolved']}. "
+                "Research was not rerun; original score artifacts are retained.",
+                "",
+            ]
+    lines += notes
     for run in runs:
         lines += [
             "",

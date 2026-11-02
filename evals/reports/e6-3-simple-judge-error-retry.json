@@ -1,0 +1,137 @@
+{
+  "original_scores_sha256": "915178e1744a331b71e116f08308b88a22f8b8f78819b80a905c9a12748b04f6",
+  "original_manifest_sha256": "b4f4240e6c9ab83cf151fc8effdfbba99bf5dc303026920015cd809453fc2cc5",
+  "retry_manifest": {
+    "version": "4.1",
+    "cases_sha256": "d30ef146b220e2cc64d035615e825e075f938f816ce3a798435cf12dd053381c",
+    "results_sha256": "ae83b7f1dcaa876f43c66051b5d03026985f2ba445f641b96eca894c3c54c82b",
+    "instruction_sha256": "a55ee7f50d8ef26804386cdee38cc72c8d09d6bd4146544c0b97cf39c897de34",
+    "replicates": 1,
+    "scorer_sha256": "e40820e16adba8ef14cff427331498d917e8f2e09c8d6acf00dbbee6193206f1",
+    "max_requests": 1,
+    "max_reserved_tokens": 50000
+  },
+  "retry_scores": [
+    {
+      "id": "holdout_web_5",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate explicitly states Signature-Input identifies covered components and parameters describing signature generation, matching checklist."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate states Signature field contains the signature value itself, matching checklist."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Candidate states portions not covered are susceptible to modification without affecting the signature, i.e., only covered components are protected."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1_web_2f8ef4d39c3102e2adcbc169 states Signature-Input identifies covered components and parameters, Signature contains value, each field MAY contain multiple labeled values; both are Dictionary Structured Fields per 4.1/4.2."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "ev1_web_0225e1b456a3ea71d1652846 gives Dictionary Structured Field, Inner List of covered components ordered set with metadata params, and the exact example."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "ev1_web_0225e1b456a3ea71d1652846 states Signature is Dictionary Structured Field, member value Byte Sequence with signature value, with sig1=:P0wL... example."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "ev1_web_2f8ef4d39c3102e2adcbc169 states label MUST be unique, MUST be used in both fields, both fields MUST contain same labels, label in one but not other is error."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "ev1_web_0225e1b456a3ea71d1652846 states Signature-Input MUST contain same serialized value used in @signature-params, and list/parameter order must be preserved."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "ev1_web_0225e1b456a3ea71d1652846 states MAY be trailer, intermediaries may drop trailers, RECOMMENDED only as header to avoid stripping."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "ev1_web_b38281a4eb5d840807665727 Table 1 lists Signature-Input (4.1), Signature (4.2), Accept-Signature (5.1) as permanent."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "ev1_web_965107d7b84f787e97c46909 and ev1_web_d1c8e43261b216bdf74942af list conditions: exists, verifies against key/algorithm, time boundaries, covers expected content incl critical, list applicable."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "ev1_web_d1c8e43261b216bdf74942af Section 7.2.1 states portions not covered are susceptible to modification without affecting signature."
+              },
+              {
+                "index": 10,
+                "supported": true,
+                "reason": "ev1_web_ee4a56ef442e398e61437a97 TOC lists 7.2.3 Choosing Message Components and 7.2.4 Choosing Signature Parameters and Derived Components over HTTP Fields."
+              },
+              {
+                "index": 11,
+                "supported": true,
+                "reason": "ev1_web_37548d04fa14ee9c28e5290b table lists @method, @authority, @scheme, @target-uri, @request-target, @signature-params with targets Request or Request/Response."
+              },
+              {
+                "index": 12,
+                "supported": true,
+                "reason": "ev1_web_b38281a4eb5d840807665727 states signer can create second signature including additional components plus signature output of requested signature."
+              },
+              {
+                "index": 13,
+                "supported": true,
+                "reason": "ev1_web_d1c8e43261b216bdf74942af states signatures provide integrity over covered components but no confidentiality, don't negate TLS, TLS protects signature data from capture, important for preventing replay."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 8547,
+            "output_tokens": 968,
+            "total_tokens": 9515,
+            "input_token_details": {
+              "cache_read": 8320
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 8238,
+        "output_tokens": 1456,
+        "total_tokens": 9694
+      }
+    }
+  ]
+}

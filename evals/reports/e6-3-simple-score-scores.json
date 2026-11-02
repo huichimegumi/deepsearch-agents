@@ -1,0 +1,2059 @@
+{
+  "rows": [
+    {
+      "id": "holdout_local_0",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate states '~' encoded as '~0' and '/' as '~1', matching RFC 6901 Section 3."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate explains decoding ~1 first then ~0, and notes this avoids mis-decoding '~01' into '/'."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1 offset 2000 and 4000 both state '~' encoded as '~0' and '/' as '~1' in reference tokens."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "ev1 offset 4000 gives ABNF escaped = \"~\" (\"0\"/\"1\"), ~0 for ~, ~1 for /, and unescaped excludes %x2F and %x7E."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "ev1 offset 4000 states decoding first transforms '~1' to '/' then '~0' to '~'."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "ev1 offset 4000 explains order avoids turning '~01' into '~1' then '/', and '~01' correctly becomes '~1'."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "ev1 offset 8000 example shows \"a/b\" referenced by \"/a~1b\" and \"m~n\" by \"/m~0n\"."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "ev1 offset 6000/8000 note backslash escape sequences must be unescaped before processing as JSON Pointer, distinct from ~0/~1 decoding."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4775,
+            "output_tokens": 440,
+            "total_tokens": 5215,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 5000,
+        "output_tokens": 786,
+        "total_tokens": 5786
+      }
+    },
+    {
+      "id": "holdout_local_1",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate states null values indicate removal of existing values in the target, matching RFC 7396."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate states a non-object patch replaces the entire target with the entire patch, matching the RFC."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Candidate notes it is not possible to patch part of a non-object target, such as replacing just some array values."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1 (offset 2000) states null values indicate removal, and members not in target are added, existing members replaced."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Pseudocode in ev1 (offset 4000/6000) shows null removal when name exists and recursion otherwise."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Pseudocode: 'if Name exists in Target: remove' — null with absent name does nothing."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "ev1 (offset 4000) states merge patch suitable for objects without explicit nulls and not appropriate for all JSON syntaxes."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "ev1 (offset 6000) states non-object patch replaces entire target with entire patch; else branch returns Patch."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "ev1 (offset 6000) states not possible to patch part of a non-object target, e.g., some array values."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "Pseudocode: if Target is not an Object, Target = {} ignoring contents, then apply patch members."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "Appendix A test cases in ev1 (offset 10000) match all listed examples exactly."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "ev1 (offset 6000) states operation at data-item level, no preservation of whitespace/ordering/precision, duplicate names undefined."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 5146,
+            "output_tokens": 522,
+            "total_tokens": 5668,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 5080,
+        "output_tokens": 1074,
+        "total_tokens": 6154
+      }
+    },
+    {
+      "id": "holdout_local_2",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate states 429 indicates user sent too many requests in a given amount of time (\"rate limiting\"), matching RFC text."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate correctly states Retry-After MAY be included, not mandatory, matching RFC's MAY language."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1 offset 4000 quotes the exact 429 definition including \"rate limiting\"."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Evidence states representations SHOULD include details and MAY include Retry-After; MAY is permissive, not MUST."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Evidence shows SHOULD for details and MAY for Retry-After; neither is MUST. Interpretation consistent."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Evidence: \"Responses with the 429 status code MUST NOT be stored by a cache.\" Only MUST-level statement in Section 4."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Example shows Retry-After: 3600; example is illustrative, not normative obligation."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Evidence explicitly notes spec does not define user identification or request counting, with per-resource/server-wide examples."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "ev1 offset 10000 states servers are not required to use 429; may drop connections instead."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "ev1 offset 2000 states status codes are optional, servers cannot be required to support them, clients treat unknown codes as generic error."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "Section 2 lists key words interpreted per RFC 2119; RFC 2119 is a normative reference in offset 10000."
+              },
+              {
+                "index": 10,
+                "supported": true,
+                "reason": "Offset 0 shows Standards Track, April 2012, Updates: 2616. No RFC 9110 in evidence; scope statement accurate."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 5336,
+            "output_tokens": 526,
+            "total_tokens": 5862,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 5262,
+        "output_tokens": 1135,
+        "total_tokens": 6397
+      }
+    },
+    {
+      "id": "holdout_local_3",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate states -00:00 means UTC known but local offset unknown, matching Section 4.3."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate states Z/+00:00 imply UTC is the preferred reference point, matching Section 4.3."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence 5ea67c093e951b7a1a73d8f3 quotes Section 4.3 exactly: UTC known, local offset unknown, represented with \"-00:00\"."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Same excerpt states it differs semantically from \"Z\" or \"+00:00\", which imply UTC is the preferred reference point."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Excerpt states \"RFC2822 [IMAIL-UPDATE] describes a similar convention for email.\""
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "ABNF excerpt defines time-numoffset and time-zone exactly as claimed; the interpretive note that grammar doesn't encode semantics is accurate."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Interpretation grounded in the quoted semantics: -00:00 asserts unknown offset, so collapsing to Z fabricates a preferred-UTC claim. Labeled as interpretation."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Reasonable interpretation of the cited semantics; labeled as interpretation, consistent with the quoted distinction."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "Introduction excerpt states all times have a stated offset to UTC and spec steers clear of administrative/local-time cases."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "Section 4.2 NOTE in the excerpt states numeric offsets represent only integral-minute zones and historical non-integral offsets must be converted."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4652,
+            "output_tokens": 472,
+            "total_tokens": 5124,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 4561,
+        "output_tokens": 1107,
+        "total_tokens": 5668
+      }
+    },
+    {
+      "id": "holdout_local_4",
+      "status": "delivery_invalid",
+      "issues": [
+        "runtime_not_completed",
+        "unanswerable_task_not_refused"
+      ],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 0.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 0.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 0.0,
+                "reason": "Candidate gives no refusal; it labels answerability 'partial' and never declines the deployment-specific numeric count."
+              },
+              {
+                "index": 2,
+                "score": 0.0,
+                "reason": "Candidate only quotes RFC excerpts; it never distinguishes protocol spec from actual proxy configuration or notes the deployment setting is unknown."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Excerpt ev1...edc1bc9 matches the quoted text about rel types and equivalent Link header fields."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Excerpt ev1...9bd9e69 matches the quoted ABNF and extension relation type text."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Excerpt ev1...bc9a658 matches the quoted table of contents text."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4876,
+            "output_tokens": 237,
+            "total_tokens": 5113,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": {
+        "input_tokens": 5128,
+        "output_tokens": 908,
+        "total_tokens": 6036
+      }
+    },
+    {
+      "id": "holdout_local_5",
+      "status": "delivery_invalid",
+      "issues": [
+        "runtime_not_completed",
+        "unanswerable_task_not_refused"
+      ],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 0.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 0.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 0.0,
+                "reason": "Candidate does not refuse; it labels answerability 'partial' and provides no refusal, instead offering RFC excerpts without stating no incident count can be given."
+              },
+              {
+                "index": 2,
+                "score": 0.0,
+                "reason": "Candidate never explains that RFC 9112 protocol security guidance is not production telemetry; it merely lists excerpts and a generic limitation."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1 excerpt states Transfer-Encoding overrides Content-Length and such a message might indicate request smuggling, matching the quoted text."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "ev1 fed54 excerpt is the table of contents listing sections 11.1 Response Splitting and 11.2 Request Smuggling, matching the quote."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "ev1 a2d67 excerpt is the index listing absolute-form, chunked, close, compress entries, matching the quoted text."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4508,
+            "output_tokens": 273,
+            "total_tokens": 4781,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": {
+        "input_tokens": 4811,
+        "output_tokens": 636,
+        "total_tokens": 5447
+      }
+    },
+    {
+      "id": "holdout_mixed_0",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "publication_year",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 2,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "SQL evidence returns rfc=5861, year=2010; candidate cites it and reports publication_year 2010."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate states stale-while-revalidate allows serving stale while revalidating in background without blocking, per RFC text."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Candidate states stale-if-error permits stale content when an error (500/502/503/504-class) is encountered."
+              },
+              {
+                "index": 4,
+                "score": 1.0,
+                "reason": "Candidate respects delta-seconds bounds for both directives, including window expiry and upper staleness limit."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence shows rfc 5861 and year 2010 for the exact title."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Web excerpt shows 'Request for Comments: 5861', May 2010, title, Category: Informational."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Abstract and introduction state two independent extensions, stale-if-error and stale-while-revalidate."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Excerpts state MAY serve after stale up to indicated seconds; no error required."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Excerpt: cache SHOULD attempt to revalidate while still serving stale responses, without blocking."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Excerpt: if delta-seconds passes without revalidation, SHOULD NOT continue serving stale; next request blocks."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "Excerpt: when an error is encountered, stale response MAY be used regardless of other freshness information."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "Introduction cites 500 Internal Server Error, network segment, DNS failure, improving availability."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "Section 4 defines error as 500, 502, 503, or 504 status code situations."
+              },
+              {
+                "index": 10,
+                "supported": true,
+                "reason": "Excerpt: value indicates upper limit to staleness; more stale SHOULD NOT be used absent other information."
+              },
+              {
+                "index": 11,
+                "supported": true,
+                "reason": "Excerpt describes request vs response scope of application accurately."
+              },
+              {
+                "index": 12,
+                "supported": true,
+                "reason": "Both excerpts note non-zero Age and warning header; stale-if-error explicitly says does not affect freshness."
+              },
+              {
+                "index": 13,
+                "supported": true,
+                "reason": "Examples match: 30s stale-while-revalidate window; 1200s stale-if-error; write-through after age >1800s."
+              },
+              {
+                "index": 14,
+                "supported": true,
+                "reason": "Summary accurately synthesizes introduction and section text on differing trigger conditions and bounds."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 5593,
+            "output_tokens": 706,
+            "total_tokens": 6299,
+            "input_token_details": {
+              "cache_read": 640
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 5744,
+        "output_tokens": 1661,
+        "total_tokens": 7405
+      }
+    },
+    {
+      "id": "holdout_mixed_1",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "publication_year",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 2,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "SQL evidence shows rfc=6797, year=2012; candidate cites it and reports publication_year 2012."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Correctly explains includeSubDomains extends policy to subdomains, per Section 6.1.2."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Correctly states max-age=0 removes the host's stored HSTS policy (Section 6.1.1/8.1)."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL result content shows rfc 6797 and year 2012 for the queried title."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Web excerpt header reads 'RFC 6797 HTTP Strict Transport Security (HSTS) November 2012'."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Section 6.1.2 text matches: OPTIONAL valueless directive applying to host and subdomains."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Section 6.2 examples match exactly: 15768000 with includeSubDomains vs 31536000 host-only."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Section 6.1.1 defines REQUIRED max-age seconds; 8.1 calls it 'time to live' relative to reception."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "NOTE in 6.1.1 states max-age=0 signals UA to cease regarding host as Known HSTS Host, including includeSubDomains."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "Section 8.1 states UA MUST remove cached policy (including includeSubDomains) if known, or MUST NOT note if unknown."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "Section 6.2 states max-age=0 deletes entire policy and max-age=0; includeSubDomains has same effect since directive ignored."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "Section 8.1 states UA MUST process only first STS header; ignore insecure-transport and non-conforming headers."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4944,
+            "output_tokens": 557,
+            "total_tokens": 5501,
+            "input_token_details": {
+              "cache_read": 640
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 5568,
+        "output_tokens": 1177,
+        "total_tokens": 6745
+      }
+    },
+    {
+      "id": "holdout_mixed_2",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "publication_year",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 2,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "SQL query result gives rfc 7617, year 2015; candidate cites it and reports publication_year 2015."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate explicitly states Base64 is an encoding, not encryption, and describes the reversible transformation."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Candidate states credentials travel as cleartext and require external secure system such as TLS."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence shows rfc 7617 and year 2015 for the exact title."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Both web excerpts show header 'RFC 7617 ... September 2015'."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Excerpt states not secure unless used with external secure system such as TLS; credentials passed as cleartext."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Excerpt describes concatenation, octet sequence, Base64 per RFC4648 Section 4 into US-ASCII."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Excerpt gives Aladdin / open sesame example with exact header."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Excerpt shows octets 74 65 73 74 3A 31 32 33 C2 A3 yielding dGVzdDoxMjPCow== and both headers."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "Excerpt supports TLS condition and cleartext; noting absence of normative MUST is consistent with excerpt."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "Excerpt states MUST NOT contain control characters and colon in user-id is invalid."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 5154,
+            "output_tokens": 460,
+            "total_tokens": 5614,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 5855,
+        "output_tokens": 1122,
+        "total_tokens": 6977
+      }
+    },
+    {
+      "id": "holdout_mixed_3",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "publication_year",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "SQL query result gives rfc 7239, year 2014; candidate cites it and reports 2014."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Claim 3 (untrusted chain) and claim 4 (modification by network attacker) cover untrusted intermediaries."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Claim 7 covers obfuscated elements; claim 9 covers not passing private info (minimized disclosure)."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL evidence shows rfc 7239, year 2014 for the queried title."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Both web excerpts show 'June 2014' in RFC 7239 page headers."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Excerpt states chain of IP addresses before the proxy cannot be trusted."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Excerpt states data can be modified by attacker with network access unless secured."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Excerpt states header is optional and conclusions possible only if proxies trusted."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Excerpt states header should be off by default and each parameter configured individually."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "Excerpt lists obfuscated elements, preventing internal updates, egress proxy removal."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "Excerpt states never copied into responses and TRACE care in hosting environments."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "Excerpt states proxy SHOULD NOT use Forwarded nor pass private info when privacy requested."
+              },
+              {
+                "index": 10,
+                "supported": true,
+                "reason": "Excerpt states IP may uniquely identify client, reveal operator, rough location."
+              },
+              {
+                "index": 11,
+                "supported": true,
+                "reason": "Excerpt describes trade-off and that proxies preserve direct-connection info with privacy impact."
+              },
+              {
+                "index": 12,
+                "supported": true,
+                "reason": "IANA excerpt states security and privacy implications of all new parameters should be thoroughly documented."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4697,
+            "output_tokens": 561,
+            "total_tokens": 5258,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 5391,
+        "output_tokens": 1104,
+        "total_tokens": 6495
+      }
+    },
+    {
+      "id": "holdout_mixed_4",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "publication_year",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "SQL evidence shows rfc 6266, year 2011; candidate cites it for publication_year."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Web evidence states recipients SHOULD pick filename* and ignore filename when both present."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Evidence states filename is advisory only and recipients MUST NOT write outside entitled locations; stripping path segments recommended."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL result row shows rfc 6266 and year 2011 for the queried title."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Excerpt states recipients SHOULD pick filename* and ignore filename, with legacy fallback rationale."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Excerpt states advisory-only treatment and MUST NOT write outside entitled locations, citing /etc/passwd."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Excerpt recommends never trusting folder info, stripping all but last path segment delimited by \\ and /."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Excerpt covers safe extension MUST, stripping control chars/whitespace SHOULD, and special names like . .. ~ | device names."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Appendix D excerpt matches: filename* when needed, filename fallback, filename first, UTF-8 encoding."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "Grammar excerpt defines filename-parm alternatives and states multiple same-name parameters are invalid."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4795,
+            "output_tokens": 416,
+            "total_tokens": 5211,
+            "input_token_details": {
+              "cache_read": 640
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 5605,
+        "output_tokens": 1029,
+        "total_tokens": 6634
+      }
+    },
+    {
+      "id": "holdout_mixed_5",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "publication_year",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "SQL evidence returns rfc 9421, year 2024; candidate cites it for publication_year 2024."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Web evidence states Signature-Input is a Dictionary carrying metadata, covered components Inner List, and parameters like created/keyid."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Evidence states Signature is a Dictionary whose member values are Byte Sequences containing signature values."
+              },
+              {
+                "index": 4,
+                "score": 1.0,
+                "reason": "Evidence supports coverage conditions: signature covers expected content including critical components and covered list applicable to context."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "SQL row shows rfc 9421, year 2024, matching the claim."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Evidence describes Signature-Input Dictionary, label keys, covered components Inner List, and metadata parameters."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Evidence states MUST contain same serialized value, order preserved, unique labels, header recommended over trailer."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Evidence describes Signature Dictionary with label keys and Byte Sequence signature values, example sig1."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Evidence supports label pairing and error on label in one field but not the other; the 'declares what was signed' summary is consistent."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Evidence lists coverage conditions including expected content/critical components and applicable covered list."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "TOC excerpt shows sections 7.2.1 Insufficient Coverage and 7.2.3 Choosing Message Components."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "Evidence shows applicability check with error, same covered components required, and second signature to cover additional components."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4827,
+            "output_tokens": 490,
+            "total_tokens": 5317,
+            "input_token_details": {
+              "cache_read": 640
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 5561,
+        "output_tokens": 1075,
+        "total_tokens": 6636
+      }
+    },
+    {
+      "id": "holdout_sql_0",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "document_count",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports document_count = 12 and cites the executed SQL query result evidence (ev1) showing document_count 12 from SELECT COUNT(*) FROM standards."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence ev1 is a SQL query result of SELECT COUNT(*) AS document_count FROM standards with content document_count: 12, entailing the claim of 12 rows."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 1005,
+            "output_tokens": 147,
+            "total_tokens": 1152,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 2184,
+        "output_tokens": 304,
+        "total_tokens": 2488
+      }
+    },
+    {
+      "id": "holdout_sql_1",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "earliest_year",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports earliest_year = 2002 and cites the executed SQL query result (MIN(year) FROM standards) with matching evidence."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence is the SQL query result of SELECT MIN(year) AS earliest_year FROM standards returning 2002, which entails the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 1012,
+            "output_tokens": 134,
+            "total_tokens": 1146,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 2197,
+        "output_tokens": 302,
+        "total_tokens": 2499
+      }
+    },
+    {
+      "id": "holdout_sql_2",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "web_document_count",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports web_document_count = 6 and cites the executed SQL query result (ev1) whose content is {web_document_count: 6} from COUNT(*) WHERE source_role='web'."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence ev1 is a SQL query result of COUNT(*) AS web_document_count FROM standards WHERE source_role='web' returning 6, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 1030,
+            "output_tokens": 157,
+            "total_tokens": 1187,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 2204,
+        "output_tokens": 321,
+        "total_tokens": 2525
+      }
+    },
+    {
+      "id": "holdout_sql_3",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "distinct_author_count",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Reports distinct_author_count = 20 and cites the executed SQL query result evidence (ev1) with matching query and value."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence shows query SELECT COUNT(DISTINCT author) AS distinct_author_count FROM authors returning 20, matching the claim."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Evidence is a SQL query result on the authors table; claim about scope and DISTINCT semantics is consistent, though NULL handling detail is a general SQLite property."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 1174,
+            "output_tokens": 181,
+            "total_tokens": 1355,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 2211,
+        "output_tokens": 457,
+        "total_tokens": 2668
+      }
+    },
+    {
+      "id": "holdout_sql_4",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "total_pages",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Reports total_pages = 307 and cites the executed SQL aggregate query result (ev1) showing total_pages 307."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence ev1 is the SQL query SELECT SUM(page_count) AS total_pages FROM standards returning total_pages = 307, entailing the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 1047,
+            "output_tokens": 139,
+            "total_tokens": 1186,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 2199,
+        "output_tokens": 338,
+        "total_tokens": 2537
+      }
+    },
+    {
+      "id": "holdout_sql_5",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [
+        {
+          "metric": "latest_rfc",
+          "correct": true
+        }
+      ],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 1,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate reports latest_rfc = 9421 and cites the executed SQL query result (ev1) whose content is {latest_rfc: 9421} from SELECT MAX(rfc) ... WHERE year >= 2014."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "Evidence ev1 is the SQL query result of SELECT MAX(rfc) AS latest_rfc FROM standards WHERE year >= 2014, returning latest_rfc = 9421, which entails the claim."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 1086,
+            "output_tokens": 169,
+            "total_tokens": 1255,
+            "input_token_details": {
+              "cache_read": 640
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 2219,
+        "output_tokens": 369,
+        "total_tokens": 2588
+      }
+    },
+    {
+      "id": "holdout_web_0",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 0.8888888888888888,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 0.8888888888888888,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate states stale-while-revalidate serves stale up to N seconds and revalidates in background without blocking, matching RFC text."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate states stale-if-error permits stale response when an error is encountered, matching RFC."
+              },
+              {
+                "index": 3,
+                "score": 1.0,
+                "reason": "Candidate describes both bounded delta-seconds windows and SHOULD NOT use beyond staleness limit."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1 abstract says two independent extensions; ev1 status says not Standards Track, informational."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "ev2/ev3 state MAY serve stale up to indicated seconds and SHOULD revalidate without blocking; trigger is staleness within window."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "ev3/ev4 state when error encountered stale response MAY be used regardless of other freshness info; trigger is error."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "ev4 defines error as 500/502/503/504; ev2 introduction cites network segment and DNS failures."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "ev3 says SHOULD NOT continue stale after delta-seconds; ev4 says SHOULD NOT use when more stale than indicated."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "ev4 describes request/response scope for stale-if-error; ev2/ev3 describe stale-while-revalidate only as response extension."
+              },
+              {
+                "index": 7,
+                "supported": false,
+                "reason": "ev3 notes stale implies non-zero Age and warning header, but ev4 says stale-if-error does not affect freshness; 'neither affects freshness' not entailed for both."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "ev2 introduction states stale-while-revalidate hides latency and stale-if-error improves availability avoiding hard error."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "ev3 example gives max-age=600, swr=30; ev4 example gives 600/1200, age 900 returns 200, after 1800 error written through."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4928,
+            "output_tokens": 547,
+            "total_tokens": 5475,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": {
+        "input_tokens": 4805,
+        "output_tokens": 1189,
+        "total_tokens": 5994
+      }
+    },
+    {
+      "id": "holdout_web_1",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate explains includeSubDomains extends policy to subdomains, citing 6.1.2 and 5.2."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate states max-age=0 deletes the entire HSTS Policy for the sending host, per 6.2 and 8.1."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1_web_24cfaf... states 6.1.2 OPTIONAL valueless directive, if asserted, applies to host and subdomains."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "ev1_web_3ebefb... states optional includeSubDomains applies to hosts whose names are subdomains of Known HSTS Host."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "ev1_web_3ebefb... states UAs store/index by issuing host domain, maintain separately from super/subdomains, only given host can update/delete."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "ev1_web_3ebefb... 5.4 matches: checks superdomains with includeSubDomains asserted, else only if host itself known."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "ev1_web_24cfaf... 6.2 examples match exactly: 15768000+includeSubDomains vs 31536000 alone."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "ev1_web_24cfaf... states max-age=0 deletes entire HSTS Policy; 3ebefb confirms zero duration signals deletion."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "ev1_web_24cfaf... states max-age=0; includeSubDomains has exactly same effect since directive ignored when max-age zero."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "ev1_web_e0af... 8.1 states MUST remove cached policy incl. includeSubDomains if known, or MUST NOT note if unknown."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "ev1_web_e0af... states max-age is TTL relative to reception, only first STS header processed, insecure/grammar-invalid ignored."
+              },
+              {
+                "index": 10,
+                "supported": true,
+                "reason": "ev1_web_3b39... 11.2 non-normative advises default max-age zero requiring deployers to willfully set max-age."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 5425,
+            "output_tokens": 626,
+            "total_tokens": 6051,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 5370,
+        "output_tokens": 1153,
+        "total_tokens": 6523
+      }
+    },
+    {
+      "id": "holdout_web_2",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate explicitly states Base64 is an encoding, not encryption, and describes the encoding process per RFC 7617."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate states security depends on layering over TLS/external secure system and RFC 7617 provides no confidentiality."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1_web_4fb000d0494c2624ebf69b9b states the scheme transmits credentials as user-id/password pairs encoded using Base64."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Same evidence states not secure unless used with external secure system such as TLS, as credentials passed as cleartext."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "ev1_web_24f06c883d3ec41b6fe5e575 details concatenation with colon, octet encoding, and Base64 per RFC 4648 Section 4 into US-ASCII."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Evidence states default encoding left undefined for backwards compatibility, US-ASCII compatible, and charset param is purely advisory."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Evidence states user-id/password MUST NOT contain control characters and user-id with colon is invalid."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Evidence gives exact example: Aladdin / open sesame yields Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "ev1_web_939c91211924060daf9ff065 gives test/123+pound, octets, Base64 dGVzdDoxMjPCow==, and both Authorization and Proxy-Authorization headers."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "Evidence describes authentication scope, prefix-match SHOULD, MAY preemptively send, and MAY reuse in Proxy-Authorization."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "ev1_web_4fb000d0494c2624ebf69b9b supports external secure system/TLS dependency and cleartext transmission."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4873,
+            "output_tokens": 558,
+            "total_tokens": 5431,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 4921,
+        "output_tokens": 1034,
+        "total_tokens": 5955
+      }
+    },
+    {
+      "id": "holdout_web_3",
+      "status": "completed",
+      "issues": [
+        "answerable_task_not_answered"
+      ],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate explains proxies can add/remove Forwarded fields and trust depends on trusted proxies, covering untrusted intermediaries."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate details obfuscated identifiers, random generation, limited lifetimes, and minimization of sensitive info."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1_web_bcaf... states OPTIONAL header, parameter-identifier pairs disclosing altered/lost info, sensitive data, off by default, each parameter configured individually."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "ev1_web_bcaf... contains 'as long as the proxies are trusted' and X-Forwarded comparison."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "ev1_web_bcaf... states each proxy can add parameters and remove previously added Forwarded header fields."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "ev1_web_bcaf... states header optional so privacy-intended proxies not required to operate/implement it."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "ev1_web_7063... TOC lists 8.1 Header Validity and Integrity and 8.2 Information Leak; body absent, as stated."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "ev1_web_de55... states IP addresses privacy sensitive, may uniquely identify client, operator, geographic location."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "ev1_web_de55... states proxies preserve direct connection info, privacy impact regardless of knowledge, implementers/deployers must consider."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "ev1_web_de55... states default config for by/for SHOULD contain obfuscated identifiers, randomly generated per request."
+              },
+              {
+                "index": 9,
+                "supported": true,
+                "reason": "ev1_web_de55... covers limited lifetimes, not persist longer than IPs, care not to include sensitive info."
+              },
+              {
+                "index": 10,
+                "supported": true,
+                "reason": "ev1_web_fe76... and ev1_web_0c46... cover leading underscore, allowed chars, obfport tracing without revealing internal info."
+              },
+              {
+                "index": 11,
+                "supported": true,
+                "reason": "ev1_web_9a02... describes by/for three options: obfuscated default, IP address, unknown."
+              },
+              {
+                "index": 12,
+                "supported": true,
+                "reason": "ev1_web_de55... covers X-Forwarded-For, no anonymizing proxy reliance, fingerprinting, chain of proxies."
+              },
+              {
+                "index": 13,
+                "supported": true,
+                "reason": "ev1_web_fe76... states directly forwarded request should preserve/extend; if not direct consequence, should not be preserved."
+              },
+              {
+                "index": 14,
+                "supported": true,
+                "reason": "ev1_web_d59f... states IETF Review registration and security/privacy implications should be thoroughly documented."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 7399,
+            "output_tokens": 733,
+            "total_tokens": 8132,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": false,
+      "generator_usage": {
+        "input_tokens": 6796,
+        "output_tokens": 1722,
+        "total_tokens": 8518
+      }
+    },
+    {
+      "id": "holdout_web_4",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": 1.0,
+      "claim_support": 1,
+      "judge_responses": [
+        {
+          "checklist_coverage": 1.0,
+          "claim_support": 1,
+          "judgement": {
+            "criteria": [
+              {
+                "index": 1,
+                "score": 1.0,
+                "reason": "Candidate states recipients SHOULD pick filename* and ignore filename, matching RFC text."
+              },
+              {
+                "index": 2,
+                "score": 1.0,
+                "reason": "Candidate states filenames are advisory only and path segments should be stripped (never trust folder info, strip all but last segment)."
+              }
+            ],
+            "claims": [
+              {
+                "index": 1,
+                "supported": true,
+                "reason": "ev1_web_ce58528bc26c2f8ca8a8f7f5 states recipients SHOULD pick filename* and ignore filename when both present."
+              },
+              {
+                "index": 2,
+                "supported": true,
+                "reason": "Same evidence explains legacy UAs don't understand filename*, senders send both, filename as fallback."
+              },
+              {
+                "index": 3,
+                "supported": true,
+                "reason": "Evidence states recipients MUST NOT write to locations other than entitled, citing /etc/passwd example."
+              },
+              {
+                "index": 4,
+                "supported": true,
+                "reason": "Evidence describes stripping all but last path segment, delimited by \\ and /."
+              },
+              {
+                "index": 5,
+                "supported": true,
+                "reason": "Evidence covers safe extension, control chars/whitespace stripping, and special names ., .., ~, |, device names."
+              },
+              {
+                "index": 6,
+                "supported": true,
+                "reason": "Evidence states recipients treat filename as advisory only and be very careful extracting information."
+              },
+              {
+                "index": 7,
+                "supported": true,
+                "reason": "ev1_web_4ccd57c986ef64785f5888fd states filename should occur first due to parsing problems in existing implementations."
+              },
+              {
+                "index": 8,
+                "supported": true,
+                "reason": "ev1_web_bc7d943835fcd23c22dcc43e gives filename-parm grammar and states multiple instances of same parameter name are invalid."
+              }
+            ]
+          },
+          "usage": {
+            "input_tokens": 4487,
+            "output_tokens": 455,
+            "total_tokens": 4942,
+            "input_token_details": {
+              "cache_read": 512
+            },
+            "output_token_details": {}
+          },
+          "model": "deepseek-flash"
+        }
+      ],
+      "judge_errors": [],
+      "pass": true,
+      "generator_usage": {
+        "input_tokens": 4641,
+        "output_tokens": 934,
+        "total_tokens": 5575
+      }
+    },
+    {
+      "id": "holdout_web_5",
+      "status": "completed",
+      "issues": [],
+      "reference_checks": [],
+      "invalid_cited_ids": [],
+      "citation_id_validity": 1.0,
+      "numeric_audit_count": 0,
+      "uncited_claim_count": 0,
+      "checklist_coverage": null,
+      "claim_support": null,
+      "judge_responses": [],
+      "judge_errors": [
+        "ValueError:judge_index_mismatch"
+      ],
+      "pass": false,
+      "generator_usage": {
+        "input_tokens": 8238,
+        "output_tokens": 1456,
+        "total_tokens": 9694
+      }
+    }
+  ],
+  "scheduled": 24,
+  "terminal": 24
+}

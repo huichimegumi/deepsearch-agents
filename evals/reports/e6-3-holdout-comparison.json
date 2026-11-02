@@ -1,0 +1,844 @@
+{
+  "case_file": "evals/standards/holdout.json",
+  "runs": [
+    {
+      "run_id": "e6-3-holdout-simple",
+      "manifest": {
+        "version": "4.0",
+        "split": "holdout",
+        "workflow": "simple",
+        "profile": "deepseek",
+        "public_tasks_sha256": "2bb155037ef6aff38c45131ff8059b0d61eb72209c31471f8b177d0caeb3f231",
+        "source_sha256": "49e31fa31e670976805711f06ef5defe95c18806ce521d5e508e042b5c4f4a90",
+        "sources_sha256": "89afdcaa10941dfab903d2d23a8dc80e0ce0c9efac524f9b0e9bf5c8827645cf",
+        "database_sha256": "357f8f5f2a80bb0aee26636dca0bbd2d73a368b7dbf9a3cfecc32df0cdaac7b2",
+        "case_ids": [
+          "holdout_local_0",
+          "holdout_local_1",
+          "holdout_local_2",
+          "holdout_local_3",
+          "holdout_local_4",
+          "holdout_local_5",
+          "holdout_mixed_0",
+          "holdout_mixed_1",
+          "holdout_mixed_2",
+          "holdout_mixed_3",
+          "holdout_mixed_4",
+          "holdout_mixed_5",
+          "holdout_sql_0",
+          "holdout_sql_1",
+          "holdout_sql_2",
+          "holdout_sql_3",
+          "holdout_sql_4",
+          "holdout_sql_5",
+          "holdout_web_0",
+          "holdout_web_1",
+          "holdout_web_2",
+          "holdout_web_3",
+          "holdout_web_4",
+          "holdout_web_5"
+        ],
+        "deadline_seconds": 210,
+        "case_model_token_reservation_limit": 180000,
+        "batch_token_reservation_limit": 2000000,
+        "web_mode": "snapshot_only",
+        "gpu": "cpu"
+      },
+      "summary": {
+        "scheduled": 24,
+        "terminal": 24,
+        "completed": 22,
+        "passes": 20,
+        "primary_passes": 19,
+        "judge_error_retries": 1,
+        "judge_errors_unresolved": 0,
+        "statuses": {
+          "completed": 22,
+          "delivery_invalid": 2
+        },
+        "p50_seconds": 13.13,
+        "p95_seconds": 15.166,
+        "known_generator_tokens": 133944,
+        "generator_usage_missing": 0,
+        "reserved_tokens": 301929,
+        "requests": 48
+      },
+      "rows": [
+        {
+          "id": "holdout_local_0",
+          "category": "local_document",
+          "status": "completed",
+          "seconds": 12.656,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_local_1",
+          "category": "local_document",
+          "status": "completed",
+          "seconds": 13.808,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_local_2",
+          "category": "local_document",
+          "status": "completed",
+          "seconds": 14.109,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_local_3",
+          "category": "local_document",
+          "status": "completed",
+          "seconds": 13.305,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_local_4",
+          "category": "local_document",
+          "status": "delivery_invalid",
+          "seconds": 13.658,
+          "pass": false,
+          "checklist": 0.0,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed",
+            "unanswerable_task_not_refused"
+          ],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_local_5",
+          "category": "local_document",
+          "status": "delivery_invalid",
+          "seconds": 11.304,
+          "pass": false,
+          "checklist": 0.0,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed",
+            "unanswerable_task_not_refused"
+          ],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_mixed_0",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 15.166,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_mixed_1",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 12.355,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_mixed_2",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 14.062,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_mixed_3",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 13.307,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_mixed_4",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 12.956,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_mixed_5",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 14.913,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_sql_0",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 9.996,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "document_count",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_sql_1",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 8.598,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "earliest_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_sql_2",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 8.794,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "web_document_count",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_sql_3",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 9.445,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "distinct_author_count",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_sql_4",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 9.348,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "total_pages",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_sql_5",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 9.296,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "latest_rfc",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_web_0",
+          "category": "web",
+          "status": "completed",
+          "seconds": 13.408,
+          "pass": false,
+          "checklist": 1.0,
+          "claim_support": 0.8888888888888888,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_web_1",
+          "category": "web",
+          "status": "completed",
+          "seconds": 13.509,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_web_2",
+          "category": "web",
+          "status": "completed",
+          "seconds": 12.906,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_web_3",
+          "category": "web",
+          "status": "completed",
+          "seconds": 16.862,
+          "pass": false,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [
+            "answerable_task_not_answered"
+          ],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_web_4",
+          "category": "web",
+          "status": "completed",
+          "seconds": 11.549,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_web_5",
+          "category": "web",
+          "status": "completed",
+          "seconds": 14.858,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        }
+      ]
+    },
+    {
+      "run_id": "e6-3-holdout-bounded",
+      "manifest": {
+        "version": "4.0",
+        "split": "holdout",
+        "workflow": "bounded",
+        "profile": "deepseek",
+        "public_tasks_sha256": "2bb155037ef6aff38c45131ff8059b0d61eb72209c31471f8b177d0caeb3f231",
+        "source_sha256": "49e31fa31e670976805711f06ef5defe95c18806ce521d5e508e042b5c4f4a90",
+        "sources_sha256": "89afdcaa10941dfab903d2d23a8dc80e0ce0c9efac524f9b0e9bf5c8827645cf",
+        "database_sha256": "357f8f5f2a80bb0aee26636dca0bbd2d73a368b7dbf9a3cfecc32df0cdaac7b2",
+        "case_ids": [
+          "holdout_local_0",
+          "holdout_local_1",
+          "holdout_local_2",
+          "holdout_local_3",
+          "holdout_local_4",
+          "holdout_local_5",
+          "holdout_mixed_0",
+          "holdout_mixed_1",
+          "holdout_mixed_2",
+          "holdout_mixed_3",
+          "holdout_mixed_4",
+          "holdout_mixed_5",
+          "holdout_sql_0",
+          "holdout_sql_1",
+          "holdout_sql_2",
+          "holdout_sql_3",
+          "holdout_sql_4",
+          "holdout_sql_5",
+          "holdout_web_0",
+          "holdout_web_1",
+          "holdout_web_2",
+          "holdout_web_3",
+          "holdout_web_4",
+          "holdout_web_5"
+        ],
+        "deadline_seconds": 210,
+        "case_model_token_reservation_limit": 180000,
+        "batch_token_reservation_limit": 2000000,
+        "web_mode": "snapshot_only",
+        "gpu": "cpu"
+      },
+      "summary": {
+        "scheduled": 24,
+        "terminal": 24,
+        "completed": 22,
+        "passes": 22,
+        "primary_passes": 22,
+        "judge_error_retries": 0,
+        "judge_errors_unresolved": 0,
+        "statuses": {
+          "completed": 22,
+          "degraded": 2
+        },
+        "p50_seconds": 14.56,
+        "p95_seconds": 17.223,
+        "known_generator_tokens": 225552,
+        "generator_usage_missing": 0,
+        "reserved_tokens": 488560,
+        "requests": 72
+      },
+      "rows": [
+        {
+          "id": "holdout_local_0",
+          "category": "local_document",
+          "status": "completed",
+          "seconds": 13.557,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_local_1",
+          "category": "local_document",
+          "status": "completed",
+          "seconds": 15.514,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_local_2",
+          "category": "local_document",
+          "status": "completed",
+          "seconds": 14.397,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_local_3",
+          "category": "local_document",
+          "status": "completed",
+          "seconds": 15.397,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_local_4",
+          "category": "local_document",
+          "status": "degraded",
+          "seconds": 13.292,
+          "pass": false,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed"
+          ],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_local_5",
+          "category": "local_document",
+          "status": "degraded",
+          "seconds": 13.547,
+          "pass": false,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [
+            "runtime_not_completed"
+          ],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_mixed_0",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 17.112,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_mixed_1",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 14.553,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_mixed_2",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 15.157,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_mixed_3",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 15.054,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_mixed_4",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 15.358,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_mixed_5",
+          "category": "mixed",
+          "status": "completed",
+          "seconds": 15.657,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "publication_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_sql_0",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 9.549,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "document_count",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_sql_1",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 11.053,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "earliest_year",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_sql_2",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 11.254,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "web_document_count",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_sql_3",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 11.905,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "distinct_author_count",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_sql_4",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 11.35,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "total_pages",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_sql_5",
+          "category": "sql",
+          "status": "completed",
+          "seconds": 11.808,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": [
+            {
+              "metric": "latest_rfc",
+              "correct": true
+            }
+          ]
+        },
+        {
+          "id": "holdout_web_0",
+          "category": "web",
+          "status": "completed",
+          "seconds": 15.164,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_web_1",
+          "category": "web",
+          "status": "completed",
+          "seconds": 14.163,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_web_2",
+          "category": "web",
+          "status": "completed",
+          "seconds": 14.715,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_web_3",
+          "category": "web",
+          "status": "completed",
+          "seconds": 17.223,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_web_4",
+          "category": "web",
+          "status": "completed",
+          "seconds": 14.558,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        },
+        {
+          "id": "holdout_web_5",
+          "category": "web",
+          "status": "completed",
+          "seconds": 18.069,
+          "pass": true,
+          "checklist": 1.0,
+          "claim_support": 1,
+          "issues": [],
+          "judge_errors": [],
+          "numeric_checks": []
+        }
+      ]
+    }
+  ],
+  "limitations": "Internally authored engineering tasks over official RFC snapshots; not an official benchmark score. Snapshot retrieval excludes live web-search reliability. LLM support grades remain provisional."
+}
