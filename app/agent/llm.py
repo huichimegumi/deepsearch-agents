@@ -7,6 +7,7 @@
 
 import os
 from functools import lru_cache
+from typing import ClassVar
 
 from langchain_openai import ChatOpenAI
 
@@ -16,8 +17,14 @@ from app.config import get_settings
 class EvaluationBudgetedChatOpenAI(ChatOpenAI):
     """Reserve an evaluation request before the OpenAI-compatible transport runs."""
 
+    provider_uses_max_tokens: ClassVar[bool] = False
+
     def _get_request_payload(self, input_, *, stop=None, **kwargs):
         payload = super()._get_request_payload(input_, stop=stop, **kwargs)
+        if self.provider_uses_max_tokens and "max_completion_tokens" in payload:
+            default_cap = payload.pop("max_completion_tokens")
+            # A stage-bound max_tokens must win over the model's default cap.
+            payload.setdefault("max_tokens", default_cap)
         from app.research.request_budget import admit_request
 
         admit_request(payload)
@@ -27,13 +34,7 @@ class EvaluationBudgetedChatOpenAI(ChatOpenAI):
 class DeepSeekChatOpenAI(EvaluationBudgetedChatOpenAI):
     """Use tool calling for structured output on DeepSeek's Chat Completions API."""
 
-    def _get_request_payload(self, input_, *, stop=None, **kwargs):
-        payload = super()._get_request_payload(input_, stop=stop, **kwargs)
-        # This OpenAI model adapter emits max_completion_tokens, while DeepSeek's
-        # chat endpoint documents max_tokens. Without translation the cap is ignored.
-        if "max_completion_tokens" in payload:
-            payload["max_tokens"] = payload.pop("max_completion_tokens")
-        return payload
+    provider_uses_max_tokens: ClassVar[bool] = True
 
     def with_structured_output(self, schema=None, **kwargs):
         kwargs.setdefault("method", "function_calling")
@@ -43,11 +44,7 @@ class DeepSeekChatOpenAI(EvaluationBudgetedChatOpenAI):
 class DashScopeChatOpenAI(EvaluationBudgetedChatOpenAI):
     """Send the output cap under DashScope's chat-completions field name."""
 
-    def _get_request_payload(self, input_, *, stop=None, **kwargs):
-        payload = super()._get_request_payload(input_, stop=stop, **kwargs)
-        if "max_completion_tokens" in payload:
-            payload["max_tokens"] = payload.pop("max_completion_tokens")
-        return payload
+    provider_uses_max_tokens: ClassVar[bool] = True
 
 
 @lru_cache(maxsize=1)

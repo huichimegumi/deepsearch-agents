@@ -37,6 +37,7 @@ class SourceCatalog:
     documents: list[dict] | None = None
     web_pages: list[dict] | None = None
     allowed_sources: tuple[str, ...] = ("local_document", "web")
+    schema_notes: str = ""
     knowledge_base: str = "all"
     _cache: dict[str, tuple[list[dict], list[str]]] = field(default_factory=dict)
 
@@ -47,6 +48,8 @@ class SourceCatalog:
 
             batch = _collect_sqlite("", "describe_schema", self.sqlite_path)
             description["sql_schema"] = [row.to_dict() for row in batch.records]
+        if self.schema_notes:
+            description["schema_notes"] = self.schema_notes
         for source, pages in (("local_document", self.documents), ("web", self.web_pages)):
             if pages is not None and source in self.allowed_sources:
                 description[source] = [

@@ -1,0 +1,129 @@
+{
+  "scope": "Previously exposed tasks; runtime delivery diagnostics only; no decrypted text or answers published",
+  "runs": [
+    {
+      "run": "e7-2-public-dev",
+      "scheduled": 5,
+      "completed": 3,
+      "cases": [
+        {
+          "id": "dabstep:2",
+          "suite": "dabstep",
+          "status": "error",
+          "seconds": 32.405,
+          "reservations": {
+            "requests": 3,
+            "reserved_tokens": 52911
+          },
+          "lookup_errors": 0
+        },
+        {
+          "id": "dabstep:84",
+          "suite": "dabstep",
+          "status": "error",
+          "seconds": 32.865,
+          "reservations": {
+            "requests": 3,
+            "reserved_tokens": 59514
+          },
+          "lookup_errors": 0
+        },
+        {
+          "id": "hybrid:s2sql_041",
+          "suite": "hybrid",
+          "status": "completed",
+          "seconds": 25.396,
+          "reservations": {
+            "requests": 4,
+            "reserved_tokens": 75324
+          },
+          "lookup_errors": 1
+        },
+        {
+          "id": "hybrid:sql2s_192",
+          "suite": "hybrid",
+          "status": "completed",
+          "seconds": 13.611,
+          "reservations": {
+            "requests": 3,
+            "reserved_tokens": 50121
+          },
+          "lookup_errors": 0
+        },
+        {
+          "id": "hybrid:parallel_053",
+          "suite": "hybrid",
+          "status": "completed",
+          "seconds": 24.235,
+          "reservations": {
+            "requests": 3,
+            "reserved_tokens": 56418
+          },
+          "lookup_errors": 1
+        }
+      ]
+    },
+    {
+      "run": "e7-2-public-dev-repaired",
+      "scheduled": 5,
+      "completed": 5,
+      "cases": [
+        {
+          "id": "dabstep:2",
+          "suite": "dabstep",
+          "status": "completed",
+          "seconds": 30.61,
+          "reservations": {
+            "requests": 3,
+            "reserved_tokens": 48164
+          },
+          "lookup_errors": 0
+        },
+        {
+          "id": "dabstep:84",
+          "suite": "dabstep",
+          "status": "completed",
+          "seconds": 29.396,
+          "reservations": {
+            "requests": 3,
+            "reserved_tokens": 58563
+          },
+          "lookup_errors": 0
+        },
+        {
+          "id": "hybrid:s2sql_041",
+          "suite": "hybrid",
+          "status": "completed",
+          "seconds": 24.795,
+          "reservations": {
+            "requests": 4,
+            "reserved_tokens": 74568
+          },
+          "lookup_errors": 2
+        },
+        {
+          "id": "hybrid:sql2s_192",
+          "suite": "hybrid",
+          "status": "completed",
+          "seconds": 15.116,
+          "reservations": {
+            "requests": 3,
+            "reserved_tokens": 50360
+          },
+          "lookup_errors": 1
+        },
+        {
+          "id": "hybrid:parallel_053",
+          "suite": "hybrid",
+          "status": "completed",
+          "seconds": 27.354,
+          "reservations": {
+            "requests": 3,
+            "reserved_tokens": 57455
+          },
+          "lookup_errors": 0
+        }
+      ]
+    }
+  ]
+}

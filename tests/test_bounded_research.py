@@ -206,3 +206,121 @@ async def test_scoped_refusal_does_not_invent_citations_or_hide_tool_failure(tmp
     assert result["report"]["claims"] == result["report"]["facts"] == []
     assert result["evidence_assessment"]["failed_lookups"] == int(tool_error)
     assert result["evidence_assessment"]["searched_sources"] == ["local_document"]
+
+
+@pytest.mark.asyncio
+async def test_web_entity_is_bound_before_dependent_sql_execution(tmp_path):
+    from app.research.bounded import ResolvedQuery
+
+    database = tmp_path / "data.sqlite"
+    with sqlite3.connect(database) as conn:
+        conn.execute("CREATE TABLE items (name TEXT)")
+        conn.execute("INSERT INTO items VALUES ('Ada')")
+
+    class WebFirst(Model):
+        async def ainvoke(self, messages):
+            if self.schema is Plan:
+                parsed = Plan(
+                    steps=[
+                        {"source": "web", "query": "selected item"},
+                        {
+                            "source": "sql",
+                            "query": "Count items matching the entity in the Web source",
+                            "depends_on": ["s0"],
+                        },
+                    ]
+                )
+            elif self.schema is ResolvedQuery:
+                evidence = json.loads(messages[-1]["content"])["evidence"][0]
+                parsed = ResolvedQuery(
+                    query="SELECT COUNT(*) AS item_count FROM items WHERE name = 'Ada'",
+                    bindings=[{"value": "Ada", "evidence_id": evidence["evidence_id"]}],
+                )
+            elif self.schema is ResearchReport:
+                data = json.loads(messages[-1]["content"])
+                record = next(r for r in data["evidence"] if r["source"] == "sql")
+                parsed = ResearchReport(
+                    title="Matching count",
+                    answerability="answered",
+                    claims=[],
+                    facts=[
+                        {
+                            "metric": "item_count",
+                            "value": "1",
+                            "evidence_id": record["evidence_id"],
+                            "path": ["item_count"],
+                        }
+                    ],
+                )
+            else:
+                parsed = Gap(reason="adequate")
+            return {"parsed": parsed, "raw": SimpleNamespace(response_metadata={})}
+
+    result = await execute(
+        "Count matching items",
+        SourceCatalog(
+            sqlite_path=database,
+            allowed_sources=("web", "sql"),
+            web_pages=[
+                {
+                    "title": "Selected item",
+                    "locator": "fixture:selected",
+                    "text": "The selected item is Ada.",
+                }
+            ],
+        ),
+        tmp_path / "run",
+        model=WebFirst(),
+    )
+    assert result["status"] == "completed"
+    assert result["operations"][1]["depends_on"] == ["s0"]
+    assert result["operations"][1]["bindings"][0]["value"] == "Ada"
+    assert result["report"]["facts"][0]["value"] == "1"
+
+
+@pytest.mark.asyncio
+async def test_one_writer_format_retry_keeps_original_candidate(tmp_path):
+    class MalformedOnce(Model):
+        writer_calls = 0
+
+        async def ainvoke(self, messages):
+            if self.schema is Plan:
+                parsed = Plan(steps=[])
+            elif self.schema is ResearchReport:
+                self.writer_calls += 1
+                if self.writer_calls == 1:
+                    return {
+                        "parsed": None,
+                        "parsing_error": "malformed schema",
+                        "raw": SimpleNamespace(
+                            tool_calls=[{"malformed": True}],
+                            content="candidate",
+                            response_metadata={},
+                            usage_metadata=None,
+                        ),
+                    }
+                parsed = ResearchReport(
+                    title="Scoped refusal",
+                    answerability="insufficient_evidence",
+                    claims=[],
+                    facts=[],
+                    limitations=["No supplied documents establish this value."],
+                )
+            else:
+                parsed = Gap(reason="missing evidence")
+            return {"parsed": parsed, "raw": SimpleNamespace(response_metadata={})}
+
+    model = MalformedOnce()
+    result = await execute(
+        "Find deployment limit",
+        SourceCatalog(documents=[], allowed_sources=("local_document",)),
+        tmp_path,
+        model=model,
+    )
+    assert model.writer_calls == 2
+    assert result["status"] == "completed"
+    assert (
+        json.loads((tmp_path / "writer_format_failure.json").read_text())["content"] == "candidate"
+    )
+    assert len(result["model_responses"]) == 4
+    assert not result["operations"]

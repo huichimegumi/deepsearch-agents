@@ -19,6 +19,7 @@ OFFLINE_TESTS = [
     "tests/test_llm.py",
     "tests/test_eval_v4_recovery.py",
     "tests/test_report_v4.py",
+    "tests/test_public_suite.py",
 ]
 
 
@@ -29,6 +30,17 @@ def main() -> int:
         "check", help="Run portable offline checks; no model, dataset download or GPU needed"
     )
     check.add_argument("--junit", type=Path)
+    commands.add_parser("public-preflight", help="Verify locked E7 public tasks; no model calls")
+    public_prepare = commands.add_parser(
+        "public-prepare", help="Materialize separate generator/reference files"
+    )
+    public_prepare.add_argument("--development", action="store_true")
+    public_run = commands.add_parser(
+        "public-run", help="Supervised shared application execution on public tasks"
+    )
+    public_run.add_argument("--inputs", type=Path, required=True)
+    public_run.add_argument("--output", type=Path, required=True)
+    public_run.add_argument("--workflow", choices=("simple", "bounded"), default="bounded")
     commands.add_parser(
         "prepare", help="Download/verify locked sources and rebuild both SQLite snapshots"
     )
@@ -50,6 +62,33 @@ def main() -> int:
     report.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    if args.command == "public-preflight":
+        return subprocess.call([sys.executable, "-m", "evals.public_benchmarks.prepare"], cwd=ROOT)
+    if args.command == "public-prepare":
+        return subprocess.call(
+            [
+                sys.executable,
+                "-m",
+                "evals.public_benchmarks.materialize",
+                *(["--development"] if args.development else []),
+            ],
+            cwd=ROOT,
+        )
+    if args.command == "public-run":
+        return subprocess.call(
+            [
+                sys.executable,
+                "-m",
+                "evals.public_benchmarks.run",
+                "--inputs",
+                str(args.inputs),
+                "--output",
+                str(args.output),
+                "--workflow",
+                args.workflow,
+            ],
+            cwd=ROOT,
+        )
     if args.command == "check":
         command = [sys.executable, "-m", "pytest", *OFFLINE_TESTS, "-q"]
         if args.junit:

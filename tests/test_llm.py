@@ -105,3 +105,16 @@ def test_dashscope_translates_output_cap_to_provider_field():
     payload = model._get_request_payload([HumanMessage(content="hi")], max_tokens=16)
     assert payload["max_tokens"] == 16
     assert "max_completion_tokens" not in payload
+
+
+def test_bound_cap_wins_over_default_and_ledger_reserves_actual_payload(tmp_path, monkeypatch):
+    import json
+
+    for adapter in (DeepSeekChatOpenAI, DashScopeChatOpenAI):
+        ledger = tmp_path / f"{adapter.__name__}.jsonl"
+        monkeypatch.setenv("EVAL_LEDGER_PATH", str(ledger))
+        model = adapter(model="test", api_key="test", max_tokens=4000)
+        payload = model._get_request_payload([HumanMessage(content="hi")], max_tokens=17)
+        assert payload["max_tokens"] == 17
+        assert "max_completion_tokens" not in payload
+        assert json.loads(ledger.read_text())["output_reservation_tokens"] == 17
