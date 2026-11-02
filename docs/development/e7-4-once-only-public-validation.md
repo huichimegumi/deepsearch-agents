@@ -38,3 +38,5 @@ Qwen 每组六题中均仅三题有有效结构化评分，共 6/12 格式失败
 本轮不再修这 30 题或放宽门槛。旧 E5 的固定汇总与生成器可见检查表，与本轮问题驱动、无隐藏标签的真实取证不是同一协议，不把分差叫作直接退化。新执行链继续显式启用，保留 legacy 默认；不宣称已达到可用的完整公开 benchmark 任务质量。后续应以此作为回归，围绕证据预算与跨源执行开展新开发，并另选新验证集。
 
 完整逐题表和机器结果见 evals/reports/e7-4-public-validation.md/json；预算审计、失败诊断、主/副裁判资源均在 e7-4-* 报告中。该 30 题此后转为回归集，不再用于调优后的新泛化结论。
+
+最终提交 `f738bd1` 的 [GitHub Actions](https://github.com/huichimegumi/deepsearch-agents/actions/runs/41423804320) 也已通过：Ubuntu 37 passed（5.88 秒）、Windows 37 passed（11.70 秒），包含新增的中断耗时统计回归。真实 API job 仍按设计跳过，实际 SQL/Web smoke 的结果见上述独立记录。各阶段提交：E7-0 `992fbc8`、E7-1 `9fcdf00`、E7-2 `427cfd5`、E7-3 `38a3bac`、E7-4 `f738bd1`，均已推送。
