@@ -1,0 +1,49 @@
+{
+  "backend": "duckduckgo",
+  "paid_search": false,
+  "model_calls": 0,
+  "queries": [
+    {
+      "query": "RFC 9309 robots allow disallow",
+      "fetched_evidence": 2,
+      "locators": [
+        "https://www.rfc-editor.org/rfc/rfc9309.html",
+        "https://www.nstdata.io/wiki/what-is-robots-txt"
+      ],
+      "warnings": [],
+      "seconds": 6.15
+    },
+    {
+      "query": "RFC 8259 JSON parsers limits",
+      "fetched_evidence": 2,
+      "locators": [
+        "https://datatracker.ietf.org/doc/html/rfc8259",
+        "https://restfulapi.net/json-data-types"
+      ],
+      "warnings": [],
+      "seconds": 7.35
+    },
+    {
+      "query": "RFC 6455 normal closure 1000",
+      "fetched_evidence": 2,
+      "locators": [
+        "https://bugs.webkit.org/show_bug.cgi?id=81072",
+        "https://freetogenerate.com/websocket-close-codes"
+      ],
+      "warnings": [],
+      "seconds": 3.89
+    },
+    {
+      "query": "RFC 3986 reserved characters",
+      "fetched_evidence": 2,
+      "locators": [
+        "https://urlencodedecode.com/guides/url-reserved-characters.html",
+        "https://www.urldecoder.org/"
+      ],
+      "warnings": [],
+      "seconds": 4.16
+    }
+  ],
+  "successful_queries": 4,
+  "scope": "Live retrieval availability only; not an answer-quality score."
+}

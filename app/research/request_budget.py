@@ -103,6 +103,15 @@ def admit_request(payload: dict) -> None:
     if max_requests <= 0 or max_reserved <= 0:
         raise ValueError("invalid_eval_request_budget")
     with _LOCK:
+        # Dispatch only follows a complete, fsynced line. A partial tail therefore
+        # represents an unissued request and must not absorb the next JSON record.
+        if path.is_file():
+            with path.open("r+b") as handle:
+                contents = handle.read()
+                if contents and not contents.endswith(b"\n"):
+                    handle.truncate(contents.rfind(b"\n") + 1)
+                    handle.flush()
+                    os.fsync(handle.fileno())
         key = str(path.resolve())
         current_requests, current_reserved = _STATE.get(key, _ledger_usage(path))
         reason = None

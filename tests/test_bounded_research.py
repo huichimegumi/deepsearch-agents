@@ -139,3 +139,33 @@ def test_unknown_value_is_a_refusal_not_a_numeric_fact():
 
     with pytest.raises(ValueError, match="nonnumeric_report_fact"):
         ReportFact(metric="limit", value="not specified", evidence_id="source", path=[])
+
+
+@pytest.mark.asyncio
+async def test_uncited_delivery_preserves_candidate_and_hides_internal_diagnostics(tmp_path):
+    class Uncited(Model):
+        async def ainvoke(self, messages):
+            if self.schema is Plan:
+                parsed = Plan(steps=[])
+            else:
+                parsed = ResearchReport(
+                    title="Unsupported answer",
+                    answerability="insufficient_evidence",
+                    claims=[{"text": "No deployment limit is available.", "evidence_ids": []}],
+                    facts=[],
+                )
+            return {"parsed": parsed, "raw": SimpleNamespace(response_metadata={})}
+
+    result = await execute(
+        "Find deployment limit",
+        SourceCatalog(documents=[], allowed_sources=("local_document",)),
+        tmp_path,
+        workflow="simple",
+        model=Uncited(),
+    )
+    assert result["status"] == "delivery_invalid"
+    assert "uncited_claim" in result["warnings"]
+    rejected = json.loads((tmp_path / "rejected_candidate.json").read_text())
+    assert rejected["report"]["title"] == "Unsupported answer"
+    assert result["report"]["title"] != rejected["report"]["title"]
+    assert "uncited_claim" not in result["answer"]

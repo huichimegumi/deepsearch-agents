@@ -222,9 +222,17 @@ async def execute(
             key for claim in report.claims for key in claim.evidence_ids
         } - evidence.keys()
         issues = numeric_binding_errors(report, list(evidence.values()))
-        if invalid_ids or issues or any(not claim.evidence_ids for claim in report.claims):
+        if any(not claim.evidence_ids for claim in report.claims):
+            issues.append("uncited_claim")
+        if invalid_ids or issues:
             status = "delivery_invalid"
             warnings += [*issues, *(f"unknown_citation:{key}" for key in invalid_ids)]
+            from app.research.storage import write_json
+
+            write_json(
+                output / "rejected_candidate.json",
+                {"report": report.model_dump(), "issues": warnings},
+            )
     if report is None or status == "delivery_invalid":
         report = ResearchReport(
             title="Research evidence incomplete",
@@ -235,7 +243,6 @@ async def execute(
             ],
             limitations=[
                 "The research could not produce a complete validated answer.",
-                *warnings[:5],
             ],
         )
     reservations = usage(budget.path)

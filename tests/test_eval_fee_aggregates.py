@@ -3,6 +3,9 @@
 import json
 from decimal import Decimal
 
+import pytest
+
+from evals.benchmark_preflight import DABSTEP_DATABASE
 from evals.dabstep.common import default_data_dir
 from evals.dabstep.fee_aggregates import DIMENSIONS, OUTPUT, REFERENCE
 from evals.simple_sql_baseline import collect_public_evidence
@@ -27,6 +30,9 @@ def test_committed_aggregates_reconcile_and_preserve_unpriced_scope():
         )
 
 
+@pytest.mark.skipif(
+    not DABSTEP_DATABASE.is_file(), reason="Optional public DABStep SQLite snapshot not prepared"
+)
 def test_writer_receives_citable_fee_breakdowns():
     evidence = collect_public_evidence()
     fee_records = [row for row in evidence if row["source"] == "fee_engine"]

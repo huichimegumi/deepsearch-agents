@@ -12,6 +12,7 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
+from app.research.request_budget import usage
 from evals.standards.prepare import DATA, LOCK, ROOT, catalog, sha
 from evals.worker_supervisor import atomic_json, supervise
 
@@ -138,6 +139,7 @@ def run(split: str, workflow: str, output: Path | None = None) -> Path:
                 result = outcome.result or {"status": outcome.status}
                 result["status"] = outcome.status
                 result["elapsed_seconds"] = outcome.elapsed_seconds
+        result["model_reservations"] = usage(attempt / "model_requests.jsonl")
         if "report" not in result:
             result["report"] = {
                 "title": "Research incomplete",

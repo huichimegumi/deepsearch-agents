@@ -115,7 +115,7 @@ async def run_research(
         )
         monitor.report_file_created(str(run_dir / "report.md"))
         monitor.report_research_phase(
-            "bounded", "Evidence research", "end", {"status": result["status"]}
+            "bounded", "Evidence research", "end", {"runtime_status": result["status"]}
         )
         monitor.report_task_result(result["answer"])
         return result["answer"]
