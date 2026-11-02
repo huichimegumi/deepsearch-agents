@@ -6,4 +6,6 @@
 
 独立实时 Web 探针四次免费 DuckDuckGo 查询均取得页面，无模型请求；见 `evals/reports/e6-4-live-web.json`。这只表明当前检索可用，不能代表页面质量或答案正确率。E6-3 的 snapshot-only 成绩保持原样。兼容默认仍为 legacy，新执行链通过 RESEARCH_WORKFLOW=bounded 或显式来源列表启用。
 
-本地 CPU 离线契约检查：26 passed。完整本地测试：737 passed，6 skipped。实际 CI 结果在阶段完成后补记。
+本地 CPU 离线契约检查：26 passed。完整本地测试：737 passed，6 skipped。实际 GitHub Actions 在提交 `64ec3f4` 上通过：Ubuntu 26 passed（4.74 秒），Windows 26 passed（7.70 秒）。两平台均从锁文件安装依赖，无模型密钥及 benchmark 下载。付费 API job 按设计未触发；真实 API 验证沿用 E6-1 的独立 smoke，不把离线检查冒充实时服务验证。
+
+[CI 运行记录](https://github.com/huichimegumi/deepsearch-agents/actions/runs/41396897301)。机器可读记录见 `evals/reports/e6-4-ci.json`。
