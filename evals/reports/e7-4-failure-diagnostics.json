@@ -1,0 +1,87 @@
+{
+  "scope": "Post-run descriptive diagnostics; no changed grading or research repeats",
+  "runs": [
+    {
+      "workflow": "simple",
+      "suites": {
+        "dabstep": {
+          "scheduled": 12,
+          "answerability": {
+            "partial": 9,
+            "insufficient_evidence": 3
+          },
+          "evidence_context_limit_cases": 11,
+          "tool_error_cases": 1,
+          "empty_sql_result_cases": 0,
+          "no_web_evidence_delivered_cases": null,
+          "writer_format_repair_cases": 0
+        },
+        "hybrid": {
+          "scheduled": 12,
+          "answerability": {
+            "insufficient_evidence": 11,
+            "partial": 1
+          },
+          "evidence_context_limit_cases": 2,
+          "tool_error_cases": 7,
+          "empty_sql_result_cases": 3,
+          "no_web_evidence_delivered_cases": 6,
+          "writer_format_repair_cases": 0
+        },
+        "drb": {
+          "scheduled": 6,
+          "answerability": {
+            "insufficient_evidence": 2,
+            "partial": 4
+          },
+          "evidence_context_limit_cases": 0,
+          "tool_error_cases": 0,
+          "empty_sql_result_cases": 0,
+          "no_web_evidence_delivered_cases": 0,
+          "writer_format_repair_cases": 0
+        }
+      }
+    },
+    {
+      "workflow": "bounded",
+      "suites": {
+        "dabstep": {
+          "scheduled": 12,
+          "answerability": {
+            "partial": 9,
+            "insufficient_evidence": 3
+          },
+          "evidence_context_limit_cases": 11,
+          "tool_error_cases": 1,
+          "empty_sql_result_cases": 0,
+          "no_web_evidence_delivered_cases": null,
+          "writer_format_repair_cases": 2
+        },
+        "hybrid": {
+          "scheduled": 12,
+          "answerability": {
+            "insufficient_evidence": 8,
+            "partial": 4
+          },
+          "evidence_context_limit_cases": 3,
+          "tool_error_cases": 6,
+          "empty_sql_result_cases": 3,
+          "no_web_evidence_delivered_cases": 4,
+          "writer_format_repair_cases": 0
+        },
+        "drb": {
+          "scheduled": 6,
+          "answerability": {
+            "partial": 5,
+            "insufficient_evidence": 1
+          },
+          "evidence_context_limit_cases": 0,
+          "tool_error_cases": 0,
+          "empty_sql_result_cases": 0,
+          "no_web_evidence_delivered_cases": 0,
+          "writer_format_repair_cases": 0
+        }
+      }
+    }
+  ]
+}

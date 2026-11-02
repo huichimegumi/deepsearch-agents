@@ -1,0 +1,25 @@
+{
+  "scope": "Supplementary only; all main denominators retained; no research repeated",
+  "runs": [
+    {
+      "workflow": "simple",
+      "hybrid_main_denominator": 12,
+      "hybrid_main_passes": 0,
+      "paired_sensitivity_excluded_ids": [
+        "hybrid:sql2s_022"
+      ],
+      "hybrid_supplementary_denominator": 11,
+      "hybrid_supplementary_passes": 0
+    },
+    {
+      "workflow": "bounded",
+      "hybrid_main_denominator": 12,
+      "hybrid_main_passes": 0,
+      "paired_sensitivity_excluded_ids": [
+        "hybrid:sql2s_022"
+      ],
+      "hybrid_supplementary_denominator": 11,
+      "hybrid_supplementary_passes": 0
+    }
+  ]
+}

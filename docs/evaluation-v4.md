@@ -80,3 +80,12 @@ page availability, never folds these outcomes into snapshot task quality. CI run
 offline fault/contract tests on Linux and Windows. Real API calls require an explicit manual
 workflow input and repository secret. Raw provider responses, source excerpts and rejected candidates
 remain local artifacts; the RFC task questions themselves are original authored fixtures.
+
+The E7 public-task extension is documented in
+[public benchmark protocol](../evals/public_benchmarks/README.md). Use the `public-*`
+subcommands in the same CLI for the separate DABStep, Hybrid and DRB results. E7 replaces
+neither historical RFC scores nor official upstream scoring. The frozen E7 30-task validation
+is consumed after its first report; subsequent tuning requires a new validation selection.
+`python -m evals.api_smoke_v4 --web --output <directory>` additionally exercises actual free
+Web retrieval and HTTP report delivery, with the same isolated identity/storage limitations
+as the SQL smoke. It is a connectivity/delivery check, not a semantic quality score.

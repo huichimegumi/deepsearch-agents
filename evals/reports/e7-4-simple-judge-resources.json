@@ -1,0 +1,16 @@
+[
+  {
+    "provider": "deepseek",
+    "scheduled": 30,
+    "valid_grades": 30,
+    "known_judge_tokens": 393782,
+    "missing_usage": 0
+  },
+  {
+    "provider": "qwen",
+    "scheduled": 6,
+    "valid_grades": 3,
+    "known_judge_tokens": 71142,
+    "missing_usage": 0
+  }
+]

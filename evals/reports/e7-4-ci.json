@@ -1,0 +1,18 @@
+{
+  "url": "https://github.com/huichimegumi/deepsearch-agents/actions/runs/41408346177",
+  "commit": "38a3bac20ab3e8f46d476fe78662541419fb2ef0",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "os": "ubuntu-latest",
+      "passed": 36,
+      "seconds": 6.99
+    },
+    {
+      "os": "windows-latest",
+      "passed": 36,
+      "seconds": 11.56
+    }
+  ],
+  "paid_api_job": "skipped, manual opt-in only"
+}

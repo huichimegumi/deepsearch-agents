@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import statistics
 from collections import Counter
 from pathlib import Path
@@ -81,7 +82,13 @@ def summarize(run):
             if audits
             else None,
         }
-    elapsed = sorted(r.get("elapsed_seconds", 0) for r in results)
+    # Interrupted attempts have unknown duration, even if the recovery sentinel
+    # stores zero. Do not count that sentinel as a measured zero-second request.
+    elapsed = sorted(
+        r["elapsed_seconds"]
+        for r in results
+        if r.get("status") != "interrupted" and r.get("elapsed_seconds", 0) > 0
+    )
     usage = [(r.get("response_metadata") or {}).get("usage_metadata") for r in results]
     comparison = [
         (r, independent[r["id"]])
@@ -97,6 +104,8 @@ def summarize(run):
         "reserved_tokens": sum(r["model_reservations"]["reserved_tokens"] for r in results),
         "known_generator_tokens": sum(r.get("total_tokens", 0) for r in usage if r is not None),
         "generator_usage_missing": sum(r is None for r in usage),
+        "latency_sample_count": len(elapsed),
+        "latency_scope": "Measured terminal attempts; interrupted/unknown durations excluded",
         "p50_seconds": statistics.median(elapsed) if elapsed else None,
         "p95_seconds": elapsed[min(len(elapsed) - 1, int(len(elapsed) * 0.95))]
         if elapsed
@@ -139,6 +148,7 @@ def publish(runs, output):
     payload = {
         "scope": "Once-only small public-task validation; custom model judge, not official benchmark leaderboard or human accuracy",
         "source_sha256": configs[0]["source_sha256"],
+        "reporter_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "reports": reports,
         "limitations": [
             "DABStep shares source data with prior work; checklist judgements are not independently verified numeric correctness",
@@ -182,7 +192,14 @@ def publish(runs, output):
         lines.append(
             f"| {r['workflow']} | {r['generator_requests']} | {r['reserved_tokens']} | {r['known_generator_tokens']} | {r['generator_usage_missing']} | {r['p50_seconds']} / {r['p95_seconds']} |"
         )
-    lines += ["", "## Limits", "", *["- " + s for s in payload["limitations"]]]
+    lines += [
+        "",
+        "Latency percentiles exclude unknown/interrupted durations; all scheduled tasks remain in pass denominators.",
+        "",
+        "## Limits",
+        "",
+        *["- " + s for s in payload["limitations"]],
+    ]
     for r in reports:
         lines += [
             "",

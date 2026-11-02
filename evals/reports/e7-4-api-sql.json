@@ -1,0 +1,15 @@
+{
+  "http_status": 200,
+  "runtime_status": "completed",
+  "item_count": "3",
+  "source_mode": "sqlite",
+  "fetched_web_evidence": 0,
+  "claims": 1,
+  "saved_assistant_messages": 1,
+  "model_reservations": {
+    "requests": 3,
+    "reserved_tokens": 14453
+  },
+  "artifact": "/home/suhan/projects/deepsearch-agents/app/output/user_e6_smoke/session_bounded_smoke_d2997c8187dc4b7db098af97776b323c/research_64c5b428904a4c558c8cd1a592c36a7e/research_result.json",
+  "limitations": "Identity and conversation storage replaced; actual HTTP handler, shared executor, selected source adapters and provider exercised. Web mode checks retrieval/delivery, not semantic quality."
+}

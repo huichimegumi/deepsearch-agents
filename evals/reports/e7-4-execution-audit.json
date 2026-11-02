@@ -1,0 +1,31 @@
+{
+  "frozen_research_commit": "38a3bac20ab3e8f46d476fe78662541419fb2ef0",
+  "scope": "Fingerprints checked after both research runs, before report-only unknown-latency correction; no generator or scorer edits during validation",
+  "workflows": [
+    {
+      "workflow": "simple",
+      "terminal": 30,
+      "statuses": {
+        "completed": 26,
+        "delivery_invalid": 3,
+        "interrupted": 1
+      },
+      "requests": 65,
+      "reserved_tokens": 974626,
+      "source_unchanged": true,
+      "case_budgets_respected": true
+    },
+    {
+      "workflow": "bounded",
+      "terminal": 30,
+      "statuses": {
+        "completed": 27,
+        "delivery_invalid": 3
+      },
+      "requests": 97,
+      "reserved_tokens": 1743309,
+      "source_unchanged": true,
+      "case_budgets_respected": true
+    }
+  ]
+}

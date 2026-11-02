@@ -18,7 +18,7 @@ import httpx
 from evals.worker_supervisor import atomic_json
 
 
-async def run(output: Path) -> dict:
+async def run(output: Path, *, web: bool = False) -> dict:
     output.mkdir(parents=True, exist_ok=True)
     database = output / "smoke.sqlite"
     with sqlite3.connect(database) as conn:
@@ -64,9 +64,13 @@ async def run(output: Path) -> dict:
                     response = await client.post(
                         "/api/task",
                         json={
-                            "query": "Use only SQL. Count all rows in items, report the numeric metric item_count with its evidence.",
+                            "query": (
+                                "Use actual Web sources to explain which top-level JSON values RFC 8259 permits. Cite fetched sources."
+                                if web
+                                else "Use only SQL. Count all rows in items, report the numeric metric item_count with its evidence."
+                            ),
                             "thread_id": session_id,
-                            "sources": ["sql"],
+                            "sources": ["web"] if web else ["sql"],
                         },
                     )
                     response.raise_for_status()
@@ -82,14 +86,28 @@ async def run(output: Path) -> dict:
                     "http_status": response.status_code,
                     "runtime_status": result["status"],
                     "item_count": facts.get("item_count"),
+                    "source_mode": "live_web" if web else "sqlite",
+                    "fetched_web_evidence": sum(
+                        row["source"] == "web" for row in result.get("evidence", [])
+                    ),
+                    "claims": len(result["report"]["claims"]),
                     "saved_assistant_messages": sum(row["role"] == "assistant" for row in messages),
                     "model_reservations": result["model_reservations"],
                     "artifact": str(artifacts[0]),
-                    "limitations": "Identity and conversation storage replaced; actual HTTP handler, shared executor, SQL and provider exercised.",
+                    "limitations": "Identity and conversation storage replaced; actual HTTP handler, shared executor, selected source adapters and provider exercised. Web mode checks retrieval/delivery, not semantic quality.",
                 }
                 atomic_json(output / "summary.json", summary)
-                if result["status"] != "completed" or facts.get("item_count") != "3":
-                    raise RuntimeError("api_smoke_did_not_deliver_correct_count")
+                content_ok = (
+                    summary["fetched_web_evidence"] > 0 and summary["claims"] > 0
+                    if web
+                    else facts.get("item_count") == "3"
+                )
+                if result["status"] != "completed" or not content_ok:
+                    raise RuntimeError(
+                        "api_smoke_did_not_deliver_web_report"
+                        if web
+                        else "api_smoke_did_not_deliver_correct_count"
+                    )
                 return summary
         finally:
             server.app.dependency_overrides.pop(get_current_user, None)
@@ -100,8 +118,13 @@ async def run(output: Path) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--web",
+        action="store_true",
+        help="Exercise actual Web retrieval and delivery; no semantic grading",
+    )
     args = parser.parse_args()
-    print(json.dumps(asyncio.run(run(args.output)), indent=2))
+    print(json.dumps(asyncio.run(run(args.output, web=args.web)), indent=2))
 
 
 if __name__ == "__main__":

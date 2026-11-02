@@ -1,0 +1,1524 @@
+{
+  "scope": "Once-only small public-task validation; custom model judge, not official benchmark leaderboard or human accuracy",
+  "source_sha256": "761d537a8dc70d6bdb19a4fc8001accefbb93c2ab0a3c5c76e2d7d65488a4595",
+  "reporter_sha256": "04ca5cc289d3ecb70de9af2d705ee7757d503ae327a52a73adb20a2601004b13",
+  "reports": [
+    {
+      "workflow": "simple",
+      "scheduled": 30,
+      "terminal": 30,
+      "statuses": {
+        "completed": 26,
+        "delivery_invalid": 3,
+        "interrupted": 1
+      },
+      "generator_requests": 65,
+      "reserved_tokens": 974626,
+      "known_generator_tokens": 733707,
+      "generator_usage_missing": 1,
+      "latency_sample_count": 29,
+      "latency_scope": "Measured terminal attempts; interrupted/unknown durations excluded",
+      "p50_seconds": 23.387,
+      "p95_seconds": 42.285,
+      "web_lookup_attempts": 26,
+      "judge": {
+        "provider": "deepseek",
+        "scheduled": 30,
+        "judge_errors": 0,
+        "scope": "Custom provisional judge; DRB has continuous scores, not official RACE/FACT",
+        "reservations": {
+          "requests": 30,
+          "reserved_tokens": 501187
+        },
+        "suites": {
+          "dabstep": {
+            "scheduled": 12,
+            "completed": 11,
+            "passes": 0,
+            "judged": 12,
+            "mean_coverage": 0.38177401302401304,
+            "mean_support": 0.9408309283309283,
+            "statuses": {
+              "completed": 11,
+              "delivery_invalid": 1
+            }
+          },
+          "drb": {
+            "scheduled": 6,
+            "completed": 5,
+            "passes": null,
+            "judged": 6,
+            "mean_coverage": 0.16246153846153846,
+            "mean_support": 1.0,
+            "statuses": {
+              "completed": 5,
+              "delivery_invalid": 1
+            }
+          },
+          "hybrid": {
+            "scheduled": 12,
+            "completed": 10,
+            "passes": 0,
+            "judged": 12,
+            "mean_coverage": 0.10416666666666667,
+            "mean_support": 0.875,
+            "statuses": {
+              "completed": 10,
+              "delivery_invalid": 1,
+              "interrupted": 1
+            }
+          }
+        }
+      },
+      "independent_audit": {
+        "scheduled": 6,
+        "valid_paired_grades": 3,
+        "judge_errors": 3,
+        "mean_absolute_coverage_difference": 0.0
+      },
+      "suites": {
+        "dabstep": {
+          "scheduled": 12,
+          "completed": 11,
+          "passes": 0,
+          "judged": 12,
+          "mean_coverage_valid_judgements": 0.38177401302401304,
+          "mean_coverage_all_scheduled_missing_as_zero": 0.38177401302401304,
+          "mean_support_valid_claim_sets": 0.9408309283309283,
+          "claim_sets_graded": 12,
+          "mean_published_weighted_coverage": null,
+          "published_weighted_coverage_all_scheduled_missing_as_zero": null,
+          "sql_audit_available": null,
+          "sql_result_matches": null,
+          "executed_direction_matches": null
+        },
+        "drb": {
+          "scheduled": 6,
+          "completed": 5,
+          "passes": null,
+          "judged": 6,
+          "mean_coverage_valid_judgements": 0.16246153846153846,
+          "mean_coverage_all_scheduled_missing_as_zero": 0.16246153846153846,
+          "mean_support_valid_claim_sets": 1.0,
+          "claim_sets_graded": 5,
+          "mean_published_weighted_coverage": 0.12105833333333334,
+          "published_weighted_coverage_all_scheduled_missing_as_zero": 0.12105833333333334,
+          "sql_audit_available": null,
+          "sql_result_matches": null,
+          "executed_direction_matches": null
+        },
+        "hybrid": {
+          "scheduled": 12,
+          "completed": 10,
+          "passes": 0,
+          "judged": 12,
+          "mean_coverage_valid_judgements": 0.10416666666666667,
+          "mean_coverage_all_scheduled_missing_as_zero": 0.10416666666666667,
+          "mean_support_valid_claim_sets": 0.875,
+          "claim_sets_graded": 4,
+          "mean_published_weighted_coverage": null,
+          "published_weighted_coverage_all_scheduled_missing_as_zero": null,
+          "sql_audit_available": 12,
+          "sql_result_matches": 0,
+          "executed_direction_matches": 1
+        }
+      },
+      "cases": [
+        {
+          "id": "dabstep:31",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.42857142857142855,
+          "support": 0.8181818181818182,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:25",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.5,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:21",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.3,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:45",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.5,
+          "support": 0.9166666666666666,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": true
+        },
+        {
+          "id": "dabstep:40",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.5,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:50",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.5,
+          "support": 0.9090909090909091,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:12",
+          "suite": "dabstep",
+          "status": "delivery_invalid",
+          "pass": false,
+          "coverage": 0.0,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "runtime_not_completed"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:19",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.5833333333333334,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:14",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.42857142857142855,
+          "support": 0.8571428571428571,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:93",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.375,
+          "support": 0.8888888888888888,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": 0.375,
+          "independent_support": 1.0,
+          "independent_judge_error": false
+        },
+        {
+          "id": "dabstep:97",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.3888888888888889,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:81",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.07692307692307693,
+          "support": 0.9,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:s2sql_046",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.0,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 2,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:s2sql_050",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.0,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 5,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:s2sql_048",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.0,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 3,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": 0.0,
+          "independent_support": null,
+          "independent_judge_error": false
+        },
+        {
+          "id": "hybrid:s2sql_017",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.0,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 3,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:sql2s_088",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.25,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 1,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:sql2s_128",
+          "suite": "hybrid",
+          "status": "delivery_invalid",
+          "pass": false,
+          "coverage": 0.25,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations",
+            "runtime_not_completed"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 1,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:sql2s_191",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.0,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 1,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": 0.0,
+          "independent_support": null,
+          "independent_judge_error": false
+        },
+        {
+          "id": "hybrid:sql2s_022",
+          "suite": "hybrid",
+          "status": "interrupted",
+          "pass": false,
+          "coverage": 0.0,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations",
+            "runtime_not_completed"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 1,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:parallel_040",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.0,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 7,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:parallel_085",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.25,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 8,
+            "sql_result_match": false,
+            "executed_direction": true,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:parallel_032",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.25,
+          "support": 0.5,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 10,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:parallel_006",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.25,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 8,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "drb:16",
+          "suite": "drb",
+          "status": "completed",
+          "pass": null,
+          "coverage": 0.09615384615384616,
+          "support": null,
+          "published_weighted_coverage": 0.05825,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "drb:23",
+          "suite": "drb",
+          "status": "completed",
+          "pass": null,
+          "coverage": 0.254,
+          "support": 1.0,
+          "published_weighted_coverage": 0.20310000000000003,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": true
+        },
+        {
+          "id": "drb:3",
+          "suite": "drb",
+          "status": "delivery_invalid",
+          "pass": null,
+          "coverage": 0.04,
+          "support": 1.0,
+          "published_weighted_coverage": 0.017,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "runtime_not_completed"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "drb:81",
+          "suite": "drb",
+          "status": "completed",
+          "pass": null,
+          "coverage": 0.0,
+          "support": 1.0,
+          "published_weighted_coverage": 0.0,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": true
+        },
+        {
+          "id": "drb:87",
+          "suite": "drb",
+          "status": "completed",
+          "pass": null,
+          "coverage": 0.2,
+          "support": 1.0,
+          "published_weighted_coverage": 0.10625,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "drb:54",
+          "suite": "drb",
+          "status": "completed",
+          "pass": null,
+          "coverage": 0.38461538461538464,
+          "support": 1.0,
+          "published_weighted_coverage": 0.34175,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        }
+      ]
+    },
+    {
+      "workflow": "bounded",
+      "scheduled": 30,
+      "terminal": 30,
+      "statuses": {
+        "completed": 27,
+        "delivery_invalid": 3
+      },
+      "generator_requests": 97,
+      "reserved_tokens": 1743309,
+      "known_generator_tokens": 1410074,
+      "generator_usage_missing": 0,
+      "latency_sample_count": 30,
+      "latency_scope": "Measured terminal attempts; interrupted/unknown durations excluded",
+      "p50_seconds": 28.213,
+      "p95_seconds": 57.005,
+      "web_lookup_attempts": 38,
+      "judge": {
+        "provider": "deepseek",
+        "scheduled": 30,
+        "judge_errors": 0,
+        "scope": "Custom provisional judge; DRB has continuous scores, not official RACE/FACT",
+        "reservations": {
+          "requests": 30,
+          "reserved_tokens": 536002
+        },
+        "suites": {
+          "dabstep": {
+            "scheduled": 12,
+            "completed": 11,
+            "passes": 0,
+            "judged": 12,
+            "mean_coverage": 0.3979471916971917,
+            "mean_support": 0.9354797979797981,
+            "statuses": {
+              "completed": 11,
+              "delivery_invalid": 1
+            }
+          },
+          "drb": {
+            "scheduled": 6,
+            "completed": 5,
+            "passes": null,
+            "judged": 6,
+            "mean_coverage": 0.37025641025641026,
+            "mean_support": 0.9666666666666666,
+            "statuses": {
+              "completed": 5,
+              "delivery_invalid": 1
+            }
+          },
+          "hybrid": {
+            "scheduled": 12,
+            "completed": 11,
+            "passes": 0,
+            "judged": 12,
+            "mean_coverage": 0.16666666666666666,
+            "mean_support": 0.6805555555555555,
+            "statuses": {
+              "completed": 11,
+              "delivery_invalid": 1
+            }
+          }
+        }
+      },
+      "independent_audit": {
+        "scheduled": 6,
+        "valid_paired_grades": 3,
+        "judge_errors": 3,
+        "mean_absolute_coverage_difference": 0.1872222222222222
+      },
+      "suites": {
+        "dabstep": {
+          "scheduled": 12,
+          "completed": 11,
+          "passes": 0,
+          "judged": 12,
+          "mean_coverage_valid_judgements": 0.3979471916971917,
+          "mean_coverage_all_scheduled_missing_as_zero": 0.3979471916971917,
+          "mean_support_valid_claim_sets": 0.9354797979797981,
+          "claim_sets_graded": 12,
+          "mean_published_weighted_coverage": null,
+          "published_weighted_coverage_all_scheduled_missing_as_zero": null,
+          "sql_audit_available": null,
+          "sql_result_matches": null,
+          "executed_direction_matches": null
+        },
+        "drb": {
+          "scheduled": 6,
+          "completed": 5,
+          "passes": null,
+          "judged": 6,
+          "mean_coverage_valid_judgements": 0.37025641025641026,
+          "mean_coverage_all_scheduled_missing_as_zero": 0.37025641025641026,
+          "mean_support_valid_claim_sets": 0.9666666666666666,
+          "claim_sets_graded": 5,
+          "mean_published_weighted_coverage": 0.34302083333333333,
+          "published_weighted_coverage_all_scheduled_missing_as_zero": 0.34302083333333333,
+          "sql_audit_available": null,
+          "sql_result_matches": null,
+          "executed_direction_matches": null
+        },
+        "hybrid": {
+          "scheduled": 12,
+          "completed": 11,
+          "passes": 0,
+          "judged": 12,
+          "mean_coverage_valid_judgements": 0.16666666666666666,
+          "mean_coverage_all_scheduled_missing_as_zero": 0.16666666666666666,
+          "mean_support_valid_claim_sets": 0.6805555555555555,
+          "claim_sets_graded": 6,
+          "mean_published_weighted_coverage": null,
+          "published_weighted_coverage_all_scheduled_missing_as_zero": null,
+          "sql_audit_available": 12,
+          "sql_result_matches": 0,
+          "executed_direction_matches": 4
+        }
+      },
+      "cases": [
+        {
+          "id": "dabstep:31",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.5,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:25",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.5,
+          "support": 0.9166666666666666,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:21",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.3,
+          "support": 0.8,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:45",
+          "suite": "dabstep",
+          "status": "delivery_invalid",
+          "pass": false,
+          "coverage": 0.0,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "runtime_not_completed"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": true
+        },
+        {
+          "id": "dabstep:40",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.5,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:50",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.4583333333333333,
+          "support": 0.9090909090909091,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:12",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.8,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:19",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.75,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:14",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.42857142857142855,
+          "support": 0.6,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:93",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.0,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": 0.5416666666666666,
+          "independent_support": 1.0,
+          "independent_judge_error": false
+        },
+        {
+          "id": "dabstep:97",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.5,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "dabstep:81",
+          "suite": "dabstep",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.038461538461538464,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:s2sql_046",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.0,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 2,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:s2sql_050",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.0,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 5,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:s2sql_048",
+          "suite": "hybrid",
+          "status": "delivery_invalid",
+          "pass": false,
+          "coverage": 0.0,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations",
+            "runtime_not_completed"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 3,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": true
+        },
+        {
+          "id": "hybrid:s2sql_017",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.25,
+          "support": 0.16666666666666666,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 3,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:sql2s_088",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.25,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 1,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:sql2s_128",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.25,
+          "support": 0.75,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 1,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:sql2s_191",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.0,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 1,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": 0.0,
+          "independent_support": null,
+          "independent_judge_error": false
+        },
+        {
+          "id": "hybrid:sql2s_022",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.25,
+          "support": 0.5,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric",
+            "independent_sql_or_direction_check_failed"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 1,
+            "sql_result_match": false,
+            "executed_direction": false,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:parallel_040",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.25,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 7,
+            "sql_result_match": false,
+            "executed_direction": true,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:parallel_085",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.25,
+          "support": 0.6666666666666666,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 8,
+            "sql_result_match": false,
+            "executed_direction": true,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:parallel_032",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.25,
+          "support": null,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 10,
+            "sql_result_match": false,
+            "executed_direction": true,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "hybrid:parallel_006",
+          "suite": "hybrid",
+          "status": "completed",
+          "pass": false,
+          "coverage": 0.25,
+          "support": 1.0,
+          "published_weighted_coverage": null,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed"
+          ],
+          "judge_error": false,
+          "reference_audit": {
+            "available": true,
+            "reference_rows": 8,
+            "sql_result_match": false,
+            "executed_direction": true,
+            "matching_steps": [],
+            "comparison": "row multiset; positional columns; aliases ignored; case/whitespace and decimal normalization"
+          },
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "drb:16",
+          "suite": "drb",
+          "status": "completed",
+          "pass": null,
+          "coverage": 0.4807692307692308,
+          "support": 1.0,
+          "published_weighted_coverage": 0.49300000000000005,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "drb:23",
+          "suite": "drb",
+          "status": "delivery_invalid",
+          "pass": null,
+          "coverage": 0.0,
+          "support": 1.0,
+          "published_weighted_coverage": 0.0,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "runtime_not_completed"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": true
+        },
+        {
+          "id": "drb:3",
+          "suite": "drb",
+          "status": "completed",
+          "pass": null,
+          "coverage": 0.12,
+          "support": null,
+          "published_weighted_coverage": 0.062000000000000006,
+          "issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "drb:81",
+          "suite": "drb",
+          "status": "completed",
+          "pass": null,
+          "coverage": 0.64,
+          "support": 1.0,
+          "published_weighted_coverage": 0.5918749999999999,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": 0.62,
+          "independent_support": 1.0,
+          "independent_judge_error": false
+        },
+        {
+          "id": "drb:87",
+          "suite": "drb",
+          "status": "completed",
+          "pass": null,
+          "coverage": 0.5,
+          "support": 1.0,
+          "published_weighted_coverage": 0.5,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        },
+        {
+          "id": "drb:54",
+          "suite": "drb",
+          "status": "completed",
+          "pass": null,
+          "coverage": 0.4807692307692308,
+          "support": 0.8333333333333334,
+          "published_weighted_coverage": 0.41125,
+          "issue_codes": [
+            "answerable_task_not_answered"
+          ],
+          "judge_error": false,
+          "reference_audit": null,
+          "independent_coverage": null,
+          "independent_support": null,
+          "independent_judge_error": null
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "DABStep shares source data with prior work; checklist judgements are not independently verified numeric correctness",
+    "Hybrid is alien-only and public task selection is not an external blind evaluation",
+    "Live Web responses can differ across sequential workflow runs",
+    "DRB six-task subset uses custom judges and limited retrieval budget; not official RACE/FACT",
+    "Independent Qwen judge is a small audit; failed judge calls are not valid agreement",
+    "Human review packets exported locally; human review not performed"
+  ]
+}

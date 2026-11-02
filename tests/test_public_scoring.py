@@ -103,3 +103,41 @@ def test_published_rubric_weights_are_not_replaced_by_uniform_mean():
         }
     }
     assert scoring.weighted_rubric(case, {"criteria": [{"score": 1}, {"score": 0}]}) == 0.7
+
+
+def test_report_keeps_interrupted_task_but_excludes_unknown_latency(tmp_path):
+    from evals.public_benchmarks.report import summarize
+
+    run = tmp_path
+    (run / "score-deepseek").mkdir()
+    (run / "manifest.json").write_text(
+        json.dumps({"workflow": "simple", "case_ids": ["one", "two"]})
+    )
+    results = [
+        {
+            "id": "one",
+            "suite": "dabstep",
+            "status": "completed",
+            "elapsed_seconds": 2,
+            "model_reservations": {"requests": 1, "reserved_tokens": 10},
+        },
+        {
+            "id": "two",
+            "suite": "dabstep",
+            "status": "interrupted",
+            "elapsed_seconds": 0,
+            "model_reservations": {"requests": 1, "reserved_tokens": 20},
+        },
+    ]
+    grades = [
+        {"id": r["id"], "pass": False, "checklist_coverage": 0, "claim_support": None}
+        for r in results
+    ]
+    (run / "results.json").write_text(json.dumps(results))
+    (run / "score-deepseek/scores.json").write_text(json.dumps({"rows": grades}))
+    (run / "score-deepseek/summary.json").write_text(json.dumps({"scheduled": 2}))
+    summary = summarize(run)
+    assert summary["scheduled"] == summary["suites"]["dabstep"]["scheduled"] == 2
+    assert summary["latency_sample_count"] == 1
+    assert summary["p50_seconds"] == summary["p95_seconds"] == 2
+    assert summary["reserved_tokens"] == 30
