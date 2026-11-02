@@ -169,3 +169,40 @@ async def test_uncited_delivery_preserves_candidate_and_hides_internal_diagnosti
     assert rejected["report"]["title"] == "Unsupported answer"
     assert result["report"]["title"] != rejected["report"]["title"]
     assert "uncited_claim" not in result["answer"]
+
+
+def test_gap_diagnostic_length_is_not_a_delivery_failure():
+    assert len(Gap(reason="diagnostic " * 100, step=None).reason) > 400
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("tool_error", [False, True])
+async def test_scoped_refusal_does_not_invent_citations_or_hide_tool_failure(tmp_path, tool_error):
+    class Refusal(Model):
+        async def ainvoke(self, messages):
+            if self.schema is Plan:
+                parsed = Plan(steps=[{"source": "local_document", "query": "deployment limit"}])
+            elif self.schema is Gap:
+                parsed = Gap(reason="Missing deployment data. " * 30, step=None)
+            else:
+                parsed = ResearchReport(
+                    title="Insufficient deployment evidence",
+                    answerability="insufficient_evidence",
+                    claims=[],
+                    facts=[],
+                    limitations=["The searched documents did not establish a deployment limit."],
+                )
+            return {"parsed": parsed, "raw": SimpleNamespace(response_metadata={})}
+
+    catalog = SourceCatalog(documents=[], allowed_sources=("local_document",))
+    if tool_error:
+
+        def fail(*args):
+            raise OSError("source unavailable")
+
+        catalog.collect = fail
+    result = await execute("Find deployment limit", catalog, tmp_path, model=Refusal())
+    assert result["status"] == ("source_error" if tool_error else "completed")
+    assert result["report"]["claims"] == result["report"]["facts"] == []
+    assert result["evidence_assessment"]["failed_lookups"] == int(tool_error)
+    assert result["evidence_assessment"]["searched_sources"] == ["local_document"]

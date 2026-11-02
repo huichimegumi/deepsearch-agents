@@ -1,0 +1,73 @@
+{
+  "scope": "Authored development delivery checks; no semantic judge",
+  "cases": [
+    {
+      "id": "positive",
+      "status": "completed",
+      "expected_answerability": "answered",
+      "actual_answerability": "answered",
+      "protocol_ok": true,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 13893
+      }
+    },
+    {
+      "id": "missing",
+      "status": "completed",
+      "expected_answerability": "insufficient_evidence",
+      "actual_answerability": "insufficient_evidence",
+      "protocol_ok": true,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 13941
+      }
+    },
+    {
+      "id": "empty",
+      "status": "completed",
+      "expected_answerability": "insufficient_evidence",
+      "actual_answerability": "insufficient_evidence",
+      "protocol_ok": true,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 13600
+      }
+    },
+    {
+      "id": "partial",
+      "status": "completed",
+      "expected_answerability": "partial",
+      "actual_answerability": "partial",
+      "protocol_ok": true,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 14027
+      }
+    },
+    {
+      "id": "scope",
+      "status": "completed",
+      "expected_answerability": "insufficient_evidence",
+      "actual_answerability": "insufficient_evidence",
+      "protocol_ok": true,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 13914
+      }
+    },
+    {
+      "id": "conflict",
+      "status": "completed",
+      "expected_answerability": "partial",
+      "actual_answerability": "insufficient_evidence",
+      "protocol_ok": false,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 14111
+      }
+    }
+  ],
+  "protocol_ok": 5,
+  "scheduled": 6
+}
