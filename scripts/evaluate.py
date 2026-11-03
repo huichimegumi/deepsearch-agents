@@ -12,6 +12,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OFFLINE_TESTS = [
     "tests/test_scoring_v4.py",
+    "tests/test_research_trace.py",
+    "tests/test_evidence_store.py",
+    "tests/test_adaptive_research.py",
+    "tests/test_e8_protocol.py",
     "tests/test_bounded_research.py",
     "tests/test_standards_suite.py",
     "tests/test_eval_worker_supervisor.py",
@@ -52,6 +56,14 @@ def main() -> int:
     public_score.add_argument("--output", type=Path, required=True)
     public_score.add_argument("--provider", choices=("deepseek", "qwen"), default="deepseek")
     public_score.add_argument("--audit-subset", action="store_true")
+    e8_score = commands.add_parser(
+        "e8-score", help="Score E8 saved research with small-batch judging"
+    )
+    for option in ("run", "inputs", "output"):
+        e8_score.add_argument("--" + option, type=Path, required=True)
+    e8_gate = commands.add_parser("e8-gate", help="Check the frozen eight-task development gate")
+    for option in ("run", "score", "output"):
+        e8_gate.add_argument("--" + option, type=Path, required=True)
     public_report = commands.add_parser("public-report", help="Publish metadata-only E7 report")
     public_report.add_argument("--run", type=Path, action="append", required=True)
     public_report.add_argument("--output", type=Path, required=True)
@@ -76,6 +88,16 @@ def main() -> int:
     report.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    if args.command in ("e8-score", "e8-gate"):
+        module = "score_e8" if args.command == "e8-score" else "gate_e8"
+        command = [sys.executable, "-m", "evals.diagnostics." + module]
+        for option in (
+            ("run", "inputs", "output")
+            if args.command == "e8-score"
+            else ("run", "score", "output")
+        ):
+            command += ["--" + option, str(getattr(args, option))]
+        return subprocess.call(command, cwd=ROOT)
     if args.command == "public-preflight":
         return subprocess.call([sys.executable, "-m", "evals.public_benchmarks.prepare"], cwd=ROOT)
     if args.command == "public-prepare":

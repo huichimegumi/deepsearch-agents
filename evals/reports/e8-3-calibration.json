@@ -1,0 +1,146 @@
+{
+  "scope": "Controlled authored calibration, no natural-report/human accuracy claim",
+  "scheduled": 16,
+  "matched": 13,
+  "judge_errors": 2,
+  "cases": [
+    {
+      "provider": "deepseek",
+      "id": "correct",
+      "expected_accept": true,
+      "actual_accept": true,
+      "matched": true,
+      "judge_errors": 0
+    },
+    {
+      "provider": "deepseek",
+      "id": "wrong_facts",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "judge_errors": 0
+    },
+    {
+      "provider": "deepseek",
+      "id": "known_but_wrong_citation",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "judge_errors": 0
+    },
+    {
+      "provider": "deepseek",
+      "id": "missing_citation",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "judge_errors": 0
+    },
+    {
+      "provider": "deepseek",
+      "id": "missing_year",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "judge_errors": 0
+    },
+    {
+      "provider": "deepseek",
+      "id": "facts_hidden_in_limitations",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "judge_errors": 0
+    },
+    {
+      "provider": "deepseek",
+      "id": "correct_scoped_refusal",
+      "expected_accept": true,
+      "actual_accept": true,
+      "matched": true,
+      "judge_errors": 0
+    },
+    {
+      "provider": "deepseek",
+      "id": "wrong_refusal",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "judge_errors": 0
+    },
+    {
+      "provider": "qwen",
+      "id": "correct",
+      "expected_accept": true,
+      "actual_accept": false,
+      "matched": false,
+      "judge_errors": 1
+    },
+    {
+      "provider": "qwen",
+      "id": "wrong_facts",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "judge_errors": 0
+    },
+    {
+      "provider": "qwen",
+      "id": "known_but_wrong_citation",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "judge_errors": 0
+    },
+    {
+      "provider": "qwen",
+      "id": "missing_citation",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "judge_errors": 0
+    },
+    {
+      "provider": "qwen",
+      "id": "missing_year",
+      "expected_accept": false,
+      "actual_accept": true,
+      "matched": false,
+      "judge_errors": 0
+    },
+    {
+      "provider": "qwen",
+      "id": "facts_hidden_in_limitations",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": false,
+      "judge_errors": 1
+    },
+    {
+      "provider": "qwen",
+      "id": "correct_scoped_refusal",
+      "expected_accept": true,
+      "actual_accept": true,
+      "matched": true,
+      "judge_errors": 0
+    },
+    {
+      "provider": "qwen",
+      "id": "wrong_refusal",
+      "expected_accept": false,
+      "actual_accept": false,
+      "matched": true,
+      "judge_errors": 0
+    }
+  ],
+  "reservations": {
+    "deepseek": {
+      "requests": 13,
+      "reserved_tokens": 58115
+    },
+    "qwen": {
+      "requests": 13,
+      "reserved_tokens": 58115
+    }
+  }
+}

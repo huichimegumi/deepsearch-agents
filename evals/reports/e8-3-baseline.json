@@ -1,0 +1,348 @@
+{
+  "scope": "Eight exposed DEVELOPMENT cases; not new validation or a generalization estimate",
+  "execution_manifest": {
+    "version": "e7",
+    "workflow": "bounded",
+    "inputs_sha256": "0e5f3bd829e568b93c7834f48f710c5c12d6f6988e224b5fec0b95906fe60718",
+    "source_sha256": "df6444ea1f252b8f60d8f496d4c51515700b6524087809e13ed7eca460687e34",
+    "lock_sha256": "b998a1862bcc924a5b7457361019c945e490a512f9267afee738c8e1e46dacf0",
+    "dependency_lock_sha256": "45365f225b2e78f86b4ea40d6c1f425f2100626ffe6b68a0dce8cc54e987a34d",
+    "databases": {
+      "alien_template.sqlite": "e160643c9abb43ba69917532f2654637e677460df25678f9daecdefb416046ed",
+      "dabstep.sqlite": "d2d7044105b613b32eb7850a6f40bc250900b6768324713958651249c87b922e"
+    },
+    "case_ids": [
+      "dabstep:97",
+      "dabstep:81",
+      "hybrid:s2sql_050",
+      "hybrid:s2sql_048",
+      "hybrid:sql2s_088",
+      "hybrid:sql2s_128",
+      "hybrid:parallel_040",
+      "hybrid:parallel_085"
+    ],
+    "budget": {
+      "case_seconds": 300,
+      "worker_seconds": 330,
+      "case_requests": 8,
+      "case_reserved_tokens": 180000,
+      "workflow_batch_reserved_tokens": 5400000,
+      "tool_lookups": 5,
+      "web_queries": 5,
+      "pages_per_query": 2,
+      "judge_requests": 60,
+      "judge_reserved_tokens": 1500000
+    },
+    "generator": "deepseek-flash non-thinking",
+    "web_mode": "live_duckduckgo",
+    "device": "cpu"
+  },
+  "scoring_manifest": {
+    "version": "e8.1",
+    "provider": "deepseek",
+    "cases_sha256": "ede555676e5805d89972c749334deb6957ef9a0c5621e1a4a0f41905b1a927bd",
+    "results_sha256": "7a5bcdfd46efff047f22ebf6ef924be039189ce2eee5d3252207f668ca7978b0",
+    "scorer_sha256": "f422731c118af9ab9cbc59f80db441efa5f34542751d0164a154bcc351e93c65",
+    "report_schema_sha256": "1109ee497d5537a7a6595e0de190571bc1b2b96efe3ba1fc5af0ca2874286682",
+    "budget": {
+      "requests": 80,
+      "reserved_tokens": 1500000
+    }
+  },
+  "scoring_summary": {
+    "version": "e8.1",
+    "scheduled": 8,
+    "passes": 0,
+    "judge_errors": 0,
+    "mean_coverage": 0.20245726495726496,
+    "statuses": {
+      "completed": 6,
+      "delivery_invalid": 2
+    },
+    "reservations": {
+      "requests": 23,
+      "reserved_tokens": 253463
+    },
+    "gate_passed": false
+  },
+  "cases": [
+    {
+      "id": "dabstep:97",
+      "suite": "dabstep",
+      "status": "completed",
+      "answerability": "partial",
+      "pass": false,
+      "coverage": 0.3888888888888889,
+      "support": 1.0,
+      "issues": [
+        "answerable_task_not_answered",
+        "duplicate_scoped_metric"
+      ],
+      "judge_error_count": 0,
+      "reference_audit": null,
+      "claims": 12,
+      "facts": 17,
+      "evidence_records": 42,
+      "evidence_sources": {
+        "local_document": 4,
+        "sql": 38
+      },
+      "tool_actions": 5,
+      "tool_error_classes": {},
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 55085
+      },
+      "elapsed_seconds": 37.977
+    },
+    {
+      "id": "dabstep:81",
+      "suite": "dabstep",
+      "status": "completed",
+      "answerability": "insufficient_evidence",
+      "pass": false,
+      "coverage": 0.23076923076923078,
+      "support": 1.0,
+      "issues": [
+        "answerable_task_not_answered"
+      ],
+      "judge_error_count": 0,
+      "reference_audit": null,
+      "claims": 10,
+      "facts": 0,
+      "evidence_records": 44,
+      "evidence_sources": {
+        "local_document": 4,
+        "sql": 40
+      },
+      "tool_actions": 5,
+      "tool_error_classes": {},
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 54708
+      },
+      "elapsed_seconds": 30.375
+    },
+    {
+      "id": "hybrid:s2sql_050",
+      "suite": "hybrid",
+      "status": "completed",
+      "answerability": "insufficient_evidence",
+      "pass": false,
+      "coverage": 0.0,
+      "support": null,
+      "issues": [
+        "answerable_task_not_answered",
+        "empty_answer",
+        "missing_required_source_citations",
+        "sql_reference_or_dependency_failed"
+      ],
+      "judge_error_count": 0,
+      "reference_audit": {
+        "available": true,
+        "sql_result_match": false,
+        "matching_steps": [],
+        "executed_direction": false,
+        "comparison": "Typed row multisets with named projection, or whole-table column permutation up to six columns; reference aliases do not determine correctness"
+      },
+      "claims": 0,
+      "facts": 0,
+      "evidence_records": 4,
+      "evidence_sources": {
+        "web": 4
+      },
+      "tool_actions": 3,
+      "tool_error_classes": {
+        "ValueError": 1
+      },
+      "model_reservations": {
+        "requests": 4,
+        "reserved_tokens": 75513
+      },
+      "elapsed_seconds": 30.512
+    },
+    {
+      "id": "hybrid:s2sql_048",
+      "suite": "hybrid",
+      "status": "delivery_invalid",
+      "answerability": "partial",
+      "pass": false,
+      "coverage": 0.0,
+      "support": 0.0,
+      "issues": [
+        "answerable_task_not_answered",
+        "missing_required_source_citations",
+        "runtime_not_completed",
+        "sql_reference_or_dependency_failed"
+      ],
+      "judge_error_count": 0,
+      "reference_audit": {
+        "available": true,
+        "sql_result_match": false,
+        "matching_steps": [],
+        "executed_direction": false,
+        "comparison": "Typed row multisets with named projection, or whole-table column permutation up to six columns; reference aliases do not determine correctness"
+      },
+      "claims": 3,
+      "facts": 0,
+      "evidence_records": 4,
+      "evidence_sources": {
+        "web": 4
+      },
+      "tool_actions": 4,
+      "tool_error_classes": {
+        "ValueError": 2
+      },
+      "model_reservations": {
+        "requests": 4,
+        "reserved_tokens": 77525
+      },
+      "elapsed_seconds": 38.378
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "suite": "hybrid",
+      "status": "completed",
+      "answerability": "insufficient_evidence",
+      "pass": false,
+      "coverage": 0.0,
+      "support": null,
+      "issues": [
+        "answerable_task_not_answered",
+        "empty_answer",
+        "missing_required_source_citations",
+        "sql_reference_or_dependency_failed"
+      ],
+      "judge_error_count": 0,
+      "reference_audit": {
+        "available": true,
+        "sql_result_match": false,
+        "matching_steps": [],
+        "executed_direction": false,
+        "comparison": "Typed row multisets with named projection, or whole-table column permutation up to six columns; reference aliases do not determine correctness"
+      },
+      "claims": 0,
+      "facts": 0,
+      "evidence_records": 45,
+      "evidence_sources": {
+        "sql": 45
+      },
+      "tool_actions": 4,
+      "tool_error_classes": {},
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 87657
+      },
+      "elapsed_seconds": 32.884
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "suite": "hybrid",
+      "status": "delivery_invalid",
+      "answerability": "partial",
+      "pass": false,
+      "coverage": 0.25,
+      "support": 1.0,
+      "issues": [
+        "answerable_task_not_answered",
+        "missing_required_source_citations",
+        "runtime_not_completed",
+        "sql_reference_or_dependency_failed"
+      ],
+      "judge_error_count": 0,
+      "reference_audit": {
+        "available": true,
+        "sql_result_match": false,
+        "matching_steps": [],
+        "executed_direction": false,
+        "comparison": "Typed row multisets with named projection, or whole-table column permutation up to six columns; reference aliases do not determine correctness"
+      },
+      "claims": 3,
+      "facts": 0,
+      "evidence_records": 6,
+      "evidence_sources": {
+        "sql": 4,
+        "web": 2
+      },
+      "tool_actions": 3,
+      "tool_error_classes": {},
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 54388
+      },
+      "elapsed_seconds": 29.808
+    },
+    {
+      "id": "hybrid:parallel_040",
+      "suite": "hybrid",
+      "status": "completed",
+      "answerability": "insufficient_evidence",
+      "pass": false,
+      "coverage": 0.25,
+      "support": 1.0,
+      "issues": [
+        "answerable_task_not_answered",
+        "missing_required_source_citations",
+        "sql_reference_or_dependency_failed"
+      ],
+      "judge_error_count": 0,
+      "reference_audit": {
+        "available": true,
+        "sql_result_match": false,
+        "matching_steps": [],
+        "executed_direction": false,
+        "comparison": "Typed row multisets with named projection, or whole-table column permutation up to six columns; reference aliases do not determine correctness"
+      },
+      "claims": 1,
+      "facts": 1,
+      "evidence_records": 1,
+      "evidence_sources": {
+        "sql": 1
+      },
+      "tool_actions": 3,
+      "tool_error_classes": {
+        "ValueError": 1
+      },
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 50860
+      },
+      "elapsed_seconds": 17.463
+    },
+    {
+      "id": "hybrid:parallel_085",
+      "suite": "hybrid",
+      "status": "completed",
+      "answerability": "insufficient_evidence",
+      "pass": false,
+      "coverage": 0.5,
+      "support": 0.6666666666666666,
+      "issues": [
+        "answerable_task_not_answered",
+        "sql_reference_or_dependency_failed"
+      ],
+      "judge_error_count": 0,
+      "reference_audit": {
+        "available": true,
+        "sql_result_match": false,
+        "matching_steps": [],
+        "executed_direction": false,
+        "comparison": "Typed row multisets with named projection, or whole-table column permutation up to six columns; reference aliases do not determine correctness"
+      },
+      "claims": 3,
+      "facts": 10,
+      "evidence_records": 11,
+      "evidence_sources": {
+        "sql": 8,
+        "web": 3
+      },
+      "tool_actions": 3,
+      "tool_error_classes": {},
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 60129
+      },
+      "elapsed_seconds": 30.961
+    }
+  ]
+}
