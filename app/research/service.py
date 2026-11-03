@@ -44,7 +44,7 @@ async def run_research(
             monitor_thread_id=monitor_thread_id,
             conversation_memory=conversation_memory,
         )
-    if settings.research_workflow not in {"bounded", "legacy"}:
+    if settings.research_workflow not in {"bounded", "legacy", "adaptive"}:
         raise ValueError("invalid_research_workflow")
     for component in (session_id, user_id):
         if component is not None and (
@@ -111,7 +111,11 @@ async def run_research(
             else ""
         )
         result = await execute(
-            question, catalog, run_dir, timeout_seconds=min(330, settings.agent_max_runtime_seconds)
+            question,
+            catalog,
+            run_dir,
+            timeout_seconds=min(330, settings.agent_max_runtime_seconds),
+            workflow="adaptive" if settings.research_workflow == "adaptive" else "bounded",
         )
         monitor.report_file_created(str(run_dir / "report.md"))
         monitor.report_research_phase(

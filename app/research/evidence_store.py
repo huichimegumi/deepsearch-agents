@@ -92,7 +92,16 @@ class EvidenceStore:
                 + (0.8 if raw["source"] == "sql" else 0)
                 + ordinal / max(1, len(self.records)) * 0.15
             )
-            candidates.append((score, ordinal, view, query))
+            candidates.append(
+                (
+                    score,
+                    ordinal,
+                    view,
+                    {"sql": query, "parameters": (raw.get("metadata") or {}).get("parameters", {})}
+                    if query
+                    else None,
+                )
+            )
         candidates.sort(key=lambda item: (-item[0], -item[1]))
         chosen, queries, chosen_sources = [], {}, set()
         # Ensure a relevant source is not crowded out by another source's bulk rows.
@@ -104,7 +113,9 @@ class EvidenceStore:
         for score, ordinal, view, query in ordered:
             extra = dict(queries)
             if query:
-                query_id = hashlib.sha256(query.encode()).hexdigest()[:10]
+                query_id = hashlib.sha256(json.dumps(query, sort_keys=True).encode()).hexdigest()[
+                    :10
+                ]
                 extra[query_id] = query
                 view = {**view, "query_id": query_id}
             if (

@@ -41,7 +41,9 @@ def main() -> int:
     )
     public_run.add_argument("--inputs", type=Path, required=True)
     public_run.add_argument("--output", type=Path, required=True)
-    public_run.add_argument("--workflow", choices=("simple", "bounded"), default="bounded")
+    public_run.add_argument(
+        "--workflow", choices=("simple", "bounded", "adaptive"), default="bounded"
+    )
     public_score = commands.add_parser(
         "public-score", help="Score saved E7 research; invokes model judge"
     )
@@ -58,7 +60,7 @@ def main() -> int:
     )
     run = commands.add_parser("run", help="Execute or resume; invokes the configured model API")
     run.add_argument("--split", choices=("dev", "holdout"), required=True)
-    run.add_argument("--workflow", choices=("simple", "bounded"), default="bounded")
+    run.add_argument("--workflow", choices=("simple", "bounded", "adaptive"), default="bounded")
     run.add_argument("--output", type=Path, required=True)
     run.add_argument("--score", action="store_true")
     for name in ("score", "audit"):

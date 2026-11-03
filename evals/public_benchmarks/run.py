@@ -27,6 +27,7 @@ def sha(path):
 
 def code_hash():
     files = sorted((ROOT / "app").rglob("*.py")) + sorted(Path(__file__).parent.glob("*.py"))
+    files += sorted((ROOT / "evals/diagnostics").glob("*.py"))
     files += [ROOT / "evals/scoring_v4.py", ROOT / "evals/worker_supervisor.py", ROOT / "uv.lock"]
     return hashlib.sha256(
         b"".join(p.relative_to(ROOT).as_posix().encode() + p.read_bytes() for p in files)
@@ -139,7 +140,7 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--inputs", type=Path, required=True)
     p.add_argument("--output", type=Path)
-    p.add_argument("--workflow", choices=("simple", "bounded"), default="bounded")
+    p.add_argument("--workflow", choices=("simple", "bounded", "adaptive"), default="bounded")
     p.add_argument("--worker", action="store_true")
     p.add_argument("--case-id")
     p.add_argument("--result-path", type=Path)

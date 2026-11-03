@@ -1,0 +1,67 @@
+{
+  "scope": "Two exposed developer smoke cases; runtime and observation diagnostics, not gate or independent validation",
+  "cases": [
+    {
+      "id": "hybrid:s2sql_050",
+      "status": "delivery_invalid",
+      "reservations": {
+        "requests": 4,
+        "reserved_tokens": 30790
+      },
+      "operations": [
+        {
+          "source": "web",
+          "operation": "query",
+          "record_count": 1,
+          "error_type": ""
+        },
+        {
+          "source": "web",
+          "operation": "query",
+          "record_count": 2,
+          "error_type": ""
+        }
+      ]
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "status": "completed",
+      "reservations": {
+        "requests": 6,
+        "reserved_tokens": 108736
+      },
+      "operations": [
+        {
+          "source": "sql",
+          "operation": "query",
+          "record_count": 80,
+          "error_type": ""
+        },
+        {
+          "source": "sql",
+          "operation": "query",
+          "record_count": 11,
+          "error_type": ""
+        },
+        {
+          "source": "web",
+          "operation": "query",
+          "record_count": 2,
+          "error_type": ""
+        },
+        {
+          "source": "web",
+          "operation": "query",
+          "record_count": 1,
+          "error_type": ""
+        },
+        {
+          "source": "web",
+          "operation": "query",
+          "record_count": null,
+          "error_type": "ValueError"
+        }
+      ]
+    }
+  ]
+}

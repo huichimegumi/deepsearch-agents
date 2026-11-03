@@ -108,9 +108,15 @@ async def execute(
     output: Path,
     *,
     timeout_seconds: float = 180,
-    workflow: Literal["bounded", "simple"] = "bounded",
+    workflow: Literal["bounded", "simple", "adaptive"] = "bounded",
     model=None,
 ) -> dict:
+    if workflow == "adaptive":
+        from app.research.adaptive import execute_adaptive
+
+        return await execute_adaptive(
+            question, catalog, output, timeout_seconds=timeout_seconds, model=model
+        )
     output.mkdir(parents=True, exist_ok=True)
     budget = RequestBudget(output / "model_requests.jsonl")
     trace = ResearchTrace(output)
