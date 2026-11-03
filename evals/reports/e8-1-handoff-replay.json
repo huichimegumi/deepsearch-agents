@@ -1,0 +1,77 @@
+{
+  "scope": "Replay of actual development tool responses; no model/API calls, no oracle-driven selection; count is not semantic recall",
+  "cases": [
+    {
+      "id": "dabstep:97",
+      "original_delivered_records": 42,
+      "complete_unique_records": 218,
+      "selected_records": 88,
+      "view_tokens": 11965,
+      "view_limit": 12000,
+      "all_raw_records_persisted": true
+    },
+    {
+      "id": "dabstep:81",
+      "original_delivered_records": 44,
+      "complete_unique_records": 218,
+      "selected_records": 95,
+      "view_tokens": 11990,
+      "view_limit": 12000,
+      "all_raw_records_persisted": true
+    },
+    {
+      "id": "hybrid:s2sql_050",
+      "original_delivered_records": 4,
+      "complete_unique_records": 4,
+      "selected_records": 4,
+      "view_tokens": 571,
+      "view_limit": 12000,
+      "all_raw_records_persisted": true
+    },
+    {
+      "id": "hybrid:s2sql_048",
+      "original_delivered_records": 4,
+      "complete_unique_records": 4,
+      "selected_records": 4,
+      "view_tokens": 1157,
+      "view_limit": 12000,
+      "all_raw_records_persisted": true
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "original_delivered_records": 45,
+      "complete_unique_records": 99,
+      "selected_records": 77,
+      "view_tokens": 11911,
+      "view_limit": 12000,
+      "all_raw_records_persisted": true
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "original_delivered_records": 6,
+      "complete_unique_records": 6,
+      "selected_records": 6,
+      "view_tokens": 807,
+      "view_limit": 12000,
+      "all_raw_records_persisted": true
+    },
+    {
+      "id": "hybrid:parallel_040",
+      "original_delivered_records": 1,
+      "complete_unique_records": 1,
+      "selected_records": 1,
+      "view_tokens": 150,
+      "view_limit": 12000,
+      "all_raw_records_persisted": true
+    },
+    {
+      "id": "hybrid:parallel_085",
+      "original_delivered_records": 11,
+      "complete_unique_records": 11,
+      "selected_records": 11,
+      "view_tokens": 2629,
+      "view_limit": 12000,
+      "all_raw_records_persisted": true
+    }
+  ]
+}

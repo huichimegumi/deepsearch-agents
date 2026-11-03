@@ -77,7 +77,10 @@ async def test_full_tool_response_survives_context_drop(tmp_path):
     result = await execute(
         "Find text", Catalog(allowed_sources=("sql",)), tmp_path, workflow="simple", model=Model()
     )
-    assert result["evidence"] == []
+    assert len(result["evidence"]) == 1
+    context = json.loads((tmp_path / "evidence/context-001.json").read_text())
+    assert context["estimated_tokens"] <= context["token_limit"]
+    assert context["evidence"][0]["content"]["text"] == "x" * 60000
     stored = json.loads((tmp_path / "trace/tool-s0.json").read_text())
     assert len(stored["records"][0]["content"]["text"]) == 60000
     assert stored["records"][0]["evidence_id"] == "ev1_big"
