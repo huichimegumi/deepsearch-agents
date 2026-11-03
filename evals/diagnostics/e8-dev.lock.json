@@ -1,0 +1,76 @@
+{
+  "version": "e8-dev-1",
+  "origin": "Previously exposed E7 cases, DEVELOPMENT ONLY",
+  "cases": [
+    {
+      "id": "dabstep:97",
+      "suite": "dabstep",
+      "direction": null,
+      "reference_sha256": "0da0550334830f89dd9744197e6801866f49d1ce2e500b025c0406b081f4ad79"
+    },
+    {
+      "id": "dabstep:81",
+      "suite": "dabstep",
+      "direction": null,
+      "reference_sha256": "25481a16378be5e38b1a7b4c500c65682fc17d73f0e97fcae74742b86b6cfe59"
+    },
+    {
+      "id": "hybrid:s2sql_050",
+      "suite": "hybrid",
+      "direction": "search_to_sql",
+      "reference_sha256": "c2c2abb2f9ca430566ec300ba0a2d084e790f20925e6ccde1369456c94792551"
+    },
+    {
+      "id": "hybrid:s2sql_048",
+      "suite": "hybrid",
+      "direction": "search_to_sql",
+      "reference_sha256": "c218a69bdb800d666ee280d47ed48d92ab82eb5a0164e7dee8c34594f9d8ddef"
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "suite": "hybrid",
+      "direction": "sql_to_search",
+      "reference_sha256": "02d54d7fa6d66c24f00f0090b873a02603eaaa434685d24550131cef7f17a4aa"
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "suite": "hybrid",
+      "direction": "sql_to_search",
+      "reference_sha256": "65ff0751b45c6d4720e861c55c54f2e0452610f5112b172b0e9a98ce9d247616"
+    },
+    {
+      "id": "hybrid:parallel_040",
+      "suite": "hybrid",
+      "direction": "parallel",
+      "reference_sha256": "d7ce1e3267b6fb97976acc1ff5842b6f753f129c7d5b6e9c06f23131b138eb60"
+    },
+    {
+      "id": "hybrid:parallel_085",
+      "suite": "hybrid",
+      "direction": "parallel",
+      "reference_sha256": "f08fc1989c766bc8c380b0baedcd8a75de72ec1545a42ab3834bb4cec25888f8"
+    }
+  ],
+  "public_sha256": "05b1e76e7882634294bfb6572ffaf1237fd06278c06e95b891c5e3c91fe64641",
+  "references_sha256": "ede555676e5805d89972c749334deb6957ef9a0c5621e1a4a0f41905b1a927bd",
+  "budget": {
+    "model_requests": 8,
+    "reserved_tokens": 180000,
+    "tool_lookups": 5,
+    "seconds": 300,
+    "worker_seconds": 330
+  },
+  "gate": {
+    "required_passes": 6,
+    "scheduled": 8,
+    "citation_identity": 1.0,
+    "repair_rounds": 1
+  },
+  "rules": [
+    "No oracle in generator inputs",
+    "E7 grades unchanged",
+    "One concentrated repair and one rerun",
+    "New validation runs only after the development gate passes",
+    "No paid search or GPU"
+  ]
+}

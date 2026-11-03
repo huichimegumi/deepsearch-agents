@@ -1,0 +1,70 @@
+{
+  "scope": "Exposed development cases; runtime only, not task correctness",
+  "scheduled": 8,
+  "cases": [
+    {
+      "id": "dabstep:97",
+      "status": "completed",
+      "reservations": {
+        "requests": 3,
+        "reserved_tokens": 55085
+      }
+    },
+    {
+      "id": "dabstep:81",
+      "status": "completed",
+      "reservations": {
+        "requests": 3,
+        "reserved_tokens": 54708
+      }
+    },
+    {
+      "id": "hybrid:s2sql_050",
+      "status": "completed",
+      "reservations": {
+        "requests": 4,
+        "reserved_tokens": 75513
+      }
+    },
+    {
+      "id": "hybrid:s2sql_048",
+      "status": "delivery_invalid",
+      "reservations": {
+        "requests": 4,
+        "reserved_tokens": 77525
+      }
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "status": "completed",
+      "reservations": {
+        "requests": 3,
+        "reserved_tokens": 87657
+      }
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "status": "delivery_invalid",
+      "reservations": {
+        "requests": 3,
+        "reserved_tokens": 54388
+      }
+    },
+    {
+      "id": "hybrid:parallel_040",
+      "status": "completed",
+      "reservations": {
+        "requests": 3,
+        "reserved_tokens": 50860
+      }
+    },
+    {
+      "id": "hybrid:parallel_085",
+      "status": "completed",
+      "reservations": {
+        "requests": 3,
+        "reserved_tokens": 60129
+      }
+    }
+  ]
+}

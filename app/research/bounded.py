@@ -15,6 +15,7 @@ from app.agent.llm import get_model
 from app.research.report import ReportClaim, ResearchReport, numeric_binding_errors
 from app.research.request_budget import EvaluationBudgetExceeded, RequestBudget, usage
 from app.research.sources import SourceCatalog
+from app.research.trace import ResearchTrace, current_trace
 
 
 class Step(BaseModel):
@@ -59,6 +60,8 @@ class StructuredResponseError(ValueError):
 
 async def _structured(schema, instruction: str, payload: dict, *, model=None, cap=2400):
     model = model or get_model()
+    trace = current_trace()
+    trace_key = trace.request(schema, instruction, payload) if trace else None
     response = (
         await model.with_structured_output(schema, include_raw=True)
         .bind(temperature=0, max_tokens=cap)
@@ -73,6 +76,8 @@ async def _structured(schema, instruction: str, payload: dict, *, model=None, ca
     raw = response.get("raw")
     metadata = dict(getattr(raw, "response_metadata", None) or {})
     metadata["usage_metadata"] = getattr(raw, "usage_metadata", None)
+    if trace:
+        trace.response(trace_key, response, metadata)
     if not isinstance(parsed, schema):
         raise StructuredResponseError(response, metadata)
     if metadata.get("finish_reason") == "length":
@@ -107,6 +112,7 @@ async def execute(
 ) -> dict:
     output.mkdir(parents=True, exist_ok=True)
     budget = RequestBudget(output / "model_requests.jsonl")
+    trace = ResearchTrace(output)
     evidence: dict[str, dict] = {}
     steps: dict[str, list[dict]] = {}
     warnings: list[str] = []
@@ -131,6 +137,7 @@ async def execute(
             ),
         }
         operations.append(operation)
+        trace.event("tool_start", operation=dict(operation))
         try:
             dependencies = operation["depends_on"]
             if any(parent not in steps or not steps[parent] for parent in dependencies):
@@ -184,6 +191,13 @@ async def execute(
             records, notices = await asyncio.wait_for(
                 asyncio.to_thread(catalog.collect, step.source, query), timeout=25
             )
+            from app.research.storage import write_json
+
+            write_json(
+                trace.directory / f"tool-{step_id}.json",
+                {"operation": dict(operation), "records": records, "notices": notices},
+            )
+            trace.event("tool_result", step_id=step_id, record_count=len(records))
             steps[step_id] = records
             warnings.extend(notices)
             for row in records:
@@ -197,9 +211,10 @@ async def execute(
             steps[step_id] = []
             operation["error"] = f"{type(exc).__name__}:{exc}"
             warnings.append(operation["error"])
+            trace.event("tool_error", operation=dict(operation))
 
     try:
-        with budget.activate():
+        with budget.activate(), trace.activate():
             try:
                 # Tool and planning time cannot consume the final writer's time reservation.
                 async with asyncio.timeout(max(1, timeout_seconds - 45)):

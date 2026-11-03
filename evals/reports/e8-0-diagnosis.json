@@ -1,0 +1,221 @@
+{
+  "scope": "Read-only diagnosis; retrieval event count may include duplicates; missing dropped records cannot be reconstructed from E7 traces",
+  "runs": [
+    {
+      "workflow": "simple",
+      "cases": [
+        {
+          "id": "dabstep:97",
+          "status": "completed",
+          "retrieved_record_events": 138,
+          "delivered_unique_records": 44,
+          "context_limit": true,
+          "tool_error_count": 0,
+          "grade_issue_codes": [
+            "answerable_task_not_answered"
+          ]
+        },
+        {
+          "id": "dabstep:81",
+          "status": "completed",
+          "retrieved_record_events": 138,
+          "delivered_unique_records": 44,
+          "context_limit": true,
+          "tool_error_count": 0,
+          "grade_issue_codes": [
+            "answerable_task_not_answered"
+          ]
+        },
+        {
+          "id": "hybrid:s2sql_050",
+          "status": "completed",
+          "retrieved_record_events": 2,
+          "delivered_unique_records": 2,
+          "context_limit": false,
+          "tool_error_count": 2,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ]
+        },
+        {
+          "id": "hybrid:s2sql_048",
+          "status": "completed",
+          "retrieved_record_events": 1,
+          "delivered_unique_records": 1,
+          "context_limit": false,
+          "tool_error_count": 1,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ]
+        },
+        {
+          "id": "hybrid:sql2s_088",
+          "status": "completed",
+          "retrieved_record_events": 84,
+          "delivered_unique_records": 45,
+          "context_limit": true,
+          "tool_error_count": 0,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed"
+          ]
+        },
+        {
+          "id": "hybrid:sql2s_128",
+          "status": "delivery_invalid",
+          "retrieved_record_events": 4,
+          "delivered_unique_records": 4,
+          "context_limit": false,
+          "tool_error_count": 1,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations",
+            "runtime_not_completed"
+          ]
+        },
+        {
+          "id": "hybrid:parallel_040",
+          "status": "completed",
+          "retrieved_record_events": 0,
+          "delivered_unique_records": 0,
+          "context_limit": false,
+          "tool_error_count": 1,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ]
+        },
+        {
+          "id": "hybrid:parallel_085",
+          "status": "completed",
+          "retrieved_record_events": 9,
+          "delivered_unique_records": 9,
+          "context_limit": false,
+          "tool_error_count": 0,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed"
+          ]
+        }
+      ]
+    },
+    {
+      "workflow": "bounded",
+      "cases": [
+        {
+          "id": "dabstep:97",
+          "status": "completed",
+          "retrieved_record_events": 249,
+          "delivered_unique_records": 33,
+          "context_limit": true,
+          "tool_error_count": 0,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "duplicate_metric"
+          ]
+        },
+        {
+          "id": "dabstep:81",
+          "status": "completed",
+          "retrieved_record_events": 218,
+          "delivered_unique_records": 44,
+          "context_limit": true,
+          "tool_error_count": 0,
+          "grade_issue_codes": [
+            "answerable_task_not_answered"
+          ]
+        },
+        {
+          "id": "hybrid:s2sql_050",
+          "status": "completed",
+          "retrieved_record_events": 3,
+          "delivered_unique_records": 3,
+          "context_limit": false,
+          "tool_error_count": 2,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ]
+        },
+        {
+          "id": "hybrid:s2sql_048",
+          "status": "delivery_invalid",
+          "retrieved_record_events": 3,
+          "delivered_unique_records": 3,
+          "context_limit": false,
+          "tool_error_count": 1,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations",
+            "runtime_not_completed"
+          ]
+        },
+        {
+          "id": "hybrid:sql2s_088",
+          "status": "completed",
+          "retrieved_record_events": 89,
+          "delivered_unique_records": 45,
+          "context_limit": true,
+          "tool_error_count": 0,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ]
+        },
+        {
+          "id": "hybrid:sql2s_128",
+          "status": "completed",
+          "retrieved_record_events": 8,
+          "delivered_unique_records": 8,
+          "context_limit": false,
+          "tool_error_count": 1,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ]
+        },
+        {
+          "id": "hybrid:parallel_040",
+          "status": "completed",
+          "retrieved_record_events": 8,
+          "delivered_unique_records": 8,
+          "context_limit": false,
+          "tool_error_count": 0,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "empty_answer",
+            "independent_sql_or_direction_check_failed",
+            "missing_required_source_citations"
+          ]
+        },
+        {
+          "id": "hybrid:parallel_085",
+          "status": "completed",
+          "retrieved_record_events": 10,
+          "delivered_unique_records": 10,
+          "context_limit": false,
+          "tool_error_count": 0,
+          "grade_issue_codes": [
+            "answerable_task_not_answered",
+            "independent_sql_or_direction_check_failed"
+          ]
+        }
+      ]
+    }
+  ]
+}
