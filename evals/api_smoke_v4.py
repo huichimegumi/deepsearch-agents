@@ -18,7 +18,7 @@ import httpx
 from evals.worker_supervisor import atomic_json
 
 
-async def run(output: Path, *, web: bool = False) -> dict:
+async def run(output: Path, *, web: bool = False, workflow: str = "bounded") -> dict:
     output.mkdir(parents=True, exist_ok=True)
     database = output / "smoke.sqlite"
     with sqlite3.connect(database) as conn:
@@ -29,7 +29,7 @@ async def run(output: Path, *, web: bool = False) -> dict:
     from app.config import get_settings
 
     env = {
-        "RESEARCH_WORKFLOW": "bounded",
+        "RESEARCH_WORKFLOW": workflow,
         "LLM_PROVIDER": "deepseek",
         "EVIDENCE_SQLITE_PATH": str(database.resolve()),
         "CUDA_VISIBLE_DEVICES": "-1",
@@ -84,6 +84,7 @@ async def run(output: Path, *, web: bool = False) -> dict:
                 facts = {row["metric"]: row["value"] for row in result["report"]["facts"]}
                 summary = {
                     "http_status": response.status_code,
+                    "workflow": workflow,
                     "runtime_status": result["status"],
                     "item_count": facts.get("item_count"),
                     "source_mode": "live_web" if web else "sqlite",
@@ -123,8 +124,9 @@ def main() -> None:
         action="store_true",
         help="Exercise actual Web retrieval and delivery; no semantic grading",
     )
+    parser.add_argument("--workflow", choices=("bounded", "adaptive"), default="bounded")
     args = parser.parse_args()
-    print(json.dumps(asyncio.run(run(args.output, web=args.web)), indent=2))
+    print(json.dumps(asyncio.run(run(args.output, web=args.web, workflow=args.workflow)), indent=2))
 
 
 if __name__ == "__main__":

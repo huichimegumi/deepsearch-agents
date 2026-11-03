@@ -113,3 +113,118 @@ def test_development_gate_rejects_stale_scores_and_changed_references(tmp_path, 
     (score / "manifest.json").write_text(json.dumps(manifest))
     with pytest.raises(ValueError, match="scores_stale"):
         gate_e8.evaluate(run, score)
+
+
+@pytest.mark.asyncio
+async def test_claim_judge_receives_only_current_batch_not_other_report_claims():
+    import json
+    from types import SimpleNamespace
+
+    from evals.diagnostics.score_e8 import judge_chunk
+
+    class Model:
+        def with_structured_output(self, schema, **kwargs):
+            self.schema = schema
+            return self
+
+        def bind(self, **kwargs):
+            return self
+
+        async def ainvoke(self, messages):
+            payload = json.loads(messages[-1]["content"])
+            assert payload["number_of_items"] == 4
+            assert len(payload["items"]) == 4
+            assert "claims" not in payload["candidate"]
+            assert "excluded" not in json.dumps(payload)
+            return {"parsed": self.schema(scores=[1] * 4), "raw": SimpleNamespace()}
+
+    claims = [{"text": "supported", "evidence_ids": ["a"]}] * 4
+    result = {
+        "report": {
+            "title": "Example",
+            "answerability": "answered",
+            "claims": claims + [{"text": "excluded", "evidence_ids": ["b"]}],
+        },
+        "evidence": [
+            {"evidence_id": "a", "source": "web", "content": "supported"},
+            {"evidence_id": "b", "source": "web", "content": "excluded"},
+        ],
+    }
+    assert (
+        await judge_chunk("claims", claims, {"question": "test", "oracle": {}}, result, Model())
+    )["scores"] == [1] * 4
+
+
+def test_requested_evidence_displaces_bulk_and_focuses_a_later_passage(tmp_path):
+    from app.research.evidence_store import EvidenceStore
+
+    store = EvidenceStore(tmp_path)
+    original = "preface " * 1200 + "needle target passage " * 300
+    store.add(
+        [{"evidence_id": "read", "source": "web", "locator": "fixture:long", "content": original}],
+        "s0",
+    )
+    initial = store.select("preface")
+    focused = store.select("preface", preferred_ids=["read"], focus_query="needle")
+    assert initial["evidence"][0]["excerpt"]["start"] == 0
+    assert focused["evidence"][0]["excerpt"]["start"] > 0
+    assert "needle" in focused["evidence"][0]["content"]
+    assert store.records["read"]["content"] == original
+    store.add(
+        [
+            {
+                "evidence_id": f"bulk-{i}",
+                "source": "web",
+                "locator": f"fixture:{i}",
+                "content": "preface " + "filler " * 300,
+            }
+            for i in range(10)
+        ],
+        "s1",
+    )
+    bulk = store.select("preface", max_tokens=1800)
+    requested = store.select(
+        "preface", max_tokens=1800, preferred_ids=["read"], focus_query="needle"
+    )
+    assert "read" not in {row["evidence_id"] for row in bulk["evidence"]}
+    assert "read" in {row["evidence_id"] for row in requested["evidence"]}
+
+
+def test_sql_to_web_direction_requires_a_new_web_query_not_a_memory_read(tmp_path):
+    from evals.diagnostics.score_e8 import reference_audit
+
+    db = tmp_path / "direction.sqlite"
+    with sqlite3.connect(db) as connection:
+        connection.execute("CREATE TABLE items(n INTEGER)")
+        connection.execute("INSERT INTO items VALUES (1)")
+    case = {
+        "oracle": {
+            "reference_sql": "SELECT n FROM items",
+            "sql_reference": {"rows": [[1]]},
+            "direction": "sql_to_search",
+        }
+    }
+    result = {
+        "operations": [
+            {"id": "s0", "source": "web", "operation": "query", "record_count": 1},
+            {
+                "id": "s1",
+                "source": "sql",
+                "operation": "query",
+                "query": "SELECT n FROM items",
+                "record_count": 1,
+            },
+            {
+                "id": "s2",
+                "source": "web",
+                "operation": "read_evidence",
+                "depends_on": ["s1"],
+                "record_count": 1,
+            },
+        ]
+    }
+    audit = reference_audit(case, result, db)
+    assert audit["sql_result_match"]
+    assert not audit["executed_direction"]
+    result["operations"][2]["operation"] = "query"
+    assert reference_audit(case, result, db)["executed_direction"]

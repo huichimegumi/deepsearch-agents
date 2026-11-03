@@ -17,9 +17,15 @@ from evals.worker_supervisor import atomic_json
 
 async def run(output):
     output.mkdir(parents=True, exist_ok=True)
+    import copy
+
     cases = fixtures()
+    multiple = copy.deepcopy(cases[0])
+    multiple["id"] = "multi_batch_eight_claims"
+    multiple["result"]["report"]["claims"] *= 8
+    cases.append(multiple)
     config = {
-        "version": "e8-control-1",
+        "version": "e8-control-2",
         "cases_sha256": digest(cases),
         "scorer_sha256": __import__("hashlib")
         .sha256(Path(__file__).with_name("score_e8.py").read_bytes())
@@ -33,7 +39,7 @@ async def run(output):
         model = model_for(provider)
         budget = RequestBudget(
             output / f"{provider}-requests.jsonl",
-            max_requests=24,
+            max_requests=30,
             max_reserved_tokens=300000,
             finalizing=True,
         )
@@ -49,20 +55,25 @@ async def run(output):
                     if not items:
                         scores[kind] = []
                         continue
-                    path = output / f"{provider}-{fixture['id']}-{kind}.json"
-                    if path.exists():
-                        grade = read(path)
-                    else:
-                        try:
-                            grade = await judge_chunk(
-                                kind, items, fixture["case"], fixture["result"], model
-                            )
-                        except Exception as exc:
-                            grade = {"error": f"{type(exc).__name__}:{exc}"}
-                        atomic_json(path, grade)
-                    if grade.get("error"):
-                        errors.append(grade["error"])
-                    scores[kind] = grade.get("scores", [])
+                    combined = []
+                    for start in range(0, len(items), 4):
+                        batch = items[start : start + 4]
+                        path = output / f"{provider}-{fixture['id']}-{kind}-{start}.json"
+                        if path.exists():
+                            grade = read(path)
+                        else:
+                            try:
+                                grade = await judge_chunk(
+                                    kind, batch, fixture["case"], fixture["result"], model
+                                )
+                            except Exception as exc:
+                                grade = {"error": f"{type(exc).__name__}:{exc}"}
+                            atomic_json(path, grade)
+                        if grade.get("error"):
+                            errors.append(grade["error"])
+                        else:
+                            combined += grade["scores"]
+                    scores[kind] = combined
                 coverage = (
                     sum(scores["criteria"]) / len(scores["criteria"]) if scores["criteria"] else 0
                 )

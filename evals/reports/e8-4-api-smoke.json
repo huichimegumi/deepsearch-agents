@@ -1,0 +1,32 @@
+{
+  "sql": {
+    "http_status": 200,
+    "workflow": "adaptive",
+    "runtime_status": "completed",
+    "item_count": "3",
+    "source_mode": "sqlite",
+    "fetched_web_evidence": 0,
+    "claims": 1,
+    "saved_assistant_messages": 1,
+    "model_reservations": {
+      "requests": 3,
+      "reserved_tokens": 15624
+    },
+    "limitations": "Identity and conversation storage replaced; actual HTTP handler, shared executor, selected source adapters and provider exercised. Web mode checks retrieval/delivery, not semantic quality."
+  },
+  "web": {
+    "http_status": 200,
+    "workflow": "adaptive",
+    "runtime_status": "completed",
+    "item_count": null,
+    "source_mode": "live_web",
+    "fetched_web_evidence": 2,
+    "claims": 5,
+    "saved_assistant_messages": 1,
+    "model_reservations": {
+      "requests": 6,
+      "reserved_tokens": 46290
+    },
+    "limitations": "Identity and conversation storage replaced; actual HTTP handler, shared executor, selected source adapters and provider exercised. Web mode checks retrieval/delivery, not semantic quality."
+  }
+}

@@ -21,7 +21,7 @@ from evals.public_benchmarks.score import canonical as published_canonical
 from evals.public_benchmarks.score import cell, model_for
 from evals.worker_supervisor import atomic_json
 
-VERSION = "e8.1"
+VERSION = "e8.2"
 
 
 def execute_sql(db, sql, parameters=None):
@@ -112,7 +112,11 @@ def reference_audit(case, result, db):
         parents = set(successful.get(key, {}).get("depends_on", [])) & successful.keys()
         return parents | {p for parent in parents for p in ancestors(parent, seen)}
 
-    web = {key for key, o in successful.items() if o["source"] == "web"}
+    web = {
+        key
+        for key, o in successful.items()
+        if o["source"] == "web" and o.get("operation", "query") == "query"
+    }
     direction = oracle["direction"]
     if direction == "search_to_sql":
         edge = any(web & ancestors(key) for key in matched)
@@ -180,9 +184,18 @@ async def judge_chunk(kind, items, case, result, model):
     )
     payload = {
         "kind": kind,
+        "number_of_items": len(items),
         "items": items,
         "question": case["question"],
-        "candidate": report.model_dump(),
+        "candidate": (
+            {
+                "title": report.title,
+                "answerability": report.answerability,
+                "limitations": report.limitations,
+            }
+            if kind == "claims"
+            else report.model_dump()
+        ),
         "reference": case["oracle"].get("reference"),
         "evidence": evidence,
     }

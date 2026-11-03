@@ -64,9 +64,10 @@ class EvidenceStore:
             },
         )
 
-    def select(self, question, *, max_tokens=12000):
+    def select(self, question, *, max_tokens=12000, preferred_ids=(), focus_query=None):
         scope = "Exact source contents or explicitly marked excerpts; full records readable by ID."
         terms = _tokens(question)
+        focus_terms = _tokens(focus_query) if focus_query else terms
         candidates = []
         for ordinal, (key, raw) in enumerate(self.records.items()):
             content = raw["content"]
@@ -76,7 +77,7 @@ class EvidenceStore:
             if isinstance(content, str) and len(content) > 6500:
                 matches = [
                     m.start()
-                    for word in terms
+                    for word in focus_terms
                     for m in re.finditer(re.escape(word), content.casefold())
                 ]
                 start = max(0, (min(matches) if matches else 0) - 1500)
@@ -106,9 +107,10 @@ class EvidenceStore:
         chosen, queries, chosen_sources = [], {}, set()
         # Ensure a relevant source is not crowded out by another source's bulk rows.
         candidates.sort(key=lambda item: -item[0])
-        reserved = []
+        reserved = [row for row in candidates if row[2]["evidence_id"] in preferred_ids]
         for source in sorted({row[2]["source"] for row in candidates}):
-            reserved.append(next(row for row in candidates if row[2]["source"] == source))
+            if not any(row[2]["source"] == source for row in reserved):
+                reserved.append(next(row for row in candidates if row[2]["source"] == source))
         ordered = reserved + [row for row in candidates if row not in reserved]
         for score, ordinal, view, query in ordered:
             extra = dict(queries)

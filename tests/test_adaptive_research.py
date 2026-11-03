@@ -127,3 +127,66 @@ def test_binding_cannot_cite_an_unretrieved_entity(tmp_path):
     )
     with pytest.raises(KeyError):
         collect(SourceCatalog(sqlite_path=db, allowed_sources=("sql",)), action, store)
+
+
+@pytest.mark.asyncio
+async def test_binding_repair_receives_prior_report_without_new_tool_actions(tmp_path):
+    db = database(tmp_path)
+
+    class Model:
+        decisions = 0
+        writes = 0
+
+        def with_structured_output(self, schema, **kwargs):
+            self.schema = schema
+            return self
+
+        def bind(self, **kwargs):
+            return self
+
+        async def ainvoke(self, messages):
+            data = json.loads(messages[-1]["content"])
+            if self.schema is Decision:
+                self.decisions += 1
+                parsed = (
+                    Decision(
+                        reason="Aggregate",
+                        action=Action(source="sql", query="SELECT COUNT(*) AS n FROM items"),
+                    )
+                    if self.decisions == 1
+                    else Decision(reason="Ready")
+                )
+            else:
+                self.writes += 1
+                record = data["evidence"][0]
+                if self.writes == 2:
+                    assert data["prior_report"]["facts"][0]["value"] == "99"
+                    assert any(
+                        "numeric_binding_mismatch" in error for error in data["format_issues"]
+                    )
+                parsed = ResearchReport(
+                    title="Count",
+                    answerability="answered",
+                    facts=[
+                        {
+                            "metric": "n",
+                            "value": "99" if self.writes == 1 else "1",
+                            "evidence_id": record["evidence_id"],
+                            "path": ["n"],
+                        }
+                    ],
+                )
+            return {"parsed": parsed, "raw": SimpleNamespace(response_metadata={})}
+
+    model = Model()
+    result = await execute(
+        "Count items",
+        SourceCatalog(sqlite_path=db, allowed_sources=("sql",)),
+        tmp_path / "repair",
+        workflow="adaptive",
+        model=model,
+    )
+    assert result["status"] == "completed"
+    assert model.writes == 2
+    assert len(result["operations"]) == 1
+    assert result["report"]["facts"][0]["value"] == "1"
