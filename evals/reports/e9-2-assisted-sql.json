@@ -1,0 +1,179 @@
+{
+  "scope": "reference-literal assisted upper-bound diagnostic; never an end-to-end score",
+  "scheduled": 6,
+  "completed": 6,
+  "matches": 0,
+  "required_matches": 4,
+  "gate_passed": false,
+  "provider": "qwen",
+  "cases": [
+    {
+      "id": "hybrid:s2sql_050",
+      "direction": "search_to_sql",
+      "status": "executed",
+      "sql_result_match": false,
+      "attempts": [
+        {
+          "status": "executed",
+          "record_count": 1,
+          "empty_result": true,
+          "preview_truncated": false,
+          "read_column_count": 5,
+          "query_plan_steps": 8,
+          "read_table_count": 1
+        },
+        {
+          "status": "executed",
+          "record_count": 1,
+          "empty_result": true,
+          "preview_truncated": false,
+          "read_column_count": 5,
+          "query_plan_steps": 8,
+          "read_table_count": 1
+        }
+      ],
+      "audit_error": null,
+      "provided_literal_count": 1,
+      "reservations": {
+        "requests": 2,
+        "reserved_tokens": 23143
+      }
+    },
+    {
+      "id": "hybrid:s2sql_048",
+      "direction": "search_to_sql",
+      "status": "executed",
+      "sql_result_match": false,
+      "attempts": [
+        {
+          "status": "executed",
+          "record_count": 1,
+          "empty_result": true,
+          "preview_truncated": false,
+          "read_column_count": 4,
+          "query_plan_steps": 4,
+          "read_table_count": 1
+        },
+        {
+          "status": "executed",
+          "record_count": 1,
+          "empty_result": true,
+          "preview_truncated": false,
+          "read_column_count": 4,
+          "query_plan_steps": 4,
+          "read_table_count": 1
+        }
+      ],
+      "audit_error": null,
+      "provided_literal_count": 4,
+      "reservations": {
+        "requests": 2,
+        "reserved_tokens": 23399
+      }
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "direction": "sql_to_search",
+      "status": "model_or_runtime_error",
+      "sql_result_match": false,
+      "attempts": [
+        {
+          "status": "model_or_runtime_error",
+          "error_class": "StructuredResponseError"
+        }
+      ],
+      "audit_error": null,
+      "provided_literal_count": 12,
+      "reservations": {
+        "requests": 1,
+        "reserved_tokens": 11451
+      }
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "direction": "sql_to_search",
+      "status": "executed",
+      "sql_result_match": false,
+      "attempts": [
+        {
+          "status": "executed",
+          "record_count": 1,
+          "empty_result": false,
+          "preview_truncated": false,
+          "read_column_count": 5,
+          "query_plan_steps": 2,
+          "read_table_count": 1
+        }
+      ],
+      "audit_error": null,
+      "provided_literal_count": 7,
+      "reservations": {
+        "requests": 1,
+        "reserved_tokens": 11383
+      }
+    },
+    {
+      "id": "hybrid:parallel_040",
+      "direction": "parallel",
+      "status": "tool_error",
+      "sql_result_match": false,
+      "attempts": [
+        {
+          "status": "tool_error",
+          "error_class": "OperationalError"
+        },
+        {
+          "status": "tool_error",
+          "error_class": "OperationalError"
+        }
+      ],
+      "audit_error": null,
+      "provided_literal_count": 4,
+      "reservations": {
+        "requests": 2,
+        "reserved_tokens": 23337
+      }
+    },
+    {
+      "id": "hybrid:parallel_085",
+      "direction": "parallel",
+      "status": "model_or_runtime_error",
+      "sql_result_match": false,
+      "attempts": [
+        {
+          "status": "model_or_runtime_error",
+          "error_class": "APITimeoutError"
+        }
+      ],
+      "audit_error": null,
+      "provided_literal_count": 2,
+      "reservations": {
+        "requests": 1,
+        "reserved_tokens": 11445
+      }
+    }
+  ],
+  "no_gold_match_feedback": true,
+  "not_end_to_end": true,
+  "runtime_protocol_version": "e9-sql-component-1",
+  "dispatched_models": [
+    "qwen-flash"
+  ],
+  "total_requests": 9,
+  "total_reserved_tokens": 104158,
+  "reference_sql_reproduces_published_rows": {
+    "matched": 6,
+    "scheduled": 6,
+    "scope": "Evaluator sanity only, never a generator success"
+  },
+  "source_sha256": "d4e4729b7ee47271f88c86c69449e23c352cc345e61b6e281ba726e1dcb12679",
+  "database_sha256": {
+    "alien_template.sqlite": "e160643c9abb43ba69917532f2654637e677460df25678f9daecdefb416046ed"
+  },
+  "outcome_statuses": {
+    "executed": 3,
+    "model_or_runtime_error": 2,
+    "tool_error": 1
+  },
+  "measurement_note": "0 observed matches; model parsing failure and API timeout are unavailable outputs, not six proven SQL reasoning errors. Final code adds explicit SQLite dialect metadata; no post-fix model rerun."
+}

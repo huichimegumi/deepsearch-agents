@@ -87,3 +87,54 @@ def test_public_worker_defaults_to_qwen_without_touching_global_provider(tmp_pat
     run.worker(path, "test", "adaptive", tmp_path / "result.json")
     assert selected == ["qwen"]
     assert os.environ["LLM_PROVIDER"] == "unchanged"
+
+
+def test_component_gate_recomputes_rows_and_rejects_a_different_case_set(tmp_path, monkeypatch):
+    from evals.diagnostics import gate_e9
+    from evals.diagnostics.e8 import digest
+
+    writer, sql = tmp_path / "writer", tmp_path / "sql"
+    writer.mkdir()
+    sql.mkdir()
+    ids = [f"case-{i}" for i in range(8)]
+    lock = tmp_path / "lock.json"
+    lock.write_text(
+        json.dumps(
+            {
+                "cases": [
+                    {"id": key, "suite": "hybrid" if i >= 2 else "dabstep"}
+                    for i, key in enumerate(ids)
+                ]
+            }
+        )
+    )
+    source = tmp_path / "evals/results/e8-4-recheck/results.json"
+    source.parent.mkdir(parents=True)
+    source.write_text("[]")
+    monkeypatch.setattr(gate_e9, "ROOT", tmp_path)
+    monkeypatch.setattr(gate_e9, "LOCK", lock)
+    (writer / "manifest.json").write_text(
+        json.dumps({"provider": "qwen", "source_results_sha256": digest([])})
+    )
+    (sql / "manifest.json").write_text(json.dumps({"provider": "qwen"}))
+    (writer / "summary.json").write_text(
+        json.dumps(
+            {
+                "live_passes": 8,
+                "cases": [
+                    {"id": key, "offline_pass": True, "live_pass": i < 5}
+                    for i, key in enumerate(ids)
+                ],
+            }
+        )
+    )
+    queries = {"cases": [{"id": key, "sql_result_match": True} for key in ids[2:]]}
+    (sql / "summary.json").write_text(json.dumps(queries))
+    result = gate_e9.evaluate(writer, sql)
+    assert result["writer_passes"] == 5
+    assert not result["components_passed"]
+    assert result["full_development"].startswith("NOT RUN")
+    queries["cases"][0]["id"] = "different"
+    (sql / "summary.json").write_text(json.dumps(queries))
+    with pytest.raises(ValueError, match="selection_mismatch"):
+        gate_e9.evaluate(writer, sql)

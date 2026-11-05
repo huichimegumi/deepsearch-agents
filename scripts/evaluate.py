@@ -18,6 +18,7 @@ OFFLINE_TESTS = [
     "tests/test_e8_protocol.py",
     "tests/test_e9_protocol.py",
     "tests/test_compact_report.py",
+    "tests/test_sql_intent.py",
     "tests/test_bounded_research.py",
     "tests/test_standards_suite.py",
     "tests/test_eval_worker_supervisor.py",

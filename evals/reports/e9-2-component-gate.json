@@ -1,0 +1,16 @@
+{
+  "scope": "Component readiness, never an end-to-end benchmark grade",
+  "writer_passes": 5,
+  "writer_required": 8,
+  "sql_matches": 0,
+  "sql_required": 4,
+  "writer_passed": false,
+  "sql_passed": false,
+  "components_passed": false,
+  "full_development": "NOT RUN: component gates not met",
+  "new_validation": "NOT RUN: requires independent end-to-end development gate",
+  "component_results_sha256": {
+    "writer": "3880fc1c958765c499955ad69d95e64bf37e2f8755a897c6dc3cf4d4dee36332",
+    "sql": "8a4f1c9d7bbf8f49e88ea29f0ddafca2106d254224adfe0cc18153b557af27bf"
+  }
+}

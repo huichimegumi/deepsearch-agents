@@ -82,8 +82,19 @@ def fingerprint(path, size, mtime):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def named_parameters(query):
+    # Colons in string literals, quoted identifiers or comments are not bindings.
+    lexical = re.sub(
+        r"'(?:''|[^'])*'|\"(?:\"\"|[^\"])*\"|`[^`]*`|\[[^\]]*\]|--[^\n]*|/\*.*?\*/",
+        " ",
+        query,
+        flags=re.S,
+    )
+    return set(re.findall(r"(?<!:):([a-zA-Z][a-zA-Z0-9_]*)", lexical))
+
+
 def sql_query(database, query, parameters, *, seconds=20, limit=80):
-    required = set(re.findall(r"(?<!:):([a-zA-Z][a-zA-Z0-9_]*)", query))
+    required = named_parameters(query)
     if required != set(parameters):
         raise ValueError("sql_parameter_names_mismatch")
     database = database.resolve()
@@ -109,6 +120,8 @@ def sql_query(database, query, parameters, *, seconds=20, limit=80):
         if cursor.description is None:
             raise ValueError("query_requires_tabular_result")
         columns = [c[0] for c in cursor.description]
+        if len({column.casefold() for column in columns}) != len(columns):
+            raise ValueError("duplicate_query_output_columns")
         rows = cursor.fetchmany(limit + 1)
     records = [
         r.to_dict()
@@ -160,6 +173,7 @@ def describe(catalog, question):
     }
     meanings = {}
     if catalog.sqlite_path:
+        result["sql_dialect"] = "sqlite"
         stem = catalog.sqlite_path.stem.removesuffix("_template")
         path = catalog.sqlite_path.with_name(stem + "_column_meaning_base.json")
         if path.is_file() and path.stat().st_size < 2_000_000:
@@ -174,9 +188,18 @@ def describe(catalog, question):
         tables.append(
             {
                 "table": content["table_name"],
+                "foreign_keys": content.get("foreign_keys", []),
+                "unique_keys": [
+                    index.get("columns", [])
+                    for index in content.get("indexes", [])
+                    if index.get("unique")
+                ],
                 "columns": [
                     {
                         "name": c["name"],
+                        "type": c.get("declared_type", ""),
+                        "primary_key_position": c.get("primary_key_position", 0),
+                        "nullable": not c.get("not_null", False),
                         "meaning": meanings.get(
                             (content["table_name"], c["name"]), c.get("semantic_description", "")
                         ),
