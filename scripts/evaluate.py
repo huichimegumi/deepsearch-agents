@@ -16,6 +16,7 @@ OFFLINE_TESTS = [
     "tests/test_evidence_store.py",
     "tests/test_adaptive_research.py",
     "tests/test_e8_protocol.py",
+    "tests/test_e9_protocol.py",
     "tests/test_bounded_research.py",
     "tests/test_standards_suite.py",
     "tests/test_eval_worker_supervisor.py",
@@ -45,6 +46,7 @@ def main() -> int:
     )
     public_run.add_argument("--inputs", type=Path, required=True)
     public_run.add_argument("--output", type=Path, required=True)
+    public_run.add_argument("--provider", choices=("qwen", "deepseek"), default="qwen")
     public_run.add_argument(
         "--workflow", choices=("simple", "bounded", "adaptive"), default="bounded"
     )
@@ -54,13 +56,16 @@ def main() -> int:
     public_score.add_argument("--run", type=Path, required=True)
     public_score.add_argument("--inputs", type=Path, required=True)
     public_score.add_argument("--output", type=Path, required=True)
-    public_score.add_argument("--provider", choices=("deepseek", "qwen"), default="deepseek")
+    public_score.add_argument("--provider", choices=("deepseek", "qwen"), default="qwen")
     public_score.add_argument("--audit-subset", action="store_true")
     e8_score = commands.add_parser(
         "e8-score", help="Score E8 saved research with small-batch judging"
     )
     for option in ("run", "inputs", "output"):
         e8_score.add_argument("--" + option, type=Path, required=True)
+    commands.add_parser(
+        "e9-diagnose", help="Read-only E8 failure attribution and E9 protocol freeze"
+    )
     e8_gate = commands.add_parser("e8-gate", help="Check the frozen eight-task development gate")
     for option in ("run", "score", "output"):
         e8_gate.add_argument("--" + option, type=Path, required=True)
@@ -88,6 +93,17 @@ def main() -> int:
     report.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    if args.command == "e9-diagnose":
+        return subprocess.call(
+            [
+                sys.executable,
+                "-m",
+                "evals.diagnostics.e9",
+                "--output",
+                "evals/reports/e9-0-attribution.json",
+            ],
+            cwd=ROOT,
+        )
     if args.command in ("e8-score", "e8-gate"):
         module = "score_e8" if args.command == "e8-score" else "gate_e8"
         command = [sys.executable, "-m", "evals.diagnostics." + module]
@@ -122,6 +138,8 @@ def main() -> int:
                 str(args.output),
                 "--workflow",
                 args.workflow,
+                "--provider",
+                args.provider,
             ],
             cwd=ROOT,
         )

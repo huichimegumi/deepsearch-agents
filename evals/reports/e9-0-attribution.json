@@ -1,0 +1,280 @@
+{
+  "scope": "Read-only attribution, no API calls or new benchmark tasks; record counts are not relevance/recall",
+  "source_result_sha256": "9cc92fa6aa2540b91aaef58884af87200cb4325d113be2d6543439e7075388b6",
+  "cases": [
+    {
+      "id": "dabstep:97",
+      "status": "error",
+      "collected_records": 199,
+      "ever_viewed_record_ids": 125,
+      "records_with_metadata": 199,
+      "view_occurrences_with_metadata": 0,
+      "successful_query_sources": {
+        "local_document": 1,
+        "sql": 4
+      },
+      "evidence_bindings": 0,
+      "model_finish_reasons": {
+        "length": 2,
+        "tool_calls": 5
+      },
+      "sql_audit": null,
+      "sql_access_structure": null,
+      "confirmed_failure_codes": [
+        "output_protocol_length_failure",
+        "source_metadata_omitted_from_model_views",
+        "no_complete_answer"
+      ],
+      "unresolved": [
+        "Upstream Web entity correctness and exact SQL clause errors need evaluator-side record review; not inferred from SQL mismatch alone"
+      ]
+    },
+    {
+      "id": "dabstep:81",
+      "status": "error",
+      "collected_records": 139,
+      "ever_viewed_record_ids": 139,
+      "records_with_metadata": 139,
+      "view_occurrences_with_metadata": 0,
+      "successful_query_sources": {
+        "sql": 4,
+        "local_document": 1
+      },
+      "evidence_bindings": 0,
+      "model_finish_reasons": {
+        "length": 2,
+        "tool_calls": 5
+      },
+      "sql_audit": null,
+      "sql_access_structure": null,
+      "confirmed_failure_codes": [
+        "output_protocol_length_failure",
+        "source_metadata_omitted_from_model_views",
+        "no_complete_answer"
+      ],
+      "unresolved": [
+        "Upstream Web entity correctness and exact SQL clause errors need evaluator-side record review; not inferred from SQL mismatch alone"
+      ]
+    },
+    {
+      "id": "hybrid:s2sql_050",
+      "status": "completed",
+      "collected_records": 5,
+      "ever_viewed_record_ids": 5,
+      "records_with_metadata": 5,
+      "view_occurrences_with_metadata": 0,
+      "successful_query_sources": {
+        "web": 1
+      },
+      "evidence_bindings": 0,
+      "model_finish_reasons": {
+        "tool_calls": 6
+      },
+      "sql_audit": {
+        "available": true,
+        "sql_result_match": false,
+        "matching_steps": [],
+        "executed_direction": false,
+        "comparison": "Typed row multisets with named projection, or whole-table column permutation up to six columns; reference aliases do not determine correctness"
+      },
+      "sql_access_structure": {
+        "executed_queries": 0,
+        "minimum_missing_reference_tables": null,
+        "minimum_missing_reference_columns": null,
+        "caveat": "Matching accessed fields does not prove correct filters, joins, aggregates, or upstream values"
+      },
+      "confirmed_failure_codes": [
+        "no_matching_sql_result_before_writer",
+        "source_metadata_omitted_from_model_views",
+        "no_complete_answer"
+      ],
+      "unresolved": [
+        "Upstream Web entity correctness and exact SQL clause errors need evaluator-side record review; not inferred from SQL mismatch alone"
+      ]
+    },
+    {
+      "id": "hybrid:s2sql_048",
+      "status": "completed",
+      "collected_records": 86,
+      "ever_viewed_record_ids": 86,
+      "records_with_metadata": 86,
+      "view_occurrences_with_metadata": 0,
+      "successful_query_sources": {
+        "sql": 2,
+        "web": 2
+      },
+      "evidence_bindings": 0,
+      "model_finish_reasons": {
+        "tool_calls": 6
+      },
+      "sql_audit": {
+        "available": true,
+        "sql_result_match": false,
+        "matching_steps": [],
+        "executed_direction": false,
+        "comparison": "Typed row multisets with named projection, or whole-table column permutation up to six columns; reference aliases do not determine correctness"
+      },
+      "sql_access_structure": {
+        "executed_queries": 2,
+        "minimum_missing_reference_tables": 0,
+        "minimum_missing_reference_columns": 2,
+        "caveat": "Matching accessed fields does not prove correct filters, joins, aggregates, or upstream values"
+      },
+      "confirmed_failure_codes": [
+        "no_matching_sql_result_before_writer",
+        "source_metadata_omitted_from_model_views",
+        "no_complete_answer"
+      ],
+      "unresolved": [
+        "Upstream Web entity correctness and exact SQL clause errors need evaluator-side record review; not inferred from SQL mismatch alone"
+      ]
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "status": "completed",
+      "collected_records": 119,
+      "ever_viewed_record_ids": 116,
+      "records_with_metadata": 119,
+      "view_occurrences_with_metadata": 0,
+      "successful_query_sources": {
+        "sql": 3,
+        "web": 2
+      },
+      "evidence_bindings": 0,
+      "model_finish_reasons": {
+        "tool_calls": 6
+      },
+      "sql_audit": {
+        "available": true,
+        "sql_result_match": false,
+        "matching_steps": [],
+        "executed_direction": false,
+        "comparison": "Typed row multisets with named projection, or whole-table column permutation up to six columns; reference aliases do not determine correctness"
+      },
+      "sql_access_structure": {
+        "executed_queries": 3,
+        "minimum_missing_reference_tables": 0,
+        "minimum_missing_reference_columns": 2,
+        "caveat": "Matching accessed fields does not prove correct filters, joins, aggregates, or upstream values"
+      },
+      "confirmed_failure_codes": [
+        "no_matching_sql_result_before_writer",
+        "source_metadata_omitted_from_model_views",
+        "no_complete_answer"
+      ],
+      "unresolved": [
+        "Upstream Web entity correctness and exact SQL clause errors need evaluator-side record review; not inferred from SQL mismatch alone"
+      ]
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "status": "completed",
+      "collected_records": 45,
+      "ever_viewed_record_ids": 45,
+      "records_with_metadata": 45,
+      "view_occurrences_with_metadata": 0,
+      "successful_query_sources": {
+        "sql": 3
+      },
+      "evidence_bindings": 0,
+      "model_finish_reasons": {
+        "tool_calls": 6
+      },
+      "sql_audit": {
+        "available": true,
+        "sql_result_match": false,
+        "matching_steps": [],
+        "executed_direction": false,
+        "comparison": "Typed row multisets with named projection, or whole-table column permutation up to six columns; reference aliases do not determine correctness"
+      },
+      "sql_access_structure": {
+        "executed_queries": 3,
+        "minimum_missing_reference_tables": 0,
+        "minimum_missing_reference_columns": 0,
+        "caveat": "Matching accessed fields does not prove correct filters, joins, aggregates, or upstream values"
+      },
+      "confirmed_failure_codes": [
+        "no_matching_sql_result_before_writer",
+        "source_metadata_omitted_from_model_views",
+        "no_complete_answer"
+      ],
+      "unresolved": [
+        "Upstream Web entity correctness and exact SQL clause errors need evaluator-side record review; not inferred from SQL mismatch alone"
+      ]
+    },
+    {
+      "id": "hybrid:parallel_040",
+      "status": "completed",
+      "collected_records": 28,
+      "ever_viewed_record_ids": 28,
+      "records_with_metadata": 28,
+      "view_occurrences_with_metadata": 0,
+      "successful_query_sources": {
+        "sql": 4,
+        "web": 1
+      },
+      "evidence_bindings": 0,
+      "model_finish_reasons": {
+        "tool_calls": 6
+      },
+      "sql_audit": {
+        "available": true,
+        "sql_result_match": false,
+        "matching_steps": [],
+        "executed_direction": false,
+        "comparison": "Typed row multisets with named projection, or whole-table column permutation up to six columns; reference aliases do not determine correctness"
+      },
+      "sql_access_structure": {
+        "executed_queries": 4,
+        "minimum_missing_reference_tables": 0,
+        "minimum_missing_reference_columns": 0,
+        "caveat": "Matching accessed fields does not prove correct filters, joins, aggregates, or upstream values"
+      },
+      "confirmed_failure_codes": [
+        "no_matching_sql_result_before_writer",
+        "source_metadata_omitted_from_model_views",
+        "no_complete_answer"
+      ],
+      "unresolved": [
+        "Upstream Web entity correctness and exact SQL clause errors need evaluator-side record review; not inferred from SQL mismatch alone"
+      ]
+    },
+    {
+      "id": "hybrid:parallel_085",
+      "status": "completed",
+      "collected_records": 36,
+      "ever_viewed_record_ids": 36,
+      "records_with_metadata": 36,
+      "view_occurrences_with_metadata": 0,
+      "successful_query_sources": {
+        "sql": 2,
+        "web": 1
+      },
+      "evidence_bindings": 1,
+      "model_finish_reasons": {
+        "tool_calls": 6
+      },
+      "sql_audit": {
+        "available": true,
+        "sql_result_match": false,
+        "matching_steps": [],
+        "executed_direction": false,
+        "comparison": "Typed row multisets with named projection, or whole-table column permutation up to six columns; reference aliases do not determine correctness"
+      },
+      "sql_access_structure": {
+        "executed_queries": 2,
+        "minimum_missing_reference_tables": 0,
+        "minimum_missing_reference_columns": 0,
+        "caveat": "Matching accessed fields does not prove correct filters, joins, aggregates, or upstream values"
+      },
+      "confirmed_failure_codes": [
+        "no_matching_sql_result_before_writer",
+        "source_metadata_omitted_from_model_views",
+        "no_complete_answer"
+      ],
+      "unresolved": [
+        "Upstream Web entity correctness and exact SQL clause errors need evaluator-side record review; not inferred from SQL mismatch alone"
+      ]
+    }
+  ]
+}

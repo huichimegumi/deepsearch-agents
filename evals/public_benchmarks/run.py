@@ -34,7 +34,7 @@ def code_hash():
     ).hexdigest()
 
 
-def worker(inputs, case_id, workflow, result_path):
+def worker(inputs, case_id, workflow, result_path, provider="qwen"):
     from app.research.bounded import execute
     from app.research.sources import SourceCatalog
 
@@ -43,7 +43,9 @@ def worker(inputs, case_id, workflow, result_path):
     if config.get("sqlite_path"):
         config["sqlite_path"] = Path(config["sqlite_path"])
     config["allowed_sources"] = tuple(config["allowed_sources"])
-    os.environ["LLM_PROVIDER"] = "deepseek"
+    from evals.public_benchmarks.score import model_for
+
+    model = model_for(provider)
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
     result = asyncio.run(
         execute(
@@ -52,20 +54,21 @@ def worker(inputs, case_id, workflow, result_path):
             result_path.parent,
             workflow=workflow,
             timeout_seconds=300,
+            model=model,
         )
     )
     result.update(id=case_id, suite=task["suite"])
     atomic_json(result_path, result)
 
 
-def run(inputs, output, workflow):
+def run(inputs, output, workflow, provider="qwen"):
     tasks = read(inputs)
     budget = read(LOCK)["budget"]
     databases = {
         row["catalog"]["sqlite_path"] for row in tasks if row["catalog"].get("sqlite_path")
     }
     config = {
-        "version": "e7",
+        "version": "public-v2",
         "workflow": workflow,
         "inputs_sha256": sha(inputs),
         "source_sha256": code_hash(),
@@ -74,7 +77,8 @@ def run(inputs, output, workflow):
         "databases": {str(Path(p).name): sha(p) for p in sorted(databases)},
         "case_ids": [r["id"] for r in tasks],
         "budget": budget,
-        "generator": "deepseek-flash non-thinking",
+        "generator": "qwen-flash" if provider == "qwen" else "deepseek-flash non-thinking",
+        "provider": provider,
         "web_mode": "live_duckduckgo",
         "device": "cpu",
     }
@@ -110,6 +114,8 @@ def run(inputs, output, workflow):
                     task["id"],
                     "--workflow",
                     workflow,
+                    "--provider",
+                    provider,
                 ],
                 cwd=ROOT,
                 attempt_dir=attempt,
@@ -141,13 +147,14 @@ if __name__ == "__main__":
     p.add_argument("--inputs", type=Path, required=True)
     p.add_argument("--output", type=Path)
     p.add_argument("--workflow", choices=("simple", "bounded", "adaptive"), default="bounded")
+    p.add_argument("--provider", choices=("qwen", "deepseek"), default="qwen")
     p.add_argument("--worker", action="store_true")
     p.add_argument("--case-id")
     p.add_argument("--result-path", type=Path)
     args = p.parse_args()
     if args.worker:
-        worker(args.inputs, args.case_id, args.workflow, args.result_path)
+        worker(args.inputs, args.case_id, args.workflow, args.result_path, args.provider)
     else:
         if args.output is None:
             p.error("--output required for supervised execution")
-        run(args.inputs, args.output, args.workflow)
+        run(args.inputs, args.output, args.workflow, args.provider)

@@ -18,7 +18,9 @@ import httpx
 from evals.worker_supervisor import atomic_json
 
 
-async def run(output: Path, *, web: bool = False, workflow: str = "bounded") -> dict:
+async def run(
+    output: Path, *, web: bool = False, workflow: str = "bounded", provider: str = "qwen"
+) -> dict:
     output.mkdir(parents=True, exist_ok=True)
     database = output / "smoke.sqlite"
     with sqlite3.connect(database) as conn:
@@ -30,7 +32,11 @@ async def run(output: Path, *, web: bool = False, workflow: str = "bounded") -> 
 
     env = {
         "RESEARCH_WORKFLOW": workflow,
-        "LLM_PROVIDER": "deepseek",
+        "LLM_PROVIDER": "dashscope" if provider == "qwen" else "deepseek",
+        "LLM_NAME": "qwen-flash" if provider == "qwen" else "deepseek-flash",
+        "OPENAI_BASE_URL": "https://dashscope.aliyuncs.com/compatible-mode/v1"
+        if provider == "qwen"
+        else "https://api.deepseek.com",
         "EVIDENCE_SQLITE_PATH": str(database.resolve()),
         "CUDA_VISIBLE_DEVICES": "-1",
     }
@@ -85,6 +91,7 @@ async def run(output: Path, *, web: bool = False, workflow: str = "bounded") -> 
                 summary = {
                     "http_status": response.status_code,
                     "workflow": workflow,
+                    "provider": provider,
                     "runtime_status": result["status"],
                     "item_count": facts.get("item_count"),
                     "source_mode": "live_web" if web else "sqlite",
@@ -125,8 +132,16 @@ def main() -> None:
         help="Exercise actual Web retrieval and delivery; no semantic grading",
     )
     parser.add_argument("--workflow", choices=("bounded", "adaptive"), default="bounded")
+    parser.add_argument("--provider", choices=("qwen", "deepseek"), default="qwen")
     args = parser.parse_args()
-    print(json.dumps(asyncio.run(run(args.output, web=args.web, workflow=args.workflow)), indent=2))
+    print(
+        json.dumps(
+            asyncio.run(
+                run(args.output, web=args.web, workflow=args.workflow, provider=args.provider)
+            ),
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

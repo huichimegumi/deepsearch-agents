@@ -1,0 +1,79 @@
+{
+  "provider": "qwen",
+  "scheduled": 9,
+  "matched": 8,
+  "error_cases": 0,
+  "cases": [
+    {
+      "id": "correct",
+      "expected_accept": true,
+      "accepted": true,
+      "matched": true,
+      "judge_errors": []
+    },
+    {
+      "id": "wrong_facts",
+      "expected_accept": false,
+      "accepted": false,
+      "matched": true,
+      "judge_errors": []
+    },
+    {
+      "id": "known_but_wrong_citation",
+      "expected_accept": false,
+      "accepted": false,
+      "matched": true,
+      "judge_errors": []
+    },
+    {
+      "id": "missing_citation",
+      "expected_accept": false,
+      "accepted": false,
+      "matched": true,
+      "judge_errors": []
+    },
+    {
+      "id": "missing_year",
+      "expected_accept": false,
+      "accepted": true,
+      "matched": false,
+      "judge_errors": []
+    },
+    {
+      "id": "facts_hidden_in_limitations",
+      "expected_accept": false,
+      "accepted": false,
+      "matched": true,
+      "judge_errors": []
+    },
+    {
+      "id": "correct_scoped_refusal",
+      "expected_accept": true,
+      "accepted": true,
+      "matched": true,
+      "judge_errors": []
+    },
+    {
+      "id": "wrong_refusal",
+      "expected_accept": false,
+      "accepted": false,
+      "matched": true,
+      "judge_errors": []
+    },
+    {
+      "id": "eight_claims_two_batches",
+      "expected_accept": true,
+      "accepted": true,
+      "matched": true,
+      "judge_errors": []
+    }
+  ],
+  "reservations": {
+    "requests": 16,
+    "reserved_tokens": 71571
+  },
+  "scope": "Authored protocol controls, not natural-report accuracy or human agreement",
+  "dispatched_models": [
+    "qwen-flash"
+  ]
+}

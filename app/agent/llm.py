@@ -42,9 +42,13 @@ class DeepSeekChatOpenAI(EvaluationBudgetedChatOpenAI):
 
 
 class DashScopeChatOpenAI(EvaluationBudgetedChatOpenAI):
-    """Send the output cap under DashScope's chat-completions field name."""
+    """Use compatible tool calling and output caps for DashScope."""
 
     provider_uses_max_tokens: ClassVar[bool] = True
+
+    def with_structured_output(self, schema=None, **kwargs):
+        kwargs.setdefault("method", "function_calling")
+        return super().with_structured_output(schema, **kwargs)
 
 
 @lru_cache(maxsize=1)

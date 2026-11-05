@@ -225,7 +225,7 @@ async def judge_chunk(kind, items, case, result, model):
     }
 
 
-async def score(run, inputs, output, provider="deepseek"):
+async def score(run, inputs, output, provider="qwen"):
     cases = read(inputs / "references.json")
     results = read(run / "results.json")
     public = {r["id"]: r for r in read(inputs / "public.json")}
@@ -354,5 +354,8 @@ if __name__ == "__main__":
     p.add_argument("--run", type=Path, required=True)
     p.add_argument("--inputs", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--provider", choices=("qwen", "deepseek"), default="qwen")
     args = p.parse_args()
-    print(json.dumps(asyncio.run(score(args.run, args.inputs, args.output)), indent=2))
+    print(
+        json.dumps(asyncio.run(score(args.run, args.inputs, args.output, args.provider)), indent=2)
+    )
