@@ -55,6 +55,8 @@ class ResearchTrace:
             {
                 "parsed": parsed.model_dump() if hasattr(parsed, "model_dump") else None,
                 "tool_calls": getattr(raw, "tool_calls", None),
+                "invalid_tool_calls": getattr(raw, "invalid_tool_calls", None),
+                "raw_message": raw.model_dump(mode="json") if hasattr(raw, "model_dump") else None,
                 "content": getattr(raw, "content", None),
                 "parsing_error": str(response.get("parsing_error"))
                 if response.get("parsing_error")

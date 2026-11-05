@@ -84,3 +84,38 @@ async def test_full_tool_response_survives_context_drop(tmp_path):
     stored = json.loads((tmp_path / "trace/tool-s0.json").read_text())
     assert len(stored["records"][0]["content"]["text"]) == 60000
     assert stored["records"][0]["evidence_id"] == "ev1_big"
+
+
+@pytest.mark.asyncio
+async def test_invalid_tool_arguments_are_preserved_even_without_parse_error(tmp_path):
+    from langchain_core.messages import AIMessage
+
+    class Invalid:
+        def with_structured_output(self, *args, **kwargs):
+            return self
+
+        def bind(self, **kwargs):
+            return self
+
+        async def ainvoke(self, messages):
+            return {
+                "parsed": None,
+                "parsing_error": None,
+                "raw": AIMessage(
+                    content="",
+                    invalid_tool_calls=[
+                        {
+                            "name": "Plan",
+                            "args": '{"steps": []}, "extra": 1}',
+                            "id": "bad",
+                            "error": "Extra data",
+                        }
+                    ],
+                ),
+            }
+
+    with ResearchTrace(tmp_path).activate(), pytest.raises(StructuredResponseError):
+        await _structured(Plan, "plan", {}, model=Invalid())
+    saved = json.loads((tmp_path / "trace/model-001-response.json").read_text())
+    assert saved["invalid_tool_calls"][0]["args"] == '{"steps": []}, "extra": 1}'
+    assert saved["raw_message"]["invalid_tool_calls"][0]["name"] == "Plan"

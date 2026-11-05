@@ -72,6 +72,39 @@ class EvidenceStore:
         for ordinal, (key, raw) in enumerate(self.records.items()):
             content = raw["content"]
             view = {"evidence_id": key, "source": raw["source"], "content": content}
+            metadata = raw.get("metadata", {})
+            provenance = {
+                k: v
+                for k, v in metadata.items()
+                if k
+                in {
+                    "title",
+                    "url",
+                    "file_name",
+                    "filename",
+                    "document_name",
+                    "document_title",
+                    "source_title",
+                    "source_url",
+                    "page",
+                    "page_number",
+                    "page_numbers",
+                    "page_start",
+                    "page_end",
+                    "source_file",
+                    "original_filename",
+                    "section",
+                    "chunk_index",
+                    "evidence_kind",
+                    "truncated",
+                    "returned_rows",
+                }
+            }
+            if provenance:
+                view["metadata"] = {
+                    k: v if len(json.dumps(v, ensure_ascii=False)) <= 300 else str(v)[:250]
+                    for k, v in provenance.items()
+                }
             if raw["source"] != "sql":
                 view["locator"] = raw["locator"]
             if isinstance(content, str) and len(content) > 6500:

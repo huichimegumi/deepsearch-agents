@@ -14,7 +14,8 @@ from pydantic import ConfigDict, Field, create_model
 from app.research.report import ResearchReport
 from app.research.request_budget import RequestBudget, usage
 from evals.diagnostics.e8 import digest, read
-from evals.diagnostics.score_e8 import mechanical, reference_audit
+from evals.diagnostics.score_e8 import mechanical as legacy_mechanical
+from evals.diagnostics.score_e8 import reference_audit
 from evals.public_benchmarks.score import model_for
 from evals.worker_supervisor import atomic_json
 
@@ -74,6 +75,26 @@ async def judge_chunk(kind, items, case, result, model):
         "scores": [getattr(parsed, f"item_{i}") for i in range(len(items))],
         "usage": getattr(raw, "usage_metadata", None),
     }
+
+
+def mechanical(case, result):
+    issues = legacy_mechanical(case, result)
+    report = ResearchReport.model_validate(result["report"])
+    by_id = {r["evidence_id"]: r for r in result.get("evidence", [])}
+    ids = {key for table in report.tables for key in table.evidence_ids}
+    if ids - by_id.keys():
+        issues.append("unknown_citation")
+    if ids and "empty_answer" in issues:
+        issues.remove("empty_answer")
+    ids.update(key for claim in report.claims for key in claim.evidence_ids)
+    ids.update(f.evidence_id for f in report.facts)
+    sources = {by_id[key]["source"] for key in ids if key in by_id}
+    if (
+        not set(case.get("required_sources", [])) - sources
+        and "missing_required_source_citations" in issues
+    ):
+        issues.remove("missing_required_source_citations")
+    return issues
 
 
 def statistics(rows):
@@ -162,7 +183,7 @@ async def score(run, inputs, output):
             support = (
                 sum(s == 1 for s in grades["claims"]) / len(grades["claims"])
                 if grades["claims"]
-                else (1.0 if report.facts and not issues else None)
+                else (1.0 if (report.facts or report.tables) and not issues else None)
             )
             passed = (
                 not issues

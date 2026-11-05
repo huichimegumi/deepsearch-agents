@@ -1,0 +1,241 @@
+{
+  "scope": "Report component replay on collected exposed evidence, not end-to-end correctness; final protocol only is primary",
+  "scheduled": 8,
+  "completed": 8,
+  "offline_passes": 8,
+  "live_passes": 5,
+  "gate_passed": false,
+  "cases": [
+    {
+      "id": "dabstep:97",
+      "offline_pass": true,
+      "selected_complete_tables": 2,
+      "copied_rows": 35,
+      "excluded_incomplete_tables": 2,
+      "bindings_valid": true,
+      "short_refs_roundtrip": true,
+      "live_pass": false,
+      "section_error_count": 2,
+      "answerability": "partial",
+      "claims": 7,
+      "tables": 2,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 37630
+      },
+      "model_finish_reasons": [
+        "stop",
+        "stop",
+        "stop"
+      ]
+    },
+    {
+      "id": "dabstep:81",
+      "offline_pass": true,
+      "selected_complete_tables": 3,
+      "copied_rows": 55,
+      "excluded_incomplete_tables": 1,
+      "bindings_valid": true,
+      "short_refs_roundtrip": true,
+      "live_pass": true,
+      "section_error_count": 0,
+      "answerability": "answered",
+      "claims": 16,
+      "tables": 1,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 34723
+      },
+      "model_finish_reasons": [
+        "stop",
+        "stop",
+        "stop"
+      ]
+    },
+    {
+      "id": "hybrid:s2sql_050",
+      "offline_pass": true,
+      "selected_complete_tables": 1,
+      "copied_rows": 3,
+      "excluded_incomplete_tables": 0,
+      "bindings_valid": true,
+      "short_refs_roundtrip": true,
+      "live_pass": false,
+      "section_error_count": 2,
+      "answerability": "insufficient_evidence",
+      "claims": 0,
+      "tables": 0,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 16371
+      },
+      "model_finish_reasons": [
+        "stop",
+        "stop",
+        "stop"
+      ]
+    },
+    {
+      "id": "hybrid:s2sql_048",
+      "offline_pass": true,
+      "selected_complete_tables": 1,
+      "copied_rows": 3,
+      "excluded_incomplete_tables": 1,
+      "bindings_valid": true,
+      "short_refs_roundtrip": true,
+      "live_pass": true,
+      "section_error_count": 0,
+      "answerability": "answered",
+      "claims": 15,
+      "tables": 1,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 23129
+      },
+      "model_finish_reasons": [
+        "stop",
+        "stop",
+        "stop"
+      ]
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "offline_pass": true,
+      "selected_complete_tables": 2,
+      "copied_rows": 35,
+      "excluded_incomplete_tables": 1,
+      "bindings_valid": true,
+      "short_refs_roundtrip": true,
+      "live_pass": true,
+      "section_error_count": 0,
+      "answerability": "answered",
+      "claims": 13,
+      "tables": 1,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 28272
+      },
+      "model_finish_reasons": [
+        "stop",
+        "stop",
+        "stop"
+      ]
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "offline_pass": true,
+      "selected_complete_tables": 3,
+      "copied_rows": 42,
+      "excluded_incomplete_tables": 0,
+      "bindings_valid": true,
+      "short_refs_roundtrip": true,
+      "live_pass": false,
+      "section_error_count": 1,
+      "answerability": "partial",
+      "claims": 8,
+      "tables": 1,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 21811
+      },
+      "model_finish_reasons": [
+        "stop",
+        "stop",
+        "stop"
+      ]
+    },
+    {
+      "id": "hybrid:parallel_040",
+      "offline_pass": true,
+      "selected_complete_tables": 4,
+      "copied_rows": 24,
+      "excluded_incomplete_tables": 0,
+      "bindings_valid": true,
+      "short_refs_roundtrip": true,
+      "live_pass": true,
+      "section_error_count": 0,
+      "answerability": "insufficient_evidence",
+      "claims": 14,
+      "tables": 2,
+      "model_reservations": {
+        "requests": 3,
+        "reserved_tokens": 22580
+      },
+      "model_finish_reasons": [
+        "stop",
+        "stop",
+        "stop"
+      ]
+    },
+    {
+      "id": "hybrid:parallel_085",
+      "offline_pass": true,
+      "selected_complete_tables": 3,
+      "copied_rows": 31,
+      "excluded_incomplete_tables": 0,
+      "bindings_valid": true,
+      "short_refs_roundtrip": true,
+      "live_pass": true,
+      "section_error_count": 0,
+      "answerability": "answered",
+      "claims": 8,
+      "tables": 1,
+      "model_reservations": {
+        "requests": 2,
+        "reserved_tokens": 15484
+      },
+      "model_finish_reasons": [
+        "stop",
+        "stop"
+      ]
+    }
+  ],
+  "prototype_history": [
+    {
+      "directory": "e9-1-live-replay",
+      "scheduled": 8,
+      "completed": 8,
+      "offline_passes": 8,
+      "live_passes": 2,
+      "gate_passed": false
+    },
+    {
+      "directory": "e9-1-live-replay-v2",
+      "scheduled": 8,
+      "completed": 8,
+      "offline_passes": 8,
+      "live_passes": 2,
+      "gate_passed": false
+    },
+    {
+      "directory": "e9-1-live-replay-v3",
+      "scheduled": 8,
+      "completed": 3,
+      "offline_passes": 3,
+      "live_passes": 2,
+      "gate_passed": false
+    },
+    {
+      "directory": "e9-1-live-replay-v4",
+      "scheduled": 8,
+      "completed": 3,
+      "offline_passes": 3,
+      "live_passes": 2,
+      "gate_passed": false
+    },
+    {
+      "directory": "e9-1-live-replay-v5",
+      "scheduled": 8,
+      "completed": 8,
+      "offline_passes": 8,
+      "live_passes": 5,
+      "gate_passed": false
+    }
+  ],
+  "all_prototypes_requests": 64,
+  "all_prototypes_reserved_tokens": 579831,
+  "reservation_note": "Input estimate plus output cap, not actual billing; includes rejected responses",
+  "dispatched_models": [
+    "qwen-flash"
+  ]
+}
