@@ -25,7 +25,7 @@
 
 因此，当前证据能确认 Agent 接口和语义组织存在问题，也实际观察到 Qwen 的输出协议/判断限制；尚无同输入公平模型对照，不能把原因归为全是 Agent 或全是 LLM。用户指定的 Qwen 优先策略继续有效，本轮 DeepSeek 零调用。
 
-本阶段全量离线测试 775 passed、6 skipped；相关 SQL/执行器测试 15 项通过，统一 CPU 入口 64 项通过，另新增门槛防伪/样本集校验回归单独通过。最终 CI 将包含全部门槛测试。默认产品路径未切换，新的组件没有冒充已达标的默认研究流程。
+最终代码 d5c93d6 的全量离线测试 776 passed、6 skipped；相关 SQL/执行器测试 15 项通过。Linux 和 Windows CI 均为 65 passed，包含门槛防伪/样本集校验回归：[验证记录](https://github.com/huichimegumi/deepsearch-agents/actions/runs/42056377538)。默认产品路径未切换，新的组件没有冒充已达标的默认研究流程。
 
 ## 可复现入口
 
