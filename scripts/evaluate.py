@@ -27,6 +27,8 @@ OFFLINE_TESTS = [
     "tests/test_observed_values.py",
     "tests/test_grounded_sql.py",
     "tests/test_compare_e12.py",
+    "tests/test_audit_e13.py",
+    "tests/test_grounded_query.py",
     "tests/test_bounded_research.py",
     "tests/test_standards_suite.py",
     "tests/test_eval_worker_supervisor.py",

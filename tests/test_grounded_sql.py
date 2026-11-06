@@ -109,3 +109,40 @@ def test_context_comes_only_from_public_catalog_and_observed_database(tmp_path):
             )
     finally:
         relations.close()
+
+
+def test_complete_public_context_keeps_late_definitions_and_refuses_missing_dependencies(tmp_path):
+    db, entries = fixture(tmp_path)
+    entries += [
+        {
+            "id": i,
+            "type": "domain_knowledge",
+            "definition": f"Unrelated public rule {i}",
+            "children_knowledge": -1,
+        }
+        for i in range(2, 10)
+    ]
+    cat = SourceCatalog(
+        sqlite_path=db,
+        allowed_sources=("sql",),
+        schema_notes="\n".join(json.dumps(e) for e in entries),
+    )
+    _, _, legacy, old_payload = grounded_context(cat, "net")
+    legacy.close()
+    _, _, relations, payload = grounded_context(cat, "net", complete_definitions=True)
+    try:
+        assert len(old_payload["public_definitions"]) == 5
+        assert {e["id"] for e in payload["public_definitions"]} == set(range(1, 10))
+        assert payload["semantic_context"]["truncated"] is False
+        assert payload["table_scope"]["complete"]
+    finally:
+        relations.close()
+    entries[-1]["children_knowledge"] = [999]
+    cat.schema_notes = "\n".join(json.dumps(e) for e in entries)
+    with pytest.raises(ValueError, match="complete_public_definitions_unavailable"):
+        grounded_context(cat, "net", complete_definitions=True)
+    entries[-1]["children_knowledge"] = -1
+    entries[-1]["definition"] = "large definition " * 14000
+    cat.schema_notes = "\n".join(json.dumps(e) for e in entries)
+    with pytest.raises(ValueError, match="complete_public_definitions_unavailable"):
+        grounded_context(cat, "net", complete_definitions=True)
