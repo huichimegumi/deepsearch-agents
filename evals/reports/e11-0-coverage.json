@@ -1,0 +1,104 @@
+{
+  "scope": "Exposed evaluator-side syntax inventory; alternative equivalent plans may use different syntax",
+  "references_sha256": "ede555676e5805d89972c749334deb6957ef9a0c5621e1a4a0f41905b1a927bd",
+  "api_calls": 0,
+  "cases": [
+    {
+      "id": "hybrid:s2sql_050",
+      "direction": "search_to_sql",
+      "reference_shape": {
+        "cte": true,
+        "nested_select": true,
+        "join": true,
+        "grouping": false,
+        "conditional": false,
+        "window": false,
+        "distance_order": false,
+        "formatting": false
+      }
+    },
+    {
+      "id": "hybrid:s2sql_048",
+      "direction": "search_to_sql",
+      "reference_shape": {
+        "cte": false,
+        "nested_select": true,
+        "join": false,
+        "grouping": true,
+        "conditional": true,
+        "window": false,
+        "distance_order": false,
+        "formatting": false
+      }
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "direction": "sql_to_search",
+      "reference_shape": {
+        "cte": true,
+        "nested_select": true,
+        "join": false,
+        "grouping": false,
+        "conditional": true,
+        "window": true,
+        "distance_order": false,
+        "formatting": true
+      }
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "direction": "sql_to_search",
+      "reference_shape": {
+        "cte": true,
+        "nested_select": true,
+        "join": false,
+        "grouping": false,
+        "conditional": true,
+        "window": false,
+        "distance_order": false,
+        "formatting": true
+      }
+    },
+    {
+      "id": "hybrid:parallel_040",
+      "direction": "parallel",
+      "reference_shape": {
+        "cte": true,
+        "nested_select": true,
+        "join": true,
+        "grouping": false,
+        "conditional": true,
+        "window": true,
+        "distance_order": true,
+        "formatting": false
+      }
+    },
+    {
+      "id": "hybrid:parallel_085",
+      "direction": "parallel",
+      "reference_shape": {
+        "cte": true,
+        "nested_select": true,
+        "join": true,
+        "grouping": false,
+        "conditional": true,
+        "window": true,
+        "distance_order": true,
+        "formatting": false
+      }
+    }
+  ],
+  "e10_limits": [
+    "No model-driven plan has passed a live SQL control",
+    "No windows, subqueries or self joins in E10 compiler"
+  ],
+  "implementation_targets": [
+    "Public-definition metric expansion with source hashes, independent of references",
+    "Ordinary projection/filter/sort and bounded grouped bands/aggregations",
+    "Unique observed anchor lookup and peer filters using bound values"
+  ],
+  "unsupported_targets": [
+    "Cross-table computed metrics and nearest-to-group-mean queries until separately verified"
+  ],
+  "warning": "This inventory is not an implementation capability or benchmark pass count"
+}
