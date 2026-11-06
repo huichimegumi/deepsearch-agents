@@ -71,6 +71,11 @@ def plan_for(registry, selection, values, anchor=None):
         return builder.field(key)
 
     def value(token, field_id=None):
+        expected = registry.columns.get(field_id)
+
+        def compatible(bound):
+            return bound.field_ref is None or bound.field_ref == expected
+
         if token.startswith("anchor:"):
             key = token.removeprefix("anchor:")
             if anchor is None or key not in anchor:
@@ -81,13 +86,15 @@ def plan_for(registry, selection, values, anchor=None):
             )
             return builder.node("parameter", ref=parameter)
         if token in builder.values:
+            if not compatible(builder.values[token]):
+                raise ValueError("value_bound_to_other_field")
             return builder.node("parameter", ref=token)
         # A literal copied exactly from one supplied observation is already bound
         # data. Resolve it without inventing a new value or guessing a fuzzy match.
         matches = [
             key
             for key, bound in builder.values.items()
-            if isinstance(bound.value, str) and bound.value == token
+            if isinstance(bound.value, str) and bound.value == token and compatible(bound)
         ]
         if len(matches) == 1:
             return builder.node("parameter", ref=matches[0])
@@ -104,7 +111,7 @@ def plan_for(registry, selection, values, anchor=None):
             continue
         if not key or not op or not token:
             raise ValueError("incomplete_filter")
-        filters.append(builder.node(op, [field(key), value(token)]))
+        filters.append(builder.node(op, [field(key), value(token, key)]))
     for key in csv(selection.peer_fields):
         filters.append(builder.node("eq", [field(key), value("anchor:" + key)]))
     if selection.exclude_anchor:

@@ -20,6 +20,7 @@ class BoundValue(StrictPlan):
     value: str | int | float | None
     mode: Literal["exact", "pattern"] = "exact"
     source_ref: str = Field(min_length=1)
+    field_ref: str | None = None
 
 
 class Expression(StrictPlan):
