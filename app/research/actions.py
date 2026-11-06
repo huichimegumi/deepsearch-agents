@@ -216,7 +216,17 @@ def describe(catalog, question):
         entries = [json.loads(line) for line in catalog.schema_notes.splitlines() if line.strip()]
         terms = _tokens(question)
         ranked = sorted(entries, key=lambda row: -len(terms & _tokens(json.dumps(row))))
-        result["semantic_definitions"] = ranked[:5]
+        from app.research.semantic_context import definition_context
+
+        definitions, rejected = definition_context(ranked)
+        result["semantic_definitions"] = definitions
+        result["semantic_context"] = {
+            "dependency_closed": True,
+            "root_limit": 5,
+            "token_limit": 4000,
+            "rejected_roots": rejected,
+            "instruction": "Rejected or absent definitions are unavailable; retrieve them explicitly, never invent formulas.",
+        }
     for source in ("web", "local_document"):
         if source in raw:
             result[source] = raw[source]
