@@ -109,7 +109,7 @@ def schema(database):
         return tables
 
 
-def compile_plan(database: Path, plan: QueryPlan, values: dict[str, BoundValue]):
+def compile_plan(database: Path, plan: QueryPlan, values: dict[str, BoundValue], *, fragments=None):
     """Validate schema, cardinality, parameter modes and grouping before emitting SQL.
 
     This enforces the declared plan, not agreement with the natural-language task.
@@ -269,6 +269,8 @@ def compile_plan(database: Path, plan: QueryPlan, values: dict[str, BoundValue])
     query += f" LIMIT {plan.limit}"
     if len(query) > 12000:
         raise ValueError("compiled_query_length_limit")
+    if fragments is not None:
+        fragments.update({p.alias: sql[p.expression] for p in plan.outputs})
     return query, parameters
 
 

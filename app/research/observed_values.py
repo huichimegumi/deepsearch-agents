@@ -26,7 +26,7 @@ class ValueCatalog:
         }
 
 
-def observe_values(registry, question, *, per_field=8, total=120, seconds=5):
+def observe_values(registry, question, *, per_field=8, total=120, seconds=5, field_ids=None):
     if not 1 <= per_field <= 20 or not 1 <= total <= 200 or not 0 < seconds <= 20:
         raise ValueError("invalid_observation_budget")
     deadline = monotonic() + seconds
@@ -42,7 +42,11 @@ def observe_values(registry, question, *, per_field=8, total=120, seconds=5):
             default=0,
         )
     ordered = sorted(
-        registry.columns.items(),
+        (
+            (key, ref)
+            for key, ref in registry.columns.items()
+            if field_ids is None or key in field_ids
+        ),
         key=lambda item: (
             -table_scores[item[1].split(".")[0]],
             -len(terms & set(re.findall(r"[a-z]+", item[1].lower()))),
