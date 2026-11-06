@@ -1,0 +1,212 @@
+{
+  "scope": "Two exposed SQL subtasks, no evaluator hints in generation; never an end-to-end grade",
+  "provider": "qwen",
+  "manifest_sha256": "fe3bfb0970cf4dd7ab01d485055b09a9de2334eea8714d3b14633e69682b7ec9",
+  "route_scores": {
+    "selection": {
+      "matches": 0,
+      "runtime_failures": 0,
+      "requests": 3
+    },
+    "projected_sql": {
+      "matches": 0,
+      "runtime_failures": 2,
+      "requests": 4
+    }
+  },
+  "selected_route": "selection",
+  "eligible_for_components": false,
+  "cases": [
+    {
+      "id": "hybrid:sql2s_088",
+      "route": "selection",
+      "status": "executed",
+      "input_sha256": "23481aed471062ec1d3f62e152e494a53245f57a2479fc62d2334d82ef004f56",
+      "attempts": [
+        {
+          "status": "executed",
+          "empty": false
+        }
+      ],
+      "column_count": 3,
+      "row_count": 7,
+      "reservations": {
+        "requests": 1,
+        "reserved_tokens": 7581
+      },
+      "sql_result_match": false
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "route": "projected_sql",
+      "status": "failed",
+      "input_sha256": "23481aed471062ec1d3f62e152e494a53245f57a2479fc62d2334d82ef004f56",
+      "attempts": [
+        {
+          "status": "engine_error",
+          "error_class": "OperationalError"
+        },
+        {
+          "status": "engine_error",
+          "error_class": "OperationalError"
+        }
+      ],
+      "reservations": {
+        "requests": 2,
+        "reserved_tokens": 14232
+      },
+      "sql_result_match": false
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "route": "projected_sql",
+      "status": "failed",
+      "input_sha256": "36a4f502e4b0db21d7ba1f1e805409b1e7b2799afbe2034e27856c3c0635a437",
+      "attempts": [
+        {
+          "status": "engine_error",
+          "error_class": "OperationalError"
+        },
+        {
+          "status": "engine_error",
+          "error_class": "OperationalError"
+        }
+      ],
+      "reservations": {
+        "requests": 2,
+        "reserved_tokens": 14252
+      },
+      "sql_result_match": false
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "route": "selection",
+      "status": "executed",
+      "input_sha256": "36a4f502e4b0db21d7ba1f1e805409b1e7b2799afbe2034e27856c3c0635a437",
+      "attempts": [
+        {
+          "status": "executed",
+          "empty": true
+        },
+        {
+          "status": "executed",
+          "empty": true
+        }
+      ],
+      "column_count": 1,
+      "row_count": 0,
+      "reservations": {
+        "requests": 2,
+        "reserved_tokens": 15578
+      },
+      "sql_result_match": false
+    }
+  ],
+  "full_development": "NOT RUN: full component gates still required",
+  "new_validation": "NOT RUN: independent development gate still required",
+  "requests_total": 7,
+  "reserved_tokens_total": 51643,
+  "models_observed": [
+    "qwen-flash"
+  ],
+  "frozen_source_sha256": "d1b3c1238ab140ed8933412e8bdd409b11c84e8708ada120c107ba93c5e2051c",
+  "raw_summary_sha256": "a58949f41e0f9d6ea2d8c6a46f2be5b6d4e9120d5031dfd9cc410bfaa2c8806a",
+  "offline_backend_replay": {
+    "scope": "Exact saved baseline SQL after backend revision, not new live results; last attempt only, no best-attempt selection",
+    "api_calls": 0,
+    "source_sha256": "4bab093f7a9f633eff5b2355e341456fb37ee7fbdf5724b9be3a0feb6df591ec",
+    "original_manifest_sha256": "fe3bfb0970cf4dd7ab01d485055b09a9de2334eea8714d3b14633e69682b7ec9",
+    "last_attempt_matches": 0,
+    "cases": [
+      {
+        "id": "hybrid:sql2s_088",
+        "attempts": [
+          {
+            "attempt": 1,
+            "candidate_sha256": "eaaa787416aa2e3de49eb1c4f6c1cfdcea0202ac8869ad6701d133a72984057f",
+            "status": "executed",
+            "sql_result_match": false,
+            "column_count": 1,
+            "row_count": 1,
+            "name_diagnostic": {
+              "available": true,
+              "reference_raw_text_present": false,
+              "scope": "Raw reference-selected name appears in candidate row; not entity-key proof, SQL equivalence or task coverage"
+            }
+          },
+          {
+            "attempt": 2,
+            "candidate_sha256": "eaaa787416aa2e3de49eb1c4f6c1cfdcea0202ac8869ad6701d133a72984057f",
+            "status": "executed",
+            "sql_result_match": false,
+            "column_count": 1,
+            "row_count": 1,
+            "name_diagnostic": {
+              "available": true,
+              "reference_raw_text_present": false,
+              "scope": "Raw reference-selected name appears in candidate row; not entity-key proof, SQL equivalence or task coverage"
+            }
+          }
+        ],
+        "last_attempt": {
+          "attempt": 2,
+          "candidate_sha256": "eaaa787416aa2e3de49eb1c4f6c1cfdcea0202ac8869ad6701d133a72984057f",
+          "status": "executed",
+          "sql_result_match": false,
+          "column_count": 1,
+          "row_count": 1,
+          "name_diagnostic": {
+            "available": true,
+            "reference_raw_text_present": false,
+            "scope": "Raw reference-selected name appears in candidate row; not entity-key proof, SQL equivalence or task coverage"
+          }
+        }
+      },
+      {
+        "id": "hybrid:sql2s_128",
+        "attempts": [
+          {
+            "attempt": 1,
+            "candidate_sha256": "8692b4d135a70b63404382296f6ee9e7554deb1d374f99d14b337aacce102fb8",
+            "status": "executed",
+            "sql_result_match": false,
+            "column_count": 3,
+            "row_count": 1,
+            "name_diagnostic": {
+              "available": true,
+              "reference_raw_text_present": true,
+              "scope": "Raw reference-selected name appears in candidate row; not entity-key proof, SQL equivalence or task coverage"
+            }
+          },
+          {
+            "attempt": 2,
+            "candidate_sha256": "3250f3dea3bcfba1777373a075c822ce15e24a9c6b368b41d3b5bfa0583a9534",
+            "status": "executed",
+            "sql_result_match": false,
+            "column_count": 3,
+            "row_count": 1,
+            "name_diagnostic": {
+              "available": true,
+              "reference_raw_text_present": true,
+              "scope": "Raw reference-selected name appears in candidate row; not entity-key proof, SQL equivalence or task coverage"
+            }
+          }
+        ],
+        "last_attempt": {
+          "attempt": 2,
+          "candidate_sha256": "3250f3dea3bcfba1777373a075c822ce15e24a9c6b368b41d3b5bfa0583a9534",
+          "status": "executed",
+          "sql_result_match": false,
+          "column_count": 3,
+          "row_count": 1,
+          "name_diagnostic": {
+            "available": true,
+            "reference_raw_text_present": true,
+            "scope": "Raw reference-selected name appears in candidate row; not entity-key proof, SQL equivalence or task coverage"
+          }
+        }
+      }
+    ]
+  },
+  "caveat": "Preserve original frozen strict scores. Backend alias fix and exact saved-SQL replay are not new model results; raw target text presence is diagnostic only."
+}

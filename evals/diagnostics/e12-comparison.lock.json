@@ -1,0 +1,21 @@
+{
+  "version": "e12-comparison-1",
+  "provider": "qwen",
+  "model": "qwen-flash",
+  "cases": ["hybrid:sql2s_088", "hybrid:sql2s_128"],
+  "routes": ["selection", "projected_sql"],
+  "requests_per_arm": 2,
+  "reserved_tokens_per_arm": 50000,
+  "output_tokens": 1600,
+  "required_matches": 2,
+  "tie_preference": "projected_sql",
+  "rules": [
+    "Identical frozen public payload per case, same model and per-arm budget",
+    "Alternate route order between cases; no references or evaluator literals in generation",
+    "Retry only on actual engine error or empty result, never on reference mismatch",
+    "Grade after all arms finish; choose one overall route, no best-per-case mixing",
+    "Winner needs 2/2 semantic matches before any full component check",
+    "Existing full component and end-to-end gates still required",
+    "Qwen and CPU only; Actions remains disabled"
+  ]
+}

@@ -42,6 +42,13 @@ def test_metric_relations_preserve_all_rows_and_public_formula_values(tmp_path):
         # SQL can express grouping/ranking without generating any metric formula.
         _, rows = relations.execute("SELECT m1 FROM r1 ORDER BY m1 ASC LIMIT 1", {})
         assert rows == [(8,)]
+        # Names already advertised by the public catalog must identify exactly
+        # the same observed/projected cells as their short IDs.
+        _, alias_rows = relations.execute(
+            "SELECT name, net FROM r1 WHERE region=:v1 ORDER BY net DESC",
+            {"v1": BoundValue(value="N", source_ref="observed")},
+        )
+        assert alias_rows == [("Beta", 18), ("Alpha", 8)]
     finally:
         relations.close()
     with pytest.raises(ValueError, match="row_budget"):
