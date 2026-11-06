@@ -5,6 +5,7 @@ import pytest
 
 from app.research.grounded_sql import SQLCandidate
 from app.research.metric_selection import MetricSelection
+from evals.diagnostics import audit_e13
 from evals.diagnostics import compare_e12 as comparison
 from evals.diagnostics.e8 import digest
 
@@ -101,11 +102,19 @@ async def test_same_inputs_equal_budget_no_gold_retry_and_no_paid_resume(tmp_pat
     replayed = comparison.replay(output, tmp_path / "offline")
     assert replayed["api_calls"] == 0 and replayed["last_attempt_matches"] == 0
     assert all(c["last_attempt"]["attempt"] == 1 for c in replayed["cases"])
+    monkeypatch.setattr(audit_e13, "INPUTS", comparison.INPUTS)
+    before = (output / "summary.json").read_bytes()
+    audited = audit_e13.audit(output, tmp_path / "audited")
+    assert audited["api_calls"] == 0
+    assert all(not a["strict_match"] for c in audited["cases"] for a in c["arms"])
+    assert (output / "summary.json").read_bytes() == before
     first = json.loads(comparison.PROTOCOL.read_text())["cases"][0]
     candidate = comparison.case_dir(output, first) / "projected_sql/candidate-1.json"
     candidate.write_text(json.dumps({"sql": "SELECT 99 FROM r1"}))
     with pytest.raises(ValueError, match="candidate_trace_changed"):
         comparison.replay(output, tmp_path / "tampered-offline")
+    with pytest.raises(ValueError, match="candidate_trace_changed"):
+        audit_e13.audit(output, tmp_path / "tampered-audit")
 
 
 @pytest.mark.asyncio

@@ -1,0 +1,104 @@
+{
+  "scope": "Offline last-attempt audit, no new model scores or task pass credit",
+  "api_calls": 0,
+  "manifest_sha256": "fe3bfb0970cf4dd7ab01d485055b09a9de2334eea8714d3b14633e69682b7ec9",
+  "original_summary_sha256": "a58949f41e0f9d6ea2d8c6a46f2be5b6d4e9120d5031dfd9cc410bfaa2c8806a",
+  "cases": [
+    {
+      "id": "hybrid:sql2s_088",
+      "reference_rows": 1,
+      "reference_columns": 1,
+      "context": {
+        "public_definition_count": 56,
+        "supplied_definition_count": 6,
+        "omitted_literal_bearing_definition_ids": [
+          24
+        ],
+        "scope": "Lexical omission hints only; neither necessary-definition proof nor semantic coverage"
+      },
+      "arms": [
+        {
+          "route": "selection",
+          "attempt": 1,
+          "candidate_sha256": "82747f1a8136683a06e92e52ea9b8792b2919508df991ad3ede049d96515dd61",
+          "status": "executed",
+          "row_count": 7,
+          "column_count": 3,
+          "strict_match": false,
+          "name_audit": {
+            "available": true,
+            "first_column_raw_name_equal": false,
+            "source_name_occurrences": 1,
+            "unique_source_name_equal": false,
+            "query_correctness_proven": false,
+            "task_pass_credit": false
+          }
+        },
+        {
+          "route": "projected_sql",
+          "attempt": 2,
+          "candidate_sha256": "eaaa787416aa2e3de49eb1c4f6c1cfdcea0202ac8869ad6701d133a72984057f",
+          "status": "executed",
+          "row_count": 1,
+          "column_count": 1,
+          "strict_match": false,
+          "name_audit": {
+            "available": true,
+            "first_column_raw_name_equal": false,
+            "source_name_occurrences": 1,
+            "unique_source_name_equal": false,
+            "query_correctness_proven": false,
+            "task_pass_credit": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "reference_rows": 1,
+      "reference_columns": 1,
+      "context": {
+        "public_definition_count": 56,
+        "supplied_definition_count": 7,
+        "omitted_literal_bearing_definition_ids": [],
+        "scope": "Lexical omission hints only; neither necessary-definition proof nor semantic coverage"
+      },
+      "arms": [
+        {
+          "route": "selection",
+          "attempt": 2,
+          "candidate_sha256": "742f4aab5a19aa23a4216b7c7734616fc9ea141f8dd8de3b9309012cd2b1a117",
+          "status": "executed",
+          "row_count": 0,
+          "column_count": 1,
+          "strict_match": false,
+          "name_audit": {
+            "available": true,
+            "first_column_raw_name_equal": false,
+            "source_name_occurrences": 1,
+            "unique_source_name_equal": false,
+            "query_correctness_proven": false,
+            "task_pass_credit": false
+          }
+        },
+        {
+          "route": "projected_sql",
+          "attempt": 2,
+          "candidate_sha256": "3250f3dea3bcfba1777373a075c822ce15e24a9c6b368b41d3b5bfa0583a9534",
+          "status": "executed",
+          "row_count": 1,
+          "column_count": 3,
+          "strict_match": false,
+          "name_audit": {
+            "available": true,
+            "first_column_raw_name_equal": true,
+            "source_name_occurrences": 1,
+            "unique_source_name_equal": true,
+            "query_correctness_proven": false,
+            "task_pass_credit": false
+          }
+        }
+      ]
+    }
+  ]
+}
