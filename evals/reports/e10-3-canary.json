@@ -1,0 +1,74 @@
+{
+  "version": "e10-canary-1",
+  "provider": "qwen",
+  "scope": "Three exposed component diagnostics, not end-to-end quality or full component gate",
+  "scheduled": 3,
+  "completed": 3,
+  "passes": 0,
+  "canary_passed": false,
+  "full_development": "NOT RUN: requires full component gates",
+  "new_validation": "NOT RUN: requires independent end-to-end development gate",
+  "manifest_sha256": "7703a7effe1e8aed9c7686cd8792a80c902eeef09af8d7079946661071dcf6bd",
+  "cases": [
+    {
+      "id": "hybrid:sql2s_128",
+      "kind": "assisted_sql",
+      "passed": false,
+      "status": "failed",
+      "error_class": "StructuredResponseError",
+      "reservations": {
+        "requests": 1,
+        "reserved_tokens": 12290
+      }
+    },
+    {
+      "id": "dabstep:97",
+      "kind": "writer",
+      "passed": false,
+      "status": "assembled",
+      "protocol_errors": 2,
+      "binding_errors": 0,
+      "accepted_claims": 1,
+      "tables": 2,
+      "answerability": "partial",
+      "reservations": {
+        "requests": 2,
+        "reserved_tokens": 27592
+      }
+    },
+    {
+      "id": "hybrid:s2sql_050",
+      "kind": "writer",
+      "passed": false,
+      "status": "assembled",
+      "protocol_errors": 2,
+      "binding_errors": 0,
+      "accepted_claims": 2,
+      "tables": 1,
+      "answerability": "partial",
+      "reservations": {
+        "requests": 2,
+        "reserved_tokens": 10866
+      }
+    }
+  ],
+  "requests_total": 5,
+  "reserved_tokens_total": 50748,
+  "models_observed": [
+    "qwen-flash"
+  ],
+  "writer_rejection_counts": {
+    "claim_scope_or_visibility_mismatch": 3,
+    "invalid_claim_references": 1
+  },
+  "invalid_tool_argument_diagnostics": [
+    {
+      "error": "JSONDecodeError",
+      "message": "Expecting ',' delimiter",
+      "line": 1,
+      "column": 1288
+    }
+  ],
+  "source_sha256": "95504c80e389080cafff1c249bc8e2e6b1f15797e8358b121e0cda78313b0cbd",
+  "raw_summary_sha256": "33fedbf602f570054345e39d9d8fee8c34c3f7edac42afb3de8474c90a21c333"
+}

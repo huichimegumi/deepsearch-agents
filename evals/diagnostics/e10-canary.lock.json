@@ -1,0 +1,18 @@
+{
+  "version": "e10-canary-1",
+  "provider": "qwen",
+  "model": "qwen-flash",
+  "controls": [
+    {"id": "hybrid:sql2s_128", "kind": "assisted_sql", "requests": 1, "reserved_tokens": 25000},
+    {"id": "dabstep:97", "kind": "writer", "requests": 2, "reserved_tokens": 40000},
+    {"id": "hybrid:s2sql_050", "kind": "writer", "requests": 2, "reserved_tokens": 40000}
+  ],
+  "rules": [
+    "Exactly one frozen attempt, no automatic repair or resume",
+    "All three controls must pass before a full component check is considered",
+    "SQL hints are evaluator-derived; never an end-to-end task grade",
+    "Writer pass checks delivery and bindings, never semantic coverage",
+    "No full development or holdout run without the existing component gates",
+    "CPU only, no DeepSeek, no paid search"
+  ]
+}
