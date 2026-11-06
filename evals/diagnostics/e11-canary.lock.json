@@ -1,0 +1,20 @@
+{
+  "version": "e11-canary-1",
+  "provider": "qwen",
+  "model": "qwen-flash",
+  "scope": "Three exposed public-metric/excerpt diagnostics, not a full component or end-to-end grade",
+  "controls": [
+    {"id": "hybrid:sql2s_128", "kind": "metric_sql", "requests": 1, "reserved_tokens": 25000},
+    {"id": "dabstep:97", "kind": "source_writer", "requests": 1, "reserved_tokens": 18000},
+    {"id": "hybrid:s2sql_050", "kind": "source_writer", "requests": 1, "reserved_tokens": 18000}
+  ],
+  "rules": [
+    "One frozen attempt with at most three Qwen requests; no repair or paid resume",
+    "Reference-derived literal assistance remains isolated diagnostic input",
+    "Backend metric definitions originate only in public schema notes",
+    "Writer excerpts are verbatim source assertions, not verified truth or task coverage",
+    "All three controls must pass before the full component check",
+    "Existing full component/development gates remain required",
+    "CPU only, no DeepSeek or paid search; repository Actions disabled"
+  ]
+}

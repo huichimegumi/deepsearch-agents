@@ -1,0 +1,101 @@
+{
+  "version": "e11-components-1",
+  "provider": "qwen",
+  "model": "qwen-flash",
+  "scope": "Full exposed component control: assisted public-metric SQL and backend tables/verbatim excerpts; never end-to-end grades",
+  "requires_canary": "evals/results/e11-3-canary/summary.json",
+  "component_gate": true,
+  "controls": [
+    {
+      "id": "hybrid:s2sql_050",
+      "kind": "metric_sql",
+      "requests": 1,
+      "reserved_tokens": 25000
+    },
+    {
+      "id": "hybrid:s2sql_048",
+      "kind": "metric_sql",
+      "requests": 1,
+      "reserved_tokens": 25000
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "kind": "metric_sql",
+      "requests": 1,
+      "reserved_tokens": 25000
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "kind": "metric_sql",
+      "requests": 1,
+      "reserved_tokens": 25000
+    },
+    {
+      "id": "hybrid:parallel_040",
+      "kind": "metric_sql",
+      "requests": 1,
+      "reserved_tokens": 25000
+    },
+    {
+      "id": "hybrid:parallel_085",
+      "kind": "metric_sql",
+      "requests": 1,
+      "reserved_tokens": 25000
+    },
+    {
+      "id": "dabstep:97",
+      "kind": "source_writer",
+      "requests": 1,
+      "reserved_tokens": 18000
+    },
+    {
+      "id": "dabstep:81",
+      "kind": "source_writer",
+      "requests": 1,
+      "reserved_tokens": 18000
+    },
+    {
+      "id": "hybrid:s2sql_050",
+      "kind": "source_writer",
+      "requests": 1,
+      "reserved_tokens": 18000
+    },
+    {
+      "id": "hybrid:s2sql_048",
+      "kind": "source_writer",
+      "requests": 1,
+      "reserved_tokens": 18000
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "kind": "source_writer",
+      "requests": 1,
+      "reserved_tokens": 18000
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "kind": "source_writer",
+      "requests": 1,
+      "reserved_tokens": 18000
+    },
+    {
+      "id": "hybrid:parallel_040",
+      "kind": "source_writer",
+      "requests": 1,
+      "reserved_tokens": 18000
+    },
+    {
+      "id": "hybrid:parallel_085",
+      "kind": "source_writer",
+      "requests": 1,
+      "reserved_tokens": 18000
+    }
+  ],
+  "rules": [
+    "One frozen attempt per case; no gold-match retries",
+    "Writer delivery 8/8 and assisted SQL >=4/6 required",
+    "A failure stops before full development or independent validation",
+    "New writer contract is data/excerpts, not free explanatory claims; do not merge old scores",
+    "CPU and Qwen only; Actions disabled"
+  ]
+}

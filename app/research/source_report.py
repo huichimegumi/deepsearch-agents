@@ -72,7 +72,7 @@ async def write_source_report(question, store, output, *, model=None, extract=Tr
         )
         for i, token in enumerate(complete)
     ]
-    claims, errors = [], []
+    claims, errors, abstained = [], [], False
     slot = excerpt_slot(question, store) if extract else None
     if slot:
         write_json(output / "excerpt-slot.json", slot)
@@ -85,15 +85,18 @@ async def write_source_report(question, store, output, *, model=None, extract=Tr
                 cap=900,
             )
             write_json(output / "excerpt-candidate.json", excerpt.model_dump())
-            if not excerpt_valid(excerpt.quote, slot["text"]):
+            if not excerpt.quote:
+                abstained = True
+            elif not excerpt_valid(excerpt.quote, slot["text"]):
                 raise ValueError("empty_or_nonverbatim_complete_excerpt")
-            claims.append(
-                ReportClaim(
-                    text="Source excerpt:\n> " + excerpt.quote.replace("\n", "\n> "),
-                    evidence_ids=[slot["evidence_id"]],
-                    section="Source material",
+            if excerpt.quote:
+                claims.append(
+                    ReportClaim(
+                        text="Source excerpt:\n> " + excerpt.quote.replace("\n", "\n> "),
+                        evidence_ids=[slot["evidence_id"]],
+                        section="Source material",
+                    )
                 )
-            )
         except Exception as exc:
             errors.append(type(exc).__name__)
             write_json(
@@ -126,6 +129,7 @@ async def write_source_report(question, store, output, *, model=None, extract=Tr
         "tables_delivered": len(tables),
         "excerpt_available": slot is not None,
         "excerpt_delivered": bool(claims),
+        "excerpt_abstained": abstained,
         "protocol_errors": errors,
         "binding_errors": binding,
         "coverage_evaluated": False,

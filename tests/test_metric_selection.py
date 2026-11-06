@@ -163,3 +163,21 @@ def test_selection_never_accepts_formula_or_unbound_text_as_a_filter(tmp_path):
     plan, values, _ = plan_for(registry, candidate, {})
     with pytest.raises(ValueError, match="ungrouped"):
         compile_plan(registry.database, plan, values)
+
+
+def test_exact_observed_literal_can_resolve_to_its_binding_but_fuzzy_text_cannot(tmp_path):
+    registry, fields = fixture(tmp_path)
+    values = {"entity": BoundValue(value="Beta", source_ref="observed-entity")}
+    candidate = MetricSelection(
+        table="measurements",
+        outputs="m1",
+        filter_1_field=fields["name"],
+        filter_1_op="eq",
+        filter_1_value="Beta",
+    )
+    rows, _, params, _, _ = execute_selection(registry, candidate, values)
+    assert rows[0]["content"]["m1"] == 18
+    assert params == {"entity": "Beta"}
+    candidate.filter_1_value = "beta"
+    with pytest.raises(ValueError, match="unresolved_selection_value"):
+        execute_selection(registry, candidate, values)

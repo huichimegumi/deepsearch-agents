@@ -82,6 +82,15 @@ def plan_for(registry, selection, values, anchor=None):
             return builder.node("parameter", ref=parameter)
         if token in builder.values:
             return builder.node("parameter", ref=token)
+        # A literal copied exactly from one supplied observation is already bound
+        # data. Resolve it without inventing a new value or guessing a fuzzy match.
+        matches = [
+            key
+            for key, bound in builder.values.items()
+            if isinstance(bound.value, str) and bound.value == token
+        ]
+        if len(matches) == 1:
+            return builder.node("parameter", ref=matches[0])
         if re.fullmatch(r"-?(?:\d+(?:\.\d*)?|\.\d+)", token):
             return builder.node("number", number=float(token))
         raise ValueError("unresolved_selection_value")

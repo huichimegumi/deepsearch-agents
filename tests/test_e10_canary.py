@@ -134,3 +134,81 @@ def test_canary_rejects_missing_reordered_or_duplicate_controls():
     }
     with pytest.raises(ValueError, match="case_set_or_order"):
         canary.summarize([{"id": "a", "kind": "writer", "passed": True}] * 2, manifest)
+
+
+@pytest.mark.asyncio
+async def test_public_metric_mode_uses_scalar_selection_and_backend_report(tmp_path, monkeypatch):
+    from app.research.metric_selection import MetricSelection
+
+    fixture(tmp_path, monkeypatch)
+    protocol_path = tmp_path / "protocol.json"
+    protocol = json.loads(canary.PROTOCOL.with_name("e11-canary.lock.json").read_text())
+    protocol_path.write_text(json.dumps(protocol))
+
+    class Model:
+        calls = 0
+
+        def with_structured_output(self, schema, **kwargs):
+            assert schema is MetricSelection
+            return self
+
+        def bind(self, **kwargs):
+            return self
+
+        async def ainvoke(self, messages):
+            self.calls += 1
+            payload = json.loads(messages[-1]["content"])
+            assert "reference_sql" not in json.dumps(payload)
+            assert payload["catalog"][0]["fields"][0]["id"] == "c1"
+            return {"parsed": MetricSelection(table="numbers", outputs="c1"), "raw": None}
+
+    model = Model()
+    monkeypatch.setattr(canary, "model_for", lambda provider: model)
+    output = tmp_path / "run"
+    canary.prepare(output, protocol_path)
+    summary = await canary.run(output)
+    assert model.calls == 1  # SQL-only reports do not request an unnecessary excerpt.
+    assert summary["passes"] == 2 and not summary["canary_passed"]
+    assert summary["cases"][0]["status"] == "executed"
+    assert not summary["cases"][0]["sql_result_match"]
+
+
+def test_full_component_gate_recomputes_counts_and_preserves_all_cases(tmp_path, monkeypatch):
+    protocol = json.loads(canary.PROTOCOL.with_name("e11-components.lock.json").read_text())
+    ids = [c["id"] for c in protocol["controls"] if c["kind"] == "source_writer"]
+    lock = tmp_path / "lock.json"
+    lock.write_text(
+        json.dumps(
+            {
+                "cases": [
+                    {"id": key, "suite": "hybrid" if key.startswith("hybrid:") else "dabstep"}
+                    for key in ids
+                ]
+            }
+        )
+    )
+    monkeypatch.setattr(canary, "LOCK", lock)
+    rows = []
+    for index, control in enumerate(protocol["controls"]):
+        row = {"id": control["id"], "kind": control["kind"], "passed": True, "reservations": {}}
+        if row["kind"] == "metric_sql":
+            row.update(status="executed", sql_result_match=index < 4)
+        else:
+            row.update(
+                status="assembled",
+                tables=1,
+                accepted_claims=0,
+                delivery={
+                    "protocol_errors": [],
+                    "binding_errors": [],
+                    "tables_delivered": 1,
+                    "complete_tables_expected": 1,
+                },
+            )
+        rows.append(row)
+    summary = canary.summarize(rows, {"protocol": protocol})
+    assert summary["sql_matches"] == 4 and summary["writer_passes"] == 8
+    assert summary["components_passed"]
+    rows[-1]["delivery"]["binding_errors"] = ["tampered_cell"]
+    summary = canary.summarize(rows, {"protocol": protocol})
+    assert summary["writer_passes"] == 7 and not summary["components_passed"]

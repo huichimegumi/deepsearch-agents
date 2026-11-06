@@ -22,6 +22,8 @@ OFFLINE_TESTS = [
     "tests/test_query_plan.py",
     "tests/test_e10_attribution.py",
     "tests/test_e10_canary.py",
+    "tests/test_metric_selection.py",
+    "tests/test_source_report.py",
     "tests/test_bounded_research.py",
     "tests/test_standards_suite.py",
     "tests/test_eval_worker_supervisor.py",

@@ -87,3 +87,23 @@ async def test_failed_excerpt_keeps_valid_tables_and_excludes_truncated_results(
         assert not report.claims and delivery["protocol_errors"]
         assert len(report.tables) == int(complete)
         assert report.answerability == ("partial" if complete else "insufficient_evidence")
+
+
+@pytest.mark.asyncio
+async def test_explicit_abstention_is_valid_protocol_and_never_creates_a_fact(tmp_path):
+    class Model:
+        def with_structured_output(self, schema, **kwargs):
+            return self
+
+        def bind(self, **kwargs):
+            return self
+
+        async def ainvoke(self, messages):
+            return {"parsed": SourceExcerpt(quote=""), "raw": None}
+
+    report, delivery = await write_source_report(
+        "Unsupported question", store(tmp_path / "evidence"), tmp_path / "report", model=Model()
+    )
+    assert delivery["excerpt_abstained"] and not delivery["excerpt_delivered"]
+    assert not delivery["protocol_errors"] and not report.claims
+    assert report.answerability == "partial" and report.tables
