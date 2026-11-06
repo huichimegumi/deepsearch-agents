@@ -35,7 +35,7 @@ TOKENS = re.compile(
 )
 
 
-def raw_name_query(query):
+def outer_name_format(query):
     """Locate the outer projection without matching REPLACE inside CTEs/filters."""
     depth, start = 0, None
     for token in TOKENS.finditer(query):
@@ -50,8 +50,16 @@ def raw_name_query(query):
             match = FORMAT.fullmatch(query[start : token.start()])
             if not match:
                 return None
-            return query[:start] + " " + match["column"] + " " + query[token.start() :]
+            return start, token.start(), match
     return None
+
+
+def raw_name_query(query):
+    projection = outer_name_format(query)
+    if projection is None:
+        return None
+    start, end, match = projection
+    return query[:start] + " " + match["column"] + " " + query[end:]
 
 
 def name_audit(database, reference_sql, actual):
@@ -140,12 +148,26 @@ def context_audit(entries, payload, question, reference_sql):
         sources = {e["id"] for e in entries if value in str(e.get("definition", "")).casefold()}
         if sources and not sources & selected:
             missing.update(sources)
-    return {
+    result = {
         "public_definition_count": len(entries),
         "supplied_definition_count": len(selected),
         "omitted_literal_bearing_definition_ids": sorted(missing),
         "scope": "Lexical omission hints only; neither necessary-definition proof nor semantic coverage",
     }
+    projection = outer_name_format(reference_sql)
+    if projection:
+        operands = [projection[2][key][1:-1].replace("''", "'").casefold() for key in ("a", "c")]
+        meaningful = [value for value in operands if len(value.strip()) >= 3]
+        public_text = question.casefold() + json.dumps(entries, ensure_ascii=False).casefold()
+        result["reference_format_contract"] = {
+            "nontrivial_source_operands": len(meaningful),
+            "source_operands_found_in_public_text": sum(v in public_text for v in meaningful),
+            "explicit_naming_instruction_cue": bool(
+                re.search(r"normaliz|remov|replac|strip|formatt|omit|suffix", question, re.I)
+            ),
+            "scope": "Lexical evidence only; hidden reference transformations are not generator requirements",
+        }
+    return result
 
 
 def audit(output, destination):

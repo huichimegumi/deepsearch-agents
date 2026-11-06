@@ -1,0 +1,106 @@
+{
+  "scope": "Exposed SQL subtasks only; not end-to-end or held-out results",
+  "provider": "qwen",
+  "model": "qwen-flash",
+  "manifest_sha256": "e12d7965796d9fa56311abe3e366ebfc1a0187df9e192d4fd5c8d668eec258bf",
+  "source_sha256": "4af1addae811af09a5074bfb8a6bb84242d53c93952d4c28b00b5866a621a12d",
+  "strict_matches": 0,
+  "required_matches": 2,
+  "eligible_for_components": false,
+  "requests": 3,
+  "reserved_tokens": 40603,
+  "cases": [
+    {
+      "id": "hybrid:sql2s_088",
+      "scope": "sql_subtask_only",
+      "status": "empty",
+      "attempts": [
+        {
+          "status": "executed",
+          "empty": true
+        },
+        {
+          "status": "executed",
+          "empty": true
+        }
+      ],
+      "row_count": 0,
+      "column_count": 1,
+      "reservations": {
+        "requests": 2,
+        "reserved_tokens": 27145
+      },
+      "strict_match": false,
+      "name_audit": {
+        "available": true,
+        "first_column_raw_name_equal": false,
+        "source_name_occurrences": 1,
+        "unique_source_name_equal": false,
+        "query_correctness_proven": false,
+        "task_pass_credit": false
+      },
+      "context_audit": {
+        "public_definition_count": 56,
+        "supplied_definition_count": 56,
+        "omitted_literal_bearing_definition_ids": [],
+        "scope": "Lexical omission hints only; neither necessary-definition proof nor semantic coverage",
+        "reference_format_contract": {
+          "nontrivial_source_operands": 1,
+          "source_operands_found_in_public_text": 0,
+          "explicit_naming_instruction_cue": false,
+          "scope": "Lexical evidence only; hidden reference transformations are not generator requirements"
+        }
+      }
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "scope": "sql_subtask_only",
+      "status": "executed",
+      "attempts": [
+        {
+          "status": "executed",
+          "empty": false
+        }
+      ],
+      "row_count": 1,
+      "column_count": 1,
+      "reservations": {
+        "requests": 1,
+        "reserved_tokens": 13458
+      },
+      "strict_match": false,
+      "name_audit": {
+        "available": true,
+        "first_column_raw_name_equal": false,
+        "source_name_occurrences": 1,
+        "unique_source_name_equal": false,
+        "query_correctness_proven": false,
+        "task_pass_credit": false
+      },
+      "context_audit": {
+        "public_definition_count": 56,
+        "supplied_definition_count": 56,
+        "omitted_literal_bearing_definition_ids": [],
+        "scope": "Lexical omission hints only; neither necessary-definition proof nor semantic coverage",
+        "reference_format_contract": {
+          "nontrivial_source_operands": 1,
+          "source_operands_found_in_public_text": 0,
+          "explicit_naming_instruction_cue": false,
+          "scope": "Lexical evidence only; hidden reference transformations are not generator requirements"
+        }
+      }
+    }
+  ],
+  "full_components": "NOT RUN",
+  "full_development": "NOT RUN",
+  "independent_validation": "NOT RUN",
+  "post_run_observations": {
+    "runtime": "All three generated candidates executed without engine errors; first case remained empty, second selected a different raw name.",
+    "query_decisions": "Saved queries replace derived-index conditions with raw measurement thresholds, add category restrictions and do not consistently rank within the complete required candidate set.",
+    "format_contract": "Reference naming transformation has no identified nontrivial literal support or explicit normalization cue in public inputs; this is a separate grading concern and does not explain these wrong or empty outputs.",
+    "decision": "Stop: strict 0/2, no further paid attempts, component expansion, full development or independent validation in this cycle.",
+    "deepseek_calls": 0,
+    "gpu_used": false,
+    "actions_enabled": false
+  }
+}

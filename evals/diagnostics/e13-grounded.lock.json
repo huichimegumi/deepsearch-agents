@@ -1,0 +1,22 @@
+{
+  "version": "e13-grounded-1",
+  "provider": "qwen",
+  "model": "qwen-flash",
+  "cases": ["hybrid:sql2s_088", "hybrid:sql2s_128"],
+  "requests_per_case": 2,
+  "reserved_tokens_per_case": 80000,
+  "output_tokens": 2400,
+  "required_matches": 2,
+  "rules": [
+    "Only the shared application direct-SQL path with complete bounded public definitions",
+    "Same exposed E12 SQL subtasks; no new benchmark or independent validation",
+    "Maximum four requests and 160000 reserved tokens for the entire experiment",
+    "Retry only actual engine errors or empty results; no gold-driven repair",
+    "Grade once after both cases terminate; retain original strict comparator",
+    "Exact-name diagnostics award no pass credit and never feed generation",
+    "Reject input or source changes and all paid resumes",
+    "Only 2/2 strict matches admits further component work; stop otherwise",
+    "Existing report 8/8, SQL 4/6, full development 6/8 with all directions gates remain",
+    "Qwen and CPU only; repository Actions remains disabled"
+  ]
+}

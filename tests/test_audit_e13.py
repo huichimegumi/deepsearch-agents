@@ -72,3 +72,16 @@ def test_context_audit_reports_lexical_omissions_without_disclosing_values():
         )["omitted_literal_bearing_definition_ids"]
         == []
     )
+
+
+def test_reference_only_name_transforms_are_not_public_requirements():
+    audit = context_audit([], {"public_definitions": []}, "Find the name", REFERENCE)
+    # Space and punctuation operands are too short to establish a public rule.
+    assert audit["reference_format_contract"]["nontrivial_source_operands"] == 0
+    query = REFERENCE.replace("' '", "' Observatory'")
+    audit = context_audit([], {"public_definitions": []}, "Find the name", query)
+    contract = audit["reference_format_contract"]
+    assert contract["nontrivial_source_operands"] == 1
+    assert contract["source_operands_found_in_public_text"] == 0
+    assert not contract["explicit_naming_instruction_cue"]
+    assert "Observatory" not in str(audit)

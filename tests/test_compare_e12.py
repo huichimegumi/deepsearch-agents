@@ -5,7 +5,7 @@ import pytest
 
 from app.research.grounded_sql import SQLCandidate
 from app.research.metric_selection import MetricSelection
-from evals.diagnostics import audit_e13
+from evals.diagnostics import audit_e13, grounded_e13
 from evals.diagnostics import compare_e12 as comparison
 from evals.diagnostics.e8 import digest
 
@@ -137,3 +137,66 @@ def test_missing_or_duplicate_arms_cannot_be_scored():
     }
     with pytest.raises(ValueError, match="arm_set_changed"):
         comparison.grade(None, manifest, [{"id": "a", "route": "selection"}] * 4)
+
+
+@pytest.mark.asyncio
+async def test_frozen_shared_path_grades_after_all_cases_and_cannot_resume(tmp_path, monkeypatch):
+    fixture(tmp_path, monkeypatch)
+    monkeypatch.setattr(grounded_e13, "INPUTS", comparison.INPUTS)
+
+    class Model:
+        calls = 0
+
+        def with_structured_output(self, schema, **kwargs):
+            assert schema is SQLCandidate
+            return self
+
+        def bind(self, **kwargs):
+            return self
+
+        async def ainvoke(self, messages):
+            self.calls += 1
+            payload = json.loads(messages[-1]["content"])
+            assert payload["semantic_context"]["mode"] == "complete_public_knowledge"
+            assert "reference_sql" not in json.dumps(payload)
+            assert "actual_engine_feedback" not in payload
+            return {"parsed": SQLCandidate(sql="SELECT c1 FROM r1"), "raw": None}
+
+    model = Model()
+    monkeypatch.setattr(
+        grounded_e13,
+        "model_for",
+        lambda provider: model if provider == "qwen" else pytest.fail("Only Qwen"),
+    )
+    original = grounded_e13.grade
+
+    def grade(output, manifest, rows):
+        assert model.calls == 2 and len(rows) == 2
+        return original(output, manifest, rows)
+
+    monkeypatch.setattr(grounded_e13, "grade", grade)
+    output = tmp_path / "e13"
+    grounded_e13.prepare(output)
+    summary = await grounded_e13.run(output)
+    assert summary["strict_matches"] == 0 and not summary["eligible_for_components"]
+    assert all(r["status"] == "executed" for r in summary["cases"])
+    monkeypatch.setattr(grounded_e13, "model_for", lambda _: pytest.fail("No paid resume"))
+    with pytest.raises(FileExistsError, match="paid_resume_forbidden"):
+        await grounded_e13.run(output)
+
+
+@pytest.mark.asyncio
+async def test_shared_path_packet_changes_stop_before_model(tmp_path, monkeypatch):
+    fixture(tmp_path, monkeypatch)
+    monkeypatch.setattr(grounded_e13, "INPUTS", comparison.INPUTS)
+    output = tmp_path / "e13"
+    grounded_e13.prepare(output)
+    key = json.loads(grounded_e13.PROTOCOL.read_text())["cases"][0]
+    path = comparison.case_dir(output, key) / "values.json"
+    path.write_text('{"tampered":true}')
+    monkeypatch.setattr(
+        grounded_e13, "model_for", lambda _: pytest.fail("No model on tampered packets")
+    )
+    with pytest.raises(ValueError, match="packet_changed"):
+        await grounded_e13.run(output)
+    assert not (output / "started.json").exists()
