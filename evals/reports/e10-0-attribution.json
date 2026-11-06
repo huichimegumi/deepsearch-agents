@@ -1,0 +1,227 @@
+{
+  "scope": "Exposed development artifact review; lexical differences are signals, not proof of cause or task grades",
+  "api_calls": 0,
+  "source_sha256": {
+    "sql": "8a4f1c9d7bbf8f49e88ea29f0ddafca2106d254224adfe0cc18153b557af27bf",
+    "writer": "3880fc1c958765c499955ad69d95e64bf37e2f8755a897c6dc3cf4d4dee36332",
+    "references": "ede555676e5805d89972c749334deb6957ef9a0c5621e1a4a0f41905b1a927bd"
+  },
+  "sql_cases": [
+    {
+      "id": "hybrid:s2sql_050",
+      "classification": "empty_result_mismatch",
+      "error_class": null,
+      "reference_signals": {
+        "aggregate_calls": 0,
+        "arithmetic_operators": 14,
+        "joins": 1,
+        "window_calls": 0,
+        "case_expressions": 0,
+        "like_predicates": 2,
+        "wildcard_values_used_in_equality": 0
+      },
+      "candidate_signals": [
+        {
+          "aggregate_calls": 0,
+          "arithmetic_operators": 0,
+          "joins": 0,
+          "window_calls": 0,
+          "case_expressions": 0,
+          "like_predicates": 0,
+          "wildcard_values_used_in_equality": 1
+        },
+        {
+          "aggregate_calls": 0,
+          "arithmetic_operators": 0,
+          "joins": 0,
+          "window_calls": 0,
+          "case_expressions": 0,
+          "like_predicates": 0,
+          "wildcard_values_used_in_equality": 1
+        }
+      ],
+      "identical_retry": true,
+      "missing_direct_definition_dependencies": 1
+    },
+    {
+      "id": "hybrid:s2sql_048",
+      "classification": "empty_result_mismatch",
+      "error_class": null,
+      "reference_signals": {
+        "aggregate_calls": 2,
+        "arithmetic_operators": 15,
+        "joins": 0,
+        "window_calls": 0,
+        "case_expressions": 1,
+        "like_predicates": 2,
+        "wildcard_values_used_in_equality": 0
+      },
+      "candidate_signals": [
+        {
+          "aggregate_calls": 2,
+          "arithmetic_operators": 9,
+          "joins": 1,
+          "window_calls": 0,
+          "case_expressions": 2,
+          "like_predicates": 0,
+          "wildcard_values_used_in_equality": 1
+        },
+        {
+          "aggregate_calls": 2,
+          "arithmetic_operators": 9,
+          "joins": 1,
+          "window_calls": 0,
+          "case_expressions": 2,
+          "like_predicates": 0,
+          "wildcard_values_used_in_equality": 1
+        }
+      ],
+      "identical_retry": true,
+      "missing_direct_definition_dependencies": 1
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "classification": "model_or_runtime_error",
+      "error_class": "StructuredResponseError",
+      "reference_signals": {
+        "aggregate_calls": 0,
+        "arithmetic_operators": 18,
+        "joins": 0,
+        "window_calls": 1,
+        "case_expressions": 3,
+        "like_predicates": 0,
+        "wildcard_values_used_in_equality": 0
+      },
+      "candidate_signals": [],
+      "identical_retry": false,
+      "missing_direct_definition_dependencies": 1
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "classification": "nonempty_result_mismatch",
+      "error_class": null,
+      "reference_signals": {
+        "aggregate_calls": 0,
+        "arithmetic_operators": 10,
+        "joins": 0,
+        "window_calls": 0,
+        "case_expressions": 1,
+        "like_predicates": 0,
+        "wildcard_values_used_in_equality": 0
+      },
+      "candidate_signals": [
+        {
+          "aggregate_calls": 0,
+          "arithmetic_operators": 5,
+          "joins": 0,
+          "window_calls": 0,
+          "case_expressions": 3,
+          "like_predicates": 0,
+          "wildcard_values_used_in_equality": 0
+        }
+      ],
+      "identical_retry": false,
+      "missing_direct_definition_dependencies": 2
+    },
+    {
+      "id": "hybrid:parallel_040",
+      "classification": "tool_error",
+      "error_class": "OperationalError",
+      "reference_signals": {
+        "aggregate_calls": 0,
+        "arithmetic_operators": 15,
+        "joins": 2,
+        "window_calls": 1,
+        "case_expressions": 1,
+        "like_predicates": 0,
+        "wildcard_values_used_in_equality": 0
+      },
+      "candidate_signals": [
+        {
+          "aggregate_calls": 0,
+          "arithmetic_operators": 3,
+          "joins": 2,
+          "window_calls": 0,
+          "case_expressions": 3,
+          "like_predicates": 4,
+          "wildcard_values_used_in_equality": 0
+        },
+        {
+          "aggregate_calls": 0,
+          "arithmetic_operators": 3,
+          "joins": 2,
+          "window_calls": 0,
+          "case_expressions": 3,
+          "like_predicates": 4,
+          "wildcard_values_used_in_equality": 0
+        }
+      ],
+      "identical_retry": true,
+      "missing_direct_definition_dependencies": 2
+    },
+    {
+      "id": "hybrid:parallel_085",
+      "classification": "model_or_runtime_error",
+      "error_class": "APITimeoutError",
+      "reference_signals": {
+        "aggregate_calls": 1,
+        "arithmetic_operators": 15,
+        "joins": 1,
+        "window_calls": 1,
+        "case_expressions": 1,
+        "like_predicates": 0,
+        "wildcard_values_used_in_equality": 0
+      },
+      "candidate_signals": [],
+      "identical_retry": false,
+      "missing_direct_definition_dependencies": 3
+    }
+  ],
+  "writer_cases": [
+    {
+      "id": "dabstep:97",
+      "protocol_pass": false,
+      "section_errors": 2
+    },
+    {
+      "id": "dabstep:81",
+      "protocol_pass": true,
+      "section_errors": 0
+    },
+    {
+      "id": "hybrid:s2sql_050",
+      "protocol_pass": false,
+      "section_errors": 2
+    },
+    {
+      "id": "hybrid:s2sql_048",
+      "protocol_pass": true,
+      "section_errors": 0
+    },
+    {
+      "id": "hybrid:sql2s_088",
+      "protocol_pass": true,
+      "section_errors": 0
+    },
+    {
+      "id": "hybrid:sql2s_128",
+      "protocol_pass": false,
+      "section_errors": 1
+    },
+    {
+      "id": "hybrid:parallel_040",
+      "protocol_pass": true,
+      "section_errors": 0
+    },
+    {
+      "id": "hybrid:parallel_085",
+      "protocol_pass": true,
+      "section_errors": 0
+    }
+  ],
+  "limits": [
+    "Unlabelled evaluator-derived literals do not establish correct upstream resolution",
+    "No reference SQL, identifiers, literals, questions or source texts exported",
+    "Timeout and invalid output do not establish SQL semantic inability"
+  ]
+}
