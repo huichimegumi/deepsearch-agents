@@ -173,14 +173,13 @@ async def run_rfc_qa(
                 else prepared_evidence
             )
             if sources_only:
-                # In explicit lookups show each requested section before filling the preview.
-                if SECTION_REF.search(question):
-                    first_by_location = {}
-                    for record in records:
-                        first_by_location.setdefault(record["locator"], record)
-                    first = list(first_by_location.values())
-                    first_ids = {record["evidence_id"] for record in first}
-                    records = first + [r for r in records if r["evidence_id"] not in first_ids]
+                # Give distinct sections space in the five-excerpt preview.
+                first_by_location = {}
+                for record in records:
+                    first_by_location.setdefault(record["locator"], record)
+                first = list(first_by_location.values())
+                first_ids = {record["evidence_id"] for record in first}
+                records = first + [r for r in records if r["evidence_id"] not in first_ids]
                 records = records[:5]
             EvidenceStore(output).add(records, "retrieve")
             if not records:
