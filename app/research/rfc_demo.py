@@ -55,7 +55,8 @@ def index_text(raw: str) -> str:
     )
 
 
-def _retrieve(question):
+def candidate_records(question):
+    """Return the common ordered pool and its delivery limit."""
     with session_scope() as session:
         kb = session.scalar(select(KnowledgeBase).where(KnowledgeBase.name == KB_NAME))
         if kb is None:
@@ -105,9 +106,12 @@ def _retrieve(question):
                 metadata={"title": f"RFC {rfc} §{section[1]}", "section": chunk.section},
             ).to_dict()
         )
-        if len(records) == (16 if explicit else 8):
-            break
-    return records
+    return records, (16 if explicit else 8)
+
+
+def _retrieve(question):
+    records, limit = candidate_records(question)
+    return records[:limit]
 
 
 def _render(raw, records):
@@ -139,7 +143,7 @@ def _render(raw, records):
     return "answered", "\n\n".join(paragraphs)
 
 
-async def run_rfc_qa(question, output_root, *, model=None):
+async def run_rfc_qa(question, output_root, *, model=None, prepared_evidence=None):
     """Shared entry for the UI service and later evaluation; one Writer request at most."""
     output = output_root / f"rfc_qa_{uuid4().hex}"
     output.mkdir(parents=True)
@@ -150,7 +154,11 @@ async def run_rfc_qa(question, output_root, *, model=None):
     records, model_usage, error, reason = [], None, None, None
     try:
         async with asyncio.timeout(60):
-            records = await asyncio.to_thread(_retrieve, question)
+            records = (
+                await asyncio.to_thread(_retrieve, question)
+                if prepared_evidence is None
+                else prepared_evidence
+            )
             EvidenceStore(output).add(records, "retrieve")
             if not records:
                 status, answer = "insufficient_evidence", INSUFFICIENT

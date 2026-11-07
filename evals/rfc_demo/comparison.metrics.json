@@ -1,0 +1,206 @@
+{
+  "summary": {
+    "hybrid": {
+      "anchor_hits": 5,
+      "anchors_total": 15,
+      "macro_recall": 0.4286,
+      "median_retrieval_seconds": 0.459,
+      "median_total_seconds": 2.788,
+      "requests": 9,
+      "known_tokens": 10629,
+      "rows_without_tokens": 0
+    },
+    "rerank": {
+      "anchor_hits": 6,
+      "anchors_total": 15,
+      "macro_recall": 0.4762,
+      "median_retrieval_seconds": 7.939,
+      "median_total_seconds": 10.06,
+      "requests": 9,
+      "known_tokens": 8684,
+      "rows_without_tokens": 0
+    }
+  },
+  "cases": {
+    "D01": {
+      "hybrid": {
+        "status": "answered",
+        "anchors_found": 1,
+        "anchors_total": 1,
+        "retrieval_seconds": 0.946,
+        "total_seconds": 3.062,
+        "requests": 1,
+        "tokens": 1027
+      },
+      "rerank": {
+        "status": "answered",
+        "anchors_found": 1,
+        "anchors_total": 1,
+        "retrieval_seconds": 12.415,
+        "total_seconds": 13.631,
+        "requests": 1,
+        "tokens": 957
+      }
+    },
+    "D03": {
+      "rerank": {
+        "status": "insufficient_evidence",
+        "anchors_found": 0,
+        "anchors_total": 0,
+        "retrieval_seconds": 6.069,
+        "total_seconds": 6.989,
+        "requests": 1,
+        "tokens": 367
+      },
+      "hybrid": {
+        "status": "insufficient_evidence",
+        "anchors_found": 0,
+        "anchors_total": 0,
+        "retrieval_seconds": 0.37,
+        "total_seconds": 2.549,
+        "requests": 1,
+        "tokens": 1111
+      }
+    },
+    "D04": {
+      "hybrid": {
+        "status": "answered",
+        "anchors_found": 0,
+        "anchors_total": 2,
+        "retrieval_seconds": 0.459,
+        "total_seconds": 3.907,
+        "requests": 1,
+        "tokens": 1037
+      },
+      "rerank": {
+        "status": "answered",
+        "anchors_found": 0,
+        "anchors_total": 2,
+        "retrieval_seconds": 8.556,
+        "total_seconds": 9.539,
+        "requests": 1,
+        "tokens": 905
+      }
+    },
+    "D05": {
+      "rerank": {
+        "status": "answered",
+        "anchors_found": 2,
+        "anchors_total": 2,
+        "retrieval_seconds": 7.54,
+        "total_seconds": 9.149,
+        "requests": 1,
+        "tokens": 988
+      },
+      "hybrid": {
+        "status": "answered",
+        "anchors_found": 2,
+        "anchors_total": 2,
+        "retrieval_seconds": 0.392,
+        "total_seconds": 2.788,
+        "requests": 1,
+        "tokens": 1135
+      }
+    },
+    "D06": {
+      "hybrid": {
+        "status": "answered",
+        "anchors_found": 1,
+        "anchors_total": 2,
+        "retrieval_seconds": 0.52,
+        "total_seconds": 2.779,
+        "requests": 1,
+        "tokens": 1400
+      },
+      "rerank": {
+        "status": "failed",
+        "anchors_found": 1,
+        "anchors_total": 2,
+        "retrieval_seconds": 8.015,
+        "total_seconds": 10.294,
+        "requests": 1,
+        "tokens": 981
+      }
+    },
+    "D07": {
+      "rerank": {
+        "status": "answered",
+        "anchors_found": 1,
+        "anchors_total": 3,
+        "retrieval_seconds": 8.25,
+        "total_seconds": 10.06,
+        "requests": 1,
+        "tokens": 894
+      },
+      "hybrid": {
+        "status": "answered",
+        "anchors_found": 0,
+        "anchors_total": 3,
+        "retrieval_seconds": 0.515,
+        "total_seconds": 4.942,
+        "requests": 1,
+        "tokens": 1267
+      }
+    },
+    "D08": {
+      "hybrid": {
+        "status": "answered",
+        "anchors_found": 1,
+        "anchors_total": 2,
+        "retrieval_seconds": 0.442,
+        "total_seconds": 4.45,
+        "requests": 1,
+        "tokens": 1215
+      },
+      "rerank": {
+        "status": "failed",
+        "anchors_found": 1,
+        "anchors_total": 2,
+        "retrieval_seconds": 7.939,
+        "total_seconds": 13.378,
+        "requests": 1,
+        "tokens": 1219
+      }
+    },
+    "D09": {
+      "rerank": {
+        "status": "answered",
+        "anchors_found": 0,
+        "anchors_total": 3,
+        "retrieval_seconds": 7.554,
+        "total_seconds": 11.986,
+        "requests": 1,
+        "tokens": 1270
+      },
+      "hybrid": {
+        "status": "answered",
+        "anchors_found": 0,
+        "anchors_total": 3,
+        "retrieval_seconds": 0.517,
+        "total_seconds": 1.911,
+        "requests": 1,
+        "tokens": 1467
+      }
+    },
+    "D10": {
+      "hybrid": {
+        "status": "insufficient_evidence",
+        "anchors_found": 0,
+        "anchors_total": 0,
+        "retrieval_seconds": 0.416,
+        "total_seconds": 1.26,
+        "requests": 1,
+        "tokens": 970
+      },
+      "rerank": {
+        "status": "insufficient_evidence",
+        "anchors_found": 0,
+        "anchors_total": 0,
+        "retrieval_seconds": 6.658,
+        "total_seconds": 7.368,
+        "requests": 1,
+        "tokens": 1103
+      }
+    }
+  }
+}
