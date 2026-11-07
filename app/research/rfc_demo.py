@@ -24,7 +24,7 @@ RFC_NUMBERS = (9110, 9111)
 HEADING = re.compile(r"^(\d+(?:\.\d+)*)\. {2,}(\S.*)$", re.M)
 SECTION = re.compile(r"^(\d+(?:\.\d+)*)\. ")
 SECTION_REF = re.compile(
-    r"\bRFC\s*(9110|9111)\s*(?:section\s*|§\s*|第\s*)(\d+(?:\.\d+)*)(?![\d.])",
+    r"\bRFC\s*(9110|9111)\s*(?:section\s*|§\s*|第\s*)(\d+(?:\.\d+)*)(?!\d|\.\d)",
     re.I,
 )
 DEMO_DIGESTS = {
@@ -143,7 +143,20 @@ def _render(raw, records):
     return "answered", "\n\n".join(paragraphs)
 
 
-async def run_rfc_qa(question, output_root, *, model=None, prepared_evidence=None):
+def _render_evidence(records):
+    blocks = ["以下是检索到的 RFC 片段。请打开章节链接，核对上下文是否适用于你的问题。"]
+    for record in records:
+        excerpt = " ".join(record["content"].split())
+        if len(excerpt) > 500:
+            excerpt = excerpt[:497].rsplit(" ", 1)[0] + "…"
+        # Indented blocks display literal source text without interpreting Markdown.
+        blocks.extend([f"[{record['metadata']['title']}]({record['locator']})", f"    {excerpt}"])
+    return "\n\n".join(blocks)
+
+
+async def run_rfc_qa(
+    question, output_root, *, model=None, prepared_evidence=None, sources_only=False
+):
     """Shared entry for the UI service and later evaluation; one Writer request at most."""
     output = output_root / f"rfc_qa_{uuid4().hex}"
     output.mkdir(parents=True)
@@ -159,9 +172,21 @@ async def run_rfc_qa(question, output_root, *, model=None, prepared_evidence=Non
                 if prepared_evidence is None
                 else prepared_evidence
             )
+            if sources_only:
+                # In explicit lookups show each requested section before filling the preview.
+                if SECTION_REF.search(question):
+                    first_by_location = {}
+                    for record in records:
+                        first_by_location.setdefault(record["locator"], record)
+                    first = list(first_by_location.values())
+                    first_ids = {record["evidence_id"] for record in first}
+                    records = first + [r for r in records if r["evidence_id"] not in first_ids]
+                records = records[:5]
             EvidenceStore(output).add(records, "retrieve")
             if not records:
                 status, answer = "insufficient_evidence", INSUFFICIENT
+            elif sources_only:
+                status, answer = "evidence_found", _render_evidence(records)
             else:
                 excerpts = [
                     {"id": index, "text": r["content"]} for index, r in enumerate(records, 1)

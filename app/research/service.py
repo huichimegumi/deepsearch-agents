@@ -33,6 +33,7 @@ async def run_research(
     conversation_memory: str = "",
     sources: list[str] | None = None,
     rfc_demo: bool = False,
+    rfc_sources_only: bool = False,
 ) -> str:
     settings = get_settings()
     if settings.research_workflow == "legacy" and sources is None and not rfc_demo:
@@ -68,7 +69,7 @@ async def run_research(
         try:
             monitor.report_session_dir(str(session_dir))
             monitor.report_research_phase("rfc_qa", "HTTP 规范问答", "start")
-            result = await run_rfc_qa(task_query, session_dir)
+            result = await run_rfc_qa(task_query, session_dir, sources_only=rfc_sources_only)
             monitor.report_research_phase(
                 "rfc_qa", "HTTP 规范问答", "end", {"runtime_status": result["status"]}
             )

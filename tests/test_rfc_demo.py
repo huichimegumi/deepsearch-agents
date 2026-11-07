@@ -65,3 +65,35 @@ async def test_empty_retrieval_does_not_request_a_model(tmp_path, monkeypatch):
     result = await rfc_demo.run_rfc_qa("Outside the corpus", tmp_path)
     assert result["status"] == "insufficient_evidence"
     assert result["requests"] == 0
+
+
+@pytest.mark.asyncio
+async def test_sources_only_returns_literal_excerpt_and_never_creates_writer(tmp_path, monkeypatch):
+    location = "https://www.rfc-editor.org/rfc/rfc9111.html#section-4.1"
+    record = rfc_demo.EvidenceRecord.create(
+        source=rfc_demo.EvidenceSource.LOCAL_DOCUMENT,
+        locator=location,
+        content="See [example] (literal source text).",
+        metadata={"title": "RFC 9111 §4.1"},
+    ).to_dict()
+    monkeypatch.setattr(
+        rfc_demo, "get_model", lambda: pytest.fail("source mode must not create writer")
+    )
+    assert rfc_demo.SECTION_REF.findall("RFC 9111 section 4.1.") == [("9111", "4.1")]
+    another = rfc_demo.EvidenceRecord.create(
+        source=rfc_demo.EvidenceSource.LOCAL_DOCUMENT,
+        locator="https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.1",
+        content="An additional section.",
+        metadata={"title": "RFC 9110 §9.2.1"},
+    ).to_dict()
+    result = await rfc_demo.run_rfc_qa(
+        "Locate RFC 9111 section 4.1 and RFC 9110 section 9.2.1",
+        tmp_path,
+        sources_only=True,
+        prepared_evidence=[record] * 5 + [another],
+    )
+    assert result["status"] == "evidence_found"
+    assert result["requests"] == 0
+    assert result["evidence_ids"] == [record["evidence_id"], another["evidence_id"]]
+    assert f"[RFC 9111 §4.1]({location})" in result["answer"]
+    assert "\n\n    See [example] (literal source text)." in result["answer"]

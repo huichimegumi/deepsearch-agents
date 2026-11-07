@@ -1,3 +1,4 @@
+import type { RfcMode } from "./types";
 import {
   BranchesOutlined,
   BookOutlined,
@@ -69,7 +70,7 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [stagedItems, setStagedItems] = useState<UploadedItem[]>([]);
   const [turns, setTurns] = useState<ChatTurn[]>([]);
-  const [rfcDemo, setRfcDemo] = useState(false);
+  const [rfcMode, setRfcMode] = useState<RfcMode>("research");
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
   const streamRef = useRef<HTMLElement | null>(null);
@@ -168,7 +169,7 @@ export default function App() {
     setQuery("");
 
     try {
-      await session.submitTask(cleanQuery, rfcDemo);
+      await session.submitTask(cleanQuery, rfcMode);
       history.refreshConversations().catch(() => undefined);
       message.success("任务已启动，执行过程会显示在对话中");
     } catch (error) {
@@ -398,8 +399,8 @@ export default function App() {
         </section>
 
         <ChatComposer
-          rfcDemo={rfcDemo}
-          onRfcDemoChange={setRfcDemo}
+          rfcMode={rfcMode}
+          onRfcModeChange={setRfcMode}
           isCancelling={session.isCancelling}
           isRunning={session.isRunning}
           isUploading={session.isUploading}

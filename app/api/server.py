@@ -107,6 +107,7 @@ class TaskRequest(BaseModel):
 
     query: str
     rfc_demo: bool = False
+    rfc_sources_only: bool = False
     thread_id: str = None
     sources: list[Literal["sql", "local_document", "web", "fee_engine"]] | None = Field(
         default=None, min_length=1, max_length=4
@@ -174,6 +175,7 @@ async def _run_task_and_record(
     user_message_id: str | None = None,
     sources: list[str] | None = None,
     rfc_demo: bool = False,
+    rfc_sources_only: bool = False,
 ) -> None:
     conversation_memory = ""
     if not rfc_demo:
@@ -194,6 +196,7 @@ async def _run_task_and_record(
             conversation_memory=conversation_memory,
             sources=sources,
             rfc_demo=rfc_demo,
+            rfc_sources_only=rfc_sources_only,
         )
     finally:
         trace_events = monitor.end_trace(monitor_thread_id)
@@ -225,6 +228,8 @@ async def run_task(request: TaskRequest, current_user: User = Depends(get_curren
     HTTP 请求只负责创建后台协程并立即返回，后续执行轨迹、子智能体调用和最终
     答案都会由 monitor 通过 `/ws/{thread_id}` 推送给同一会话的前端。
     """
+    if request.rfc_sources_only and not request.rfc_demo:
+        raise HTTPException(status_code=422, detail="仅规范模式支持出处定位")
     if request.rfc_demo and (
         request.sources is not None or not 1 <= len(request.query.strip()) <= 2000
     ):
@@ -262,6 +267,7 @@ async def run_task(request: TaskRequest, current_user: User = Depends(get_curren
             user_message_id=user_message.id,
             sources=request.sources,
             rfc_demo=request.rfc_demo,
+            rfc_sources_only=request.rfc_sources_only,
         )
     )
     active_tasks[task_key] = task

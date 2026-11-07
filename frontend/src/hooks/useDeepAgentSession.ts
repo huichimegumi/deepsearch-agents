@@ -1,3 +1,4 @@
+import type { RfcMode } from "../types";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cancelTask, listSessionFiles, startTask, uploadSessionFiles } from "../lib/api";
 import { WS_BASE_URL } from "../lib/config";
@@ -225,7 +226,7 @@ export function useDeepAgentSession(
   }, [isRunning, refreshFiles, sessionPath]);
 
   const submitTask = useCallback(
-    async (query: string, rfcDemo = false) => {
+    async (query: string, rfcMode: RfcMode = "research") => {
       const cleanQuery = query.trim();
       if (!cleanQuery) {
         throw new Error("请输入研搜任务");
@@ -237,7 +238,7 @@ export function useDeepAgentSession(
       setResult("");
       setLastError("");
       try {
-        const response = await startTask(cleanQuery, threadId, rfcDemo);
+        const response = await startTask(cleanQuery, threadId, rfcMode);
         if (response.thread_id && response.thread_id !== threadId) {
           storeThreadId(response.thread_id);
           setThreadId(response.thread_id);

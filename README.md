@@ -1,5 +1,35 @@
 # DeepSearch Agents
 
+DeepSearch Agents 是一个带聊天界面的文档检索与研究助手。当前推荐演示是 **HTTP 规范查证**：在固定的 RFC 9110 / 9111 中检索实际片段，点开链接查看原文章节。生成式问答仍可选，标记为实验。
+
+### 启动与演示
+
+1. 按下方完整手册启动 API、前端和知识库服务。安装 Python 依赖后，从仓库根目录运行 `uv run python -m scripts.seed_rfc_demo`。
+2. 在知识库页确认 **HTTP 规范示例 · RFC 9110 与 9111** 中两份文档已就绪。示例使用固定公开原文，不需要上传个人文档。
+3. 在聊天输入框选择 **HTTP 规范查证**。试问「List only the four HTTP request methods defined as safe by RFC 9110.」，或用包含 RFC 编号与章节的问题直接定位原文。查证模式展示最多五个相关片段及链接，无需生成模型调用；片段相关性仍需自己判断。
+
+```mermaid
+flowchart LR
+    UI[聊天工作台] --> API[FastAPI / WebSocket]
+    API --> R[固定 RFC 检索]
+    KB[PostgreSQL 词法与 Qdrant 向量] --> R
+    R --> S[查证：片段与原文链接]
+    R --> W[实验问答：一次 Writer]
+```
+
+### 实测结果
+
+| 样本 | 结果 |
+| --- | --- |
+| 9 道开发题，混合检索 vs. CPU 重排 | 正确交付（含适当拒答）5/9 vs. 3/9；耗时中位数 2.79 s vs. 10.06 s。保留混合检索。 |
+| 5 道同语料保留题，冻结混合检索问答 | 4 道返回带链接回答，1 道提示证据不足。标注出处引用 7/9；没有确认达到短问答发布门槛。 |
+
+[开发集对照](evals/rfc_demo/comparison.md) · [保留题验证与发布边界](evals/rfc_demo/validation.md)。这些是小样本结果；链接存在不代表答案正确，查证模式也不保证找到全部相关章节。此演示限于两份 RFC 的编号正文，不覆盖通用 Web、SQL、附件或跨轮研究。
+
+<details>
+<summary>完整项目手册（中文 / English）与历史开发记录</summary>
+
+
 E4.24 将任务要求的证据来源接入最终报告交付：扩展评测明确传入 Web／SQL／本地文档来源，缺少合格来源或对应引用时扣留回答并记录降级。一次零 Tavily 的 SQL＋本地题复验在研究阶段超时，未触达交付校验，还暴露取消耗时超出外层超时的问题。见 [来源交付记录](docs/development/e4-24-required-source-delivery.md)。
 
 E4.23 对两道满足机械交付条件的本地报告做了逐要点原文绑定初审：数字人场景要点暂判有依据；央行报告仅覆盖 2025 年政策取向，遗漏后续增长与物价要点。引文校验不等于语义正确，人工准确率仍待审。见 [两题证据初审](docs/development/e4-23-two-case-source-triage.md)。
@@ -1307,3 +1337,5 @@ The project already includes a basic user system, conversation isolation, and ma
 - DABStep fee matching is now deterministic and independently cross-validated, but `NO_MATCH` transactions must remain visible. Conversion effects, causal conclusions, and counterfactual savings are still assumption-bound.
 
 Before exposing the system publicly or using it in production, add formal authentication, authorization policies, rate limiting, data isolation, secret management, monitoring and alerts, security auditing, and quality regression workflows.
+
+</details>
