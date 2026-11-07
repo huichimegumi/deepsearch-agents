@@ -4,11 +4,13 @@ import {
   SendOutlined,
   StopOutlined
 } from "@ant-design/icons";
-import { Button, Tooltip, Upload } from "antd";
+import { Button, Checkbox, Tooltip, Upload } from "antd";
 import type { UploadFile } from "antd";
 import type { UploadedItem } from "../types";
 
 interface ChatComposerProps {
+  rfcDemo: boolean;
+  onRfcDemoChange: (value: boolean) => void;
   isCancelling: boolean;
   isRunning: boolean;
   isUploading: boolean;
@@ -48,6 +50,8 @@ function uniqueUploadedItems(items: UploadedItem[]): UploadedItem[] {
 }
 
 export function ChatComposer({
+  rfcDemo,
+  onRfcDemoChange,
   isCancelling,
   isRunning,
   isUploading,
@@ -117,7 +121,7 @@ export function ChatComposer({
               onSubmit();
             }
           }}
-          placeholder="向 DeepSearch Agents 发送任务..."
+          placeholder={rfcDemo ? "提问 RFC 9110 或 RFC 9111 中的 HTTP 规范" : "向 DeepSearch Agents 发送任务..."}
           value={query}
         />
 
@@ -145,12 +149,15 @@ export function ChatComposer({
                 <Button
                   aria-label="选择附件"
                   className="composer-icon-button"
-                  disabled={isRunning || isUploading}
+                  disabled={isRunning || isUploading || rfcDemo}
                   icon={<PaperClipOutlined />}
                   shape="circle"
                 />
               </Tooltip>
             </Upload>
+            <Checkbox checked={rfcDemo} disabled={isRunning} onChange={(event) => onRfcDemoChange(event.target.checked)}>
+              HTTP 规范问答
+            </Checkbox>
           </div>
 
           <Tooltip title={isRunning ? "取消当前任务" : "发送任务"}>

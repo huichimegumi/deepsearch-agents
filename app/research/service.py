@@ -32,9 +32,10 @@ async def run_research(
     monitor_thread_id: str | None = None,
     conversation_memory: str = "",
     sources: list[str] | None = None,
+    rfc_demo: bool = False,
 ) -> str:
     settings = get_settings()
-    if settings.research_workflow == "legacy" and sources is None:
+    if settings.research_workflow == "legacy" and sources is None and not rfc_demo:
         from app.agent.main_agent import run_deep_agent
 
         return await run_deep_agent(
@@ -58,6 +59,23 @@ async def run_research(
         uploaded /= f"user_{user_id}"
     session_dir = parent / f"session_{session_id}"
     session_dir.mkdir(parents=True, exist_ok=True)
+    if rfc_demo:
+        from app.research.rfc_demo import run_rfc_qa
+
+        session_token = set_session_context(str(session_dir))
+        thread_token = set_thread_context(monitor_thread_id or session_id)
+        user_token = set_user_context(user_id)
+        try:
+            monitor.report_session_dir(str(session_dir))
+            monitor.report_research_phase("rfc_qa", "HTTP 规范问答", "start")
+            result = await run_rfc_qa(task_query, session_dir)
+            monitor.report_research_phase(
+                "rfc_qa", "HTTP 规范问答", "end", {"runtime_status": result["status"]}
+            )
+            monitor.report_task_result(result["answer"])
+            return result["answer"]
+        finally:
+            reset_session_context(session_token, thread_token, user_token)
     # Per-run artifacts retain previous attempts in the same conversation.
     import uuid
 

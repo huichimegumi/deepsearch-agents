@@ -46,7 +46,7 @@ async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Pro
   return payload as T;
 }
 
-export async function startTask(query: string, threadId: string): Promise<TaskResponse> {
+export async function startTask(query: string, threadId: string, rfcDemo = false): Promise<TaskResponse> {
   return requestJson<TaskResponse>(apiUrl("/api/task"), {
     method: "POST",
     headers: {
@@ -54,7 +54,8 @@ export async function startTask(query: string, threadId: string): Promise<TaskRe
     },
     body: JSON.stringify({
       query,
-      thread_id: threadId
+      thread_id: threadId,
+      rfc_demo: rfcDemo
     })
   });
 }

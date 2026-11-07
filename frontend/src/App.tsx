@@ -69,6 +69,7 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [stagedItems, setStagedItems] = useState<UploadedItem[]>([]);
   const [turns, setTurns] = useState<ChatTurn[]>([]);
+  const [rfcDemo, setRfcDemo] = useState(false);
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
   const streamRef = useRef<HTMLElement | null>(null);
@@ -167,7 +168,7 @@ export default function App() {
     setQuery("");
 
     try {
-      await session.submitTask(cleanQuery);
+      await session.submitTask(cleanQuery, rfcDemo);
       history.refreshConversations().catch(() => undefined);
       message.success("任务已启动，执行过程会显示在对话中");
     } catch (error) {
@@ -397,6 +398,8 @@ export default function App() {
         </section>
 
         <ChatComposer
+          rfcDemo={rfcDemo}
+          onRfcDemoChange={setRfcDemo}
           isCancelling={session.isCancelling}
           isRunning={session.isRunning}
           isUploading={session.isUploading}

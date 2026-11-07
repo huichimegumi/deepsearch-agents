@@ -106,6 +106,7 @@ class TaskRequest(BaseModel):
     """前端启动任务时提交的请求体。"""
 
     query: str
+    rfc_demo: bool = False
     thread_id: str = None
     sources: list[Literal["sql", "local_document", "web", "fee_engine"]] | None = Field(
         default=None, min_length=1, max_length=4
@@ -172,14 +173,17 @@ async def _run_task_and_record(
     monitor_thread_id: str,
     user_message_id: str | None = None,
     sources: list[str] | None = None,
+    rfc_demo: bool = False,
 ) -> None:
-    conversation_memory = format_conversation_context_for_prompt(
-        get_conversation_context(
-            user_id=user_id,
-            thread_id=thread_id,
-            exclude_message_id=user_message_id,
+    conversation_memory = ""
+    if not rfc_demo:
+        conversation_memory = format_conversation_context_for_prompt(
+            get_conversation_context(
+                user_id=user_id,
+                thread_id=thread_id,
+                exclude_message_id=user_message_id,
+            )
         )
-    )
     monitor.begin_trace(monitor_thread_id)
     try:
         result = await run_research(
@@ -189,6 +193,7 @@ async def _run_task_and_record(
             monitor_thread_id=monitor_thread_id,
             conversation_memory=conversation_memory,
             sources=sources,
+            rfc_demo=rfc_demo,
         )
     finally:
         trace_events = monitor.end_trace(monitor_thread_id)
@@ -201,14 +206,15 @@ async def _run_task_and_record(
             events=trace_events,
             files=_trace_files(trace_events),
         )
-        extract_and_store_memories(
-            user_id=user_id,
-            thread_id=thread_id,
-            user_message=query,
-            assistant_message=result,
-            source_message_id=user_message_id or assistant_message.id,
-        )
-        update_conversation_summary(user_id=user_id, thread_id=thread_id)
+        if not rfc_demo:
+            extract_and_store_memories(
+                user_id=user_id,
+                thread_id=thread_id,
+                user_message=query,
+                assistant_message=result,
+                source_message_id=user_message_id or assistant_message.id,
+            )
+            update_conversation_summary(user_id=user_id, thread_id=thread_id)
 
 
 @app.post("/api/task")
@@ -219,6 +225,11 @@ async def run_task(request: TaskRequest, current_user: User = Depends(get_curren
     HTTP 请求只负责创建后台协程并立即返回，后续执行轨迹、子智能体调用和最终
     答案都会由 monitor 通过 `/ws/{thread_id}` 推送给同一会话的前端。
     """
+    if request.rfc_demo and (
+        request.sources is not None or not 1 <= len(request.query.strip()) <= 2000
+    ):
+        raise HTTPException(status_code=422, detail="规范问答仅接受 1–2000 字的问题，不可另选来源")
+
     thread_id = request.thread_id or str(uuid.uuid4())
     task_key = _thread_key(current_user.id, thread_id)
 
@@ -250,6 +261,7 @@ async def run_task(request: TaskRequest, current_user: User = Depends(get_curren
             monitor_thread_id=task_key,
             user_message_id=user_message.id,
             sources=request.sources,
+            rfc_demo=request.rfc_demo,
         )
     )
     active_tasks[task_key] = task
