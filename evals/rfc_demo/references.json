@@ -1,0 +1,275 @@
+[
+  {
+    "id": "D01",
+    "category": "fact",
+    "points": [
+      {
+        "expected": "GET, HEAD, OPTIONS, TRACE. Order does not matter.",
+        "anchors": [
+          {
+            "rfc": 9110,
+            "section": "9.2.1",
+            "text": "GET, HEAD, OPTIONS, and TRACE methods are defined to be safe"
+          }
+        ]
+      }
+    ],
+    "critical_errors": [
+      "Listing a method outside the four as safe."
+    ]
+  },
+  {
+    "id": "D02",
+    "category": "cross_document_explicit",
+    "points": [
+      {
+        "expected": "Vary names request fields that might have influenced representation selection beyond method and target URI.",
+        "anchors": [
+          {
+            "rfc": 9110,
+            "section": "12.5.5",
+            "text": "might have influenced"
+          }
+        ]
+      },
+      {
+        "expected": "The nominated fields of the incoming and original requests must match after permitted normalization; this is necessary, not sufficient for reuse.",
+        "anchors": [
+          {
+            "rfc": 9111,
+            "section": "4.1",
+            "text": "fields nominated by that Vary field value match"
+          }
+        ]
+      },
+      {
+        "expected": "A Vary value containing * always fails to match.",
+        "anchors": [
+          {
+            "rfc": 9111,
+            "section": "4.1",
+            "text": "always fails to match"
+          }
+        ]
+      }
+    ],
+    "critical_errors": [
+      "Treating a Vary match as sufficient for reuse or saying Vary: * matches all requests."
+    ]
+  },
+  {
+    "id": "D03",
+    "category": "out_of_scope",
+    "points": [
+      {
+        "expected": "Explicitly say the available RFC excerpts are insufficient. Do not give a capital from general knowledge.",
+        "anchors": []
+      }
+    ],
+    "critical_errors": [
+      "Supplying a capital or citing an RFC as support for geography."
+    ]
+  },
+  {
+    "id": "D04",
+    "category": "fact",
+    "points": [
+      {
+        "expected": "An HTTP date or a nonnegative decimal integer in seconds.",
+        "anchors": [
+          {
+            "rfc": 9110,
+            "section": "10.2.3",
+            "text": "Retry-After = HTTP-date / delay-seconds"
+          }
+        ]
+      },
+      {
+        "expected": "120 seconds (two minutes) from receiving the response.",
+        "anchors": [
+          {
+            "rfc": 9110,
+            "section": "10.2.3",
+            "text": "the delay is 2 minutes"
+          }
+        ]
+      }
+    ],
+    "critical_errors": [
+      "Using milliseconds or claiming the header prohibits one of the valid forms."
+    ]
+  },
+  {
+    "id": "D05",
+    "category": "multi_point",
+    "points": [
+      {
+        "expected": "No content and no trailers.",
+        "anchors": [
+          {
+            "rfc": 9110,
+            "section": "15.3.5",
+            "text": "cannot contain content or trailers"
+          }
+        ]
+      },
+      {
+        "expected": "No Content-Length field, including a value of zero.",
+        "anchors": [
+          {
+            "rfc": 9110,
+            "section": "8.6",
+            "text": "or 204 (No Content)"
+          }
+        ]
+      }
+    ],
+    "critical_errors": [
+      "Permitting a body, trailers, or Content-Length: 0."
+    ]
+  },
+  {
+    "id": "D06",
+    "category": "fact",
+    "points": [
+      {
+        "expected": "The origin server must use strong comparison.",
+        "anchors": [
+          {
+            "rfc": 9110,
+            "section": "13.1.1",
+            "text": "MUST use the strong comparison function"
+          }
+        ]
+      },
+      {
+        "expected": "At least one listed tag must match the selected representation’s entity tag.",
+        "anchors": [
+          {
+            "rfc": 9110,
+            "section": "13.1.1",
+            "text": "if any of the listed tags match"
+          }
+        ]
+      }
+    ],
+    "critical_errors": [
+      "Using weak comparison or requiring every tag to match."
+    ]
+  },
+  {
+    "id": "D07",
+    "category": "numeric",
+    "points": [
+      {
+        "expected": "Shared: 30 seconds, stale at age 45.",
+        "anchors": [
+          {
+            "rfc": 9111,
+            "section": "4.2.1",
+            "text": "If the cache is shared and the s-maxage"
+          },
+          {
+            "rfc": 9111,
+            "section": "4.2",
+            "text": "freshness_lifetime > current_age"
+          }
+        ]
+      },
+      {
+        "expected": "Private: 120 seconds, fresh at age 45.",
+        "anchors": [
+          {
+            "rfc": 9111,
+            "section": "4.2.1",
+            "text": "If the max-age response directive"
+          },
+          {
+            "rfc": 9111,
+            "section": "4.2",
+            "text": "freshness_lifetime > current_age"
+          }
+        ]
+      }
+    ],
+    "critical_errors": [
+      "Applying s-maxage to private caches, swapping lifetimes, or confusing freshness with storage permission."
+    ]
+  },
+  {
+    "id": "D08",
+    "category": "comparison",
+    "points": [
+      {
+        "expected": "Unqualified no-cache does not itself forbid storage; reuse requires successful validation.",
+        "anchors": [
+          {
+            "rfc": 9111,
+            "section": "5.2.2.4",
+            "text": "receiving a successful response"
+          }
+        ]
+      },
+      {
+        "expected": "No-store forbids storing any part of the immediate request or response and forbids reusing the response for another request, under the directive’s default rule.",
+        "anchors": [
+          {
+            "rfc": 9111,
+            "section": "5.2.2.5",
+            "text": "MUST NOT store any part"
+          }
+        ]
+      }
+    ],
+    "critical_errors": [
+      "Equating both directives or allowing unvalidated reuse under unqualified no-cache."
+    ]
+  },
+  {
+    "id": "D09",
+    "category": "cross_document_natural",
+    "points": [
+      {
+        "expected": "Use weak entity tag comparison.",
+        "anchors": [
+          {
+            "rfc": 9110,
+            "section": "13.1.2",
+            "text": "MUST use the weak comparison function"
+          }
+        ]
+      },
+      {
+        "expected": "Update the stored response header fields from the 304; do not replace its body with a 304 body.",
+        "anchors": [
+          {
+            "rfc": 9111,
+            "section": "4.3.4",
+            "text": "MUST update its header fields"
+          },
+          {
+            "rfc": 9110,
+            "section": "15.4.5",
+            "text": "cannot contain content or trailers"
+          }
+        ]
+      }
+    ],
+    "critical_errors": [
+      "Saying strong comparison, updating all cache entries regardless of identification, or replacing the stored body with content from the 304."
+    ]
+  },
+  {
+    "id": "D10",
+    "category": "out_of_scope",
+    "points": [
+      {
+        "expected": "Explain that the RFC documents contain no deployment measurements; do not guess a latency.",
+        "anchors": []
+      }
+    ],
+    "critical_errors": [
+      "Inventing a measured value or assuming access to staging telemetry."
+    ]
+  }
+]

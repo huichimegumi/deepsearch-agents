@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "corpus_sha256": {
+    "rfc9110.txt": "21c1cdce6ab0e5509b04d84a28000836c7a087cf786efe6f04877ebfff47232a",
+    "rfc9111.txt": "aeb52adb3279d5f23dae34f68af11bd5cef0a0aff7ffcd014c9ca93c5302cf3e"
+  },
+  "splits": {
+    "development": {
+      "count": 10,
+      "sha256": {
+        "questions.json": "f9b58e2864261984b288c2a1e473a698c7f4df304a9205fd421f2fa6b29de50d",
+        "references.json": "a23c6faeb4fae54a32f6f7286a2165655337336c7b4ab5a6cd170ce09b07fe48"
+      }
+    },
+    "sealed": {
+      "count": 5,
+      "sha256": {
+        "questions.json": "059cd4f547fcad5c3028ac804bd9b625ad6edba1f10d3739a426df5ef65e7015",
+        "references.json": "0974f338f4b41ade88648cf021fa89e2f0d8021865e1f73a7443157aa7c16545"
+      }
+    }
+  }
+}

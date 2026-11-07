@@ -29,6 +29,9 @@ def main():
                     raw = response.read(source["bytes"] + 1)
             if sha256(raw).hexdigest() != source["sha256"]:
                 raise ValueError(f"RFC source checksum mismatch: {name}")
+            if not snapshot.exists():
+                snapshot.parent.mkdir(parents=True, exist_ok=True)
+                snapshot.write_bytes(raw)
             target = f"rfc{number}.md"
             marked = index_text(raw.decode("utf-8").replace("\r\n", "\n")).encode("utf-8")
             if sha256(marked).hexdigest() != DEMO_DIGESTS[target]:

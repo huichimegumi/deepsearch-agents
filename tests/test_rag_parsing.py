@@ -44,3 +44,11 @@ class RagParsingTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_markdown_hash_token_preserves_section(tmp_path):
+    path = tmp_path / "rfc.md"
+    path.write_text("# 5.2.2.4. no-cache\n\n   #field-name\n\nA body paragraph.\n")
+    blocks = parse_document(path)
+    assert [block.section for block in blocks] == ["5.2.2.4. no-cache"] * 3
+    assert blocks[1].text == "#field-name"

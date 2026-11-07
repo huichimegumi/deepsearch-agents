@@ -1,0 +1,42 @@
+[
+  {
+    "id": "D01",
+    "question": "List only the four HTTP request methods defined as safe by RFC 9110."
+  },
+  {
+    "id": "D02",
+    "question": "According to RFC 9110 section 12.5.5 and RFC 9111 section 4.1, what does the Vary response header tell a recipient, and when may a cache reuse a stored response with Vary without revalidation?"
+  },
+  {
+    "id": "D03",
+    "question": "What is the capital of Mongolia?"
+  },
+  {
+    "id": "D04",
+    "question": "What two forms can an HTTP Retry-After value take, and how long does a value of 120 tell a client to wait?"
+  },
+  {
+    "id": "D05",
+    "question": "A server returns 204 after a successful PUT. Can it send response content, trailers, or a Content-Length: 0 header?"
+  },
+  {
+    "id": "D06",
+    "question": "For an HTTP If-Match precondition containing a list of entity tags, does the origin server use strong or weak comparison, and must every listed tag match?"
+  },
+  {
+    "id": "D07",
+    "question": "A response has Cache-Control: max-age=120, s-maxage=30. Its calculated current age is 45 seconds. Is it fresh for a shared cache and for a private cache? Give the two freshness lifetimes."
+  },
+  {
+    "id": "D08",
+    "question": "For HTTP response Cache-Control, distinguish no-cache without an argument from no-store. Can the response be stored or reused?"
+  },
+  {
+    "id": "D09",
+    "question": "For an HTTP conditional GET using If-None-Match, what comparison does the recipient use? When a cache receives a 304, what does it update on each matching stored response selected for freshening?"
+  },
+  {
+    "id": "D10",
+    "question": "What was the median HTTP latency of our private staging deployment yesterday? Give the measured number."
+  }
+]

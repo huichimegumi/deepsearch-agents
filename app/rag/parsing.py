@@ -56,7 +56,7 @@ def parse_document(path: Path) -> list[ParsedBlock]:
             text = paragraph.strip()
             if not text:
                 continue
-            if extension == ".md" and text.startswith("#"):
+            if extension == ".md" and re.match(r"^#{1,6}[ \t]+", text):
                 section = text.lstrip("#").strip()
             blocks.append(ParsedBlock(text=text, section=section))
         return blocks
