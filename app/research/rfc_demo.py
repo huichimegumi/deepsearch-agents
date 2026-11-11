@@ -8,7 +8,7 @@ import re
 from time import monotonic
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import select, tuple_
 
 from app.agent.llm import get_model
 from app.rag.database import session_scope
@@ -109,9 +109,71 @@ def candidate_records(question):
     return records, (16 if explicit else 8)
 
 
+SECTION_LIMIT = 5
+SECTION_CHARS = 2200
+
+
+def expand_sections(records):
+    """Read bounded section excerpts around the first hit, in hybrid rank order."""
+    first = {}
+    for record in records:
+        first.setdefault(record["locator"], record)
+    seeds = list(first.values())[:SECTION_LIMIT]
+    if not seeds:
+        return []
+    keys = [
+        (record["locator"].split("/")[-1].split(".html")[0] + ".md", record["metadata"]["section"])
+        for record in seeds
+    ]
+    chunks = {key: [] for key in keys}
+    with session_scope() as session:
+        rows = session.execute(
+            select(Document.filename, Document.sha256, Chunk.section, Chunk.content)
+            .join(Chunk, Chunk.document_id == Document.id)
+            .join(KnowledgeBase, Document.knowledge_base_id == KnowledgeBase.id)
+            .where(
+                KnowledgeBase.name == KB_NAME,
+                Document.status == "ready",
+                tuple_(Document.filename, Chunk.section).in_(keys),
+            )
+            .order_by(Chunk.chunk_index)
+        )
+        for filename, digest, section, content in rows:
+            if DEMO_DIGESTS.get(filename) == digest:
+                chunks[filename, section].append(content)
+
+    expanded = []
+    for seed, key in zip(seeds, keys, strict=True):
+        pieces = chunks[key]
+        if seed["content"] not in pieces:
+            expanded.append(seed)
+            continue
+        text = "\n\n".join(pieces)
+        offset = text.index(seed["content"])
+        # Keep the matched passage and preceding context when the section is long.
+        start = max(0, offset - SECTION_CHARS // 3)
+        start = min(start, max(0, len(text) - SECTION_CHARS))
+        excerpt = text[start : start + SECTION_CHARS]
+        expanded.append(
+            EvidenceRecord.create(
+                source=EvidenceSource.LOCAL_DOCUMENT,
+                locator=seed["locator"],
+                content=excerpt,
+                identity={"seed": seed["evidence_id"], "offset": start},
+                metadata={
+                    **seed["metadata"],
+                    "section_excerpt": True,
+                    "clipped_start": start > 0,
+                    "clipped_end": start + len(excerpt) < len(text),
+                },
+            ).to_dict()
+        )
+    return expanded
+
+
 def _retrieve(question):
     records, limit = candidate_records(question)
-    return records[:limit]
+    return records[:limit] if SECTION_REF.search(question) else expand_sections(records)
 
 
 def _render(raw, records):
@@ -147,7 +209,12 @@ def _render_evidence(records):
     blocks = ["以下是检索到的 RFC 片段。请打开章节链接，核对上下文是否适用于你的问题。"]
     for record in records:
         excerpt = " ".join(record["content"].split())
-        if len(excerpt) > 500:
+        if record["metadata"].get("section_excerpt"):
+            if record["metadata"]["clipped_start"]:
+                excerpt = "… " + excerpt
+            if record["metadata"]["clipped_end"]:
+                excerpt += " …"
+        elif len(excerpt) > 500:
             excerpt = excerpt[:497].rsplit(" ", 1)[0] + "…"
         # Indented blocks display literal source text without interpreting Markdown.
         blocks.extend([f"[{record['metadata']['title']}]({record['locator']})", f"    {excerpt}"])
