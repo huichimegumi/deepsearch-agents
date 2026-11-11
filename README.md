@@ -28,6 +28,8 @@ flowchart LR
 
 [开发集对照](evals/rfc_demo/comparison.md) · [保留题验证与发布边界](evals/rfc_demo/validation.md)。这些是小样本结果；链接存在不代表答案正确，查证模式也不保证找到全部相关章节。此演示限于两份 RFC 的编号正文，不覆盖通用 Web、SQL、附件或跨轮研究。
 
+研究流程的历史配对结果、引用复核与失败分析见 [EVAL.md](EVAL.md)。
+
 <details>
 <summary>完整项目手册（中文 / English）与历史开发记录</summary>
 
