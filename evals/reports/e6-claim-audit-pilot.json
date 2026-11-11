@@ -1,0 +1,69 @@
+{
+  "sample_sha256": "34975393a86006d15d3178c77a1b3c218a4857cceb0838c7bac898675fefab19",
+  "model": "qwen-flash",
+  "requests": 67,
+  "reserved_tokens": 348954,
+  "known_tokens": 86193,
+  "rows_without_usage": 33,
+  "workflows": {
+    "simple": {
+      "sampled": 50,
+      "valid": 3,
+      "verdicts": {
+        "unsupported": 1,
+        "supported": 2
+      },
+      "errors": {
+        "quote_not_found": 43,
+        "invalid_response": 4
+      },
+      "historically_supported": 50
+    },
+    "bounded": {
+      "sampled": 50,
+      "valid": 3,
+      "verdicts": {
+        "unsupported": 1,
+        "supported": 2
+      },
+      "errors": {
+        "quote_not_found": 8,
+        "invalid_response": 6,
+        "EvaluationBudgetExceeded": 33
+      },
+      "historically_supported": 50
+    }
+  },
+  "human": {
+    "scheduled": 40,
+    "human_reviewed": 0,
+    "comparable": 0,
+    "agreement": null,
+    "human_by_model": {
+      "supported": {
+        "supported": 0,
+        "partial": 0,
+        "unsupported": 0,
+        "uncertain": 0
+      },
+      "partial": {
+        "supported": 0,
+        "partial": 0,
+        "unsupported": 0,
+        "uncertain": 0
+      },
+      "unsupported": {
+        "supported": 0,
+        "partial": 0,
+        "unsupported": 0,
+        "uncertain": 0
+      },
+      "uncertain": {
+        "supported": 0,
+        "partial": 0,
+        "unsupported": 0,
+        "uncertain": 0
+      }
+    }
+  }
+}

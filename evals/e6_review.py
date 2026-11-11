@@ -20,15 +20,18 @@ def read(path):
 
 def load_pair():
     comparison = read(REPORTS / "e6-3-holdout-comparison.json")
+    cases = read(ROOT / comparison["case_file"])
     manifests, results, summaries = [], {}, {}
     for workflow, archived in zip(WORKFLOWS, comparison["runs"], strict=True):
         run = RESULTS / f"e6-3-holdout-{workflow}"
         manifest = read(run / "manifest.json")
         rows = read(run / "results.json")
         score_manifest = read(REPORTS / f"e6-3-{workflow}-score-manifest.json")
-        scores = read(REPORTS / f"e6-3-{workflow}-score-scores.json")["rows"]
+        score_data = read(REPORTS / f"e6-3-{workflow}-score-scores.json")
+        scores = score_data["rows"]
         if (
             digest(rows) != score_manifest["results_sha256"]
+            or digest(cases) != score_manifest["cases_sha256"]
             or manifest != archived["manifest"]
             or manifest["workflow"] != workflow
             or len(rows) != 24
@@ -38,6 +41,17 @@ def load_pair():
             raise ValueError(f"E6 archive mismatch for {workflow}")
         if workflow == "simple":
             retry = read(REPORTS / "e6-3-simple-judge-error-retry.json")
+            replacement = retry["retry_scores"][0]
+            case_id = replacement["id"]
+            if (
+                digest(score_data) != retry["original_scores_sha256"]
+                or digest(score_manifest) != retry["original_manifest_sha256"]
+                or digest([row for row in rows if row["id"] == case_id])
+                != retry["retry_manifest"]["results_sha256"]
+                or digest([case for case in cases if case["id"] == case_id])
+                != retry["retry_manifest"]["cases_sha256"]
+            ):
+                raise ValueError("E6 scoring retry archive mismatch")
             scores = [
                 retry["retry_scores"][0] if row["id"] == retry["retry_scores"][0]["id"] else row
                 for row in scores
