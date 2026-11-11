@@ -222,16 +222,26 @@ def _render_evidence(records):
 
 
 async def run_rfc_qa(
-    question, output_root, *, model=None, prepared_evidence=None, sources_only=False
+    question,
+    output_root,
+    *,
+    model=None,
+    prepared_evidence=None,
+    sources_only=False,
+    retry_format=True,
 ):
-    """Shared entry for the UI service and later evaluation; one Writer request at most."""
+    """Answer from retrieved excerpts with one optional citation format retry."""
     output = output_root / f"rfc_qa_{uuid4().hex}"
     output.mkdir(parents=True)
     started = monotonic()
     budget = RequestBudget(
-        output / "requests.jsonl", max_requests=1, max_reserved_tokens=16000, finalizing=True
+        output / "requests.jsonl",
+        max_requests=2 if retry_format else 1,
+        max_reserved_tokens=16000,
+        finalizing=True,
     )
     records, model_usage, error, reason = [], None, None, None
+    attempts = []
     try:
         async with asyncio.timeout(60):
             records = (
@@ -257,24 +267,58 @@ async def run_rfc_qa(
                 excerpts = [
                     {"id": index, "text": r["content"]} for index, r in enumerate(records, 1)
                 ]
-                with budget.activate():
-                    writer = model if model is not None else get_model()
-                    response = await writer.bind(temperature=0, max_tokens=650).ainvoke(
-                        [
-                            {"role": "system", "content": INSTRUCTION},
+                writer = model if model is not None else get_model()
+                messages = [
+                    {"role": "system", "content": INSTRUCTION},
+                    {
+                        "role": "user",
+                        "content": json.dumps(
+                            {"question": question, "excerpts": excerpts}, ensure_ascii=False
+                        ),
+                    },
+                ]
+                for attempt in range(2 if retry_format else 1):
+                    with budget.activate():
+                        response = await writer.bind(temperature=0, max_tokens=650).ainvoke(
+                            messages
+                        )
+                    write_json(
+                        output / ("writer.json" if attempt == 0 else "writer_retry.json"),
+                        {"content": response.content},
+                    )
+                    attempts.append({"usage": response.usage_metadata, "format_error": None})
+                    known = [a["usage"] for a in attempts if a["usage"] is not None]
+                    model_usage = (
+                        {
+                            key: sum(item.get(key, 0) for item in known)
+                            for key in ("input_tokens", "output_tokens", "total_tokens")
+                        }
+                        if known
+                        else None
+                    )
+                    if response.response_metadata.get("finish_reason") == "length":
+                        raise ValueError("truncated_rfc_answer")
+                    if not isinstance(response.content, str):
+                        raise ValueError("invalid_rfc_answer_content")
+                    try:
+                        status, answer = _render(response.content, records)
+                        break
+                    except ValueError as exc:
+                        attempts[-1]["format_error"] = str(exc)
+                        if attempt or not retry_format:
+                            raise
+                        messages = [
+                            *messages,
                             {
                                 "role": "user",
-                                "content": json.dumps(
-                                    {"question": question, "excerpts": excerpts}, ensure_ascii=False
+                                "content": (
+                                    "The previous response failed citation formatting. Answer the original "
+                                    "question again using only the same excerpts. Use plain paragraphs and "
+                                    "append valid excerpt numbers to every claim. If evidence is incomplete, "
+                                    "return only INSUFFICIENT_EVIDENCE."
                                 ),
                             },
                         ]
-                    )
-                write_json(output / "writer.json", {"content": response.content})
-                model_usage = response.usage_metadata
-                if response.response_metadata.get("finish_reason") == "length":
-                    raise ValueError("truncated_rfc_answer")
-                status, answer = _render(response.content, records)
     except Exception as exc:
         status, answer = "failed", FAILURE
         if isinstance(exc, ValueError) and str(exc) == "rfc_demo_not_indexed":
@@ -291,6 +335,7 @@ async def run_rfc_qa(
         "evidence_ids": [r["evidence_id"] for r in records],
         "duration_seconds": round(monotonic() - started, 3),
         "model_usage": model_usage,
+        "writer_attempts": attempts,
         "error_type": error,
         "error_reason": reason,
         **usage(budget.path),

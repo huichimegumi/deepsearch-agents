@@ -59,7 +59,11 @@ async def run(output):
         for arm in ARMS[:: 1 if index % 2 == 0 else -1]:
             evidence = [packet["pool"][i] for i in packet["selected"][arm]]
             result = await run_rfc_qa(
-                task["question"], output / task["id"] / arm, model=model, prepared_evidence=evidence
+                task["question"],
+                output / task["id"] / arm,
+                model=model,
+                prepared_evidence=evidence,
+                retry_format=False,
             )
             rows.append(
                 {

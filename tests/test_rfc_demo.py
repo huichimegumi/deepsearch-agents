@@ -49,7 +49,9 @@ async def test_writer_can_only_link_retrieved_sources(tmp_path, monkeypatch, rep
             assert location not in messages[-1]["content"]
             return SimpleNamespace(content=reply, usage_metadata=None, response_metadata={})
 
-    result = await rfc_demo.run_rfc_qa("What does Vary do?", tmp_path, model=Writer())
+    result = await rfc_demo.run_rfc_qa(
+        "What does Vary do?", tmp_path, model=Writer(), retry_format=False
+    )
     assert len(calls) == 1
     assert result["status"] == expected
     assert (location in result["answer"]) == (expected == "answered")
@@ -97,3 +99,37 @@ async def test_sources_only_returns_literal_excerpt_and_never_creates_writer(tmp
     assert result["evidence_ids"] == [record["evidence_id"], another["evidence_id"]]
     assert f"[RFC 9111 §4.1]({location})" in result["answer"]
     assert "\n\n    See [example] (literal source text)." in result["answer"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("second", ["A supported fact. [1]", "A bad citation. [2]"])
+async def test_retry_format_uses_same_evidence_and_stops(tmp_path, second):
+    record = rfc_demo.EvidenceRecord.create(
+        source=rfc_demo.EvidenceSource.LOCAL_DOCUMENT,
+        locator="https://www.rfc-editor.org/rfc/rfc9110.html#section-8.6",
+        content="A supported fact.",
+        metadata={"title": "RFC 9110 §8.6"},
+    ).to_dict()
+    calls = []
+    replies = iter(["A bad citation. [2]", second])
+
+    class Writer:
+        def bind(self, **_kwargs):
+            return self
+
+        async def ainvoke(self, messages):
+            calls.append(messages)
+            return SimpleNamespace(
+                content=next(replies),
+                usage_metadata={"input_tokens": 2, "output_tokens": 1, "total_tokens": 3},
+                response_metadata={},
+            )
+
+    result = await rfc_demo.run_rfc_qa(
+        "Question", tmp_path, model=Writer(), prepared_evidence=[record]
+    )
+    assert result["status"] == ("answered" if "[1]" in second else "failed")
+    assert calls[0] == calls[1][:2]
+    assert len(calls) == 2
+    assert result["model_usage"]["total_tokens"] == 6
+    assert result["writer_attempts"][0]["format_error"] == "unknown_rfc_citation"

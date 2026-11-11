@@ -75,7 +75,9 @@ async def run():
     for task in tasks:
         if index_digest() != manifest["index_sha256"]:
             raise ValueError("validation_index_changed")
-        result = await run_rfc_qa(task["question"], OUTPUT / task["id"], model=model)
+        result = await run_rfc_qa(
+            task["question"], OUTPUT / task["id"], model=model, retry_format=False
+        )
         rows.append({"id": task["id"], **result})
         write_json(OUTPUT / "results.json", {"complete": False, "rows": rows})
         print(task["id"], result["status"], flush=True)
