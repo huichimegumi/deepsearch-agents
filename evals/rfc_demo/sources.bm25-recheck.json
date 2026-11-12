@@ -1,0 +1,13 @@
+{
+  "commit": "5304ebbf55a6c7ae0a3d8513d20941afd340afb9",
+  "index_sha256": "39b100dd51d2d22fda3ae3b95a00d79bb22783fc8508843acbfa33c64bd46453",
+  "question_sha256": "059cd4f547fcad5c3028ac804bd9b625ad6edba1f10d3739a426df5ef65e7015",
+  "previously_used": true,
+  "questions": 5,
+  "answerable": 4,
+  "anchors": 9,
+  "pool_hits": 7,
+  "visible_hits": 8,
+  "all_visible": 3,
+  "requests": 0
+}
