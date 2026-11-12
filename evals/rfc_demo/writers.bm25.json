@@ -1,0 +1,204 @@
+{
+  "question_sha256": "f9b58e2864261984b288c2a1e473a698c7f4df304a9205fd421f2fa6b29de50d",
+  "review": "Codex reviewed development output against frozen rubric and cited excerpts",
+  "rows": [
+    {
+      "id": "D01",
+      "model": "qwen-flash",
+      "status": "answered",
+      "duration_seconds": 1.426,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2669,
+      "evidence_sha256": "5f81ff437b4757511705b13a6f61ef095f11ecf86889602da31be9242717ef83",
+      "grade": "correct"
+    },
+    {
+      "id": "D01",
+      "model": "qwen3.8-max-0902",
+      "status": "answered",
+      "duration_seconds": 1.102,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2682,
+      "evidence_sha256": "5f81ff437b4757511705b13a6f61ef095f11ecf86889602da31be9242717ef83",
+      "grade": "correct"
+    },
+    {
+      "id": "D03",
+      "model": "qwen3.8-max-0902",
+      "status": "insufficient_evidence",
+      "duration_seconds": 1.079,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2047,
+      "evidence_sha256": "0b5967c4cfbff6bf080f6bee21a25fdc7e755339a93183f9b986208d4246ee4b",
+      "grade": "appropriate_refusal"
+    },
+    {
+      "id": "D03",
+      "model": "qwen-flash",
+      "status": "insufficient_evidence",
+      "duration_seconds": 0.447,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2036,
+      "evidence_sha256": "0b5967c4cfbff6bf080f6bee21a25fdc7e755339a93183f9b986208d4246ee4b",
+      "grade": "appropriate_refusal"
+    },
+    {
+      "id": "D04",
+      "model": "qwen-flash",
+      "status": "answered",
+      "duration_seconds": 0.923,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 1994,
+      "evidence_sha256": "b58e1a8a0f8d77fbac409ce77f5faae0b63c8e05d26ed22a682f5175e6d81277",
+      "grade": "partial"
+    },
+    {
+      "id": "D04",
+      "model": "qwen3.8-max-0902",
+      "status": "answered",
+      "duration_seconds": 3.183,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2013,
+      "evidence_sha256": "b58e1a8a0f8d77fbac409ce77f5faae0b63c8e05d26ed22a682f5175e6d81277",
+      "grade": "partial"
+    },
+    {
+      "id": "D05",
+      "model": "qwen3.8-max-0902",
+      "status": "answered",
+      "duration_seconds": 3.387,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2362,
+      "evidence_sha256": "c2a580bc7d1d6180ad309ab7967ab1a86d149bf58acc64b3147e6a1de89bffbb",
+      "grade": "correct"
+    },
+    {
+      "id": "D05",
+      "model": "qwen-flash",
+      "status": "answered",
+      "duration_seconds": 1.626,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2411,
+      "evidence_sha256": "c2a580bc7d1d6180ad309ab7967ab1a86d149bf58acc64b3147e6a1de89bffbb",
+      "grade": "correct"
+    },
+    {
+      "id": "D06",
+      "model": "qwen-flash",
+      "status": "answered",
+      "duration_seconds": 2.454,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2735,
+      "evidence_sha256": "3ffd3259eca966fb22a47ccf3f5100cb9c98f2a65a073b139473bd5f0100db7d",
+      "grade": "correct"
+    },
+    {
+      "id": "D06",
+      "model": "qwen3.8-max-0902",
+      "status": "answered",
+      "duration_seconds": 2.979,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2613,
+      "evidence_sha256": "3ffd3259eca966fb22a47ccf3f5100cb9c98f2a65a073b139473bd5f0100db7d",
+      "grade": "correct"
+    },
+    {
+      "id": "D07",
+      "model": "qwen3.8-max-0902",
+      "status": "answered",
+      "duration_seconds": 4.546,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2179,
+      "evidence_sha256": "5eb9cd400917f2a8cb264ff7a4892ea4c0eb6c13b03382290081d627526856bc",
+      "grade": "correct"
+    },
+    {
+      "id": "D07",
+      "model": "qwen-flash",
+      "status": "answered",
+      "duration_seconds": 2.401,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2153,
+      "evidence_sha256": "5eb9cd400917f2a8cb264ff7a4892ea4c0eb6c13b03382290081d627526856bc",
+      "grade": "correct"
+    },
+    {
+      "id": "D08",
+      "model": "qwen-flash",
+      "status": "failed",
+      "duration_seconds": 2.876,
+      "requests": 1,
+      "error_reason": "missing_or_invalid_rfc_citation",
+      "tokens": 2184,
+      "evidence_sha256": "ebea3f3943c42e2cbbbe6b295e79508ac8a980b35b9c9287352ac9085df8f263",
+      "grade": "delivery_failed"
+    },
+    {
+      "id": "D08",
+      "model": "qwen3.8-max-0902",
+      "status": "answered",
+      "duration_seconds": 6.071,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2124,
+      "evidence_sha256": "ebea3f3943c42e2cbbbe6b295e79508ac8a980b35b9c9287352ac9085df8f263",
+      "grade": "correct"
+    },
+    {
+      "id": "D09",
+      "model": "qwen3.8-max-0902",
+      "status": "answered",
+      "duration_seconds": 3.422,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2590,
+      "evidence_sha256": "04921d777284d640830c2eef451afe62ebf5eb49a1dc1f3b665cbd7055185dd7",
+      "grade": "partial"
+    },
+    {
+      "id": "D09",
+      "model": "qwen-flash",
+      "status": "answered",
+      "duration_seconds": 2.525,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 2600,
+      "evidence_sha256": "04921d777284d640830c2eef451afe62ebf5eb49a1dc1f3b665cbd7055185dd7",
+      "grade": "partial"
+    },
+    {
+      "id": "D10",
+      "model": "qwen-flash",
+      "status": "insufficient_evidence",
+      "duration_seconds": 1.276,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 1847,
+      "evidence_sha256": "a54e8655d025753208a2bd68698da235ee2c921cc755526dd93938695756e213",
+      "grade": "appropriate_refusal"
+    },
+    {
+      "id": "D10",
+      "model": "qwen3.8-max-0902",
+      "status": "insufficient_evidence",
+      "duration_seconds": 2.043,
+      "requests": 1,
+      "error_reason": null,
+      "tokens": 1858,
+      "evidence_sha256": "a54e8655d025753208a2bd68698da235ee2c921cc755526dd93938695756e213",
+      "grade": "appropriate_refusal"
+    }
+  ]
+}
