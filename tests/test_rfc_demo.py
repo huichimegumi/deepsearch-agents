@@ -133,3 +133,15 @@ async def test_retry_format_uses_same_evidence_and_stops(tmp_path, second):
     assert len(calls) == 2
     assert result["model_usage"]["total_tokens"] == 6
     assert result["writer_attempts"][0]["format_error"] == "unknown_rfc_citation"
+
+
+def test_rfc_bm25_rare_term_and_deterministic_ties():
+    rows = [
+        ("z", "http request cache"),
+        ("a", "http request cache"),
+        ("b", "http etag request"),
+        ("c", "http field request"),
+    ]
+    result = rfc_demo._bm25_rank("HTTP etag request", rows, 3)
+    assert [key for key, _ in result] == ["b", "a", "c"]
+    assert rfc_demo._bm25_rank("absent", rows, 3) == []

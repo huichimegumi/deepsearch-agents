@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+from collections import Counter
+from math import log1p
 from time import monotonic
 from uuid import uuid4
 
@@ -13,6 +15,7 @@ from sqlalchemy import select, tuple_
 from app.agent.llm import get_model
 from app.rag.database import session_scope
 from app.rag.models import Chunk, Document, KnowledgeBase
+from app.rag.parsing import lexicalize
 from app.rag.retrieval import collect_candidates
 from app.research.evidence.models import EvidenceRecord, EvidenceSource
 from app.research.evidence_store import EvidenceStore
@@ -55,7 +58,56 @@ def index_text(raw: str) -> str:
     )
 
 
-def candidate_records(question):
+BM25_K1 = 1.2
+BM25_B = 0.75
+
+
+def _bm25_rank(query, rows, limit):
+    """Score the RFC corpus using its existing indexed lexical tokens."""
+    terms = set(lexicalize(query).split())
+    if not terms or not rows:
+        return []
+    documents = []
+    df = Counter()
+    total_length = 0
+    for key, lexical_text in rows:
+        tokens = lexical_text.split()
+        frequencies = Counter(token for token in tokens if token in terms)
+        documents.append((key, len(tokens), frequencies))
+        df.update(frequencies.keys())
+        total_length += len(tokens)
+    if not df:
+        return []
+    size = len(documents)
+    average_length = total_length / size
+    idf = {term: log1p((size - count + 0.5) / (count + 0.5)) for term, count in df.items()}
+    ranked = []
+    for key, length, frequencies in documents:
+        if frequencies:
+            scale = BM25_K1 * (1 - BM25_B + BM25_B * length / average_length)
+            score = sum(
+                idf[term] * count * (BM25_K1 + 1) / (count + scale)
+                for term, count in frequencies.items()
+            )
+            ranked.append((str(key), score))
+    return sorted(ranked, key=lambda item: (-item[1], item[0]))[:limit]
+
+
+def _bm25_search(query, knowledge_base_id, limit):
+    with session_scope() as session:
+        rows = session.execute(
+            select(Chunk.id, Chunk.lexical_text)
+            .join(Document, Document.id == Chunk.document_id)
+            .where(
+                Chunk.knowledge_base_id == knowledge_base_id,
+                Document.status == "ready",
+                tuple_(Document.filename, Document.sha256).in_(list(DEMO_DIGESTS.items())),
+            )
+        ).all()
+    return _bm25_rank(query, rows, limit)
+
+
+def candidate_records(question, *, postgres=False):
     """Return the common ordered pool and its delivery limit."""
     with session_scope() as session:
         kb = session.scalar(select(KnowledgeBase).where(KnowledgeBase.name == KB_NAME))
@@ -88,7 +140,9 @@ def candidate_records(question):
             ).all()
             selected.extend((chunk, doc) for chunk in chunks)
     if not explicit:
-        pool = collect_candidates(question, [kb_id])
+        pool = collect_candidates(
+            question, [kb_id], lexical_search=None if postgres else _bm25_search
+        )
         selected = [pool.rows[key] for key in pool.hybrid_ids]
     records = []
     for chunk, doc in selected:

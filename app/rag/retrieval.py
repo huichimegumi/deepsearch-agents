@@ -1,5 +1,6 @@
 """Hybrid PostgreSQL/Qdrant retrieval with RRF fusion and local reranking."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from sqlalchemy import text
@@ -168,18 +169,18 @@ def collect_candidates(
     query_vector: list[float] | None = None,
     *,
     include_lexical: bool = True,
+    lexical_search: Callable[[str, str, int], list[tuple[str, float]]] | None = None,
 ) -> CandidatePool:
     settings = get_rag_settings()
     if not knowledge_base_ids:
         return CandidatePool([], [], {})
     vector_query = query_vector if query_vector is not None else embed_query(query)
+    search_lexical = lexical_search if lexical_search is not None else _lexical_search
     lexical_scores: dict[str, float] = {}
     vector_scores: dict[str, float] = {}
     for knowledge_base_id in sorted(set(knowledge_base_ids)):
         if include_lexical:
-            for chunk_id, score in _lexical_search(
-                query, knowledge_base_id, settings.lexical_top_k
-            ):
+            for chunk_id, score in search_lexical(query, knowledge_base_id, settings.lexical_top_k):
                 lexical_scores[chunk_id] = max(lexical_scores.get(chunk_id, float("-inf")), score)
         for chunk_id, score in search_vectors(
             vector_query, knowledge_base_id, settings.vector_top_k

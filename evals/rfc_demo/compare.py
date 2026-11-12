@@ -3,15 +3,18 @@
 import argparse
 import asyncio
 import json
+from functools import partial
 from pathlib import Path
 from time import monotonic
 
 from app.rag.embeddings import rerank_with_status
-from app.research.rfc_demo import SECTION_REF, candidate_records, run_rfc_qa
+from app.research import rfc_demo
+from app.research.rfc_demo import SECTION_REF, run_rfc_qa
 from app.research.storage import write_json
 from evals.public_benchmarks.score import model_for
 from evals.rfc_demo.verify import HERE, sha
 
+candidate_records = partial(rfc_demo.candidate_records, postgres=True)
 ARMS = ("hybrid", "rerank")
 
 
