@@ -509,6 +509,7 @@ def _enforce_final_report_citations(
     report_markdown: str,
     compressed_fallback: str,
     run_trace: ResearchRunTrace,
+    retain_cited_paragraphs: bool = False,
 ) -> tuple[str, ReportCitationValidation]:
     source_boundary = _local_report_boundary(
         report_markdown, run_trace, candidate_kind="final_candidate"
@@ -537,6 +538,44 @@ def _enforce_final_report_citations(
     reason = "; ".join(reasons)
     run_trace.degraded = True
     run_trace.record_failure("final_report_citation_validation_failed")
+    if retain_cited_paragraphs:
+        # Keep whole prose blocks with known citations and drop ambiguous Markdown
+        # structures. Citation IDs establish provenance, not semantic support.
+        kept = []
+        for block in re.split(r"\n\s*\n", report_markdown):
+            block = block.strip()
+            if not block or any(
+                re.match(r"^\s*(?:[#>|]|[-*+]\s|\d+\.\s|```|~~~)", line)
+                for line in block.splitlines()
+            ):
+                continue
+            checked = validate_report_citations(
+                block, allowed_evidence_ids=run_trace.claim_evidence_ids, citations_required=True
+            )
+            if checked.valid:
+                kept.append(block)
+        if kept:
+            partial_report = (
+                "# Partial research report\n\n"
+                "> Some blocks were omitted after citation validation failed. "
+                "Retained citations identify collected evidence.\n\n" + "\n\n".join(kept)
+            )
+            validation = validate_report_citations(
+                partial_report,
+                allowed_evidence_ids=run_trace.claim_evidence_ids,
+                citations_required=True,
+            )
+            if (
+                validation.valid
+                and _local_report_boundary(
+                    partial_report, run_trace, candidate_kind="citation_partial"
+                )
+                is None
+            ):
+                run_trace.record_failure("final_report_partial_citations")
+                run_trace.record_report_citation_validation(validation)
+                return partial_report, validation
+
     # Never trust caller-supplied compression Markdown as a validated fallback.
     # Keep the argument for existing callers; delivery comes from the typed registry.
     fallback = run_trace.render_accepted_claim_package()
@@ -1374,7 +1413,10 @@ async def _run_agent_phase(
                     continue
 
                 run_trace.record_llm_call(phase.key, last_msg)
-                if not research_budget.take_llm_call(phase.key):
+                if (
+                    not research_budget.admit_research_calls_before_transport
+                    and not research_budget.take_llm_call(phase.key)
+                ):
                     raise PhaseBudgetExceeded("llm_call_limit")
 
                 tool_calls = getattr(last_msg, "tool_calls", None)
@@ -1616,6 +1658,7 @@ async def run_deep_agent(
     export_evaluation_evidence: bool = False,
     indexed_local_research_enabled: bool = False,
     required_evidence_sources: tuple[str, ...] = (),
+    research_delivery_repair: bool = False,
 ):
     """
     异步流式执行主智能体
@@ -1641,6 +1684,7 @@ async def run_deep_agent(
         research_limits_override or settings.research_budget_limits(budget_profile),
         sql_entity_recovery_enabled=sql_entity_recovery_enabled,
     )
+    research_budget.admit_research_calls_before_transport = research_delivery_repair
     run_trace = ResearchRunTrace(
         run_id=workflow_run_id,
         thread_id=event_thread_id,
@@ -2008,6 +2052,31 @@ async def run_deep_agent(
                             research_budget=research_budget,
                             run_trace=run_trace,
                         )
+                if (
+                    research_delivery_repair
+                    and "web" in required_evidence_sources
+                    and not run_trace.local_retrieval_required
+                    and research_budget.search_queries_used == 0
+                ):
+                    remaining = research_budget.phase_timeout("supervisor_research", 30)
+                    if remaining > 0 and research_budget.available_search_queries:
+                        run_trace.record_tool_call(phase.key, research_search.name)
+                        try:
+                            await asyncio.wait_for(
+                                research_search.ainvoke(
+                                    {
+                                        "queries": [" ".join(task_query.split())[:300]],
+                                        "fetch_full_page": True,
+                                        "max_fetched_pages": 3,
+                                    }
+                                ),
+                                timeout=remaining,
+                            )
+                        except (TimeoutError, RuntimeError):
+                            run_trace.record_failure("web_fallback_search_failed")
+                    if not run_trace.web_evidence_ids:
+                        run_trace.degraded = True
+                        run_trace.record_failure("web_evidence_missing_after_fallback")
                 phase_result = _attach_backend_evidence_ledger(phase_result, run_trace)
                 if not indexed_local_only:
                     phase_result = _enforce_research_evidence_requirements(phase_result, run_trace)
@@ -2045,6 +2114,7 @@ async def run_deep_agent(
                     report_markdown=phase_result,
                     compressed_fallback=phase_outputs.get("evidence_compression", ""),
                     run_trace=run_trace,
+                    retain_cited_paragraphs=research_delivery_repair,
                 )
                 if required_evidence_sources:
                     phase_result, citation_validation = _enforce_required_source_delivery(

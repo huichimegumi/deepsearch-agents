@@ -40,6 +40,7 @@ class ResearchBudget:
     fetched_pages_used: int = 0
     research_rounds_used: int = 0
     llm_calls_used: int = 0
+    admit_research_calls_before_transport: bool = False
     _reserved_search_queries: int = field(default=0, repr=False)
     _reserved_fetched_pages: int = field(default=0, repr=False)
 

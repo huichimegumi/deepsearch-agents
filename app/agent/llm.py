@@ -28,6 +28,19 @@ class EvaluationBudgetedChatOpenAI(ChatOpenAI):
         from app.research.request_budget import admit_request
 
         admit_request(payload)
+        from app.agent.runtime import get_research_budget
+        from app.api.context import get_research_phase_context
+
+        budget = get_research_budget()
+        if (
+            budget is not None
+            and budget.admit_research_calls_before_transport
+            and get_research_phase_context() == "supervisor_research"
+            and not budget.take_llm_call("supervisor_research")
+        ):
+            from app.agent.main_agent import PhaseBudgetExceeded
+
+            raise PhaseBudgetExceeded("llm_call_limit")
         return payload
 
 
