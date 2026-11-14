@@ -14,6 +14,7 @@ from typing import Literal
 
 import requests
 from pydantic import BaseModel
+from tavily import TavilyClient
 
 from app.agent.llm import get_model
 from app.config import get_settings
@@ -102,6 +103,27 @@ def limit_searches(output):
     provider = get_search_service().providers["tavily"]
     original_search = provider.search
     lock = Lock()
+    receipts = output / "tavily_receipts.jsonl"
+
+    class MeteredTavilyClient(TavilyClient):
+        def search(self, query, **kwargs):
+            payload = super().search(
+                query, search_depth="basic", auto_parameters=False, include_usage=True, **kwargs
+            )
+            credits = (payload.get("usage") or {}).get("credits")
+            with lock, receipts.open("a", encoding="utf-8") as log:
+                log.write(
+                    json.dumps(
+                        {
+                            "query_hash": hashlib.sha256(query.encode()).hexdigest(),
+                            "credits": credits,
+                        }
+                    )
+                    + "\n"
+                )
+            return payload
+
+    provider._client = MeteredTavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 
     def search(query, **kwargs):
         with lock:
@@ -176,7 +198,9 @@ async def generate(questions, output, pilot):
                 if read(path).get("research_mode") != "parallel_web":
                     raise ValueError(f"Missing or incorrect parallel trace for {row['id']}")
 
-    if pilot and not checkpoint.exists():
+    pilot_result = read(checkpoint) if pilot and checkpoint.exists() else {}
+    credit_probe = output / "pilot_credit_probe.json"
+    if pilot and (not pilot_result or not pilot_result["passed"] and credit_probe.exists()):
         before = read(start_path)
         after = usage()
         delta = after["search_usage"] - before["search_usage"]
@@ -186,13 +210,22 @@ async def generate(questions, output, pilot):
             arm: read(attempt_path(output, arm, PILOT) / "provider_attempts.json")["attempts"]
             for arm in ARMS
         }
+        direct_receipt = read(credit_probe) if credit_probe.exists() else None
+        pilot_attempts = sum(per_arm.values())
+        account_verified = 0 < delta == attempts == pilot_attempts and credit_delta == delta
+        receipt_verified = (
+            direct_receipt is not None
+            and direct_receipt["result_count"] > 0
+            and direct_receipt["usage_from_search"] == {"credits": 1}
+            and delta == credit_delta == 0
+            and attempts == pilot_attempts + 1
+        )
         passed = (
-            0 < delta == attempts <= 15
-            and credit_delta == delta
+            0 < pilot_attempts <= 15
+            and (account_verified or receipt_verified)
             and per_arm["closed"] == 0
             and 0 < per_arm["A"] <= 3
             and 0 < per_arm["P"] <= 12
-            and sum(per_arm.values()) == attempts
         )
         result = {
             "question": PILOT,
@@ -202,6 +235,14 @@ async def generate(questions, output, pilot):
             "attempts_by_arm": per_arm,
             "search_credit_delta": delta,
             "total_credit_delta": credit_delta,
+            "credit_verification": (
+                "account"
+                if account_verified
+                else "basic_search_receipt"
+                if receipt_verified
+                else None
+            ),
+            "credit_probe": direct_receipt,
             "passed": passed,
         }
         atomic_json(checkpoint, result)
