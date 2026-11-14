@@ -1,4 +1,4 @@
-export type RfcMode = "research" | "evidence" | "answer";
+export type RfcMode = "web" | "research" | "evidence" | "answer";
 
 export type ConnectionState = "connecting" | "connected" | "reconnecting" | "closed";
 

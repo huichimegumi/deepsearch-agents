@@ -122,7 +122,13 @@ export function ChatComposer({
               onSubmit();
             }
           }}
-          placeholder={rfcMode !== "research" ? "提问 RFC 9110 或 RFC 9111 中的 HTTP 规范" : "向 DeepSearch Agents 发送任务..."}
+          placeholder={
+            rfcMode === "web"
+              ? "提一个需要查公开网页的问题，系统会拆成子问题并行研究..."
+              : rfcMode === "research"
+                ? "向 DeepSearch Agents 发送任务，可结合知识库、数据库和附件..."
+                : "提问 RFC 9110 或 RFC 9111 中的 HTTP 规范"
+          }
           value={query}
         />
 
@@ -158,10 +164,12 @@ export function ChatComposer({
             </Upload>
             <Select<RfcMode>
               aria-label="任务模式"
+              popupMatchSelectWidth={false}
               disabled={isRunning}
               onChange={onRfcModeChange}
               options={[
-                { value: "research", label: "通用研搜" },
+                { value: "web", label: "Web 并行研究" },
+                { value: "research", label: "通用研搜（知识库 / 数据库 / 附件）" },
                 { value: "evidence", label: "HTTP 规范查证" },
                 { value: "answer", label: "HTTP 问答（实验）" }
               ]}

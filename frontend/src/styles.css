@@ -2513,3 +2513,160 @@ body,
 .chat-stream-panel {
   scrollbar-color: rgba(15, 127, 179, 0.32) transparent;
 }
+
+/* 研究流程面板：阶段、并行研究员、运行摘要 */
+.run-panel {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  padding: 12px;
+}
+
+.run-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.run-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 4px 12px;
+}
+
+.run-step--running {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.run-step--done {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.run-step--failed {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.researcher-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.researcher-card {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.researcher-card--done {
+  border-color: var(--line);
+}
+
+.researcher-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.researcher-card header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--cyan);
+  font-size: 12px;
+}
+
+.researcher-card--done header span {
+  color: var(--green);
+}
+
+.researcher-card p {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.researcher-card details {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.researcher-card summary {
+  cursor: pointer;
+}
+
+.researcher-card details p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+.run-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.run-status {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 12px;
+}
+
+.run-status--degraded {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.run-metric {
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px 12px;
+}
+
+.run-metric small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.run-metric strong {
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chat-message--user .message-bubble p {
+  white-space: pre-wrap;
+}

@@ -177,6 +177,11 @@ async def research(question, subquestions, model, trace, timeout, title, *, curr
                     trace.record_llm_call(PHASE, message)
                     if isinstance(message.content, str) and not getattr(message, "tool_calls", []):
                         answer = message.content.strip()
+            monitor._emit(
+                "researcher_done",
+                f"研究员 {index} 完成",
+                {"index": index, "answer": answer[:400]},
+            )
             return answer[:1400]
 
         tasks = [asyncio.create_task(worker(i, group)) for i, group in enumerate(groups, 1)]

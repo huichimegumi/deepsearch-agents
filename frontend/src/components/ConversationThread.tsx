@@ -15,9 +15,16 @@ import {
 } from "@ant-design/icons";
 import { Button, Tooltip, message } from "antd";
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { downloadOutputFile } from "../lib/api";
 import { MarkdownRenderer } from "./MarkdownRenderer";
-import type { MonitorMessage, OutputFile } from "../types";
+import {
+  ResearchRunPanel,
+  getWebSources,
+  hasResearchRun,
+  linkCitations
+} from "./ResearchRunPanel";
+import type { MonitorMessage, OutputFile, RfcMode } from "../types";
 
 export interface ChatTurn {
   id: string;
@@ -30,16 +37,31 @@ export interface ChatTurn {
 }
 
 interface ConversationThreadProps {
-  onUseExample: (prompt: string) => void;
+  onUseExample: (prompt: string, mode: RfcMode) => void;
   turns: ChatTurn[];
 }
 
-const TASK_EXAMPLES = [
+const TASK_EXAMPLES: {
+  tool: string;
+  title: string;
+  prompt: string;
+  mode: RfcMode;
+  icon: ReactNode;
+}[] = [
   {
-    tool: "联网研究",
+    tool: "Web 并行研究",
+    title: "近期事实核对",
+    prompt:
+      "核对 2026 年澳网和美网这四项双打冠军，每项写两名球员。\n1. 澳网男双\n2. 澳网女双\n3. 澳网混双\n4. 美网混双\n请按编号逐项回答；不确定的项目请写“不确定”。",
+    mode: "web",
+    icon: <BranchesOutlined aria-hidden />,
+  },
+  {
+    tool: "Web 并行研究",
     title: "企业级 Agent 平台对比",
     prompt:
-      "基于公开资料生成一份 Markdown 简报：2026 年企业级 AI Agent 平台格局，比较 AWS、Google Cloud、Microsoft Azure 至少三家云厂商，包含功能侧重点、机会、风险和参考来源。",
+      "基于公开资料比较 AWS、Google Cloud、Microsoft Azure 三家云厂商 2026 年的企业级 AI Agent 平台：各自的产品名称、功能侧重点和主要风险，并给出参考来源。",
+    mode: "web",
     icon: <CloudServerOutlined aria-hidden />,
   },
   {
@@ -47,6 +69,7 @@ const TASK_EXAMPLES = [
     title: "药品销售复盘",
     prompt:
       "只根据业务数据库生成 2025 年药品销售复盘 Markdown，包含区域表现、销售额 TOP 药品、库存风险和行动建议。不要使用网络搜索。",
+    mode: "research",
     icon: <DatabaseOutlined aria-hidden />,
   },
   {
@@ -54,6 +77,7 @@ const TASK_EXAMPLES = [
     title: "数字人直播白皮书问答",
     prompt:
       "只使用本地知识库回答：《2026数字人电商直播白皮书》主要讨论了哪些数字人直播应用场景？请给出要点，并标注文档来源或章节线索。",
+    mode: "research",
     icon: <FileSearchOutlined aria-hidden />,
   },
   {
@@ -61,14 +85,8 @@ const TASK_EXAMPLES = [
     title: "上传报告摘要",
     prompt:
       "请读取我刚上传的行业报告文件，提炼核心观点、关键数据、风险点和待补充信息，并输出一份研究摘要。若没有检测到附件，请直接说明。",
+    mode: "research",
     icon: <FileTextOutlined aria-hidden />,
-  },
-  {
-    tool: "报告生成",
-    title: "直播电商合规清单",
-    prompt:
-      "搜索 2025-2026 年直播电商监管变化，生成一份给商家的合规检查清单 Markdown，包含政策变化、平台/商家义务、风险清单、检查清单和来源。",
-    icon: <FileMarkdownOutlined aria-hidden />,
   },
 ];
 
@@ -153,6 +171,21 @@ function getThinkingDuration(
   return formatDuration(finishedAt - startedAt);
 }
 
+const EVENT_LABELS: Record<string, string> = {
+  research_run_started: "运行开始",
+  session_created: "会话目录",
+  research_phase: "研究阶段",
+  assistant_call: "派发研究员",
+  researcher_done: "研究员完成",
+  search_status: "网络搜索",
+  tool_start: "工具调用",
+  tool_error: "工具失败",
+  task_result: "任务完成",
+  task_cancelled: "任务取消",
+  research_trace_complete: "运行轨迹",
+  error: "错误",
+};
+
 function EventIcon({ event }: { event: string }) {
   if (event === "assistant_call") {
     return <BranchesOutlined aria-hidden />;
@@ -231,7 +264,7 @@ function ThinkingTimeline({ events }: { events: MonitorMessage[] }) {
           </span>
           <div>
             <div className="thinking-event-meta">
-              <span>{event.event}</span>
+              <span>{EVENT_LABELS[event.event] || event.event}</span>
               <time dateTime={event.timestamp}>
                 {formatTime(event.timestamp)}
               </time>
@@ -342,6 +375,8 @@ function AssistantMessage({
   }, [isRunning]);
 
   const durationLabel = getThinkingDuration(events, timestamp, isRunning, now);
+  const showRunPanel = hasResearchRun(events);
+  const answer = result ? linkCitations(result, getWebSources(events)) : "";
   const isCancelled = events.some((event) => event.event === "task_cancelled");
   const syncLabel = isRunning
     ? `生成中 · 思考 ${durationLabel}`
@@ -356,14 +391,16 @@ function AssistantMessage({
           <time>{syncLabel}</time>
         </div>
 
+        {showRunPanel ? <ResearchRunPanel events={events} isRunning={isRunning} /> : null}
+
         <details
           className="thinking-block"
-          open={isRunning || events.length > 0}
+          open={showRunPanel ? undefined : isRunning || events.length > 0}
         >
           <summary>
             <span>
               <BranchesOutlined aria-hidden />
-              深度研搜过程
+              {showRunPanel ? "事件日志" : "深度研搜过程"}
             </span>
             <strong>{events.length}</strong>
           </summary>
@@ -372,7 +409,7 @@ function AssistantMessage({
 
         {result ? (
           <div className="assistant-answer">
-            <MarkdownRenderer content={result} />
+            <MarkdownRenderer content={answer} />
           </div>
         ) : (
           <div className="assistant-answer assistant-answer--pending">
@@ -422,8 +459,8 @@ export function ConversationThread({
             {TASK_EXAMPLES.map((example) => (
               <button
                 className="example-card"
-                key={example.tool}
-                onClick={() => onUseExample(example.prompt)}
+                key={example.title}
+                onClick={() => onUseExample(example.prompt, example.mode)}
                 type="button"
               >
                 <span className="example-icon">{example.icon}</span>

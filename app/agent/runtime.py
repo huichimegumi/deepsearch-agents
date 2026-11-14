@@ -466,6 +466,18 @@ class ResearchRunTrace:
             and self._evidence_kind(record) == "web_page"
         )
 
+    def web_source_index(self) -> list[dict[str, str]]:
+        """Evidence ID, URL and title of each web record, for linking citations in the UI."""
+        return [
+            {
+                "evidence_id": evidence_id,
+                "url": str(getattr(record, "locator", "")),
+                "title": str((getattr(record, "metadata", {}) or {}).get("title", "")),
+            }
+            for evidence_id, record in self._evidence_records_by_id.items()
+            if str(getattr(record, "locator", "")).startswith(("http://", "https://"))
+        ]
+
     @property
     def semantic_table_columns(self) -> dict[str, tuple[str, ...]]:
         catalog: dict[str, list[str]] = {}

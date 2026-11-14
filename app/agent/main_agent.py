@@ -2396,6 +2396,10 @@ async def run_deep_agent(
                     "elapsed_ms": trace_payload["elapsed_ms"],
                     "metrics": trace_payload["metrics"],
                     "waste": trace_payload["waste"],
+                    "budget": trace_payload["budget"],
+                    "phases": trace_payload["phases"],
+                    "degraded": trace_payload["degraded"],
+                    "sources": run_trace.web_source_index(),
                 },
             )
             write_audit_event(

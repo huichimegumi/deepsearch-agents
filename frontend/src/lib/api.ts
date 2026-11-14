@@ -56,8 +56,9 @@ export async function startTask(query: string, threadId: string, rfcMode: RfcMod
     body: JSON.stringify({
       query,
       thread_id: threadId,
-      rfc_demo: rfcMode !== "research",
-      rfc_sources_only: rfcMode === "evidence"
+      rfc_demo: rfcMode === "evidence" || rfcMode === "answer",
+      rfc_sources_only: rfcMode === "evidence",
+      ...(rfcMode === "web" ? { sources: ["web"] } : {})
     })
   });
 }

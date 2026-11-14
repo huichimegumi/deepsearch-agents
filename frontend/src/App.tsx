@@ -70,7 +70,7 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [stagedItems, setStagedItems] = useState<UploadedItem[]>([]);
   const [turns, setTurns] = useState<ChatTurn[]>([]);
-  const [rfcMode, setRfcMode] = useState<RfcMode>("research");
+  const [rfcMode, setRfcMode] = useState<RfcMode>("web");
   const [knowledgeOpen, setKnowledgeOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
   const streamRef = useRef<HTMLElement | null>(null);
@@ -91,7 +91,12 @@ export default function App() {
       }
 
       const latestTurn = previous[previous.length - 1];
-      if (!latestTurn.isRunning && !session.isRunning) {
+      // 任务结束后还会收到运行轨迹事件：仅当它们属于同一次运行时继续同步。
+      const hasLateEvents =
+        session.events.length > latestTurn.events.length &&
+        latestTurn.events.length > 0 &&
+        latestTurn.events[0] === session.events[0];
+      if (!latestTurn.isRunning && !session.isRunning && !hasLateEvents) {
         return previous;
       }
 
@@ -100,7 +105,7 @@ export default function App() {
         events: session.events,
         files: getTurnFiles(session.events),
         isRunning: session.isRunning,
-        result: session.result
+        result: session.result || latestTurn.result
       };
 
       return [...previous.slice(0, -1), nextLatestTurn];
@@ -393,7 +398,10 @@ export default function App() {
 
         <section className="chat-stream-panel" onScroll={handleStreamScroll} ref={streamRef}>
           <ConversationThread
-            onUseExample={setQuery}
+            onUseExample={(prompt, mode) => {
+              setQuery(prompt);
+              setRfcMode(mode);
+            }}
             turns={turns}
           />
         </section>
