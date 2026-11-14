@@ -1,32 +1,48 @@
-"""Compile existing OSODT responses for a fixed subset without model calls."""
+"""Recompile archived OSODT responses offline into a new output directory."""
 
 import argparse
 from pathlib import Path
 
 from aeollm2_osodt.artifacts import load_jsonl_by_request_id
 from aeollm2_osodt.dataset import discover_documents
-from aeollm2_osodt.pipeline import _load_rubrics, compile_artifacts
+from aeollm2_osodt.pipeline import _load_rubrics, build_requests, compile_artifacts
+from aeollm2_osodt.prompting import load_prompt_scales
+
+from evals.drb_osodt.score_compat import REVISION, parse_score_object, strict_parse
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("score", type=Path)
-    parser.add_argument("--exclude", type=int, required=True)
+    parser.add_argument("output", type=Path)
+    parser.add_argument("--scales", required=True, type=Path)
     args = parser.parse_args()
     root = args.score
-    docs = [
-        doc
-        for doc in discover_documents(root / "inputs/reports")
-        if doc.question_id != args.exclude
-    ]
+    docs = discover_documents(root / "inputs/reports")
     rubrics = _load_rubrics(root / "inputs/rubrics", {doc.question_id for doc in docs})
-    responses = load_jsonl_by_request_id(root / "osodt/responses.jsonl")
-    responses = {
-        key: row for key, row in responses.items() if key.split(":")[2] != f"q{args.exclude}"
+    requests = {
+        r.request_id: r
+        for r in build_requests("osodt", docs, rubrics, load_prompt_scales(args.scales))
     }
-    if len(responses) != len(docs) * 8:
-        raise ValueError("Incomplete retained response set")
-    compile_artifacts("osodt", docs, rubrics, responses, root / "osodt")
+    responses = load_jsonl_by_request_id(root / "osodt/responses.jsonl")
+    if responses.keys() != requests.keys():
+        raise ValueError("Incomplete archived response set")
+    recovered = []
+    for key, record in responses.items():
+        request = requests[key]
+        if request.prompt_sha256 != record["prompt_sha256"]:
+            raise ValueError(f"Archived prompt differs: {key}")
+        if record["parse_valid"]:
+            if strict_parse(record["raw_response"], request.expected_counts) != record["scores"]:
+                raise ValueError(f"Archived scores differ: {key}")
+        else:
+            scores = parse_score_object(record["raw_response"], request.expected_counts)
+            responses[key] = {**record, "parse_valid": True, "scores": scores}
+            recovered.append(key)
+    args.output.mkdir(parents=True, exist_ok=False)
+    (args.output / "inputs").symlink_to((root / "inputs").resolve(), target_is_directory=True)
+    compile_artifacts("osodt", docs, rubrics, responses, args.output / "osodt")
+    print(REVISION, "recovered", recovered)
 
 
 if __name__ == "__main__":
