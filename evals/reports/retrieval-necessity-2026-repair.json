@@ -1,0 +1,1417 @@
+{
+  "before": {
+    "slices": {
+      "all": {
+        "tasks": [
+          "zh01",
+          "zh02",
+          "zh03",
+          "zh04",
+          "zh05",
+          "zh06",
+          "en01",
+          "en02",
+          "en03",
+          "en04",
+          "en05",
+          "en06"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 48,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 24,
+            "possible": 48,
+            "accuracy": 0.5
+          },
+          "P": {
+            "correct": 11,
+            "possible": 48,
+            "accuracy": 0.22916666666666666
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 11,
+            "ties": 1,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 1,
+            "ties": 3,
+            "losses": 8
+          }
+        }
+      },
+      "zh": {
+        "tasks": [
+          "zh01",
+          "zh02",
+          "zh03",
+          "zh04",
+          "zh05",
+          "zh06"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 24,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 10,
+            "possible": 24,
+            "accuracy": 0.4166666666666667
+          },
+          "P": {
+            "correct": 7,
+            "possible": 24,
+            "accuracy": 0.2916666666666667
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 5,
+            "ties": 1,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 1,
+            "ties": 2,
+            "losses": 3
+          }
+        }
+      },
+      "en": {
+        "tasks": [
+          "en01",
+          "en02",
+          "en03",
+          "en04",
+          "en05",
+          "en06"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 24,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 14,
+            "possible": 24,
+            "accuracy": 0.5833333333333334
+          },
+          "P": {
+            "correct": 4,
+            "possible": 24,
+            "accuracy": 0.16666666666666666
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 6,
+            "ties": 0,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 0,
+            "ties": 1,
+            "losses": 5
+          }
+        }
+      },
+      "multi": {
+        "tasks": [
+          "zh01",
+          "zh03",
+          "zh04",
+          "zh05",
+          "en01",
+          "en03",
+          "en04",
+          "en06"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 32,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 17,
+            "possible": 32,
+            "accuracy": 0.53125
+          },
+          "P": {
+            "correct": 8,
+            "possible": 32,
+            "accuracy": 0.25
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 8,
+            "ties": 0,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 0,
+            "ties": 2,
+            "losses": 6
+          }
+        }
+      },
+      "single": {
+        "tasks": [
+          "zh02",
+          "zh06",
+          "en02",
+          "en05"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 16,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 7,
+            "possible": 16,
+            "accuracy": 0.4375
+          },
+          "P": {
+            "correct": 3,
+            "possible": 16,
+            "accuracy": 0.1875
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 3,
+            "ties": 1,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 1,
+            "ties": 1,
+            "losses": 2
+          }
+        }
+      }
+    },
+    "groups": {
+      "closed": {
+        "statuses": {
+          "completed": 12
+        },
+        "median_seconds": 1.15,
+        "median_input_tokens": 155.5,
+        "provider_attempts": 0,
+        "fact_positions_correct": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "fact_status_counts": {
+          "missing": 48
+        },
+        "per_question": {
+          "zh01": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 2.1
+          },
+          "zh02": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.2
+          },
+          "zh03": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 2.7
+          },
+          "zh04": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.0
+          },
+          "zh05": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.0
+          },
+          "zh06": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.1
+          },
+          "en01": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 2.5
+          },
+          "en02": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.1
+          },
+          "en03": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 2.0
+          },
+          "en04": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.0
+          },
+          "en05": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.0
+          },
+          "en06": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 3.2
+          }
+        }
+      },
+      "A": {
+        "statuses": {
+          "completed": 12
+        },
+        "median_seconds": 11.75,
+        "median_input_tokens": 3058.0,
+        "provider_attempts": 36,
+        "fact_positions_correct": [
+          7,
+          8,
+          8,
+          1
+        ],
+        "fact_status_counts": {
+          "correct": 24,
+          "missing": 17,
+          "incorrect": 7
+        },
+        "per_question": {
+          "zh01": {
+            "correct": 3,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "correct",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 11.9
+          },
+          "zh02": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "incorrect",
+              "F3": "correct",
+              "F4": "incorrect"
+            },
+            "status": "completed",
+            "seconds": 12.5
+          },
+          "zh03": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "correct",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 12.0
+          },
+          "zh04": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "correct",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 11.6
+          },
+          "zh05": {
+            "correct": 3,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "correct",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 32.3
+          },
+          "zh06": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 9.1
+          },
+          "en01": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "correct",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 10.7
+          },
+          "en02": {
+            "correct": 4,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "correct",
+              "F3": "correct",
+              "F4": "correct"
+            },
+            "status": "completed",
+            "seconds": 24.5
+          },
+          "en03": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "missing",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 7.8
+          },
+          "en04": {
+            "correct": 3,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "correct",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 12.9
+          },
+          "en05": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "missing",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 10.8
+          },
+          "en06": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "correct",
+              "F3": "incorrect",
+              "F4": "incorrect"
+            },
+            "status": "completed",
+            "seconds": 9.2
+          }
+        }
+      },
+      "P": {
+        "statuses": {
+          "completed": 11,
+          "degraded": 1
+        },
+        "median_seconds": 33.95,
+        "median_input_tokens": 14363.5,
+        "provider_attempts": 73,
+        "fact_positions_correct": [
+          3,
+          5,
+          2,
+          1
+        ],
+        "fact_status_counts": {
+          "missing": 28,
+          "correct": 11,
+          "incorrect": 9
+        },
+        "per_question": {
+          "zh01": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "correct",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 45.2
+          },
+          "zh02": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "correct",
+              "F3": "missing",
+              "F4": "correct"
+            },
+            "status": "completed",
+            "seconds": 40.3
+          },
+          "zh03": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "incorrect",
+              "F3": "incorrect",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 33.5
+          },
+          "zh04": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "correct",
+              "F3": "missing",
+              "F4": "incorrect"
+            },
+            "status": "completed",
+            "seconds": 29.7
+          },
+          "zh05": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "correct",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 37.3
+          },
+          "zh06": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 26.2
+          },
+          "en01": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "correct",
+              "F3": "incorrect",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 27.7
+          },
+          "en02": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 34.4
+          },
+          "en03": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 32.8
+          },
+          "en04": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 26.3
+          },
+          "en05": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "degraded",
+            "seconds": 41.8
+          },
+          "en06": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "incorrect",
+              "F3": "incorrect",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 44.9
+          }
+        }
+      }
+    },
+    "manifest": {
+      "question_sha256": "81625a725a8872e1795741b49a4748d03f7432e8e09f6fc578d399bac3df3f6a",
+      "reference_sha256": "1b2d39233086b599d9101e1f2166f9dc20b615f691e1149842af03fb9bb066f0",
+      "generation_model": "qwen-flash",
+      "judge_model": "qwen3.8-max-0902",
+      "backend": "tavily",
+      "parallel_profile": "deep_report",
+      "query_cap": 180
+    }
+  },
+  "after": {
+    "slices": {
+      "all": {
+        "tasks": [
+          "zh01",
+          "zh02",
+          "zh03",
+          "zh04",
+          "zh05",
+          "zh06",
+          "en01",
+          "en02",
+          "en03",
+          "en04",
+          "en05",
+          "en06"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 48,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 24,
+            "possible": 48,
+            "accuracy": 0.5
+          },
+          "P": {
+            "correct": 21,
+            "possible": 48,
+            "accuracy": 0.4375
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 11,
+            "ties": 1,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 5,
+            "ties": 0,
+            "losses": 7
+          }
+        }
+      },
+      "zh": {
+        "tasks": [
+          "zh01",
+          "zh02",
+          "zh03",
+          "zh04",
+          "zh05",
+          "zh06"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 24,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 11,
+            "possible": 24,
+            "accuracy": 0.4583333333333333
+          },
+          "P": {
+            "correct": 11,
+            "possible": 24,
+            "accuracy": 0.4583333333333333
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 5,
+            "ties": 1,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 3,
+            "ties": 0,
+            "losses": 3
+          }
+        }
+      },
+      "en": {
+        "tasks": [
+          "en01",
+          "en02",
+          "en03",
+          "en04",
+          "en05",
+          "en06"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 24,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 13,
+            "possible": 24,
+            "accuracy": 0.5416666666666666
+          },
+          "P": {
+            "correct": 10,
+            "possible": 24,
+            "accuracy": 0.4166666666666667
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 6,
+            "ties": 0,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 2,
+            "ties": 0,
+            "losses": 4
+          }
+        }
+      },
+      "multi": {
+        "tasks": [
+          "zh01",
+          "zh03",
+          "zh04",
+          "zh05",
+          "en01",
+          "en03",
+          "en04",
+          "en06"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 32,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 19,
+            "possible": 32,
+            "accuracy": 0.59375
+          },
+          "P": {
+            "correct": 16,
+            "possible": 32,
+            "accuracy": 0.5
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 8,
+            "ties": 0,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 3,
+            "ties": 0,
+            "losses": 5
+          }
+        }
+      },
+      "single": {
+        "tasks": [
+          "zh02",
+          "zh06",
+          "en02",
+          "en05"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 16,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 5,
+            "possible": 16,
+            "accuracy": 0.3125
+          },
+          "P": {
+            "correct": 5,
+            "possible": 16,
+            "accuracy": 0.3125
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 3,
+            "ties": 1,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 2,
+            "ties": 0,
+            "losses": 2
+          }
+        }
+      }
+    },
+    "groups": {
+      "closed": {
+        "statuses": {
+          "completed": 12
+        },
+        "median_seconds": 1.15,
+        "median_input_tokens": 155.5,
+        "provider_attempts": 0,
+        "fact_positions_correct": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "fact_status_counts": {
+          "missing": 48
+        },
+        "per_question": {
+          "zh01": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 2.1
+          },
+          "zh02": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.2
+          },
+          "zh03": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 2.7
+          },
+          "zh04": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.0
+          },
+          "zh05": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.0
+          },
+          "zh06": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.1
+          },
+          "en01": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 2.5
+          },
+          "en02": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.1
+          },
+          "en03": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 2.0
+          },
+          "en04": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.0
+          },
+          "en05": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 1.0
+          },
+          "en06": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 3.2
+          }
+        }
+      },
+      "A": {
+        "statuses": {
+          "completed": 11,
+          "failed": 1
+        },
+        "median_seconds": 12.5,
+        "median_input_tokens": 2940.5,
+        "provider_attempts": 36,
+        "fact_positions_correct": [
+          6,
+          8,
+          9,
+          1
+        ],
+        "fact_status_counts": {
+          "correct": 24,
+          "missing": 16,
+          "incorrect": 8
+        },
+        "per_question": {
+          "zh01": {
+            "correct": 3,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "correct",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 11.0
+          },
+          "zh02": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "incorrect",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 23.0
+          },
+          "zh03": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "correct",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 15.0
+          },
+          "zh04": {
+            "correct": 3,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "correct",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 13.8
+          },
+          "zh05": {
+            "correct": 3,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "correct",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 22.7
+          },
+          "zh06": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "missing",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "failed",
+            "seconds": 7.7
+          },
+          "en01": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "correct",
+              "F3": "correct",
+              "F4": "incorrect"
+            },
+            "status": "completed",
+            "seconds": 14.0
+          },
+          "en02": {
+            "correct": 3,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "correct",
+              "F3": "correct",
+              "F4": "correct"
+            },
+            "status": "completed",
+            "seconds": 23.2
+          },
+          "en03": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "missing",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 9.6
+          },
+          "en04": {
+            "correct": 3,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "correct",
+              "F3": "correct",
+              "F4": "incorrect"
+            },
+            "status": "completed",
+            "seconds": 10.0
+          },
+          "en05": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "missing",
+              "F3": "incorrect",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 11.2
+          },
+          "en06": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "correct",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 10.3
+          }
+        }
+      },
+      "P": {
+        "statuses": {
+          "completed": 12
+        },
+        "median_seconds": 30.1,
+        "median_input_tokens": 17697.0,
+        "provider_attempts": 87,
+        "fact_positions_correct": [
+          7,
+          1,
+          5,
+          8
+        ],
+        "fact_status_counts": {
+          "correct": 21,
+          "incorrect": 17,
+          "missing": 10
+        },
+        "per_question": {
+          "zh01": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "incorrect",
+              "F3": "incorrect",
+              "F4": "correct"
+            },
+            "status": "completed",
+            "seconds": 36.8
+          },
+          "zh02": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "incorrect",
+              "F3": "correct",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 37.0
+          },
+          "zh03": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "incorrect",
+              "F3": "incorrect",
+              "F4": "correct"
+            },
+            "status": "completed",
+            "seconds": 44.3
+          },
+          "zh04": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "incorrect",
+              "F3": "correct",
+              "F4": "incorrect"
+            },
+            "status": "completed",
+            "seconds": 34.6
+          },
+          "zh05": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "correct",
+              "F3": "missing",
+              "F4": "missing"
+            },
+            "status": "completed",
+            "seconds": 35.5
+          },
+          "zh06": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "missing",
+              "F3": "incorrect",
+              "F4": "correct"
+            },
+            "status": "completed",
+            "seconds": 24.3
+          },
+          "en01": {
+            "correct": 3,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "missing",
+              "F3": "correct",
+              "F4": "correct"
+            },
+            "status": "completed",
+            "seconds": 51.5
+          },
+          "en02": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "missing",
+              "F3": "missing",
+              "F4": "correct"
+            },
+            "status": "completed",
+            "seconds": 21.0
+          },
+          "en03": {
+            "correct": 3,
+            "fact_statuses": {
+              "F1": "correct",
+              "F2": "missing",
+              "F3": "correct",
+              "F4": "correct"
+            },
+            "status": "completed",
+            "seconds": 25.0
+          },
+          "en04": {
+            "correct": 2,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "missing",
+              "F3": "correct",
+              "F4": "correct"
+            },
+            "status": "completed",
+            "seconds": 23.9
+          },
+          "en05": {
+            "correct": 0,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "incorrect",
+              "F3": "incorrect",
+              "F4": "incorrect"
+            },
+            "status": "completed",
+            "seconds": 25.1
+          },
+          "en06": {
+            "correct": 1,
+            "fact_statuses": {
+              "F1": "incorrect",
+              "F2": "missing",
+              "F3": "incorrect",
+              "F4": "correct"
+            },
+            "status": "completed",
+            "seconds": 25.6
+          }
+        }
+      }
+    },
+    "manifest": {
+      "question_sha256": "81625a725a8872e1795741b49a4748d03f7432e8e09f6fc578d399bac3df3f6a",
+      "reference_sha256": "1b2d39233086b599d9101e1f2166f9dc20b615f691e1149842af03fb9bb066f0",
+      "generation_model": "qwen-flash",
+      "judge_model": "qwen3.8-max-0902",
+      "backend": "tavily",
+      "parallel_profile": "deep_report",
+      "query_cap": 180,
+      "prompt_date": "2026-11-14",
+      "previous_summary_sha256": "23b34a55dd6b106d39d3f9ff5645c893593970aa1baf5e79960bd591bb0bd7cb"
+    }
+  },
+  "tavily": {
+    "old_requests": 110,
+    "rerun_requests": 123,
+    "rerun_credit_receipts": {
+      "1": 123
+    }
+  },
+  "temporal_failure_audit": {
+    "rule": "Count wrong or missing items explicitly asserting in their own answer that a known event had not happened or result had not been announced. Source-specific gaps and blanket notes are excluded from the strict count. Record speculative versions separately.",
+    "before_P": {
+      "asserted": {
+        "en02": [
+          "F1"
+        ],
+        "en03": [
+          "F2",
+          "F3",
+          "F4"
+        ],
+        "en04": [
+          "F1",
+          "F2"
+        ],
+        "en05": [
+          "F1",
+          "F2",
+          "F4"
+        ],
+        "zh01": [
+          "F1",
+          "F4"
+        ],
+        "zh03": [
+          "F3"
+        ]
+      },
+      "speculated": {}
+    },
+    "after_P": {
+      "asserted": {
+        "en06": [
+          "F2"
+        ]
+      },
+      "speculated": {
+        "en03": [
+          "F2"
+        ],
+        "en04": [
+          "F2"
+        ],
+        "zh02": [
+          "F4"
+        ]
+      }
+    },
+    "before_A": {
+      "asserted": {},
+      "speculated": {}
+    },
+    "after_A": {
+      "asserted": {},
+      "speculated": {}
+    }
+  }
+}
