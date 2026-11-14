@@ -37,25 +37,26 @@ async def run_case(row, output, backend, max_tokens):
     report, error, usage, sources = "", None, [], []
     try:
         model = get_model()
-        planned = await model.bind(temperature=0, max_tokens=300).ainvoke(
-            [{"role": "system", "content": QUERIES}, {"role": "user", "content": row["prompt"]}]
-        )
-        usage.append(planned.usage_metadata)
-        text = planned.content[planned.content.find("[") : planned.content.rfind("]") + 1]
-        queries = [str(q) for q in json.loads(text)][:3] or [row["prompt"][:200]]
-        found = await asyncio.to_thread(
-            get_search_service().search,
-            SearchRequest(queries, backend=backend, fetch_full_page=True, max_fetched_pages=6),
-        )
-        sources = [
-            {
-                "n": n,
-                "title": r.title,
-                "url": r.url,
-                "text": (r.raw_content or r.content)[:PAGE_CHARS],
-            }
-            for n, r in enumerate(found.results, start=1)
-        ]
+        if backend is not None:
+            planned = await model.bind(temperature=0, max_tokens=300).ainvoke(
+                [{"role": "system", "content": QUERIES}, {"role": "user", "content": row["prompt"]}]
+            )
+            usage.append(planned.usage_metadata)
+            text = planned.content[planned.content.find("[") : planned.content.rfind("]") + 1]
+            queries = [str(q) for q in json.loads(text)][:3] or [row["prompt"][:200]]
+            found = await asyncio.to_thread(
+                get_search_service().search,
+                SearchRequest(queries, backend=backend, fetch_full_page=True, max_fetched_pages=6),
+            )
+            sources = [
+                {
+                    "n": n,
+                    "title": r.title,
+                    "url": r.url,
+                    "text": (r.raw_content or r.content)[:PAGE_CHARS],
+                }
+                for n, r in enumerate(found.results, start=1)
+            ]
         written = await model.bind(temperature=0, max_tokens=max_tokens).ainvoke(
             [
                 {"role": "system", "content": WRITER},

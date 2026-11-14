@@ -74,3 +74,9 @@ P 的报告引用可以指向证据清单中的原文，所以引用数可超过
 P 对 A 低 1.063 分，逐题 2 胜、13 负；对旧 C 低 0.374 分，逐题 4 胜、11 负。均超出 0.30 的接近范围，未达质量目标。此轮的工程收益体现在完成率、耗时、输入 Token 与证据可追溯覆盖。与旧 C 相比，总耗时中位数降低 46%，输入 Token 中位数降低 72%。证据引用覆盖和报告内容分在本轮向不同方向变化；两项指标均不足以单独衡量事实准确性。并行派发、原文交接与交付规则一起变化，实时搜索结果也会波动，无法归因到单个改动。
 
 复现时先用 `run_agent --research-mode parallel_web --profile deep_report --per-language 8 --ids 16 23 3 34 38 44 2 13 81 87 54 95 88 89 93 --export-evidence --timeout 330`。设置 `SEARCH_BACKEND_ORDER=duckduckgo`、`LLM_PROVIDER=dashscope`、`LLM_NAME=qwen-flash`、`CUDA_VISIBLE_DEVICES=-1`。报告导出后用 `score_compat` 和原 OSODT 设置评分。配对结果通过 `python -m evals.drb_osodt.parallel_report ARCHIVE OUTPUT_JSON` 复算。
+
+## 简历表述
+
+> 搭建端到端研究报告评测与阶段级轨迹统计。在 DeepResearch Bench 的 15 道配对题上，以并行子问题派发替换主管循环，正常完成从 2/15 提升至 12/15，耗时中位数降低 46%，输入 Token 中位数降低 72%。
+
+同题闭卷写作的 OSODT 内容分为 6.96，单轮检索为 6.51，闭卷逐题胜出 12/15。这套内容分衡量报告对准则的满足程度。检索是否提高事实正确率需要另行测量。
