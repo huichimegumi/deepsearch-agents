@@ -89,7 +89,11 @@ def usage():
     if not response.ok:
         raise RuntimeError(f"Tavily usage API returned HTTP {response.status_code}")
     key = response.json()["key"]
-    return {field: int(key[field]) for field in ("usage", "limit", "search_usage")}
+    return {
+        "usage": int(key["usage"]),
+        "limit": int(key["limit"]) if key["limit"] is not None else None,
+        "search_usage": int(key["search_usage"]),
+    }
 
 
 def limit_searches(output):
