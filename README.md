@@ -30,6 +30,8 @@ RFC 路径将词法排序换成 BM25。对 7 道普通可回答开发题，页�
 
 研究流程也做了端到端对照。DeepResearch Bench 16 道同题中，单轮基线的 OSODT 内容分为 6.51/10，DeepAgents 两档分别为 5.85 和 5.30。在 15 道同题的离线交叉中，把高预算流程保存的网页证据交给单轮 Writer 后得分为 6.41，旧高预算流程为 5.31，单轮基线为 6.51。见 [DRB 评测与交叉实验](docs/development/drb-duckduckgo-15.md) 和 [历史固定语料评测](EVAL.md)。
 
+并行 Web 研究在同一批 15 道题上将正常完成从 2/15 提高到 12/15，耗时中位数从 118.5 秒降至 63.5 秒。OSODT 内容分为 5.45，低于单轮基线的 6.51。见 [过程评测与并行复测](docs/development/drb-process-evaluation.md)。
+
 <details>
 <summary>完整项目手册（中文 / English）与历史开发记录</summary>
 
