@@ -21,8 +21,9 @@ from evals.drb_osodt.tasks import select
 from evals.worker_supervisor import atomic_json
 
 PAGE_CHARS = 6000
+DEFAULT_QUERY_LIMIT = 3
 QUERIES = (
-    "Propose up to three web search queries that together cover the research task. "
+    "Propose up to {limit} web search queries that together cover the research task. "
     "Reply with a JSON array of strings only."
 )
 WRITER = (
@@ -40,6 +41,7 @@ async def run_case(
     *,
     current_date: date | None = None,
     include_search_snippets: bool = False,
+    query_limit: int = DEFAULT_QUERY_LIMIT,
 ):
     attempt = output / f"drb_{row['id']}" / "attempt-0001"
     attempt.mkdir(parents=True)
@@ -52,15 +54,24 @@ async def run_case(
     try:
         model = get_model()
         if backend is not None:
-            planned = await model.bind(temperature=0, max_tokens=300).ainvoke(
-                [{"role": "system", "content": QUERIES}, {"role": "user", "content": row["prompt"]}]
+            planned = await model.bind(temperature=0, max_tokens=100 * query_limit).ainvoke(
+                [
+                    {
+                        "role": "system",
+                        "content": QUERIES.format(
+                            limit="three" if query_limit == 3 else query_limit
+                        ),
+                    },
+                    {"role": "user", "content": row["prompt"]},
+                ]
             )
             usage.append(planned.usage_metadata)
             text = planned.content[planned.content.find("[") : planned.content.rfind("]") + 1]
-            queries = [str(q) for q in json.loads(text)][:3] or [row["prompt"][:200]]
+            queries = [str(q) for q in json.loads(text)][:query_limit] or [row["prompt"][:200]]
             found = await asyncio.to_thread(
                 get_search_service().search,
                 SearchRequest(queries, backend=backend, fetch_full_page=True, max_fetched_pages=6),
+                query_limit=query_limit,
             )
             sources = [
                 {

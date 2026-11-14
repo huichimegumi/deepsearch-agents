@@ -64,9 +64,11 @@ class SearchService:
             os.getenv("SEARCH_MAX_CONTENT_CHARS", "8000")
         )
 
-    def search(self, request: SearchRequest) -> SearchResponse:
+    def search(self, request: SearchRequest, *, query_limit: int = MAX_QUERIES) -> SearchResponse:
         """执行搜索，并将所有错误收敛为可读提示。"""
-        queries = self._clean_queries(request.queries)
+        if not 1 <= query_limit <= 8:
+            raise ValueError("query_limit must be between 1 and 8")
+        queries = self._clean_queries(request.queries, query_limit)
         if not queries:
             return SearchResponse([], request.backend, notices=["没有可执行的搜索查询"])
 
@@ -221,7 +223,7 @@ class SearchService:
         raise RuntimeError("；".join(notices) or "所有搜索后端均不可用")
 
     @staticmethod
-    def _clean_queries(queries: list[str]) -> list[str]:
+    def _clean_queries(queries: list[str], limit: int = MAX_QUERIES) -> list[str]:
         cleaned: list[str] = []
         seen: set[str] = set()
         for query in queries:
@@ -230,7 +232,7 @@ class SearchService:
             if value and key not in seen:
                 cleaned.append(value)
                 seen.add(key)
-            if len(cleaned) >= MAX_QUERIES:
+            if len(cleaned) >= limit:
                 break
         return cleaned
 

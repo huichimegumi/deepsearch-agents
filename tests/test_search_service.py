@@ -111,6 +111,15 @@ class SearchServiceTests(unittest.TestCase):
         self.assertEqual(response.queries, ["Alpha", "Beta", "Gamma", "Delta", "Epsilon"])
         self.assertEqual(provider.calls, response.queries)
 
+    @patch("app.search.service.monitor.report_search")
+    def test_trusted_query_limit_override_keeps_eight_in_one_round(self, _report_search):
+        provider = FakeProvider("only")
+        service = SearchService({"only": provider})
+        queries = [f"query {i}" for i in range(10)]
+        response = service.search(SearchRequest(queries=queries, backend="advanced"), query_limit=8)
+        self.assertEqual(response.queries, queries[:8])
+        self.assertCountEqual(provider.calls, queries[:8])
+
     def test_指定不可用后端返回提示而不抛异常(self):
         service = SearchService({"offline": FakeProvider("offline", available=False)})
 

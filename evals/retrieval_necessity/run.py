@@ -101,7 +101,7 @@ def usage():
     }
 
 
-def limit_searches(output):
+def limit_searches(output, cap=MAX_QUERIES):
     """Count provider attempts before dispatch, including attempts lost to interruption."""
     path = output / "tavily_attempts.jsonl"
     provider = get_search_service().providers["tavily"]
@@ -132,7 +132,7 @@ def limit_searches(output):
     def search(query, **kwargs):
         with lock:
             count = len(path.read_bytes().splitlines()) if path.exists() else 0
-            if count >= MAX_QUERIES:
+            if count >= cap:
                 raise RuntimeError("Tavily experiment query cap reached")
             with path.open("a", encoding="utf-8") as log:
                 log.write(
@@ -336,7 +336,7 @@ async def score(questions, references, output, *, arms=ARMS):
             rates[arm] = {"correct": correct, "possible": possible, "accuracy": correct / possible}
         pairs = {}
         for left, right in (("A", "closed"), ("P", "A")):
-            if right not in arms:
+            if left not in arms or right not in arms:
                 continue
             diffs = [totals[c][left]["correct"] - totals[c][right]["correct"] for c in cases]
             pairs[f"{left}_vs_{right}"] = {

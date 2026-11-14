@@ -54,3 +54,9 @@ tmux new-session -d -s retrieval-repair "$cmd generate $args > '$out/generate.lo
 用 `--web-refresh` 另建结果目录，沿用原题、日期、评分器、闭卷归档与查询上限。A 保留搜索摘要与正文，P 每个研究员预留两次模型调用，在 `deep_report` 调度最多四个研究员。P 将摘要与网页正文按来源类型标注。抓不到正文时保留明确标记的摘要。解析 2 MB 限额内的整份 HTML，优先保留主体块；内容超过上限时按查询匹配选择段落。旧结果与同题复测独立存放。
 
 另备 6 道未参与诊断的题，人工确认后用 `--holdout --web-refresh` 和独立目录各跑 A、P 一次。原题与独立题分别报告。
+
+## 查询额度及独立题闭卷对照
+
+`python -m evals.retrieval_necessity.controls {generate,score} {A8,closed} REVIEW ARCHIVE OUTPUT` 使用指定归档的题目、参考答案和日期，并为每个配置写独立的检查点。A8 仍是一次查询规划、一次搜索批次和一次相同 Writer，保留 A 的 8 个候选结果与最多 6 页抓取上限。只把规划和实际查询上限调到 8，规划输出上限按每条查询 100 token 分配。线上普通搜索入口仍默认最多 5 条。独立题闭卷使用同一 Writer 与日期，来源列表为空。评分沿用原 Qwen Max 设置。
+
+将原 12 题与独立 6 题的 A8 分别配对归档中的 A、P。并行实际用量可能和 A8 不同，比较用于检验提高单轮查询额度能解释多少差距。搜索仍实时，证据交接和 Writer 提示词仍有差异。
