@@ -30,6 +30,17 @@ WRITER_INSTRUCTION = (
 )
 
 
+def writer_failure_notice(trace):
+    """Deliver only accepted claims if the Writer did not produce a report."""
+    trace.degraded = True
+    trace.record_failure("parallel_writer_no_report")
+    notice = "报告生成未完成。 / Report generation did not complete."
+    if trace.claim_ids:
+        trace.report_used_claim_fallback = True
+        return f"{notice}\n\n{trace.render_accepted_claim_package()}"
+    return notice
+
+
 def deliver_report(markdown, trace):
     allowed = set(trace.claim_eligible_evidence_ids)
     cleaned, removed = _remove_unknown(markdown, allowed)

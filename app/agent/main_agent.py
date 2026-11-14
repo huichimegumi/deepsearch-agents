@@ -1892,12 +1892,15 @@ async def run_deep_agent(
                     },
                     thread_id=event_thread_id,
                 )
-                phase_result = build_degraded_phase_output(
-                    task_query=task_query,
-                    phase=phase,
-                    phase_outputs=phase_outputs,
-                    reason=reason,
-                )
+                if parallel_web and phase.key == "final_report":
+                    phase_result = parallel_research.writer_failure_notice(run_trace)
+                else:
+                    phase_result = build_degraded_phase_output(
+                        task_query=task_query,
+                        phase=phase,
+                        phase_outputs=phase_outputs,
+                        reason=reason,
+                    )
                 if phase.key == "final_report":
                     phase_result = local_evidence_boundary(run_trace) or phase_result
                     phase_result, citation_validation = deliver(
@@ -2143,12 +2146,15 @@ async def run_deep_agent(
                     phase_result = _enforce_research_evidence_requirements(phase_result, run_trace)
             if not phase_result:
                 run_trace.degraded = True
-                phase_result = build_degraded_phase_output(
-                    task_query=task_query,
-                    phase=phase,
-                    phase_outputs=phase_outputs,
-                    reason="phase budget was exhausted before a usable artifact was captured",
-                )
+                if parallel_web and phase.key == "final_report":
+                    phase_result = parallel_research.writer_failure_notice(run_trace)
+                else:
+                    phase_result = build_degraded_phase_output(
+                        task_query=task_query,
+                        phase=phase,
+                        phase_outputs=phase_outputs,
+                        reason="phase budget was exhausted before a usable artifact was captured",
+                    )
                 run_trace.mark_phase_artifact(phase.key, "fallback")
                 monitor._emit(
                     "phase_degraded",
@@ -2234,6 +2240,8 @@ async def run_deep_agent(
                             if requested_formats
                             else "validated_fallback"
                         )
+                    elif parallel_web and "parallel_writer_no_report" in run_trace.failure_reasons:
+                        artifact_status = "fallback_persisted" if requested_formats else "fallback"
                     elif citation_validation.valid:
                         artifact_status = "persisted" if requested_formats else "usable"
                     else:
@@ -2261,11 +2269,14 @@ async def run_deep_agent(
             fallback_result = phase_outputs.get("evidence_compression") or phase_outputs.get(
                 "supervisor_research"
             )
-            if fallback_result:
-                final_result = (
-                    "本轮研究已达到当前执行预算，以下是基于已完成阶段整理的可用结果。\n\n"
-                    + fallback_result
-                )
+            if parallel_web or fallback_result:
+                if parallel_web:
+                    final_result = parallel_research.writer_failure_notice(run_trace)
+                else:
+                    final_result = (
+                        "本轮研究已达到当前执行预算，以下是基于已完成阶段整理的可用结果。\n\n"
+                        + fallback_result
+                    )
                 final_result, _ = deliver(
                     report_markdown=final_result,
                     compressed_fallback="",
