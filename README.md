@@ -28,7 +28,7 @@ RFC 路径将词法排序换成 BM25。对 7 道普通可回答开发题，页�
 
 [开发集对照](evals/rfc_demo/comparison.md) · [保留题验证与发布边界](evals/rfc_demo/validation.md)。这些是小样本结果；链接存在不代表答案正确，查证模式也不保证找到全部相关章节。此演示限于两份 RFC 的编号正文，不覆盖通用 Web、SQL、附件或跨轮研究。
 
-研究流程的历史配对结果、引用复核与失败分析见 [EVAL.md](EVAL.md)。
+研究流程也做了端到端对照。DeepResearch Bench 16 道同题中，单轮基线的 OSODT 内容分为 6.51/10，DeepAgents 两档分别为 5.85 和 5.30。在 15 道同题的离线交叉中，把高预算流程保存的网页证据交给单轮 Writer 后得分为 6.41，旧高预算流程为 5.31，单轮基线为 6.51。见 [DRB 评测与交叉实验](docs/development/drb-duckduckgo-15.md) 和 [历史固定语料评测](EVAL.md)。
 
 <details>
 <summary>完整项目手册（中文 / English）与历史开发记录</summary>
