@@ -7,7 +7,9 @@ import hashlib
 import json
 import os
 import re
+import shutil
 from collections import Counter
+from datetime import date
 from pathlib import Path
 from threading import Lock
 from typing import Literal
@@ -151,7 +153,7 @@ def attempt_path(output, arm, case):
     return output / arm / f"drb_{case}" / "attempt-0001"
 
 
-async def generate(questions, output, pilot):
+async def generate(questions, output, pilot, *, current_date=None):
     os.environ.update(
         LLM_PROVIDER="dashscope",
         LLM_NAME="qwen-flash",
@@ -178,17 +180,30 @@ async def generate(questions, output, pilot):
             raise ValueError("Verify the single-question Tavily pilot before full generation")
         rows = questions
 
+    generation_arms = ("A", "P") if current_date is not None else ARMS
     for row in rows:
-        for arm in ARMS:
+        for arm in generation_arms:
             if pending_case(output / arm, row["id"]):
                 print(f"{row['id']} {arm}", flush=True)
                 before_attempts = count()
                 if arm == "P":
                     await run_parallel(
-                        row, output / arm, profile, 330, False, research_mode="parallel_web"
+                        row,
+                        output / arm,
+                        profile,
+                        330,
+                        current_date is not None,
+                        research_mode="parallel_web",
+                        current_date=current_date,
                     )
                 else:
-                    await run_baseline(row, output / arm, "tavily" if arm == "A" else None, 8000)
+                    await run_baseline(
+                        row,
+                        output / arm,
+                        "tavily" if arm == "A" else None,
+                        8000,
+                        current_date=current_date,
+                    )
                 atomic_json(
                     attempt_path(output, arm, row["id"]) / "provider_attempts.json",
                     {"attempts": count() - before_attempts},
@@ -197,6 +212,11 @@ async def generate(questions, output, pilot):
                 path = attempt_path(output, arm, row["id"]) / "worker_result.json"
                 if read(path).get("research_mode") != "parallel_web":
                     raise ValueError(f"Missing or incorrect parallel trace for {row['id']}")
+                if (
+                    current_date is not None
+                    and not path.with_name("evaluation_evidence.json").exists()
+                ):
+                    raise ValueError(f"Missing diagnostic evidence export for {row['id']}")
 
     pilot_result = read(checkpoint) if pilot and checkpoint.exists() else {}
     credit_probe = output / "pilot_credit_probe.json"
@@ -336,7 +356,15 @@ def main():
     parser.add_argument("stage", choices=("validate", "pilot", "generate", "score"))
     parser.add_argument("review", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument(
+        "--previous", type=Path, help="Reuse the frozen closed-book control and Tavily pilot"
+    )
+    parser.add_argument(
+        "--as-of", type=date.fromisoformat, help="Freeze the prompt date for the rerun"
+    )
     args = parser.parse_args()
+    if bool(args.previous) != bool(args.as_of) or (args.previous and args.stage == "pilot"):
+        parser.error("Use --previous and --as-of together with generate or score")
     questions, references = load_review(args.review)
     if args.stage == "validate":
         print(f"{len(questions)} questions and {sum(map(len, references.values()))} fact units")
@@ -344,22 +372,45 @@ def main():
     args.output.mkdir(parents=True, exist_ok=True)
     with (args.output / ".lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        open_run(
-            args.output,
-            {
-                "question_sha256": content_hash(args.review / "questions.json"),
-                "reference_sha256": content_hash(args.review / "references.json"),
-                "generation_model": "qwen-flash",
-                "judge_model": JUDGE_MODEL,
-                "backend": "tavily",
-                "parallel_profile": "deep_report",
-                "query_cap": MAX_QUERIES,
-            },
-        )
+        manifest = {
+            "question_sha256": content_hash(args.review / "questions.json"),
+            "reference_sha256": content_hash(args.review / "references.json"),
+            "generation_model": "qwen-flash",
+            "judge_model": JUDGE_MODEL,
+            "backend": "tavily",
+            "parallel_profile": "deep_report",
+            "query_cap": MAX_QUERIES,
+        }
+        if args.previous:
+            previous = read(args.previous / "manifest.json")
+            if args.output.resolve() == args.previous.resolve() or previous != manifest:
+                raise ValueError("Rerun requires a distinct output and matching original manifest")
+            manifest.update(
+                prompt_date=args.as_of.isoformat(),
+                previous_summary_sha256=content_hash(args.previous / "summary.json"),
+            )
+        open_run(args.output, manifest)
+        if args.previous:
+            # Copy only the closed-book outputs and scores. A and P get fresh attempts.
+            for row in questions:
+                case = row["id"]
+                source = attempt_path(args.previous, "closed", case)
+                target = attempt_path(args.output, "closed", case)
+                for name in ("report.md", "research_result.json", "worker_result.json"):
+                    target.mkdir(parents=True, exist_ok=True)
+                    if not (target / name).exists():
+                        shutil.copy2(source / name, target / name)
+                path = Path("scores", "closed", f"{case}.json")
+                atomic_json(args.output / path, read(args.previous / path))
+            atomic_json(args.output / "pilot_usage.json", read(args.previous / "pilot_usage.json"))
         if args.stage == "score":
             asyncio.run(score(questions, references, args.output))
         else:
-            asyncio.run(generate(questions, args.output, pilot=args.stage == "pilot"))
+            asyncio.run(
+                generate(
+                    questions, args.output, pilot=args.stage == "pilot", current_date=args.as_of
+                )
+            )
 
 
 if __name__ == "__main__":

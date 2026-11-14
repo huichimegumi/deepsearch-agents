@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 import uuid
+from datetime import date
 from functools import lru_cache, partial
 from pathlib import Path
 from typing import Any, Callable
@@ -23,6 +24,7 @@ from pydantic import BaseModel, Field
 from app.agent import parallel_research
 from app.agent.llm import get_model
 from app.agent.prompts import main_agent_content
+from app.agent.research_date import research_date_context
 from app.agent.research_workflow import (
     RESEARCH_PHASES,
     SQL_EVIDENCE_CORRECTION_PHASE,
@@ -1661,6 +1663,7 @@ async def run_deep_agent(
     required_evidence_sources: tuple[str, ...] = (),
     research_delivery_repair: bool = False,
     research_mode: str = "supervisor",
+    current_date: date | None = None,
 ):
     """
     异步流式执行主智能体
@@ -1831,6 +1834,10 @@ async def run_deep_agent(
     )
     run_trace.research_tool_call_limit = 2 if indexed_local_only else None
     brief = None
+    phase_outputs: dict[str, str] = {}
+    synthesis_prompts: dict[str, str] = {}
+    current_date = current_date or date.today()
+    date_context = research_date_context(current_date)
 
     def capture_brief(parsed):
         nonlocal brief
@@ -1860,7 +1867,6 @@ async def run_deep_agent(
             + memory_instruction
             + ("\n\n" + conversation_memory if conversation_memory else "")
         )
-        phase_outputs: dict[str, str] = {}
         max_subagent_calls = _max_subagent_calls_for_profile(budget_profile)
 
         for phase in RESEARCH_PHASES:
@@ -1943,8 +1949,9 @@ async def run_deep_agent(
                 ),
             )
             phase_runtime_instructions = (
-                "Use public web sources only. Split the task into up to three independently "
-                "searchable subquestions suitable for parallel public-web research."
+                "Use public web sources only. Include every requested item in the research "
+                "subquestions. Keep independently searchable requirements distinct; "
+                "the backend can assign multiple subquestions to a researcher."
                 if parallel_web
                 else runtime_instructions
             )
@@ -2015,6 +2022,13 @@ async def run_deep_agent(
                     + "\n仅使用上述真实文件名，不得编造或缩写成新的文件名；证据不足时只说明边界。"
                     "不能据片段或检索未命中声称已逐项核查全文、全部文档或全库不存在内容。"
                 )
+            if parallel_web:
+                prompt = date_context + "\n\n" + prompt
+                if export_evaluation_evidence and phase.key in {
+                    "evidence_compression",
+                    "final_report",
+                }:
+                    synthesis_prompts[phase.key] = prompt
             phase_agent = _phase_agent_for(
                 phase=phase,
                 planner_agent=planner_agent,
@@ -2038,6 +2052,7 @@ async def run_deep_agent(
                     run_trace,
                     phase_budget.timeout_seconds,
                     phase.title,
+                    current_date=current_date,
                 )
             elif phase.requires_tools:
                 config = _phase_config(
@@ -2349,10 +2364,17 @@ async def run_deep_agent(
         try:
             ResearchRunTrace.write(trace_path, trace_payload)
             if export_evaluation_evidence:
-                ResearchRunTrace.write(
-                    session_dir / "evaluation_evidence.json",
-                    run_trace.export_evidence_snapshot(),
-                )
+                snapshot = run_trace.export_evidence_snapshot()
+                if parallel_web:
+                    snapshot["parallel_intermediates"] = {
+                        "current_date": current_date.isoformat(),
+                        "brief": brief.model_dump(mode="json") if brief is not None else None,
+                        "accepted_claims": run_trace.render_accepted_claim_package()
+                        if run_trace.claim_ids
+                        else "",
+                        "synthesis_prompts": synthesis_prompts,
+                    }
+                ResearchRunTrace.write(session_dir / "evaluation_evidence.json", snapshot)
             monitor._emit(
                 "research_trace_complete",
                 "研究运行 Trace 已生成",

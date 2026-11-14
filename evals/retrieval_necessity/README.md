@@ -28,3 +28,21 @@ tmux new-session -d -s retrieval-necessity-pilot "$cmd pilot '$review' '$out' > 
 ```bash
 tmux new-session -d -s retrieval-necessity-full "$cmd generate '$review' '$out' > '$out/generate.log' 2>&1 && $cmd score '$review' '$out' > '$out/score.log' 2>&1"
 ```
+
+## 日期与分组修复复测
+
+本轮预先记录三个预期。P 把已发生事件当作未来或尚未公布的失分项至多 2 项。P 的第 4 项正确数高于 1/12。P 总分明显高于旧结果 11/48，操作上按至少多答对 6 项记录。P 是否追上 A 只记录实测结果。时效失分按报告文本逐项复核，明确说未来、尚未举行或尚未公布才计入，仅写不确定或缺资料不计入。
+
+用原题、原参考答案、原判分设置与原搜索预算。只重新生成及评分 A、P，闭卷生成和判分沿用原档。新 A 的 Writer 和新 P 全阶段共享 2026-11-14 日期提示。P 按原顺序将所有简报子问题分配到固定数量的子代理，并附原始任务。A 保存搜索词和 Writer 来源，P 额外导出结构化简报、证据记录、接受论断和压缩／写作实际入参。原始产物留在忽略目录。
+
+修复从这 12 道题的失败中得出，本轮属于同题缺陷复测。搜索实时变化且多处一起修复，比较只描述此次运行的差异。
+
+```bash
+review=evals/results/retrieval-necessity-review
+previous=evals/results/retrieval-necessity-2026
+out=evals/results/retrieval-necessity-2026-repair
+mkdir -p "$out"
+cmd=".venv/bin/python -m evals.retrieval_necessity.run"
+args="'$review' '$out' --previous '$previous' --as-of 2026-11-14"
+tmux new-session -d -s retrieval-repair "$cmd generate $args > '$out/generate.log' 2>&1 && $cmd score $args > '$out/score.log' 2>&1"
+```

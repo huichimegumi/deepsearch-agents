@@ -9,9 +9,11 @@ import argparse
 import asyncio
 import json
 import time
+from datetime import date
 from pathlib import Path
 
 from app.agent.llm import get_model
+from app.agent.research_date import research_date_context
 from app.search.models import SearchRequest
 from app.search.service import get_search_service
 from evals.drb_osodt.checkpoint import open_run, pending_case
@@ -30,11 +32,15 @@ WRITER = (
 )
 
 
-async def run_case(row, output, backend, max_tokens):
+async def run_case(row, output, backend, max_tokens, *, current_date: date | None = None):
     attempt = output / f"drb_{row['id']}" / "attempt-0001"
     attempt.mkdir(parents=True)
     started = time.monotonic()
     report, error, usage, sources = "", None, [], []
+    queries = []
+    writer_prompt = WRITER
+    if current_date is not None:
+        writer_prompt = research_date_context(current_date) + "\n\n" + writer_prompt
     try:
         model = get_model()
         if backend is not None:
@@ -59,7 +65,7 @@ async def run_case(row, output, backend, max_tokens):
             ]
         written = await model.bind(temperature=0, max_tokens=max_tokens).ainvoke(
             [
-                {"role": "system", "content": WRITER},
+                {"role": "system", "content": writer_prompt},
                 {
                     "role": "user",
                     "content": json.dumps(
@@ -86,6 +92,8 @@ async def run_case(row, output, backend, max_tokens):
     }
     (attempt / "report.md").write_text(report, "utf-8")
     (attempt / "sources.json").write_text(json.dumps(sources, ensure_ascii=False), "utf-8")
+    if current_date is not None:
+        atomic_json(attempt / "search_plan.json", {"queries": queries})
     atomic_json(attempt / "research_result.json", {"status": status})
     atomic_json(attempt / "worker_result.json", record)
     print(json.dumps({**record, "status": status, "characters": len(report)}), flush=True)

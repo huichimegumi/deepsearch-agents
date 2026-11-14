@@ -1,3 +1,4 @@
+from datetime import date
 from threading import Barrier
 from types import SimpleNamespace
 
@@ -18,6 +19,7 @@ async def test_workers_overlap_and_one_failure_preserves_other_evidence(monkeypa
     trace = make_trace()
     barrier = Barrier(3)
     observed = []
+    worker_prompts = []
 
     def search(request):
         observed.append(request)
@@ -27,11 +29,15 @@ async def test_workers_overlap_and_one_failure_preserves_other_evidence(monkeypa
             request.queries, "duckduckgo", [SearchResult("Source", url, raw_content="Text")]
         )
 
-    def create_agent(*, tools, **_):
+    def create_agent(*, tools, system_prompt, **_):
+        assert "当前日期：2026-11-14" in system_prompt
+
         async def stream(payload, *_args, **_kwargs):
-            query = payload["messages"][0]["content"]
+            prompt = payload["messages"][0]["content"]
+            worker_prompts.append(prompt)
+            query = prompt.split("Assigned subquestions:\n")[1].splitlines()[0][2:]
             await tools[0].ainvoke({"queries": [query, "b", "c", "d", "extra"]})
-            if query == "two":
+            if query == "three":
                 raise RuntimeError("isolated failure")
             yield {"model": {"messages": [SimpleNamespace(content=query, tool_calls=[])]}}
 
@@ -42,9 +48,21 @@ async def test_workers_overlap_and_one_failure_preserves_other_evidence(monkeypa
         parallel_research, "get_search_service", lambda: SimpleNamespace(search=search)
     )
     answer = await parallel_research.research(
-        "task", ["one", "two", "three"], None, trace, 5, "phase"
+        "task",
+        ["one", "two", "three", "four"],
+        None,
+        trace,
+        5,
+        "phase",
+        current_date=date(2026, 11, 14),
     )
-    assert answer == "one\n\nthree"
+    assert answer == "one\n\nfour"
+    assert all("Original task:\ntask" in prompt for prompt in worker_prompts)
+    assert sorted(prompt.split("Assigned subquestions:\n")[1] for prompt in worker_prompts) == [
+        "- four",
+        "- one\n- two",
+        "- three",
+    ]
     assert len(observed) == trace.subagent_calls == len(trace.web_evidence_ids) == 3
     assert trace.budget.search_queries_used == 12 and trace.budget.fetched_pages_used == 3
     assert all(r.fetch_full_page and r.max_fetched_pages == 4 for r in observed)

@@ -12,6 +12,7 @@ import os
 import shutil
 import time
 import uuid
+from datetime import date
 from pathlib import Path
 
 from app.agent.main_agent import run_deep_agent
@@ -31,6 +32,7 @@ async def run_case(
     export_evidence,
     delivery_repair=False,
     research_mode="supervisor",
+    current_date: date | None = None,
 ):
     attempt = output / f"drb_{row['id']}" / "attempt-0001"
     attempt.mkdir(parents=True)
@@ -49,6 +51,7 @@ async def run_case(
                     export_evaluation_evidence=export_evidence,
                     research_delivery_repair=delivery_repair,
                     research_mode=research_mode,
+                    current_date=current_date,
                     required_evidence_sources=("web",)
                     if delivery_repair or research_mode == "parallel_web"
                     else (),
