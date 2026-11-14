@@ -66,15 +66,19 @@ def prepare(archive):
     return packets
 
 
-async def run(archive, output):
+async def run(archive, output, *, closed_book=False):
     packets = prepare(archive)
+    if closed_book:
+        packets = {
+            "Closed": [{**item, "sources": [], "excluded_non_web": 0} for item in packets["X-C"]]
+        }
     manifest = {
         "model": "qwen-flash",
         "temperature": 0,
         "max_tokens": 8000,
         "prompt_sha256": digest(WRITER),
         "packets_sha256": digest(packets),
-        "tasks": [item["id"] for item in packets["X-C"]],
+        "tasks": [item["id"] for item in next(iter(packets.values()))],
         "search_requests": 0,
     }
     open_run(output, manifest)
@@ -134,5 +138,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("archive", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument("--closed-book", action="store_true")
     args = parser.parse_args()
-    asyncio.run(run(args.archive, args.output))
+    asyncio.run(run(args.archive, args.output, closed_book=args.closed_book))
