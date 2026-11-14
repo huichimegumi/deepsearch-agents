@@ -1,0 +1,2378 @@
+{
+  "web-refresh": {
+    "manifest": {
+      "question_sha256": "81625a725a8872e1795741b49a4748d03f7432e8e09f6fc578d399bac3df3f6a",
+      "reference_sha256": "1b2d39233086b599d9101e1f2166f9dc20b615f691e1149842af03fb9bb066f0",
+      "generation_model": "qwen-flash",
+      "judge_model": "qwen3.8-max-0902",
+      "backend": "tavily",
+      "parallel_profile": "deep_report",
+      "query_cap": 180,
+      "prompt_date": "2026-11-14",
+      "previous_summary_sha256": "23b34a55dd6b106d39d3f9ff5645c893593970aa1baf5e79960bd591bb0bd7cb",
+      "web_refresh": true,
+      "holdout": false
+    },
+    "slices": {
+      "all": {
+        "tasks": [
+          "zh01",
+          "zh02",
+          "zh03",
+          "zh04",
+          "zh05",
+          "zh06",
+          "en01",
+          "en02",
+          "en03",
+          "en04",
+          "en05",
+          "en06"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 48,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 30,
+            "possible": 48,
+            "accuracy": 0.625
+          },
+          "P": {
+            "correct": 42,
+            "possible": 48,
+            "accuracy": 0.875
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 10,
+            "ties": 2,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 8,
+            "ties": 4,
+            "losses": 0
+          }
+        }
+      },
+      "zh": {
+        "tasks": [
+          "zh01",
+          "zh02",
+          "zh03",
+          "zh04",
+          "zh05",
+          "zh06"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 24,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 12,
+            "possible": 24,
+            "accuracy": 0.5
+          },
+          "P": {
+            "correct": 18,
+            "possible": 24,
+            "accuracy": 0.75
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 4,
+            "ties": 2,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 4,
+            "ties": 2,
+            "losses": 0
+          }
+        }
+      },
+      "en": {
+        "tasks": [
+          "en01",
+          "en02",
+          "en03",
+          "en04",
+          "en05",
+          "en06"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 24,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 18,
+            "possible": 24,
+            "accuracy": 0.75
+          },
+          "P": {
+            "correct": 24,
+            "possible": 24,
+            "accuracy": 1.0
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 6,
+            "ties": 0,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 4,
+            "ties": 2,
+            "losses": 0
+          }
+        }
+      },
+      "multi": {
+        "tasks": [
+          "zh01",
+          "zh03",
+          "zh04",
+          "zh05",
+          "en01",
+          "en03",
+          "en04",
+          "en06"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 32,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 18,
+            "possible": 32,
+            "accuracy": 0.5625
+          },
+          "P": {
+            "correct": 30,
+            "possible": 32,
+            "accuracy": 0.9375
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 7,
+            "ties": 1,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 8,
+            "ties": 0,
+            "losses": 0
+          }
+        }
+      },
+      "single": {
+        "tasks": [
+          "zh02",
+          "zh06",
+          "en02",
+          "en05"
+        ],
+        "rates": {
+          "closed": {
+            "correct": 0,
+            "possible": 16,
+            "accuracy": 0.0
+          },
+          "A": {
+            "correct": 12,
+            "possible": 16,
+            "accuracy": 0.75
+          },
+          "P": {
+            "correct": 12,
+            "possible": 16,
+            "accuracy": 0.75
+          }
+        },
+        "paired": {
+          "A_vs_closed": {
+            "wins": 3,
+            "ties": 1,
+            "losses": 0
+          },
+          "P_vs_A": {
+            "wins": 0,
+            "ties": 4,
+            "losses": 0
+          }
+        }
+      }
+    },
+    "by_arm": {
+      "closed": {
+        "runs": 12,
+        "status": {
+          "completed": 12
+        },
+        "median_seconds": 1.15,
+        "median_input_tokens": 155.5,
+        "queries": 0,
+        "correct_by_position": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "A": {
+        "runs": 12,
+        "status": {
+          "completed": 10,
+          "failed": 2
+        },
+        "median_seconds": 13.25,
+        "median_input_tokens": 7035.0,
+        "queries": 36,
+        "correct_by_position": [
+          10,
+          10,
+          7,
+          3
+        ]
+      },
+      "P": {
+        "runs": 12,
+        "status": {
+          "completed": 11,
+          "degraded": 1
+        },
+        "median_seconds": 38.150000000000006,
+        "median_input_tokens": 45508.0,
+        "queries": 98,
+        "correct_by_position": [
+          10,
+          11,
+          10,
+          11
+        ],
+        "subagents": {
+          "4": 12
+        },
+        "evidence": {
+          "snippet_and_fetched_page": 140,
+          "search_snippet_only": 49
+        }
+      }
+    },
+    "by_question": {
+      "zh01": {
+        "closed": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 2.1,
+          "input_tokens": 169,
+          "queries": 0,
+          "failures": []
+        },
+        "A": {
+          "correct": 2,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "incorrect",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 11.9,
+          "input_tokens": 15372,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 3,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "incorrect",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 34.4,
+          "input_tokens": 68321,
+          "queries": 8,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "zh02": {
+        "closed": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 1.2,
+          "input_tokens": 149,
+          "queries": 0,
+          "failures": []
+        },
+        "A": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 23.1,
+          "input_tokens": 6910,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 51.3,
+          "input_tokens": 61364,
+          "queries": 10,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "zh03": {
+        "closed": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 2.7,
+          "input_tokens": 169,
+          "queries": 0,
+          "failures": []
+        },
+        "A": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "failed",
+          "seconds": 28.3,
+          "input_tokens": 126,
+          "queries": 3,
+          "failures": [
+            "BadRequestError"
+          ]
+        },
+        "P": {
+          "correct": 3,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 32.4,
+          "input_tokens": 59854,
+          "queries": 4,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "zh04": {
+        "closed": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 1.0,
+          "input_tokens": 170,
+          "queries": 0,
+          "failures": []
+        },
+        "A": {
+          "correct": 3,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 11.6,
+          "input_tokens": 7160,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 32.8,
+          "input_tokens": 44791,
+          "queries": 8,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "zh05": {
+        "closed": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 1.0,
+          "input_tokens": 151,
+          "queries": 0,
+          "failures": []
+        },
+        "A": {
+          "correct": 3,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 26.1,
+          "input_tokens": 15083,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 42.2,
+          "input_tokens": 57431,
+          "queries": 8,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 10,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "zh06": {
+        "closed": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 1.1,
+          "input_tokens": 165,
+          "queries": 0,
+          "failures": []
+        },
+        "A": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "failed",
+          "seconds": 10.7,
+          "input_tokens": 128,
+          "queries": 3,
+          "failures": [
+            "BadRequestError"
+          ]
+        },
+        "P": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "degraded",
+          "seconds": 43.9,
+          "input_tokens": 28774,
+          "queries": 8,
+          "failures": [
+            "parallel_worker_incomplete",
+            "BadRequestError",
+            "parallel_writer_no_report",
+            "parallel_report_missing_citations"
+          ],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "en01": {
+        "closed": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 2.5,
+          "input_tokens": 160,
+          "queries": 0,
+          "failures": []
+        },
+        "A": {
+          "correct": 2,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 13.4,
+          "input_tokens": 6651,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 53.3,
+          "input_tokens": 39406,
+          "queries": 8,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "en02": {
+        "closed": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 1.1,
+          "input_tokens": 141,
+          "queries": 0,
+          "failures": []
+        },
+        "A": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 23.1,
+          "input_tokens": 12334,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 30.6,
+          "input_tokens": 46225,
+          "queries": 8,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 11,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "en03": {
+        "closed": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 2.0,
+          "input_tokens": 142,
+          "queries": 0,
+          "failures": []
+        },
+        "A": {
+          "correct": 3,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 13.1,
+          "input_tokens": 11316,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 41.2,
+          "input_tokens": 52716,
+          "queries": 9,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "en04": {
+        "closed": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 1.0,
+          "input_tokens": 134,
+          "queries": 0,
+          "failures": []
+        },
+        "A": {
+          "correct": 2,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 14.4,
+          "input_tokens": 4889,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 35.1,
+          "input_tokens": 36363,
+          "queries": 9,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "en05": {
+        "closed": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 1.0,
+          "input_tokens": 127,
+          "queries": 0,
+          "failures": []
+        },
+        "A": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 11.6,
+          "input_tokens": 4329,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 43.9,
+          "input_tokens": 33180,
+          "queries": 9,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 11,
+            "search_snippet_only": 5
+          }
+        }
+      },
+      "en06": {
+        "closed": {
+          "correct": 0,
+          "fact_statuses": {
+            "F1": "missing",
+            "F2": "missing",
+            "F3": "missing",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 3.2,
+          "input_tokens": 161,
+          "queries": 0,
+          "failures": []
+        },
+        "A": {
+          "correct": 3,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "incorrect"
+          },
+          "status": "completed",
+          "seconds": 9.1,
+          "input_tokens": 10724,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 31.1,
+          "input_tokens": 41852,
+          "queries": 9,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      }
+    },
+    "tavily": {
+      "requests": 134,
+      "credits_per_receipt": {
+        "1": 134
+      }
+    }
+  },
+  "holdout": {
+    "manifest": {
+      "question_sha256": "6601aa0837ed75a1f06a32e6c35a79740ba06d79ae809e3d0dbbc93f5267617a",
+      "reference_sha256": "2706c437c2db71fc8747cdd6c3a1a9c11f804443b9908cd5245180a5b9e04913",
+      "generation_model": "qwen-flash",
+      "judge_model": "qwen3.8-max-0902",
+      "backend": "tavily",
+      "parallel_profile": "deep_report",
+      "query_cap": 180,
+      "prompt_date": "2026-11-14",
+      "previous_summary_sha256": "23b34a55dd6b106d39d3f9ff5645c893593970aa1baf5e79960bd591bb0bd7cb",
+      "web_refresh": true,
+      "holdout": true
+    },
+    "slices": {
+      "all": {
+        "tasks": [
+          "h_zh01",
+          "h_zh02",
+          "h_zh03",
+          "h_en01",
+          "h_en02",
+          "h_en03"
+        ],
+        "rates": {
+          "A": {
+            "correct": 17,
+            "possible": 24,
+            "accuracy": 0.7083333333333334
+          },
+          "P": {
+            "correct": 23,
+            "possible": 24,
+            "accuracy": 0.9583333333333334
+          }
+        },
+        "paired": {
+          "P_vs_A": {
+            "wins": 3,
+            "ties": 3,
+            "losses": 0
+          }
+        }
+      },
+      "zh": {
+        "tasks": [
+          "h_zh01",
+          "h_zh02",
+          "h_zh03"
+        ],
+        "rates": {
+          "A": {
+            "correct": 7,
+            "possible": 12,
+            "accuracy": 0.5833333333333334
+          },
+          "P": {
+            "correct": 12,
+            "possible": 12,
+            "accuracy": 1.0
+          }
+        },
+        "paired": {
+          "P_vs_A": {
+            "wins": 2,
+            "ties": 1,
+            "losses": 0
+          }
+        }
+      },
+      "en": {
+        "tasks": [
+          "h_en01",
+          "h_en02",
+          "h_en03"
+        ],
+        "rates": {
+          "A": {
+            "correct": 10,
+            "possible": 12,
+            "accuracy": 0.8333333333333334
+          },
+          "P": {
+            "correct": 11,
+            "possible": 12,
+            "accuracy": 0.9166666666666666
+          }
+        },
+        "paired": {
+          "P_vs_A": {
+            "wins": 1,
+            "ties": 2,
+            "losses": 0
+          }
+        }
+      },
+      "multi": {
+        "tasks": [
+          "h_zh02",
+          "h_en01",
+          "h_en02"
+        ],
+        "rates": {
+          "A": {
+            "correct": 8,
+            "possible": 12,
+            "accuracy": 0.6666666666666666
+          },
+          "P": {
+            "correct": 12,
+            "possible": 12,
+            "accuracy": 1.0
+          }
+        },
+        "paired": {
+          "P_vs_A": {
+            "wins": 2,
+            "ties": 1,
+            "losses": 0
+          }
+        }
+      },
+      "single": {
+        "tasks": [
+          "h_zh01",
+          "h_zh03",
+          "h_en03"
+        ],
+        "rates": {
+          "A": {
+            "correct": 9,
+            "possible": 12,
+            "accuracy": 0.75
+          },
+          "P": {
+            "correct": 11,
+            "possible": 12,
+            "accuracy": 0.9166666666666666
+          }
+        },
+        "paired": {
+          "P_vs_A": {
+            "wins": 1,
+            "ties": 2,
+            "losses": 0
+          }
+        }
+      }
+    },
+    "by_arm": {
+      "A": {
+        "runs": 6,
+        "status": {
+          "completed": 6
+        },
+        "median_seconds": 11.149999999999999,
+        "median_input_tokens": 5478.5,
+        "queries": 18,
+        "correct_by_position": [
+          5,
+          4,
+          5,
+          3
+        ]
+      },
+      "P": {
+        "runs": 6,
+        "status": {
+          "completed": 6
+        },
+        "median_seconds": 38.400000000000006,
+        "median_input_tokens": 42219.0,
+        "queries": 42,
+        "correct_by_position": [
+          6,
+          6,
+          6,
+          5
+        ],
+        "subagents": {
+          "4": 6
+        },
+        "evidence": {
+          "snippet_and_fetched_page": 70,
+          "search_snippet_only": 24
+        }
+      }
+    },
+    "by_question": {
+      "h_zh01": {
+        "A": {
+          "correct": 2,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "incorrect",
+            "F4": "incorrect"
+          },
+          "status": "completed",
+          "seconds": 10.1,
+          "input_tokens": 4601,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 43.8,
+          "input_tokens": 38366,
+          "queries": 5,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 10,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "h_zh02": {
+        "A": {
+          "correct": 1,
+          "fact_statuses": {
+            "F1": "incorrect",
+            "F2": "incorrect",
+            "F3": "correct",
+            "F4": "incorrect"
+          },
+          "status": "completed",
+          "seconds": 9.7,
+          "input_tokens": 5291,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 32.4,
+          "input_tokens": 39947,
+          "queries": 6,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "h_zh03": {
+        "A": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 11.9,
+          "input_tokens": 7330,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 39.7,
+          "input_tokens": 72870,
+          "queries": 7,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "h_en01": {
+        "A": {
+          "correct": 3,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "incorrect",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 23.6,
+          "input_tokens": 6253,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 41.2,
+          "input_tokens": 50755,
+          "queries": 8,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "h_en02": {
+        "A": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 11.2,
+          "input_tokens": 4650,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 4,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "correct"
+          },
+          "status": "completed",
+          "seconds": 35.1,
+          "input_tokens": 35414,
+          "queries": 8,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      },
+      "h_en03": {
+        "A": {
+          "correct": 3,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "missing"
+          },
+          "status": "completed",
+          "seconds": 11.1,
+          "input_tokens": 5666,
+          "queries": 3,
+          "failures": []
+        },
+        "P": {
+          "correct": 3,
+          "fact_statuses": {
+            "F1": "correct",
+            "F2": "correct",
+            "F3": "correct",
+            "F4": "incorrect"
+          },
+          "status": "completed",
+          "seconds": 37.1,
+          "input_tokens": 44491,
+          "queries": 8,
+          "failures": [],
+          "subagents": 4,
+          "evidence": {
+            "snippet_and_fetched_page": 12,
+            "search_snippet_only": 4
+          }
+        }
+      }
+    },
+    "tavily": {
+      "requests": 60,
+      "credits_per_receipt": {
+        "1": 60
+      }
+    }
+  },
+  "same_question_keyword_audit": {
+    "repair": {
+      "A": {
+        "coverage": 29,
+        "covered_correct": 22,
+        "uncovered_correct": 2,
+        "by_question": {
+          "zh01": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "zh02": [
+            {
+              "id": "F1",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "zh03": [
+            {
+              "id": "F1",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "zh04": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "zh05": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "zh06": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": false
+            }
+          ],
+          "en01": [
+            {
+              "id": "F1",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": false,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "en02": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "en03": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": false
+            }
+          ],
+          "en04": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "en05": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "en06": [
+            {
+              "id": "F1",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ]
+        }
+      },
+      "P": {
+        "coverage": 16,
+        "covered_correct": 14,
+        "uncovered_correct": 7,
+        "by_question": {
+          "zh01": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "zh02": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "zh03": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "zh04": [
+            {
+              "id": "F1",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "zh05": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "zh06": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "en01": [
+            {
+              "id": "F1",
+              "keyword_coverage": false,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": true
+            }
+          ],
+          "en02": [
+            {
+              "id": "F1",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "en03": [
+            {
+              "id": "F1",
+              "keyword_coverage": false,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": true
+            }
+          ],
+          "en04": [
+            {
+              "id": "F1",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "en05": [
+            {
+              "id": "F1",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "en06": [
+            {
+              "id": "F1",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ]
+        }
+      }
+    },
+    "web-refresh": {
+      "A": {
+        "coverage": 40,
+        "covered_correct": 30,
+        "uncovered_correct": 0,
+        "by_question": {
+          "zh01": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "zh02": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "zh03": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": false
+            }
+          ],
+          "zh04": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "zh05": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "zh06": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": false
+            }
+          ],
+          "en01": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "en02": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "en03": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": false
+            }
+          ],
+          "en04": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": false,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ],
+          "en05": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "en06": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": false,
+              "correct": false
+            }
+          ]
+        }
+      },
+      "P": {
+        "coverage": 47,
+        "covered_correct": 41,
+        "uncovered_correct": 1,
+        "by_question": {
+          "zh01": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "zh02": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "zh03": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "zh04": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "zh05": [
+            {
+              "id": "F1",
+              "keyword_coverage": false,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "zh06": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": false
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": false
+            }
+          ],
+          "en01": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "en02": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "en03": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "en04": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "en05": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ],
+          "en06": [
+            {
+              "id": "F1",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F2",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F3",
+              "keyword_coverage": true,
+              "correct": true
+            },
+            {
+              "id": "F4",
+              "keyword_coverage": true,
+              "correct": true
+            }
+          ]
+        }
+      }
+    }
+  }
+}
