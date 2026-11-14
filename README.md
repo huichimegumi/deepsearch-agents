@@ -181,7 +181,7 @@ docker/         # Dockerfile 与 Compose
 
 技术栈：LangChain / LangGraph / DeepAgents、FastAPI、Celery、PostgreSQL、Qdrant、Redis、MinIO、React、TypeScript。
 
-### 已知限制
+### 评测与部署说明
 
 - 评测题量小，每种配置只运行一次。
 - 并行研究比单轮检索更准，但耗时约 3 倍、输入 token 约 4.6 倍。
@@ -372,7 +372,7 @@ docker/         # Dockerfile and Compose
 
 Stack: LangChain / LangGraph / DeepAgents, FastAPI, Celery, PostgreSQL, Qdrant, Redis, MinIO, React, TypeScript.
 
-### Known limitations
+### Evaluation and deployment notes
 
 - The evaluation sets are small and each configuration was run once.
 - Parallel research is more accurate than a single round but takes about 3 times as long and about 4.6 times the input tokens.
