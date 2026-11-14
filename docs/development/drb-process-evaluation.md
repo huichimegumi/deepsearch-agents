@@ -36,13 +36,13 @@ C 的 97 次主管工具调用中，36 次写待办、9 次列目录、8 次文�
 `RESEARCH_WORKFLOW=parallel_web` 与 API 的 `sources: ["web"]` 一起选择并行路径。评测入口用 `run_agent --research-mode parallel_web`。上传、本地限定与明确非网页证据请求继续使用已有来源路径。
 
 1. 研究简报以结构化输出提供子问题。后端去重并按档位、剩余查询、页面和请求预算分配子代理。默认复测档位为 `deep_report`。
-2. 每个子代理只有网页查询工具。每个最多三次模型调用和两次搜索，搜索固定尝试抓取正文。各自有独立份额，查询额度发送前扣除，搜索返回后统一登记已抓取页面与证据。
+2. 每个子代理只有网页查询工具。当前 `deep_report` 档最多四个子代理，每个最多两次模型调用和一轮搜索。各自有独立份额，查询额度发送前扣除。搜索返回后登记带来源标记的摘要与抓取到的页面片段。
 3. 压缩阶段从登记证据生成带 ID 的 Claim。Writer 接收简报、Claim 包和有字符上限的原文清单，并要求标明未找到检索来源的内容。
 4. 交付校验移除未知引用标记，保留报告结构。未知引用和缺少引用被记录为降级。引用 ID 校验仅确认是否指向已登记的证据。
 
 架构图与预算设计见 [并行研究设计](parallel-research-design.md)。在线搜索存在时效与结果波动，复测用于观察此次改动在同一批任务上的行为。
 
-## 一轮并行复测
+## 第一版并行复测
 
 P 使用 `parallel_web`、Qwen Flash、DuckDuckGo 和 `deep_report` 档。沿用闭卷和交叉实验的同一批 15 题，各运行一次。15 份报告和 120 条 OSODT 评分完整落盘，评分无缺题。
 
@@ -75,8 +75,29 @@ P 对 A 低 1.063 分，逐题 2 胜、13 负；对旧 C 低 0.374 分，逐题 
 
 复现时先用 `run_agent --research-mode parallel_web --profile deep_report --per-language 8 --ids 16 23 3 34 38 44 2 13 81 87 54 95 88 89 93 --export-evidence --timeout 330`。设置 `SEARCH_BACKEND_ORDER=duckduckgo`、`LLM_PROVIDER=dashscope`、`LLM_NAME=qwen-flash`、`CUDA_VISIBLE_DEVICES=-1`。报告导出后用 `score_compat` 和原 OSODT 设置评分。配对结果通过 `python -m evals.drb_osodt.parallel_report ARCHIVE OUTPUT_JSON` 复算。
 
-## 简历表述
+## 早期版本简历表述
 
 > 搭建端到端研究报告评测与阶段级轨迹统计。在 DeepResearch Bench 的 15 道配对题上，以并行子问题派发替换主管循环，正常完成从 2/15 提升至 12/15，耗时中位数降低 46%，输入 Token 中位数降低 72%。
 
 同题闭卷写作的 OSODT 内容分为 6.96，单轮检索为 6.51，闭卷逐题胜出 12/15。这套内容分衡量报告对准则的满足程度。检索是否提高事实正确率需要另行测量。
+
+
+## 当前版本过程复测
+
+当前四研究员版本用 Qwen Flash、DuckDuckGo 和 `deep_report` 重新运行原 15 道题，每题一次。统计全部完成状态和降级状态，复用旧 C 与第一版并行的同题轨迹。此次只重测过程指标，未调用 OSODT，未用 Tavily，也未使用 GPU。
+
+| 指标 | 旧 C 主管循环 | 第一版并行 | 当前并行 |
+| --- | ---: | ---: | ---: |
+| 正常完成 | 2/15 | 12/15 | 12/15 |
+| 每题耗时中位数 | 118.5 秒 | 63.5 秒 | 58.1 秒 |
+| 每题输入 Token 中位数 | 72,932 | 20,167 | 36,192 |
+| 每题输出 Token 中位数 | 4,334 | 4,760 | 5,402 |
+| 子代理派发总数 | 18 | 45 | 60 |
+| 记录的查询总数 | 131 | 119 | 159 |
+| 独立抓取页（逐题加总） | 92 | 156 | 157 |
+| 证据登记 / 报告引用 | 92 / 53 | 156 / 102 | 238 / 110 |
+| 零搜索 / 整篇扣发 | 2 / 1 | 0 / 0 | 0 / 0 |
+
+当前并行相对旧 C 的耗时中位数降低约 51%，输入 Token 中位数降低约 50%。相对第一版并行，正常完成持平，耗时中位数少 5.4 秒，输入 Token 中位数增加约 79%。当前证据数量包含纯搜索摘要，正文抓取页数另列。运行包含三道降级题，原因包括结构化响应无效、未知引用、子代理 API 错误和一次 Writer 失败。一次 Writer 失败使用已校验论断兜底。在线搜索和接口表现会波动，过程数据应与事实题正确率各自报告。
+
+复算在仓库根目录运行 `python -m evals.drb_osodt.process_report evals/results/drb-osodt-ddg-full OUTPUT_JSON --current evals/results/drb-osodt-ddg-current`。[当前版本过程汇总](../../evals/reports/drb-current-process.json)。

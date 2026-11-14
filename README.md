@@ -29,7 +29,7 @@ flowchart LR
 
 - **并行 Web 研究**。按[中文手册](#中文)启动服务，设置 `RESEARCH_WORKFLOW=parallel_web`。向已认证的 `POST /api/task` 提交 `query` 和 `"sources": ["web"]`，按返回的 `thread_id` 查看报告和运行事件。
 - **HTTP 规范查证**。用固定的 RFC 9110 / 9111 演示片段检索和原文跳转。见下方查证步骤与 BM25 结果。
-- **过程评测**。用同批 DeepResearch Bench 题目比较版本间的交付状态、耗时和 Token。见 [DRB 过程评测](docs/development/drb-process-evaluation.md)与[历史固定语料评测](EVAL.md)。
+- **过程评测**。在 15 道 DeepResearch Bench 同题上，当前并行版本对旧主管循环的正常完成为 12/15 对 2/15，耗时中位数为 58.1 秒对 118.5 秒，输入 Token 中位数为 36,192 对 72,932。见 [DRB 过程评测](docs/development/drb-process-evaluation.md)与[历史固定语料评测](EVAL.md)。
 
 <details>
 <summary>HTTP 规范查证步骤与 BM25 结果</summary>

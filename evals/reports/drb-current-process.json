@@ -1,0 +1,944 @@
+{
+  "manifest": {
+    "workflow": "deepagents",
+    "model": "qwen-flash",
+    "profile": "deep_report",
+    "backend_lock": "duckduckgo",
+    "timeout": 330.0,
+    "export_evidence": false,
+    "delivery_repair": false,
+    "research_mode": "parallel_web",
+    "limits": {
+      "profile": "deep_report",
+      "total_seconds": 300.0,
+      "max_search_queries": 12,
+      "max_fetched_pages": 12,
+      "max_research_rounds": 2,
+      "max_llm_calls": 12,
+      "writer_reserved_seconds": 75,
+      "verifier_reserved_seconds": 0.0
+    },
+    "tasks": [
+      16,
+      23,
+      3,
+      34,
+      38,
+      44,
+      2,
+      13,
+      81,
+      87,
+      54,
+      95,
+      88,
+      89,
+      93
+    ]
+  },
+  "runs": {
+    "original_supervisor": {
+      "n": 15,
+      "statuses": {
+        "degraded": 13,
+        "completed": 2
+      },
+      "median_seconds": 118.5,
+      "input_tokens_median": 72932,
+      "output_tokens_median": 4334,
+      "usage_cases": 15,
+      "totals": {
+        "llm_calls": 145,
+        "subagent_calls": 18,
+        "evidence_records": 92,
+        "claim_evidence_records": 55,
+        "search_queries": 131,
+        "fetched_pages": 92,
+        "report_cited_evidence_records": 53,
+        "duplicate_queries": 8,
+        "duplicate_sources": 23,
+        "withheld": 1,
+        "zero_search": 2,
+        "delivered_citation_ids": 53
+      },
+      "phases": {
+        "clarify_and_brief": {
+          "calls": 15,
+          "median_seconds": 5.091,
+          "artifacts": {
+            "usable": 15
+          },
+          "statuses": {
+            "end": 15
+          }
+        },
+        "supervisor_research": {
+          "calls": 100,
+          "median_seconds": 93.236,
+          "artifacts": {
+            "missing": 13,
+            "fallback": 1,
+            "usable": 1
+          },
+          "statuses": {
+            "budget_exceeded": 12,
+            "end": 3
+          }
+        },
+        "evidence_compression": {
+          "calls": 15,
+          "median_seconds": 9.625,
+          "artifacts": {
+            "usable": 15
+          },
+          "statuses": {
+            "end": 15
+          }
+        },
+        "final_report": {
+          "calls": 15,
+          "median_seconds": 16.665,
+          "artifacts": {
+            "usable": 14,
+            "citation_withheld": 1
+          },
+          "statuses": {
+            "end": 15
+          }
+        }
+      },
+      "tools": {
+        "read_file_content": 7,
+        "task": 18,
+        "ls": 8,
+        "write_todos": 33,
+        "collect_evidence": 17,
+        "glob": 5
+      },
+      "supervisor_tools": {
+        "read_file_content": 7,
+        "task": 18,
+        "ls": 8,
+        "write_todos": 33,
+        "collect_evidence": 17,
+        "glob": 5
+      },
+      "ancillary_supervisor_calls": 53,
+      "failures": {
+        "llm_call_limit": 6,
+        "timeout": 1,
+        "subagent_retrieval_budget_exhausted": 5,
+        "final_report_citation_validation_failed": 1,
+        "claim_fallback_citation_validation_failed": 1
+      },
+      "trace_cases": [
+        {
+          "id": 13,
+          "status": "degraded",
+          "seconds": 134.2,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 12,
+            "fetched_pages": 8,
+            "research_rounds": 1,
+            "llm_calls": 12
+          },
+          "reasons": [
+            "llm_call_limit"
+          ]
+        },
+        {
+          "id": 16,
+          "status": "degraded",
+          "seconds": 197.4,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 10,
+            "fetched_pages": 7,
+            "research_rounds": 1,
+            "llm_calls": 6
+          },
+          "reasons": [
+            "timeout"
+          ]
+        },
+        {
+          "id": 2,
+          "status": "degraded",
+          "seconds": 93.0,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 12,
+            "fetched_pages": 6,
+            "research_rounds": 1,
+            "llm_calls": 7
+          },
+          "reasons": [
+            "subagent_retrieval_budget_exhausted"
+          ]
+        },
+        {
+          "id": 23,
+          "status": "degraded",
+          "seconds": 173.2,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 9,
+            "fetched_pages": 8,
+            "research_rounds": 1,
+            "llm_calls": 12
+          },
+          "reasons": [
+            "llm_call_limit"
+          ]
+        },
+        {
+          "id": 3,
+          "status": "degraded",
+          "seconds": 42.7,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 0,
+            "fetched_pages": 0,
+            "research_rounds": 1,
+            "llm_calls": 7
+          },
+          "reasons": [
+            "final_report_citation_validation_failed",
+            "claim_fallback_citation_validation_failed"
+          ]
+        },
+        {
+          "id": 34,
+          "status": "degraded",
+          "seconds": 106.8,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 5,
+            "fetched_pages": 7,
+            "research_rounds": 1,
+            "llm_calls": 12
+          },
+          "reasons": [
+            "llm_call_limit"
+          ]
+        },
+        {
+          "id": 38,
+          "status": "degraded",
+          "seconds": 135.8,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 12,
+            "fetched_pages": 10,
+            "research_rounds": 1,
+            "llm_calls": 7
+          },
+          "reasons": [
+            "subagent_retrieval_budget_exhausted"
+          ]
+        },
+        {
+          "id": 44,
+          "status": "degraded",
+          "seconds": 104.0,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 5,
+            "fetched_pages": 3,
+            "research_rounds": 1,
+            "llm_calls": 12
+          },
+          "reasons": [
+            "llm_call_limit"
+          ]
+        },
+        {
+          "id": 54,
+          "status": "degraded",
+          "seconds": 94.1,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 9,
+            "fetched_pages": 9,
+            "research_rounds": 1,
+            "llm_calls": 12
+          },
+          "reasons": [
+            "llm_call_limit"
+          ]
+        },
+        {
+          "id": 81,
+          "status": "degraded",
+          "seconds": 142.8,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 12,
+            "fetched_pages": 4,
+            "research_rounds": 1,
+            "llm_calls": 12
+          },
+          "reasons": [
+            "llm_call_limit"
+          ]
+        },
+        {
+          "id": 87,
+          "status": "completed",
+          "seconds": 118.5,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 9,
+            "fetched_pages": 8,
+            "research_rounds": 1,
+            "llm_calls": 6
+          },
+          "reasons": []
+        },
+        {
+          "id": 88,
+          "status": "degraded",
+          "seconds": 120.5,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 12,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": [
+            "subagent_retrieval_budget_exhausted"
+          ]
+        },
+        {
+          "id": 89,
+          "status": "completed",
+          "seconds": 32.5,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 0,
+            "fetched_pages": 0,
+            "research_rounds": 1,
+            "llm_calls": 5
+          },
+          "reasons": []
+        },
+        {
+          "id": 93,
+          "status": "degraded",
+          "seconds": 156.2,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 12,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 8
+          },
+          "reasons": [
+            "subagent_retrieval_budget_exhausted"
+          ]
+        },
+        {
+          "id": 95,
+          "status": "degraded",
+          "seconds": 106.8,
+          "mode": "deepagents_default",
+          "budget_usage": {
+            "search_queries": 12,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 10
+          },
+          "reasons": [
+            "subagent_retrieval_budget_exhausted"
+          ]
+        }
+      ]
+    },
+    "first_parallel": {
+      "n": 15,
+      "statuses": {
+        "completed": 12,
+        "degraded": 3
+      },
+      "median_seconds": 63.5,
+      "input_tokens_median": 20167,
+      "output_tokens_median": 4760,
+      "usage_cases": 15,
+      "totals": {
+        "llm_calls": 135,
+        "subagent_calls": 45,
+        "evidence_records": 156,
+        "claim_evidence_records": 88,
+        "search_queries": 119,
+        "fetched_pages": 156,
+        "report_cited_evidence_records": 102,
+        "duplicate_queries": 0,
+        "duplicate_sources": 13,
+        "withheld": 0,
+        "zero_search": 0,
+        "delivered_citation_ids": 102
+      },
+      "phases": {
+        "clarify_and_brief": {
+          "calls": 15,
+          "median_seconds": 3.434,
+          "artifacts": {
+            "usable": 15
+          },
+          "statuses": {
+            "end": 15
+          }
+        },
+        "supervisor_research": {
+          "calls": 90,
+          "median_seconds": 28.022,
+          "artifacts": {
+            "usable": 15
+          },
+          "statuses": {
+            "end": 14,
+            "budget_exceeded": 1
+          }
+        },
+        "evidence_compression": {
+          "calls": 15,
+          "median_seconds": 12.271,
+          "artifacts": {
+            "usable": 14,
+            "fallback": 1
+          },
+          "statuses": {
+            "end": 14,
+            "error": 1
+          }
+        },
+        "final_report": {
+          "calls": 15,
+          "median_seconds": 18.404,
+          "artifacts": {
+            "usable": 15
+          },
+          "statuses": {
+            "end": 14,
+            "error": 1
+          }
+        }
+      },
+      "tools": {
+        "task": 45,
+        "search_web": 46
+      },
+      "supervisor_tools": {
+        "task": 45,
+        "search_web": 46
+      },
+      "ancillary_supervisor_calls": 0,
+      "failures": {
+        "parallel_worker_incomplete": 1,
+        "BadRequestError": 1,
+        "parallel_unknown_citations_removed": 2
+      },
+      "trace_cases": [
+        {
+          "id": 13,
+          "status": "completed",
+          "seconds": 39.3,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 7,
+            "fetched_pages": 10,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": []
+        },
+        {
+          "id": 16,
+          "status": "completed",
+          "seconds": 57.3,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 6,
+            "fetched_pages": 8,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": []
+        },
+        {
+          "id": 2,
+          "status": "completed",
+          "seconds": 86.9,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 11,
+            "fetched_pages": 11,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": []
+        },
+        {
+          "id": 23,
+          "status": "completed",
+          "seconds": 81.3,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 7,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": []
+        },
+        {
+          "id": 3,
+          "status": "completed",
+          "seconds": 104.7,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 10,
+            "fetched_pages": 7,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": []
+        },
+        {
+          "id": 34,
+          "status": "completed",
+          "seconds": 63.5,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 9,
+            "fetched_pages": 11,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": []
+        },
+        {
+          "id": 38,
+          "status": "completed",
+          "seconds": 73.7,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 9,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": []
+        },
+        {
+          "id": 44,
+          "status": "degraded",
+          "seconds": 91.5,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 5,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": [
+            "parallel_worker_incomplete",
+            "BadRequestError"
+          ]
+        },
+        {
+          "id": 54,
+          "status": "completed",
+          "seconds": 64.6,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 9,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": []
+        },
+        {
+          "id": 81,
+          "status": "degraded",
+          "seconds": 75.9,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 10,
+            "fetched_pages": 11,
+            "research_rounds": 1,
+            "llm_calls": 10
+          },
+          "reasons": [
+            "parallel_unknown_citations_removed"
+          ]
+        },
+        {
+          "id": 87,
+          "status": "completed",
+          "seconds": 39.4,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 8,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": []
+        },
+        {
+          "id": 88,
+          "status": "completed",
+          "seconds": 30.2,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 7,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": []
+        },
+        {
+          "id": 89,
+          "status": "completed",
+          "seconds": 49.9,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 6,
+            "fetched_pages": 11,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": []
+        },
+        {
+          "id": 93,
+          "status": "degraded",
+          "seconds": 44.5,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 8,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": [
+            "parallel_unknown_citations_removed"
+          ]
+        },
+        {
+          "id": 95,
+          "status": "completed",
+          "seconds": 54.1,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 7,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 9
+          },
+          "reasons": []
+        }
+      ]
+    },
+    "current_parallel": {
+      "n": 15,
+      "statuses": {
+        "completed": 12,
+        "degraded": 3
+      },
+      "median_seconds": 58.1,
+      "input_tokens_median": 36192,
+      "output_tokens_median": 5402,
+      "usage_cases": 15,
+      "totals": {
+        "llm_calls": 163,
+        "subagent_calls": 60,
+        "evidence_records": 238,
+        "claim_evidence_records": 97,
+        "search_queries": 159,
+        "fetched_pages": 157,
+        "report_cited_evidence_records": 110,
+        "duplicate_queries": 0,
+        "duplicate_sources": 38,
+        "withheld": 0,
+        "zero_search": 0,
+        "delivered_citation_ids": 110
+      },
+      "phases": {
+        "clarify_and_brief": {
+          "calls": 15,
+          "median_seconds": 4.332,
+          "artifacts": {
+            "usable": 15
+          },
+          "statuses": {
+            "end": 15
+          }
+        },
+        "supervisor_research": {
+          "calls": 118,
+          "median_seconds": 17.604,
+          "artifacts": {
+            "usable": 15
+          },
+          "statuses": {
+            "end": 13,
+            "budget_exceeded": 2
+          }
+        },
+        "evidence_compression": {
+          "calls": 15,
+          "median_seconds": 12.811,
+          "artifacts": {
+            "usable": 13,
+            "fallback": 2
+          },
+          "statuses": {
+            "end": 13,
+            "error": 2
+          }
+        },
+        "final_report": {
+          "calls": 15,
+          "median_seconds": 18.077,
+          "artifacts": {
+            "usable": 14,
+            "validated_fallback": 1
+          },
+          "statuses": {
+            "end": 14,
+            "error": 1
+          }
+        }
+      },
+      "tools": {
+        "task": 60,
+        "search_web": 60
+      },
+      "supervisor_tools": {
+        "task": 60,
+        "search_web": 60
+      },
+      "ancillary_supervisor_calls": 0,
+      "failures": {
+        "structured_output_error": 1,
+        "parallel_unknown_citations_removed": 1,
+        "parallel_worker_incomplete": 2,
+        "BadRequestError": 2,
+        "parallel_writer_no_report": 1
+      },
+      "trace_cases": [
+        {
+          "id": 13,
+          "status": "completed",
+          "seconds": 45.3,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 10,
+            "fetched_pages": 10,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": []
+        },
+        {
+          "id": 16,
+          "status": "completed",
+          "seconds": 48.4,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 12,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": []
+        },
+        {
+          "id": 2,
+          "status": "completed",
+          "seconds": 68.7,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 10,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": []
+        },
+        {
+          "id": 23,
+          "status": "degraded",
+          "seconds": 55.5,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 12,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": [
+            "structured_output_error",
+            "parallel_unknown_citations_removed"
+          ]
+        },
+        {
+          "id": 3,
+          "status": "completed",
+          "seconds": 68.7,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 12,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": []
+        },
+        {
+          "id": 34,
+          "status": "completed",
+          "seconds": 98.5,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 10,
+            "fetched_pages": 10,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": []
+        },
+        {
+          "id": 38,
+          "status": "degraded",
+          "seconds": 68.1,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 11,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": [
+            "parallel_worker_incomplete",
+            "BadRequestError",
+            "parallel_writer_no_report"
+          ]
+        },
+        {
+          "id": 44,
+          "status": "degraded",
+          "seconds": 61.6,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 11,
+            "fetched_pages": 9,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": [
+            "parallel_worker_incomplete",
+            "BadRequestError"
+          ]
+        },
+        {
+          "id": 54,
+          "status": "completed",
+          "seconds": 58.1,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 9,
+            "fetched_pages": 11,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": []
+        },
+        {
+          "id": 81,
+          "status": "completed",
+          "seconds": 50.7,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 10,
+            "fetched_pages": 11,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": []
+        },
+        {
+          "id": 87,
+          "status": "completed",
+          "seconds": 42.9,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 11,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": []
+        },
+        {
+          "id": 88,
+          "status": "completed",
+          "seconds": 38.3,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 8,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": []
+        },
+        {
+          "id": 89,
+          "status": "completed",
+          "seconds": 50.8,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 10,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": []
+        },
+        {
+          "id": 93,
+          "status": "completed",
+          "seconds": 58.1,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 11,
+            "fetched_pages": 12,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": []
+        },
+        {
+          "id": 95,
+          "status": "completed",
+          "seconds": 67.7,
+          "mode": "parallel_web",
+          "budget_usage": {
+            "search_queries": 12,
+            "fetched_pages": 11,
+            "research_rounds": 1,
+            "llm_calls": 11
+          },
+          "reasons": []
+        }
+      ]
+    }
+  }
+}

@@ -103,9 +103,28 @@ def main():
     parser.add_argument("archive", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--parallel", type=Path)
+    parser.add_argument("--current", type=Path, help="Compare the current parallel process retest")
     args = parser.parse_args()
     root = args.archive
     ids = {int(q) for q in read(root / "score/summary.json")["tasks"]}
+    if args.current:
+        manifest = read(args.current / "manifest.json")
+        if (
+            set(manifest["tasks"]) != ids
+            or manifest["backend_lock"] != "duckduckgo"
+            or manifest["model"] != "qwen-flash"
+            or manifest["research_mode"] != "parallel_web"
+        ):
+            raise ValueError("Current run must match the frozen DuckDuckGo/Qwen Flash cohort")
+        runs = {
+            "original_supervisor": aggregate(root / "C", ids),
+            "first_parallel": aggregate(args.parallel or root / "parallel" / "P", ids),
+            "current_parallel": aggregate(args.current, ids),
+        }
+        if any({row["id"] for row in run["trace_cases"]} != ids for run in runs.values()):
+            raise ValueError("Missing traces for the paired comparison")
+        atomic_json(args.output, {"manifest": manifest, "runs": runs})
+        return
     output = {
         "all_original": {arm: aggregate(root / arm) for arm in "ACD"},
         "paired": {arm: aggregate(root / arm, ids) for arm in "ACD"},
