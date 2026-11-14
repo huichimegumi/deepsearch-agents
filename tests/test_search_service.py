@@ -3,7 +3,7 @@
 import os
 import time
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, patch
 
 from app.search.base import SearchProvider, SearchProviderError
 from app.search.models import SearchRequest, SearchResult
@@ -207,11 +207,11 @@ class SearchServiceTests(unittest.TestCase):
 
     @patch("app.search.service.requests.get")
     def test_fetch_page_revalidates_redirect_target(self, get):
-        redirect = Mock(
+        redirect = MagicMock(
             status_code=302,
             headers={"location": "http://127.0.0.1/private"},
         )
-        get.return_value = redirect
+        get.return_value.__enter__.return_value = redirect
         service = SearchService({}, timeout=0.01)
 
         with patch.object(
@@ -228,3 +228,26 @@ class SearchServiceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_fetch_extracts_late_query_relevant_article_and_decodes_utf8():
+    body = (
+        "<html><nav>"
+        + "menu links " * 5000
+        + "</nav><main>"
+        + "<p>"
+        + "unrelated information " * 2600
+        + " 香港決賽 Crystal Palace won.</p></main></html>"
+    ).encode()
+    with patch("app.search.service.requests.get") as get:
+        response = get.return_value.__enter__.return_value
+        response.status_code = 200
+        response.headers = {"content-type": "text/html"}
+        response.encoding = "ISO-8859-1"
+        response.iter_content.return_value = [body]
+        service = SearchService(max_content_chars=800)
+        with patch.object(service, "_is_public_url", return_value=True):
+            text = service._fetch_page("https://example.com/page", ["香港決賽 Crystal Palace"])
+    assert "香港決賽 Crystal Palace won." in text
+    assert "menu links" not in text
+    assert len(text) <= 800

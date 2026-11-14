@@ -29,12 +29,21 @@ def normalize_web_content(content: str) -> str:
 
 def web_results_to_evidence(
     results: Iterable[SearchResult],
+    *,
+    include_search_snippets: bool = False,
 ) -> tuple[EvidenceRecord, ...]:
-    """Promote fetched public pages to Evidence; snippet-only candidates are ignored."""
+    """Build Web Evidence, with an opt-in for explicitly labeled search snippets."""
     records: list[EvidenceRecord] = []
     seen_urls: set[str] = set()
     for result in results:
-        content = normalize_web_content(result.raw_content)
+        page = normalize_web_content(result.raw_content)
+        snippet = normalize_web_content(result.content) if include_search_snippets else ""
+        if snippet and page:
+            content = f"Search snippet: {snippet[:1200]}\nFetched page text: {page}"
+        elif snippet:
+            content = f"Search snippet only (page text unavailable): {snippet[:1200]}"
+        else:
+            content = page
         locator = canonicalize_web_url(result.url)
         if not content or not locator.startswith(("http://", "https://")) or locator in seen_urls:
             continue
@@ -51,8 +60,16 @@ def web_results_to_evidence(
                     "published_date": result.published_date,
                     "source_backend": result.source_backend,
                     "matched_queries": result.matched_queries,
-                    "content_kind": "fetched_page_text",
-                    "content_scope": "bounded_extracted_page_text",
+                    "content_kind": (
+                        "snippet_and_fetched_page"
+                        if snippet and page
+                        else "search_snippet_only"
+                        if snippet
+                        else "fetched_page_text"
+                    ),
+                    "content_scope": (
+                        "bounded_extracted_page_text" if page else "search_provider_excerpt"
+                    ),
                     "content_chars": len(content),
                 },
             )

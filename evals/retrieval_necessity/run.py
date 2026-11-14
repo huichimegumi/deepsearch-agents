@@ -56,18 +56,20 @@ def content_hash(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def load_review(review):
+def load_review(review, *, holdout=False):
     questions = read(review / "questions.json")
     references = read(review / "references.json")
     ids = [row["id"] for row in questions]
+    expected = 3 if holdout else 6
+    pattern = r"h_(en|zh)0[1-3]" if holdout else r"(en|zh)0[1-6]"
     if (
-        Counter(row["language"] for row in questions) != {"en": 6, "zh": 6}
-        or len(set(ids)) != 12
-        or any(not re.fullmatch(r"(en|zh)0[1-6]", item) for item in ids)
+        Counter(row["language"] for row in questions) != {"en": expected, "zh": expected}
+        or len(set(ids)) != 2 * expected
+        or any(not re.fullmatch(pattern, item) for item in ids)
         or set(ids) != set(references)
-        or PILOT not in ids
+        or (not holdout and PILOT not in ids)
     ):
-        raise ValueError("Expected six distinct questions per language with answer keys")
+        raise ValueError(f"Expected {expected} distinct questions per language with answer keys")
     for row in questions:
         facts = references[row["id"]]
         if row["breadth"] not in {"single", "multi"} or not 4 <= len(facts) <= 5:
@@ -153,7 +155,7 @@ def attempt_path(output, arm, case):
     return output / arm / f"drb_{case}" / "attempt-0001"
 
 
-async def generate(questions, output, pilot, *, current_date=None):
+async def generate(questions, output, pilot, *, current_date=None, web_refresh=False, arms=ARMS):
     os.environ.update(
         LLM_PROVIDER="dashscope",
         LLM_NAME="qwen-flash",
@@ -180,9 +182,8 @@ async def generate(questions, output, pilot, *, current_date=None):
             raise ValueError("Verify the single-question Tavily pilot before full generation")
         rows = questions
 
-    generation_arms = ("A", "P") if current_date is not None else ARMS
     for row in rows:
-        for arm in generation_arms:
+        for arm in arms:
             if pending_case(output / arm, row["id"]):
                 print(f"{row['id']} {arm}", flush=True)
                 before_attempts = count()
@@ -203,6 +204,7 @@ async def generate(questions, output, pilot, *, current_date=None):
                         "tavily" if arm == "A" else None,
                         8000,
                         current_date=current_date,
+                        include_search_snippets=web_refresh,
                     )
                 atomic_json(
                     attempt_path(output, arm, row["id"]) / "provider_attempts.json",
@@ -271,7 +273,7 @@ async def generate(questions, output, pilot, *, current_date=None):
         raise ValueError("Pilot usage could not verify one credit per Tavily attempt")
 
 
-async def score(questions, references, output):
+async def score(questions, references, output, *, arms=ARMS):
     model = (
         model_for("qwen")
         .model_copy(update={"model_name": JUDGE_MODEL, "extra_body": {"enable_thinking": False}})
@@ -285,7 +287,7 @@ async def score(questions, references, output):
         ids = {fact["id"] for fact in facts}
         results = totals[case] = {}
         # Separate, group-blind requests with no generation metadata.
-        for arm in ARMS:
+        for arm in arms:
             path = output / "scores" / arm / f"{case}.json"
             if path.exists():
                 results[arm] = read(path)
@@ -328,12 +330,14 @@ async def score(questions, references, output):
     for name in ("all", "zh", "en", "multi", "single"):
         cases = [r["id"] for r in questions if name in {"all", r["language"], r["breadth"]}]
         rates = {}
-        for arm in ARMS:
+        for arm in arms:
             correct = sum(totals[case][arm]["correct"] for case in cases)
             possible = sum(totals[case][arm]["possible"] for case in cases)
             rates[arm] = {"correct": correct, "possible": possible, "accuracy": correct / possible}
         pairs = {}
         for left, right in (("A", "closed"), ("P", "A")):
+            if right not in arms:
+                continue
             diffs = [totals[c][left]["correct"] - totals[c][right]["correct"] for c in cases]
             pairs[f"{left}_vs_{right}"] = {
                 "wins": sum(d > 0 for d in diffs),
@@ -362,10 +366,18 @@ def main():
     parser.add_argument(
         "--as-of", type=date.fromisoformat, help="Freeze the prompt date for the rerun"
     )
+    parser.add_argument("--web-refresh", action="store_true")
+    parser.add_argument(
+        "--holdout", action="store_true", help="Run a separate six-question A/P set"
+    )
     args = parser.parse_args()
+    if args.holdout and args.stage != "validate" and not args.web_refresh:
+        parser.error("Holdout generation and scoring require --web-refresh")
+    if args.web_refresh and not args.previous:
+        parser.error("--web-refresh requires the archived Tavily pilot via --previous")
     if bool(args.previous) != bool(args.as_of) or (args.previous and args.stage == "pilot"):
         parser.error("Use --previous and --as-of together with generate or score")
-    questions, references = load_review(args.review)
+    questions, references = load_review(args.review, holdout=args.holdout)
     if args.stage == "validate":
         print(f"{len(questions)} questions and {sum(map(len, references.values()))} fact units")
         return
@@ -383,14 +395,21 @@ def main():
         }
         if args.previous:
             previous = read(args.previous / "manifest.json")
-            if args.output.resolve() == args.previous.resolve() or previous != manifest:
+            compared_keys = manifest.keys() - (
+                {"question_sha256", "reference_sha256"} if args.holdout else set()
+            )
+            if args.output.resolve() == args.previous.resolve() or any(
+                previous.get(key) != manifest[key] for key in compared_keys
+            ):
                 raise ValueError("Rerun requires a distinct output and matching original manifest")
             manifest.update(
                 prompt_date=args.as_of.isoformat(),
                 previous_summary_sha256=content_hash(args.previous / "summary.json"),
             )
+        if args.web_refresh:
+            manifest.update(web_refresh=True, holdout=args.holdout)
         open_run(args.output, manifest)
-        if args.previous:
+        if args.previous and not args.holdout:
             # Copy only the closed-book outputs and scores. A and P get fresh attempts.
             for row in questions:
                 case = row["id"]
@@ -402,13 +421,21 @@ def main():
                         shutil.copy2(source / name, target / name)
                 path = Path("scores", "closed", f"{case}.json")
                 atomic_json(args.output / path, read(args.previous / path))
+        if args.previous:
             atomic_json(args.output / "pilot_usage.json", read(args.previous / "pilot_usage.json"))
         if args.stage == "score":
-            asyncio.run(score(questions, references, args.output))
+            asyncio.run(
+                score(questions, references, args.output, arms=("A", "P") if args.holdout else ARMS)
+            )
         else:
             asyncio.run(
                 generate(
-                    questions, args.output, pilot=args.stage == "pilot", current_date=args.as_of
+                    questions,
+                    args.output,
+                    pilot=args.stage == "pilot",
+                    current_date=args.as_of,
+                    web_refresh=args.web_refresh,
+                    arms=("A", "P") if args.previous else ARMS,
                 )
             )
 

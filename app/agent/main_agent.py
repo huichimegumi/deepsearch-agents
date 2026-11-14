@@ -669,11 +669,15 @@ def _attach_backend_evidence_ledger(
 def _compression_phase_outputs(
     phase_outputs: dict[str, str],
     run_trace: ResearchRunTrace,
+    *,
+    parallel_web: bool = False,
 ) -> dict[str, str]:
     """Build a Claim-safe handoff without replaying discovery-only supervisor citations."""
     claim_ledger = run_trace.render_evidence_ledger(
         claim_eligible_only=True,
         source_priority=("web", "sql"),
+        max_record_content_chars=1800 if parallel_web else 4000,
+        max_total_content_chars=36000 if parallel_web else 24000,
     )
     supervisor_handoff = (
         "Only the Evidence IDs below are eligible to support compressed Claims. "
@@ -1999,7 +2003,9 @@ async def run_deep_agent(
                     )
             prompt_phase_outputs = phase_outputs
             if phase.key == "evidence_compression":
-                prompt_phase_outputs = _compression_phase_outputs(phase_outputs, run_trace)
+                prompt_phase_outputs = _compression_phase_outputs(
+                    phase_outputs, run_trace, parallel_web=parallel_web
+                )
             prompt = build_phase_prompt(
                 task_query=task_query,
                 phase=phase,
@@ -2007,7 +2013,13 @@ async def run_deep_agent(
                 runtime_instructions=phase_runtime_instructions,
                 indexed_local_only=indexed_local_only,
                 **(
-                    {"writer_evidence": run_trace.render_evidence_ledger(claim_eligible_only=True)}
+                    {
+                        "writer_evidence": run_trace.render_evidence_ledger(
+                            claim_eligible_only=True,
+                            max_record_content_chars=1800,
+                            max_total_content_chars=36000,
+                        )
+                    }
                     if parallel_web and phase.key == "final_report"
                     else {}
                 ),

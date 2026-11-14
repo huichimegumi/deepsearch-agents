@@ -32,7 +32,15 @@ WRITER = (
 )
 
 
-async def run_case(row, output, backend, max_tokens, *, current_date: date | None = None):
+async def run_case(
+    row,
+    output,
+    backend,
+    max_tokens,
+    *,
+    current_date: date | None = None,
+    include_search_snippets: bool = False,
+):
     attempt = output / f"drb_{row['id']}" / "attempt-0001"
     attempt.mkdir(parents=True)
     started = time.monotonic()
@@ -63,6 +71,12 @@ async def run_case(row, output, backend, max_tokens, *, current_date: date | Non
                 }
                 for n, r in enumerate(found.results, start=1)
             ]
+            if include_search_snippets:
+                for source, result in zip(sources, found.results):
+                    if result.raw_content and result.content:
+                        source["search_snippet"] = result.content[:1200]
+                    if not result.raw_content:
+                        source["source_kind"] = "search_snippet_only"
         written = await model.bind(temperature=0, max_tokens=max_tokens).ainvoke(
             [
                 {"role": "system", "content": writer_prompt},

@@ -46,3 +46,11 @@ cmd=".venv/bin/python -m evals.retrieval_necessity.run"
 args="'$review' '$out' --previous '$previous' --as-of 2026-11-14"
 tmux new-session -d -s retrieval-repair "$cmd generate $args > '$out/generate.log' 2>&1 && $cmd score $args > '$out/score.log' 2>&1"
 ```
+
+## 网页抓取与子代理复测
+
+事前预期是两组输入证据中的答案覆盖都上升，P 第 2 项正确数高于上轮 1/12。A 与 P 的排序以实测为准。
+
+用 `--web-refresh` 另建结果目录，沿用原题、日期、评分器、闭卷归档与查询上限。A 保留搜索摘要与正文，P 每个研究员预留两次模型调用，在 `deep_report` 调度最多四个研究员。P 将摘要与网页正文按来源类型标注。抓不到正文时保留明确标记的摘要。解析 2 MB 限额内的整份 HTML，优先保留主体块；内容超过上限时按查询匹配选择段落。旧结果与同题复测独立存放。
+
+另备 6 道未参与诊断的题，人工确认后用 `--holdout --web-refresh` 和独立目录各跑 A、P 一次。原题与独立题分别报告。

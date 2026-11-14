@@ -17,7 +17,7 @@ def make_trace():
 @pytest.mark.asyncio
 async def test_workers_overlap_and_one_failure_preserves_other_evidence(monkeypatch):
     trace = make_trace()
-    barrier = Barrier(3)
+    barrier = Barrier(4)
     observed = []
     worker_prompts = []
 
@@ -56,16 +56,17 @@ async def test_workers_overlap_and_one_failure_preserves_other_evidence(monkeypa
         "phase",
         current_date=date(2026, 11, 14),
     )
-    assert answer == "one\n\nfour"
+    assert answer == "one\n\ntwo\n\nfour"
     assert all("Original task:\ntask" in prompt for prompt in worker_prompts)
     assert sorted(prompt.split("Assigned subquestions:\n")[1] for prompt in worker_prompts) == [
         "- four",
-        "- one\n- two",
+        "- one",
         "- three",
+        "- two",
     ]
-    assert len(observed) == trace.subagent_calls == len(trace.web_evidence_ids) == 3
-    assert trace.budget.search_queries_used == 12 and trace.budget.fetched_pages_used == 3
-    assert all(r.fetch_full_page and r.max_fetched_pages == 4 for r in observed)
+    assert len(observed) == trace.subagent_calls == len(trace.web_evidence_ids) == 4
+    assert trace.budget.search_queries_used == 12 and trace.budget.fetched_pages_used == 4
+    assert all(r.fetch_full_page and r.max_fetched_pages == 3 for r in observed)
     assert trace.parallel_research_errors == {"RuntimeError": 1}
     assert trace.degraded
 
@@ -82,3 +83,18 @@ def test_delivery_removes_unknown_ids_without_discarding_structure():
     assert result.cited_evidence_ids == ("ev1_web_known",)
     assert trace.removed_report_citations == 1
     assert trace.degraded and not trace.report_citation_withheld
+
+
+def test_parallel_evidence_keeps_source_provenance_for_snippets():
+    from app.research.evidence import web_results_to_evidence
+
+    results = [
+        SearchResult("Page", "https://example.com/page", "Short excerpt", "Page body"),
+        SearchResult("Excerpt", "https://example.com/other", "Fallback excerpt"),
+    ]
+    assert len(web_results_to_evidence(results)) == 1
+    page, snippet = web_results_to_evidence(results, include_search_snippets=True)
+    assert page.metadata["content_kind"] == "snippet_and_fetched_page"
+    assert "Short excerpt" in page.content and "Page body" in page.content
+    assert snippet.metadata["content_kind"] == "search_snippet_only"
+    assert "Fallback excerpt" in snippet.content

@@ -4,7 +4,6 @@ import ipaddress
 import os
 import socket
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, as_completed, wait
-from html.parser import HTMLParser
 from threading import Lock
 from time import monotonic
 from urllib.parse import urljoin, urlsplit
@@ -20,6 +19,7 @@ from app.search.models import (
     SearchTopic,
     canonicalize_web_url,
 )
+from app.search.page_text import decode_page, relevant_passages
 from app.search.providers import (
     DuckDuckGoProvider,
     PerplexityProvider,
@@ -33,27 +33,7 @@ MAX_FETCH_REDIRECTS = 5
 REDIRECT_STATUS_CODES = frozenset({301, 302, 303, 307, 308})
 
 
-class _TextExtractor(HTMLParser):
-    """从 HTML 中提取适合送入模型的可见文本。"""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.parts: list[str] = []
-        self._ignored_depth = 0
-
-    def handle_starttag(self, tag: str, attrs) -> None:
-        if tag in {"script", "style", "noscript"}:
-            self._ignored_depth += 1
-
-    def handle_endtag(self, tag: str) -> None:
-        if tag in {"script", "style", "noscript"} and self._ignored_depth:
-            self._ignored_depth -= 1
-
-    def handle_data(self, data: str) -> None:
-        if not self._ignored_depth:
-            text = " ".join(data.split())
-            if text:
-                self.parts.append(text)
+MAX_FETCH_BYTES = 2_000_000
 
 
 class SearchService:
@@ -315,7 +295,8 @@ class SearchService:
             cursor += len(batch)
             with ThreadPoolExecutor(max_workers=len(batch)) as executor:
                 future_map = {
-                    executor.submit(self._fetch_page, result.url): result for result in batch
+                    executor.submit(self._fetch_page, result.url, result.matched_queries): result
+                    for result in batch
                 }
                 for future in as_completed(future_map):
                     result = future_map[future]
@@ -327,33 +308,41 @@ class SearchService:
                     if result.raw_content:
                         successful += 1
 
-    def _fetch_page(self, url: str) -> str:
+    def _fetch_page(self, url: str, queries: list[str] | tuple[str, ...] = ()) -> str:
         current_url = url
         for redirect_count in range(MAX_FETCH_REDIRECTS + 1):
             if not self._is_public_url(current_url):
                 return ""
-            response = requests.get(
+            with requests.get(
                 current_url,
                 timeout=self.timeout,
                 headers={"User-Agent": "DeepSearchAgents/0.1 (+research crawler)"},
                 allow_redirects=False,
-            )
-            if response.status_code in REDIRECT_STATUS_CODES:
-                if redirect_count >= MAX_FETCH_REDIRECTS:
+                stream=True,
+            ) as response:
+                if response.status_code in REDIRECT_STATUS_CODES:
+                    location = response.headers.get("location")
+                    if not location or redirect_count >= MAX_FETCH_REDIRECTS:
+                        return ""
+                    current_url = urljoin(current_url, location)
+                    continue
+                response.raise_for_status()
+                content_type = response.headers.get("content-type", "").lower()
+                html = "html" in content_type
+                if not html and "text/plain" not in content_type:
                     return ""
-                location = response.headers.get("location")
-                if not location:
-                    return ""
-                current_url = urljoin(current_url, location)
-                continue
-
-            response.raise_for_status()
-            content_type = response.headers.get("content-type", "").lower()
-            if "html" not in content_type and "text/plain" not in content_type:
-                return ""
-            parser = _TextExtractor()
-            parser.feed(response.text[: self.max_content_chars * 4])
-            return "\n".join(parser.parts)[: self.max_content_chars]
+                body = bytearray()
+                deadline = monotonic() + self.timeout
+                for chunk in response.iter_content(chunk_size=32768):
+                    if len(body) + len(chunk) > MAX_FETCH_BYTES or monotonic() > deadline:
+                        return ""
+                    body.extend(chunk)
+                return relevant_passages(
+                    decode_page(body, response.encoding, html=html),
+                    html=html,
+                    queries=queries,
+                    limit=self.max_content_chars,
+                )
         return ""
 
     @staticmethod
