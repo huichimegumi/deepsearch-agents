@@ -20,6 +20,7 @@ from deepagents import create_deep_agent
 from langchain.agents import create_agent
 from pydantic import BaseModel, Field
 
+from app.agent import parallel_research
 from app.agent.llm import get_model
 from app.agent.prompts import main_agent_content
 from app.agent.research_workflow import (
@@ -1659,6 +1660,7 @@ async def run_deep_agent(
     indexed_local_research_enabled: bool = False,
     required_evidence_sources: tuple[str, ...] = (),
     research_delivery_repair: bool = False,
+    research_mode: str = "supervisor",
 ):
     """
     异步流式执行主智能体
@@ -1668,6 +1670,8 @@ async def run_deep_agent(
     :param task_query: 前端提交的原始任务问题
     :param session_id: 当前任务 ID，同时用于 thread_id、输出目录和 WebSocket 定向推送
     """
+    if research_mode not in {"supervisor", "parallel_web"}:
+        raise ValueError("Unsupported research mode")
     if any(source not in {"local_document", "web", "sql"} for source in required_evidence_sources):
         raise ValueError("Unsupported required Evidence source")
     event_thread_id = monitor_thread_id or session_id
@@ -1807,16 +1811,49 @@ async def run_deep_agent(
         and run_trace.local_retrieval_required
         and not updated_info_prompt
     )
+    parallel_web = (
+        research_mode == "parallel_web"
+        and not indexed_local_only
+        and not updated_info_prompt
+        and ("web" in required_evidence_sources or not _requires_knowledge_base_first(task_query))
+        and not run_trace.local_retrieval_required
+        and not set(required_evidence_sources).difference({"web"})
+        and not sql_entity_recovery_enabled
+        and os.getenv("REQUIRE_ANALYTICAL_SQL_EVIDENCE", "").strip() != "1"
+    )
+    research_budget.admit_research_calls_before_transport |= parallel_web
     run_trace.research_tool_mode = (
-        "indexed_local_only" if indexed_local_only else "deepagents_default"
+        "parallel_web"
+        if parallel_web
+        else "indexed_local_only"
+        if indexed_local_only
+        else "deepagents_default"
     )
     run_trace.research_tool_call_limit = 2 if indexed_local_only else None
+    brief = None
+
+    def capture_brief(parsed):
+        nonlocal brief
+        brief = parsed
+        return parsed.to_markdown()
+
+    def deliver(**kwargs):
+        if parallel_web:
+            return parallel_research.deliver_report(kwargs["report_markdown"], run_trace)
+        return _enforce_final_report_citations(**kwargs)
+
     try:
         planner_agent = get_planner_agent()
         research_agent = (
-            get_indexed_local_research_agent() if indexed_local_only else get_research_agent()
+            None
+            if parallel_web
+            else get_indexed_local_research_agent()
+            if indexed_local_only
+            else get_research_agent()
         )
         writer_agent = get_writer_agent()
+        if parallel_web:
+            writer_agent = writer_agent.bind(max_tokens=8000)
         runtime_instructions = (
             path_instruction
             + source_routing_instruction
@@ -1863,7 +1900,7 @@ async def run_deep_agent(
                 )
                 if phase.key == "final_report":
                     phase_result = local_evidence_boundary(run_trace) or phase_result
-                    phase_result, citation_validation = _enforce_final_report_citations(
+                    phase_result, citation_validation = deliver(
                         report_markdown=phase_result,
                         compressed_fallback=phase_outputs.get("evidence_compression", ""),
                         run_trace=run_trace,
@@ -1902,7 +1939,12 @@ async def run_deep_agent(
                     phase_budget.timeout_seconds,
                 ),
             )
-            phase_runtime_instructions = runtime_instructions
+            phase_runtime_instructions = (
+                "Use public web sources only. Split the task into up to three independently "
+                "searchable subquestions suitable for parallel public-web research."
+                if parallel_web
+                else runtime_instructions
+            )
             if indexed_local_only and phase.key == "supervisor_research":
                 # Do not ask the restricted researcher to obey filesystem/delegation instructions.
                 phase_runtime_instructions = ""
@@ -1928,7 +1970,7 @@ async def run_deep_agent(
                     )
                 semantic_context = (
                     ""
-                    if indexed_local_only
+                    if indexed_local_only or parallel_web
                     else await _prefetch_sql_semantic_context(
                         task_query=task_query,
                         run_trace=run_trace,
@@ -1954,6 +1996,11 @@ async def run_deep_agent(
                 phase_outputs=prompt_phase_outputs,
                 runtime_instructions=phase_runtime_instructions,
                 indexed_local_only=indexed_local_only,
+                **(
+                    {"writer_evidence": run_trace.render_evidence_ledger(claim_eligible_only=True)}
+                    if parallel_web and phase.key == "final_report"
+                    else {}
+                ),
             )
             if run_trace.local_retrieval_required and phase.key == "final_report":
                 # Writer intentionally receives no general runtime/tool instructions.
@@ -1980,6 +2027,15 @@ async def run_deep_agent(
                 run_trace.start_phase(phase.key, phase.title)
                 run_trace.finish_phase(phase.key, "end", artifact_status="local_evidence_boundary")
                 phase_result = boundary
+            elif parallel_web and phase.key == "supervisor_research":
+                phase_result = await parallel_research.research(
+                    task_query,
+                    brief.subquestions if brief else [],
+                    planner_agent,
+                    run_trace,
+                    phase_budget.timeout_seconds,
+                    phase.title,
+                )
             elif phase.requires_tools:
                 config = _phase_config(
                     event_thread_id,
@@ -2011,6 +2067,8 @@ async def run_deep_agent(
                 structured_renderer: Callable[[Any], str] | None = None
                 if phase.key == "clarify_and_brief":
                     schema = ResearchBrief
+                    if parallel_web:
+                        structured_renderer = capture_brief
                 elif phase.key == "evidence_compression":
                     schema = CompressedEvidence
                     structured_renderer = partial(
@@ -2030,7 +2088,9 @@ async def run_deep_agent(
                     emit_final_result=False,
                 )
             if phase.key == "supervisor_research":
-                if not indexed_local_only and _should_attempt_sql_evidence_correction(run_trace):
+                if not (
+                    indexed_local_only or parallel_web
+                ) and _should_attempt_sql_evidence_correction(run_trace):
                     correction_config = settings.agent_phase_budget(
                         SQL_EVIDENCE_CORRECTION_PHASE.key,
                         budget_profile,
@@ -2054,6 +2114,7 @@ async def run_deep_agent(
                         )
                 if (
                     research_delivery_repair
+                    and not parallel_web
                     and "web" in required_evidence_sources
                     and not run_trace.local_retrieval_required
                     and research_budget.search_queries_used == 0
@@ -2110,13 +2171,13 @@ async def run_deep_agent(
                     thread_id=event_thread_id,
                 )
             if phase.key == "final_report" and phase_result:
-                phase_result, citation_validation = _enforce_final_report_citations(
+                phase_result, citation_validation = deliver(
                     report_markdown=phase_result,
                     compressed_fallback=phase_outputs.get("evidence_compression", ""),
                     run_trace=run_trace,
                     retain_cited_paragraphs=research_delivery_repair,
                 )
-                if required_evidence_sources:
+                if required_evidence_sources and not parallel_web:
                     phase_result, citation_validation = _enforce_required_source_delivery(
                         phase_result, citation_validation, run_trace, required_evidence_sources
                     )
@@ -2205,7 +2266,7 @@ async def run_deep_agent(
                     "本轮研究已达到当前执行预算，以下是基于已完成阶段整理的可用结果。\n\n"
                     + fallback_result
                 )
-                final_result, _ = _enforce_final_report_citations(
+                final_result, _ = deliver(
                     report_markdown=final_result,
                     compressed_fallback="",
                     run_trace=run_trace,

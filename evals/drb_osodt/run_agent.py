@@ -23,7 +23,15 @@ from evals.worker_supervisor import atomic_json
 ROOT = Path(__file__).resolve().parents[2]
 
 
-async def run_case(row, output, profile, timeout, export_evidence, delivery_repair=False):
+async def run_case(
+    row,
+    output,
+    profile,
+    timeout,
+    export_evidence,
+    delivery_repair=False,
+    research_mode="supervisor",
+):
     attempt = output / f"drb_{row['id']}" / "attempt-0001"
     attempt.mkdir(parents=True)
     session = f"drb_{row['id']}_{uuid.uuid4().hex[:8]}"
@@ -40,7 +48,10 @@ async def run_case(row, output, profile, timeout, export_evidence, delivery_repa
                     budget_profile_override=profile,
                     export_evaluation_evidence=export_evidence,
                     research_delivery_repair=delivery_repair,
-                    required_evidence_sources=("web",) if delivery_repair else (),
+                    research_mode=research_mode,
+                    required_evidence_sources=("web",)
+                    if delivery_repair or research_mode == "parallel_web"
+                    else (),
                 ),
                 timeout=timeout,
             )
@@ -56,6 +67,7 @@ async def run_case(row, output, profile, timeout, export_evidence, delivery_repa
     if trace.is_file():
         shutil.copy2(trace, attempt / "research_trace.json")
         saved = json.loads(trace.read_bytes())
+        record["research_mode"] = saved["research_tool_mode"]
         if status == "completed":
             status = saved["status"]
         record.update(failure_reasons=saved["failure_reasons"], usage=saved["budget"]["usage"])
@@ -77,6 +89,9 @@ async def main():
     parser.add_argument("--timeout", type=float, default=900)
     parser.add_argument("--export-evidence", action="store_true")
     parser.add_argument("--delivery-repair", action="store_true")
+    parser.add_argument(
+        "--research-mode", choices=("supervisor", "parallel_web"), default="supervisor"
+    )
     args = parser.parse_args()
 
     rows = [r for r in select(args.per_language) if not args.ids or r["id"] in args.ids]
@@ -89,6 +104,7 @@ async def main():
         "timeout": args.timeout,
         "export_evidence": args.export_evidence,
         "delivery_repair": args.delivery_repair,
+        "research_mode": args.research_mode,
         "limits": settings.research_budget_limits(args.profile).__dict__,
         "tasks": [r["id"] for r in rows],
     }
@@ -98,7 +114,13 @@ async def main():
             print(f"drb:{row['id']} reused", flush=True)
             continue
         await run_case(
-            row, args.output, args.profile, args.timeout, args.export_evidence, args.delivery_repair
+            row,
+            args.output,
+            args.profile,
+            args.timeout,
+            args.export_evidence,
+            args.delivery_repair,
+            args.research_mode,
         )
 
 

@@ -36,7 +36,17 @@ async def run_research(
     rfc_sources_only: bool = False,
 ) -> str:
     settings = get_settings()
-    if settings.research_workflow == "legacy" and sources is None and not rfc_demo:
+    web_only = sources is not None and set(sources) == {"web"}
+    parallel_web = settings.research_workflow == "parallel_web" and web_only
+    for component in (session_id, user_id):
+        if component is not None and (
+            not re.fullmatch(r"[a-zA-Z0-9_.-]{1,200}", component) or component in {".", ".."}
+        ):
+            raise ValueError("invalid_session_component")
+    if not rfc_demo and (
+        parallel_web
+        or (settings.research_workflow in {"legacy", "parallel_web"} and sources is None)
+    ):
         from app.agent.main_agent import run_deep_agent
 
         return await run_deep_agent(
@@ -45,14 +55,14 @@ async def run_research(
             user_id=user_id,
             monitor_thread_id=monitor_thread_id,
             conversation_memory=conversation_memory,
+            **(
+                {"research_mode": "parallel_web", "required_evidence_sources": ("web",)}
+                if parallel_web
+                else {}
+            ),
         )
-    if settings.research_workflow not in {"bounded", "legacy", "adaptive"}:
+    if settings.research_workflow not in {"bounded", "legacy", "adaptive", "parallel_web"}:
         raise ValueError("invalid_research_workflow")
-    for component in (session_id, user_id):
-        if component is not None and (
-            not re.fullmatch(r"[a-zA-Z0-9_.-]{1,200}", component) or component in {".", ".."}
-        ):
-            raise ValueError("invalid_session_component")
     parent = ROOT / "output"
     uploaded = ROOT / "updated"
     if user_id:

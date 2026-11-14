@@ -10,6 +10,7 @@ from collections import Counter
 from contextvars import ContextVar, Token
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from threading import Lock
 from time import monotonic
 from typing import Any
 
@@ -41,6 +42,7 @@ class ResearchBudget:
     research_rounds_used: int = 0
     llm_calls_used: int = 0
     admit_research_calls_before_transport: bool = False
+    _admission_lock: Any = field(default_factory=Lock, init=False, repr=False, compare=False)
     _reserved_search_queries: int = field(default=0, repr=False)
     _reserved_fetched_pages: int = field(default=0, repr=False)
 
@@ -72,9 +74,10 @@ class ResearchBudget:
         return max(0.0, min(configured_timeout, allocation, available))
 
     def take_search_queries(self, requested: int) -> int:
-        accepted = min(max(0, requested), self.available_search_queries)
-        self.search_queries_used += accepted
-        return accepted
+        with self._admission_lock:
+            accepted = min(max(0, requested), self.available_search_queries)
+            self.search_queries_used += accepted
+            return accepted
 
     @property
     def available_search_queries(self) -> int:
@@ -107,9 +110,10 @@ class ResearchBudget:
         )
 
     def take_fetched_pages(self, requested: int) -> int:
-        accepted = min(max(0, requested), self.available_fetched_pages)
-        self.fetched_pages_used += accepted
-        return accepted
+        with self._admission_lock:
+            accepted = min(max(0, requested), self.available_fetched_pages)
+            self.fetched_pages_used += accepted
+            return accepted
 
     def reserve_fetched_pages(self, requested: int) -> int:
         """Keep fetched-page capacity for backend-directed entity recovery."""
@@ -130,19 +134,20 @@ class ResearchBudget:
         return True
 
     def take_llm_call(self, phase_key: str) -> bool:
-        # M0.1 uses one direct compression call and one direct writer call after research.
-        reserve_by_phase = {
-            "clarify_and_brief": 2,
-            "supervisor_research": 2,
-            "sql_evidence_correction": 2,
-            "evidence_compression": 1,
-            "final_report": 0,
-        }
-        reserve = min(reserve_by_phase.get(phase_key, 0), self.limits.max_llm_calls)
-        if self.llm_calls_used >= max(0, self.limits.max_llm_calls - reserve):
-            return False
-        self.llm_calls_used += 1
-        return True
+        with self._admission_lock:
+            # M0.1 uses one direct compression call and one direct writer call after research.
+            reserve_by_phase = {
+                "clarify_and_brief": 2,
+                "supervisor_research": 2,
+                "sql_evidence_correction": 2,
+                "evidence_compression": 1,
+                "final_report": 0,
+            }
+            reserve = min(reserve_by_phase.get(phase_key, 0), self.limits.max_llm_calls)
+            if self.llm_calls_used >= max(0, self.limits.max_llm_calls - reserve):
+                return False
+            self.llm_calls_used += 1
+            return True
 
     def snapshot(self) -> dict[str, Any]:
         return {
@@ -214,6 +219,8 @@ class ResearchRunTrace:
     claim_ids: list[str] = field(default_factory=list)
     claim_evidence_ids: list[str] = field(default_factory=list)
     _accepted_claims_by_id: dict[str, Any] = field(default_factory=dict, repr=False)
+    removed_report_citations: int = 0
+    parallel_research_errors: Counter = field(default_factory=Counter)
     report_citation_withheld: bool = False
     report_used_claim_fallback: bool = False
     claims_by_kind: Counter[str] = field(default_factory=Counter)
@@ -812,6 +819,8 @@ class ResearchRunTrace:
         return {
             "schema_version": 12,
             "report_citation_withheld": self.report_citation_withheld,
+            "removed_report_citations": self.removed_report_citations,
+            "parallel_research_errors": dict(self.parallel_research_errors),
             "report_used_claim_fallback": self.report_used_claim_fallback,
             "run_id": self.run_id,
             "thread_id": self.thread_id,

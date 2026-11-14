@@ -238,6 +238,7 @@ def build_phase_prompt(
     phase_outputs: dict[str, str],
     runtime_instructions: str,
     indexed_local_only: bool = False,
+    writer_evidence: str | None = None,
 ) -> str:
     """Build the user message for one enforced workflow phase."""
     prompt_outputs = phase_outputs
@@ -249,6 +250,17 @@ def build_phase_prompt(
             if key in {"clarify_and_brief", "evidence_compression"}
         }
     previous = format_previous_phase_outputs(prompt_outputs)
+    if phase.key == "final_report" and writer_evidence is not None:
+        from app.agent.parallel_research import WRITER_INSTRUCTION
+
+        return "\n\n".join(
+            (
+                WRITER_INSTRUCTION,
+                task_query,
+                previous,
+                writer_evidence or "No public web evidence was fetched.",
+            )
+        )
     tool_boundary = ""
     if phase.key == "final_report":
         tool_boundary = (
