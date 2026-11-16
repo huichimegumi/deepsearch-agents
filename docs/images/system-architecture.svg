@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1080" viewBox="0 0 1440 1080" role="img" aria-labelledby="title desc"><title id="title">DeepSearch Agents — System Architecture</title><desc id="desc">Five-layer architecture: React frontend, FastAPI API, parallel web and multi-source research, retrieval and indexing, PostgreSQL, Qdrant, MinIO, Redis, MySQL and external model/search APIs.</desc>
+<defs><linearGradient id="gblue" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#e1f2ff"/><stop offset="100%" stop-color="#d0e8ff"/></linearGradient><linearGradient id="ggreen" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#dcf8ed"/><stop offset="100%" stop-color="#d0f5e5"/></linearGradient><linearGradient id="gpurple" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#f1e9ff"/><stop offset="100%" stop-color="#eadbfc"/></linearGradient><linearGradient id="gyellow" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#fff9e6"/><stop offset="100%" stop-color="#fff5d8"/></linearGradient><linearGradient id="ginfra" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#e2f2ff"/><stop offset="100%" stop-color="#d3eaff"/></linearGradient><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0 L7 3.5 L0 7 Z" fill="#21334B"/></marker></defs>
+<style>
+svg{font-family:Inter,"Noto Sans SC","Microsoft YaHei","PingFang SC","Arial",sans-serif;background:white;text-rendering:geometricPrecision}
+.h1{font-size:42px;font-weight:800;fill:#0d1931;letter-spacing:-.8px}
+.bandzh{font-size:26px;font-weight:800;fill:#111b31}
+.banden{font-size:24px;font-weight:700;fill:#111b31}
+.paneltitle{font-size:31px;font-weight:800;fill:#111b31}
+.paneltitle-sm{font-size:26px;font-weight:800;fill:#111b31}
+.subtitle{font-size:21px;font-weight:450;fill:#29354a}
+.subtitle-sm{font-size:18px;font-weight:450;fill:#29354a}
+.chip{font-size:21px;font-weight:700;fill:#23334a}
+.tiletitle{font-size:19px;font-weight:750;fill:#111827}
+</style>
+<text x="720" y="55" text-anchor="middle" class="h1">DeepSearch Agents — System Architecture</text>
+<rect x="3" y="86" width="1434" height="133" rx="23" fill="url(#gblue)" stroke="none" stroke-width="0"/><rect x="34" y="119.5" width="7" height="66" rx="3.5" fill="#3598f5" stroke="none" stroke-width="0"/><text x="59" y="150.5" text-anchor="start" class="bandzh">前端</text><text x="59" y="183.5" text-anchor="start" class="banden">Frontend</text>
+<rect x="3" y="268" width="1434" height="137" rx="23" fill="url(#ggreen)" stroke="none" stroke-width="0"/><rect x="34" y="303.5" width="7" height="66" rx="3.5" fill="#20b483" stroke="none" stroke-width="0"/><text x="59" y="334.5" text-anchor="start" class="bandzh">API 层</text><text x="59" y="367.5" text-anchor="start" class="banden">API</text>
+<rect x="3" y="477" width="1434" height="255" rx="23" fill="url(#gpurple)" stroke="none" stroke-width="0"/><rect x="34" y="571.5" width="7" height="66" rx="3.5" fill="#9d4fe3" stroke="none" stroke-width="0"/><text x="59" y="602.5" text-anchor="start" class="bandzh">Agent 研究层</text><text x="59" y="635.5" text-anchor="start" class="banden">Agent Research</text>
+<rect x="3" y="764" width="1434" height="140" rx="23" fill="url(#gyellow)" stroke="none" stroke-width="0"/><rect x="34" y="801" width="7" height="66" rx="3.5" fill="#f4b536" stroke="none" stroke-width="0"/><text x="59" y="832" text-anchor="start" class="bandzh">检索与任务层</text><text x="59" y="865" text-anchor="start" class="banden">Retrieval &amp; Jobs</text>
+<rect x="3" y="927" width="1434" height="130" rx="23" fill="url(#ginfra)" stroke="none" stroke-width="0"/><rect x="34" y="959" width="7" height="66" rx="3.5" fill="#3598f5" stroke="none" stroke-width="0"/><text x="59" y="990" text-anchor="start" class="bandzh">基础设施</text><text x="59" y="1023" text-anchor="start" class="banden">Infrastructure</text>
+<rect x="280" y="107" width="972" height="94" rx="15" fill="#ffffffb8" stroke="#2873cf" stroke-width="2.2"/><text x="766" y="145" text-anchor="middle" class="paneltitle">React + TypeScript</text><text x="766" y="178" text-anchor="middle" class="subtitle">Chat · Event Stream · Knowledge Base · Memory</text>
+<rect x="280" y="291" width="972" height="94" rx="15" fill="#ffffffb8" stroke="#169b6e" stroke-width="2.2"/><text x="766" y="330" text-anchor="middle" class="paneltitle">FastAPI</text><text x="766" y="361" text-anchor="middle" class="subtitle">Auth / JWT · Task API · Session · Memory · Knowledge Base</text>
+<path d="M766 202 V271" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="650" y="220" width="232" height="35" rx="17.5" fill="#f1f6fc" stroke="#bfcada" stroke-width="1.7"/><text x="766" y="244" text-anchor="middle" class="chip">HTTP / WebSocket</text>
+<path d="M766 255 V289" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M766 385 V452" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="666" y="407" width="200" height="35" rx="17.5" fill="#f1f6fc" stroke="#bfcada" stroke-width="1.7"/><text x="766" y="431" text-anchor="middle" class="chip">asyncio task</text>
+<path d="M766 443 V458 H555 V506" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M766 458 H1020 V506" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<rect x="359" y="507" width="407" height="80" rx="15" fill="#ffffffb8" stroke="#8e51d5" stroke-width="2.2"/><text x="562.5" y="538" text-anchor="middle" class="paneltitle-sm">Parallel Web Research</text><text x="562.5" y="565" text-anchor="middle" class="subtitle">Brief → Researcher ×4 → Writer</text>
+<rect x="819" y="507" width="407" height="80" rx="15" fill="#ffffffb8" stroke="#8e51d5" stroke-width="2.2"/><text x="1022.5" y="538" text-anchor="middle" class="paneltitle-sm">Multi-source Research</text><text x="1022.5" y="565" text-anchor="middle" class="subtitle">Web / SQL / RAG / Uploads</text>
+<rect x="438" y="633" width="650" height="80" rx="15" fill="#ffffffb8" stroke="#6b35ad" stroke-width="2.2"/><text x="763" y="664" text-anchor="middle" class="paneltitle-sm">Research Control</text><text x="763" y="692" text-anchor="middle" class="subtitle">Evidence · Claim · Citation Check · Budget · Trace</text>
+<path d="M563 588 V622 H612 V632" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M1022 588 V622 H950 V632" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M763 714 V752" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M763 752 H399 V814" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M763 752 H665 V814" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M763 752 H938 V814" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M763 752 H1172 V814" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<rect x="280" y="813" width="235" height="57" rx="12" fill="#ffffffcb" stroke="#dea41c" stroke-width="2"/><text x="397.5" y="849" text-anchor="middle" class="tiletitle">Web Search / Fetch</text>
+<rect x="532" y="813" width="266" height="57" rx="12" fill="#ffffffcb" stroke="#dea41c" stroke-width="2"/><text x="665" y="849" text-anchor="middle" class="tiletitle">Hybrid Retrieval + Rerank</text>
+<rect x="815" y="813" width="244" height="57" rx="12" fill="#ffffffcb" stroke="#dea41c" stroke-width="2"/><text x="937" y="849" text-anchor="middle" class="tiletitle">Celery Async Indexing</text>
+<rect x="1076" y="813" width="200" height="57" rx="12" fill="#ffffffcb" stroke="#dea41c" stroke-width="2"/><text x="1176" y="849" text-anchor="middle" class="tiletitle">Read-only SQL</text>
+<rect x="299" y="973" width="166" height="52" rx="12" fill="#ffffffb8" stroke="#2779c6" stroke-width="2"/><text x="382" y="1007" text-anchor="middle" class="tiletitle">PostgreSQL</text>
+<rect x="482" y="973" width="144" height="52" rx="12" fill="#ffffffb8" stroke="#2779c6" stroke-width="2"/><text x="554" y="1007" text-anchor="middle" class="tiletitle">Qdrant</text>
+<rect x="643" y="973" width="143" height="52" rx="12" fill="#ffffffb8" stroke="#2779c6" stroke-width="2"/><text x="714.5" y="1007" text-anchor="middle" class="tiletitle">MinIO</text>
+<rect x="803" y="973" width="144" height="52" rx="12" fill="#ffffffb8" stroke="#2779c6" stroke-width="2"/><text x="875" y="1007" text-anchor="middle" class="tiletitle">Redis</text>
+<rect x="963" y="973" width="184" height="52" rx="12" fill="#ffffffb8" stroke="#2779c6" stroke-width="2"/><text x="1055" y="1007" text-anchor="middle" class="tiletitle">MySQL / SQLite</text>
+<rect x="1164" y="973" width="217" height="52" rx="12" fill="#ffffffb8" stroke="#2779c6" stroke-width="2"/><text x="1272.5" y="1007" text-anchor="middle" class="tiletitle">LLM / Search API</text>
+<path d="M667 870 V927 H382 V970" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M667 927 H555 V970" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M667 927 H715 V970" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M936 870 V949 H875 V970" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M936 949 H719 V970" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M1175 870 V947 H1053 V970" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+<path d="M398 870 V938 H1272 V969" fill="none" stroke="#21334B" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arr)"/>
+</svg>
