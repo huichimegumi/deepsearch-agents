@@ -20,28 +20,7 @@ DeepSearch Agents 是一个带来源引用和运行轨迹的多智能体研究�
 
 下图展示应用层、研究执行、检索/索引和基础设施的**逻辑关系**，与后面的 Agent 工作流程图互补。它不表示微服务拆分，也不是生产环境部署拓扑。
 
-```mermaid
-flowchart TB
-    UI["React / TypeScript<br/>聊天 · 知识库 · 进度与报告"] <-->|"HTTP / WebSocket"| API["FastAPI<br/>JWT · 任务/会话 API · 事件推送"]
-    API --> ROUTE{"Research Service<br/>按来源和配置选择执行路径"}
-    ROUTE -->|"parallel_web + 仅 Web 来源"| WEB["并行 Web 研究<br/>Brief · 最多 4 位 Researchers · Writer"]
-    ROUTE -->|"其他支持的配置"| MULTI["多源研究路径<br/>legacy / bounded / adaptive"]
-    WEB --> SEARCH["Web Search + Page Fetch"]
-    MULTI --> SEARCH
-    MULTI --> TOOLS["多源工具<br/>只读 SQL · 本地 RAG · 附件"]
-    WEB --> TRACE["Evidence / Claim · 引用检查<br/>Budget · Trace"]
-    MULTI --> TRACE
-    WEB --> MODEL["外部 LLM API"]
-    MULTI --> MODEL
-    TOOLS --> DB["MySQL / 配置的 SQLite"]
-    TOOLS --> STORE["PostgreSQL · Qdrant · MinIO<br/>元数据 · 向量 · 文件"]
-    API --> STORE
-    API --> INDEX["Celery 文档索引任务<br/>解析 · 切分 · Embedding"]
-    INDEX --> REDIS["Redis<br/>Celery Broker / Result Backend"]
-    INDEX --> STORE
-    SEARCH --> PROVIDER["外部搜索服务"]
-    EVAL["离线 evals/<br/>检索 · 过程 · 事实 · 报告"] -. "独立运行 / 分析归档" .-> TRACE
-```
+![DeepSearch Agents 系统架构](docs/images/system-architecture.svg)
 
 - **请求与实时反馈**：React 通过 HTTP 提交任务、管理会话和知识库；FastAPI 在后台执行研究任务，并通过 WebSocket 按 `thread_id` 推送进度和结果。
 - **研究路径**：`RESEARCH_WORKFLOW=parallel_web` 且请求仅指定 `sources: ["web"]` 时，进入代码控制的并行 Web 研究。其他请求依据配置进入原有或有界多源流程，**并非都使用四研究员模式**。
