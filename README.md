@@ -16,13 +16,47 @@ DeepSearch Agents 是一个带来源引用和运行轨迹的多智能体研究�
 
 ![已完成的研究报告，显示运行预算、证据统计和可点击引用](docs/images/web-research-report.png)
 
-### 工作流程
+### 系统架构
+
+下图展示应用层、研究执行、检索/索引和基础设施的**逻辑关系**，与后面的 Agent 工作流程图互补。它不表示微服务拆分，也不是生产环境部署拓扑。
+
+```mermaid
+flowchart TB
+    UI["React / TypeScript<br/>聊天 · 知识库 · 进度与报告"] <-->|"HTTP / WebSocket"| API["FastAPI<br/>JWT · 任务/会话 API · 事件推送"]
+    API --> ROUTE{"Research Service<br/>按来源和配置选择执行路径"}
+    ROUTE -->|"parallel_web + 仅 Web 来源"| WEB["并行 Web 研究<br/>Brief · 最多 4 位 Researchers · Writer"]
+    ROUTE -->|"其他支持的配置"| MULTI["多源研究路径<br/>legacy / bounded / adaptive"]
+    WEB --> SEARCH["Web Search + Page Fetch"]
+    MULTI --> SEARCH
+    MULTI --> TOOLS["多源工具<br/>只读 SQL · 本地 RAG · 附件"]
+    WEB --> TRACE["Evidence / Claim · 引用检查<br/>Budget · Trace"]
+    MULTI --> TRACE
+    WEB --> MODEL["外部 LLM API"]
+    MULTI --> MODEL
+    TOOLS --> DB["MySQL / 配置的 SQLite"]
+    TOOLS --> STORE["PostgreSQL · Qdrant · MinIO<br/>元数据 · 向量 · 文件"]
+    API --> STORE
+    API --> INDEX["Celery 文档索引任务<br/>解析 · 切分 · Embedding"]
+    INDEX --> REDIS["Redis<br/>Celery Broker / Result Backend"]
+    INDEX --> STORE
+    SEARCH --> PROVIDER["外部搜索服务"]
+    EVAL["离线 evals/<br/>检索 · 过程 · 事实 · 报告"] -. "独立运行 / 分析归档" .-> TRACE
+```
+
+- **请求与实时反馈**：React 通过 HTTP 提交任务、管理会话和知识库；FastAPI 在后台执行研究任务，并通过 WebSocket 按 `thread_id` 推送进度和结果。
+- **研究路径**：`RESEARCH_WORKFLOW=parallel_web` 且请求仅指定 `sources: ["web"]` 时，进入代码控制的并行 Web 研究。其他请求依据配置进入原有或有界多源流程，**并非都使用四研究员模式**。
+- **存储与异步索引**：PostgreSQL 管理应用/知识库元数据，Qdrant 保存向量索引，MinIO 保存原始文件；Redis 为 Celery 提供任务队列/结果后端。Celery 执行文档索引，**不负责排队执行全部 Agent 研究请求**。
+- **离线评测**：`evals/` 独立运行冻结题集和对照实验、读取结果与 Trace；它不是每次用户研究请求都必须经过的在线服务。
+
+### Agent 工作流程（纯 Web 并行模式）
+
+以下流程只描述 `parallel_web` 路径；完整系统的 API、索引和存储关系见上方架构图。
 
 ```mermaid
 flowchart LR
     Q[问题] --> B[研究简报<br/>拆出子问题]
     B --> P[最多四个并行研究员<br/>搜索并阅读网页]
-    P --> E[(证据清单<br/>ID、网址、正文)]
+    P --> E[(证据清单<br/>来源 ID、摘要/正文)]
     E --> C[证据压缩<br/>论断绑定证据 ID]
     E --> W[写作]
     C --> W
@@ -44,6 +78,13 @@ flowchart LR
 - 会话与记忆：用户注册登录、会话摘要、可管理的长期记忆。
 - 评测工具：端到端、过程和检索组件三层评测脚本，结果可复算。
 
+### 核心工程设计
+
+- **确定性并行调度与资源边界**：从模型自行决定是否派发的 Supervisor 循环，调整为后端按子问题并行派发；限制研究员可用工具、查询/页面数、LLM 调用数和总耗时，保留失败子任务已收集的证据。
+- **结构化证据与交付约束**：对 Web、SQL、RAG 等来源记录可追溯的 Evidence，Claim 绑定已登记的 `evidence_id`，最终报告检查引用身份及必需来源。**引用有效不等于原文在语义上支持结论**；证据不足或引用异常会显式标记或降级。
+- **检索与任务处理解耦**：文档解析与索引由 Celery 异步执行；在线研究调用混合检索、重排、只读 SQL、联网搜索等组件；研究执行由 FastAPI 后台任务管理。
+- **可观测性与可复算评测**：保存阶段耗时、工具/模型调用、Token、搜索回执、Evidence 流向和降级原因；将组件检索、过程可靠性、事实准确率及报告内容评分分开评价。
+
 ### 评测结果
 
 **近期事实题。** 题目问 2026 年发生的事实，模型自身答不出。每题 4 个事实项，对照官方出处逐项判分，全部字段正确才得分。
@@ -54,7 +95,7 @@ flowchart LR
 | 独立 6 题 | 0/24 | 17/24 | 19/24 | 23/24 |
 | 每题耗时中位数（原题） | 1.2 秒 | 13.3 秒 | 13.9 秒 | 38.2 秒 |
 
-检索把正确率从 0 提高到 80% 左右。查询额度相近时，并行研究比单轮检索多答对 3 到 4 项，耗时约为 3 倍。原 12 题参与过缺陷诊断，独立 6 题在修复后单独运行。详见 [事实题评测](docs/development/retrieval-necessity-2026.md)。
+在独立 6 题的 24 个事实项中，闭卷为 0/24、8 查询单轮为 19/24、并行研究为 23/24。原 12 题参与过缺陷诊断，独立 6 题在修复后单独运行；并行研究在两组中比 8 查询单轮分别多答对 3 项和 4 项，但查询量、模型输入及耗时均更高，不能将全部差异单独归因于并行派发。详见 [事实题评测](docs/development/retrieval-necessity-2026.md)。
 
 **运行过程。** 在 15 道 DeepResearch Bench 题目上，把“主管模型决定派发”改为“后端代码并行派发”之后：
 
@@ -67,11 +108,11 @@ flowchart LR
 
 详见 [过程评测](docs/development/drb-process-evaluation.md)。
 
-**报告内容分。** 同一批题目上，模型评审给出的内容分为闭卷写作 6.96、单轮基线 6.51、并行研究 5.45。不检索的闭卷写作得分最高，说明这类评分主要反映模型自身的知识和文风，因此另行设计了上面的事实题。详见 [DRB 评测与交叉实验](docs/development/drb-duckduckgo-15.md)。
+**报告内容分（历史版本）。** 同一批题目上，模型评审给出的内容分为闭卷写作 6.96、单轮基线 6.51、**第一版**并行研究 5.45。闭卷写作得分最高，提示这一评分不宜直接当作事实准确率，因此另行设计了上面的事实题。当前四研究员版本的过程复测未重新评估此内容分。详见 [DRB 评测与交叉实验](docs/development/drb-duckduckgo-15.md)。
 
 **本地知识库检索。** 在固定的 RFC 9110 / 9111 语料上，词法排序换成 BM25 后，7 道开发题的标注证据命中由 6/15 升至 15/15。详见 [BM25 对照](evals/rfc_demo/bm25.md)。
 
-以上均为小样本，每种配置运行一次，网页搜索结果随时间变化。生成模型为 Qwen Flash。
+以上均为小样本、单次配置运行；在线搜索结果会随时间变化。事实项正确率、过程完成率、检索证据命中与报告内容分属于**不同指标**，不可混为整体准确率。上述实验使用 Qwen Flash 生成，事实项评分流程及实验条件见各自报告。
 
 ### 快速开始
 
@@ -184,7 +225,7 @@ docker/         # Dockerfile 与 Compose
 ### 评测与部署说明
 
 - 评测题量小，每种配置只运行一次。
-- 并行研究比单轮检索更准，但耗时约 3 倍、输入 token 约 4.6 倍。
+- 在上述近期事实题的特定配置中，并行研究的事实项得分高于单轮基线，但原题中相对 8 查询基线的中位耗时约 2.8 倍、输入 Token 约 4.6 倍；不代表对所有任务都更优。
 - 引用校验只保证证据 ID 存在，不保证引用的原文支持该结论。
 - 并行模式目前只覆盖公开网页，需通过 API 的 `"sources": ["web"]` 触发。
 - 默认的注册开关、JWT 密钥和服务凭据面向本地开发，公开部署前需要替换，并补充授权、限流和监控。
@@ -207,13 +248,24 @@ The screenshots show a single live tennis research run. Four researchers worked 
 
 [Running view](docs/images/web-research-running.png) · [Completed report](docs/images/web-research-report.png)
 
-### How it works
+### System architecture
+
+The [architecture diagram in the Chinese section](#系统架构) is a **logical component map**, not a production deployment topology or a microservices claim. It covers the React/TypeScript UI, FastAPI API and WebSocket events, research routing, parallel Web or multi-source workflows, evidence/claim checks, retrieval, indexing workers and infrastructure.
+
+- **Request execution**: FastAPI runs research in background asyncio tasks and streams thread-scoped events over WebSocket. `parallel_web` requires both `RESEARCH_WORKFLOW=parallel_web` and an explicitly Web-only `sources: ["web"]` request; other supported requests use the configured legacy/bounded/adaptive path.
+- **Indexing is separate from research execution**: Celery workers, using Redis as broker/result backend, parse and index documents into PostgreSQL, Qdrant and MinIO. Agent research tasks are not all enqueued through Celery.
+- **Evidence boundary**: registered evidence IDs, claims, citation checks and resource budgets make delivery auditable. ID validation is **not** a semantic entailment check.
+- **Offline evaluation**: `evals/` runs component, process and end-to-end checks independently; it is not a production request-stage service.
+
+### Agent workflow (parallel Web only)
+
+The following graph describes the Web-only research path, not every supported source combination.
 
 ```mermaid
 flowchart LR
     Q[Question] --> B[Research brief<br/>subquestions]
     B --> P[Up to four parallel researchers<br/>search and read pages]
-    P --> E[(Evidence ledger<br/>ID, URL, text)]
+    P --> E[(Evidence ledger<br/>source ID, snippet/page text)]
     E --> C[Evidence compression<br/>claims bound to evidence IDs]
     E --> W[Writer]
     C --> W
@@ -235,6 +287,13 @@ flowchart LR
 - Sessions and memory: sign-up and login, conversation summaries, user-managed long-term memory.
 - Evaluation tooling: end-to-end, process and retrieval-component evaluations with reproducible summaries.
 
+### Engineering highlights
+
+- **Code-controlled worker dispatch**: restrict each researcher's tools and enforce per-run query, fetched-page, model-call and time budgets instead of leaving delegation entirely to an unconstrained supervisor loop.
+- **Traceable evidence delivery**: bind accepted claims to collected evidence IDs and apply citation/source checks, retaining explicit degradation states when checks fail. Passing citation checks alone does not establish factual support.
+- **Component separation**: keep asynchronous document indexing, online retrieval (hybrid search / reranking, read-only SQL and Web fetch), task event streaming, and offline evaluations in distinct modules.
+- **Measurable trade-offs**: preserve per-stage traces and archived controls for completion, latency, tokens, evidence coverage, fact-item correctness and report-quality scores.
+
 ### Evaluation
 
 **Recent-fact questions.** The questions ask about events from 2026 that the model cannot answer from memory. Each has four fact items, judged one by one against official sources; an item scores only if every required field is correct.
@@ -245,7 +304,7 @@ flowchart LR
 | Held-out 6 questions | 0/24 | 17/24 | 19/24 | 23/24 |
 | Median time per question (original) | 1.2 s | 13.3 s | 13.9 s | 38.2 s |
 
-Retrieval raises accuracy from 0 to about 80%. With a similar query allowance, parallel research answers 3 to 4 more items than a single round and takes about 3 times as long. The original 12 questions were used to diagnose defects; the 6 held-out questions were run once after the fixes. See [recent-fact evaluation](docs/development/retrieval-necessity-2026.md) (in Chinese).
+On the 6 held-out questions (24 fact items), closed-book writing scored 0/24, the ≤8-query single-round baseline 19/24, and parallel research 23/24. The original 12 questions informed debugging; the 6 held-out questions were run separately after fixes. Parallel research answered 3 and 4 more items than the ≤8-query baseline in the original and held-out sets, respectively, at higher latency and model/search costs. Several pipeline factors differ, so this is not an isolated causal effect of worker parallelism. See [recent-fact evaluation](docs/development/retrieval-necessity-2026.md) (in Chinese).
 
 **Run process.** On 15 DeepResearch Bench tasks, after replacing model-decided delegation with code-driven parallel dispatch:
 
@@ -258,11 +317,11 @@ Retrieval raises accuracy from 0 to about 80%. With a similar query allowance, p
 
 See [process evaluation](docs/development/drb-process-evaluation.md) (in Chinese).
 
-**Report content score.** On the same tasks, an LLM judge scored closed-book writing 6.96, the single-round baseline 6.51 and parallel research 5.45. Writing without retrieval scored highest, which shows that this kind of score mostly reflects the model's own knowledge and style. The recent-fact test above was designed for that reason. See [DRB evaluation and crossover](docs/development/drb-duckduckgo-15.md) (in Chinese).
+**Report content score (earlier version).** On the same tasks, an LLM judge scored closed-book writing 6.96, the single-round baseline 6.51 and the **first parallel version** 5.45. Closed-book writing scored highest; this score should not be treated as fact correctness. The current four-worker process retest did not re-score report content, and the recent-fact test was designed to measure a different outcome. See [DRB evaluation and crossover](docs/development/drb-duckduckgo-15.md) (in Chinese).
 
 **Local knowledge base retrieval.** On a fixed RFC 9110 / 9111 corpus, switching lexical ranking to BM25 raised labelled evidence hits on 7 development questions from 6/15 to 15/15. See [BM25 comparison](evals/rfc_demo/bm25.md) (in Chinese).
 
-All samples are small, each configuration was run once, and live web results change over time. The generation model is Qwen Flash.
+These are small, single-run samples; live search results change over time. Fact-item correctness, run completion, retrieval hits and report-content scores are **distinct metrics**, not a single system accuracy score. The generation model used here is Qwen Flash; consult the linked reports for judging procedures and configuration details.
 
 ### Quick start
 
@@ -375,7 +434,7 @@ Stack: LangChain / LangGraph / DeepAgents, FastAPI, Celery, PostgreSQL, Qdrant, 
 ### Evaluation and deployment notes
 
 - The evaluation sets are small and each configuration was run once.
-- Parallel research is more accurate than a single round but takes about 3 times as long and about 4.6 times the input tokens.
+- In the specified recent-fact test, parallel research scored better than the single-round baseline, but on the original set used about 2.8× the median latency and 4.6× the median input tokens of the ≤8-query control; this is not a universal performance claim.
 - Citation checks confirm that an evidence ID exists, not that the cited text supports the statement.
 - Parallel mode covers the public web only and is triggered through the API with `"sources": ["web"]`.
 - The default registration switch, JWT secret and service credentials are for local development. Replace them and add authorization, rate limiting and monitoring before any public deployment.
