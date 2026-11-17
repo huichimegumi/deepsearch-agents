@@ -6,11 +6,11 @@
 
 DeepSearch Agents is a multi-agent research assistant that produces cited reports with a full run trace. It splits a question into subquestions, dispatches several researchers in parallel to search and read the web, and writes a report with links back to cited sources. Besides the public web, it can use a local knowledge base, a SQL database and uploaded files.
 
-![Four researchers search four subquestions concurrently](docs/images/web-research-running.png)
+![Researchers search different subquestions in parallel](docs/images/web-research-running.png)
 
 ## Web research in action
 
-This tennis doubles lookup dispatched four researchers at once. The completed view shows stage status, search and model usage, and source links in the report.
+This tennis doubles lookup dispatched multiple researchers to investigate different subquestions in parallel. The completed view shows stage status, search and model usage, and source links in the report.
 
 ![Completed report with run budget, evidence statistics and clickable citations](docs/images/web-research-report.png)
 
@@ -25,7 +25,7 @@ The frontend submits tasks over HTTP; FastAPI runs research in background asynci
 ```mermaid
 flowchart LR
     Q[Question] --> B[Research brief<br/>subquestions]
-    B --> P[Up to four parallel researchers<br/>search and read pages]
+    B --> P[Parallel researchers<br/>search and read pages]
     P --> E[(Evidence ledger<br/>source ID, snippet/page text)]
     E --> C[Evidence compression<br/>claims bound to evidence IDs]
     E --> W[Writer]
